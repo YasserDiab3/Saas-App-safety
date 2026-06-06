@@ -3,14 +3,18 @@
 المستودع: https://github.com/YasserDiab3/Saas-App-safety
 
 ## إعداد مشروع Vercel (مرة واحدة)
+الطريقة الأبسط (لا تحتاج أي إعداد في اللوحة — `vercel.json` يتكفّل بكل شيء):
 1. Vercel → **Add New → Project** → استورد `Saas-App-safety`.
-2. **Root Directory** = `frontend`  ← مهم (الموقع داخل مجلد frontend).
-3. Framework Preset = **Other** (موقع ثابت، بلا build).
-4. Build Command = (فارغ) · Output Directory = (فارغ، لأن Root = frontend).
-5. Deploy.
+2. Root Directory = **اتركه على الجذر** (`./`).
+3. Framework Preset = **Other** · Build Command = (فارغ) · Output Directory = (فارغ).
+4. Deploy → ثم **Redeploy** بعد آخر push.
 
-> `vercel.json` في الجذر يضبط cleanUrls + rewrite للجذر. مع Root=frontend
-> يخدم Vercel ملفات الواجهة مباشرة.
+> `vercel.json` في الجذر يعيد توجيه كل المسارات إلى `/frontend/...`
+> (`/` → `/frontend/index.html` و `/(.*)` → `/frontend/$1`)، فيُخدَم الموقع
+> من داخل مجلد frontend دون ضبط Root Directory.
+
+> بديل: يمكن بدلاً من ذلك ضبط **Root Directory = `frontend`** في اللوحة
+> (حينها يُتجاهل rewrite الجذر ويُخدَم index.html مباشرة). أي الطريقتين تعمل.
 
 ## بعد النشر
 - الرابط سيفتح `index.html` → بوابة SaaS (`useSupabaseBackend=true`) →
