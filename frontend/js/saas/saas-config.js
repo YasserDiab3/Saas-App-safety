@@ -9,7 +9,7 @@ window.SAAS_CONFIG = {
     supabaseUrl: 'https://tbkajjarkqhsdiabufjv.supabase.co',
     supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRia2FqamFya3Foc2RpYWJ1Zmp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3NzM1ODEsImV4cCI6MjA5NjM0OTU4MX0.gTXGYbBw8UOS0gGrrpjUKkxx5dG5qJmDuLybZOem9uE',
 
-    // عند true: الواجهة تستخدم Supabase بدل Apps Script. نتركه false حتى
-    // تُطبَّق الهجرات ويُختبَر الاتصال (Phase 3 يقلبه إلى true).
-    useSupabaseBackend: false
+    // عند true: الواجهة تستخدم Supabase بدل Apps Script.
+    // الهجرات مطبَّقة والاتصال مُختبَر E2E → مُفعّل لاختبار SaaS على Vercel.
+    useSupabaseBackend: true
 };
