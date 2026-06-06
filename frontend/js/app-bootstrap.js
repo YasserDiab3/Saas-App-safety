@@ -736,11 +736,42 @@
         },
 
         /**
+         * بوابة جلسة SaaS (Supabase). تُستدعى فقط عند useSupabaseBackend=true.
+         */
+        async _saasGate() {
+            try {
+                const user = await window.SaaSSession.requireSession('login.html');
+                if (!user) return; // تمت إعادة التوجيه لصفحة الدخول
+                await window.SaaSSession.hydrateAppStateUser();
+                this._sessionRestored = true;
+                log('✅ جلسة Supabase صالحة — فتح التطبيق');
+                if (typeof window.UI !== 'undefined' && typeof window.UI.showMainApp === 'function') {
+                    window.UI.showMainApp();
+                }
+                // تطبيق قيود الخطة على القوائم (إن توفّر)
+                if (window.SaaSGating && typeof window.SaaSGating.load === 'function') {
+                    window.SaaSGating.load().then(() => window.SaaSGating.applyToNav()).catch(() => {});
+                }
+            } catch (e) {
+                log('⚠️ فشل بوابة SaaS — تحويل لصفحة الدخول:', e);
+                location.href = 'login.html';
+            }
+        },
+
+        /**
          * التحقق من الجلسة واستعادتها (دالة مساعدة)
          */
         checkAndRestoreSession() {
             if (this._sessionRestored) {
                 log('✅ الجلسة مستعادة مسبقاً (fast-track) - تخطي');
+                return;
+            }
+
+            // ✅ SaaS mode: gate on the Supabase session instead of legacy storage.
+            // No session → redirect to login.html. Session → hydrate AppState
+            // currentUser from the Supabase user, then show the main app.
+            if (window.SAAS_CONFIG && window.SAAS_CONFIG.useSupabaseBackend && window.SaaSSession) {
+                this._saasGate();
                 return;
             }
 
