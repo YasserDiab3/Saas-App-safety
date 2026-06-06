@@ -1,0 +1,15 @@
+/**
+ * saas-config.js — public SaaS configuration.
+ *
+ * The ANON key is a PUBLIC client key (safe in the browser). All access is
+ * protected by Postgres Row-Level Security keyed to the JWT's tenant_id.
+ * NEVER put the service_role key here.
+ */
+window.SAAS_CONFIG = {
+    supabaseUrl: 'https://tbkajjarkqhsdiabufjv.supabase.co',
+    supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRia2FqamFya3Foc2RpYWJ1Zmp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3NzM1ODEsImV4cCI6MjA5NjM0OTU4MX0.gTXGYbBw8UOS0gGrrpjUKkxx5dG5qJmDuLybZOem9uE',
+
+    // عند true: الواجهة تستخدم Supabase بدل Apps Script. نتركه false حتى
+    // تُطبَّق الهجرات ويُختبَر الاتصال (Phase 3 يقلبه إلى true).
+    useSupabaseBackend: false
+};

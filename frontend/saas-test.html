@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SaaS Connectivity Test — HSE</title>
+<style>
+  body { font-family: Tahoma, Arial, sans-serif; background:#0f172a; color:#e2e8f0; padding:24px; max-width:760px; margin:auto; }
+  h1 { font-size:1.2rem; color:#60a5fa; }
+  .card { background:#1e293b; border:1px solid #334155; border-radius:10px; padding:14px; margin:12px 0; }
+  label { display:block; font-size:0.8rem; color:#94a3b8; margin:6px 0 2px; }
+  input { width:100%; padding:8px 10px; border-radius:8px; border:1px solid #475569; background:#0f172a; color:#e2e8f0; box-sizing:border-box; }
+  button { background:#2563eb; color:#fff; border:none; padding:8px 14px; border-radius:8px; cursor:pointer; font-weight:600; margin:6px 4px 0 0; }
+  button:hover { background:#1d4ed8; }
+  pre { background:#020617; border:1px solid #334155; border-radius:8px; padding:12px; overflow:auto; max-height:320px; font-size:0.78rem; white-space:pre-wrap; }
+  .ok { color:#4ade80; } .err { color:#f87171; } .muted{color:#64748b;}
+</style>
+</head>
+<body>
+  <h1>🔌 اختبار اتصال SaaS (Supabase)</h1>
+  <p class="muted">صفحة معزولة لاختبار الاتصال بعد تطبيق الهجرات. لا تمسّ التطبيق الرئيسي.</p>
+
+  <div class="card">
+    <label>البريد</label><input id="email" value="owner@test.com">
+    <label>كلمة المرور</label><input id="pwd" type="password" value="Test12345!">
+    <label>اسم المؤسسة (للتسجيل الأول)</label><input id="tenant" value="شركة تجريبية">
+    <div>
+      <button onclick="doSignup()">1) تسجيل حساب</button>
+      <button onclick="doLogin()">2) دخول</button>
+      <button onclick="doProvision()">3) إنشاء مؤسسة</button>
+      <button onclick="doWhoami()">من أنا + tenant</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <label>اسم الورقة</label><input id="sheet" value="UserTasks">
+    <div>
+      <button onclick="doRead()">قراءة الورقة</button>
+      <button onclick="doInsert()">إدراج صف تجريبي</button>
+      <button onclick="doReadAgain()">قراءة بعد الإدراج</button>
+      <button onclick="doSignout()">خروج</button>
+    </div>
+  </div>
+
+  <pre id="out">جاهز…</pre>
+
+  <script src="js/saas/saas-config.js"></script>
+  <script src="js/saas/supabase-bootstrap.js"></script>
+  <script src="js/saas/saas-adapter.js"></script>
+  <script>
+    const out = document.getElementById('out');
+    const v = id => document.getElementById(id).value;
+    function log(label, obj, cls) {
+      const t = new Date().toLocaleTimeString();
+      out.innerHTML = `<span class="${cls||''}">[${t}] ${label}</span>\n` +
+        (typeof obj === 'string' ? obj : JSON.stringify(obj, null, 2)) + '\n\n' + out.innerHTML;
+    }
+    async function doSignup() {
+      const r = await SaaS.signUp(v('email'), v('pwd'), 'Owner Test');
+      log('signUp', r.error ? r.error.message : r.data, r.error ? 'err' : 'ok');
+    }
+    async function doLogin() {
+      const r = await SaaSAdapter.sendRequest({ action:'login', data:{ email:v('email'), password:v('pwd') }});
+      log('login', r, r.success ? 'ok' : 'err');
+    }
+    async function doProvision() {
+      await SaaS.ready;
+      const { data, error } = await SaaS.client().rpc('api_provision_tenant', { p_name: v('tenant') });
+      log('provision_tenant', error ? error.message : data, error ? 'err' : 'ok');
+    }
+    async function doWhoami() {
+      const u = await SaaS.getUser(); const t = await SaaS.getTenantId();
+      log('whoami', { user: u && u.email, jwt_tenant_claim: t }, 'ok');
+    }
+    async function doRead() {
+      const r = await SaaSAdapter.sendRequest({ action:'readFromSheet', data:{ sheetName:v('sheet') }});
+      log('readFromSheet '+v('sheet'), r, r.success ? 'ok' : 'err');
+    }
+    async function doInsert() {
+      const row = { id:'TEST-'+Date.now(), title:'مهمة اختبار', status:'قيد التنفيذ', priority:'متوسط' };
+      const r = await SaaSAdapter.sendRequest({ action:'appendToSheet', data:{ sheetName:v('sheet'), data: row }});
+      log('appendToSheet', r, r.success ? 'ok' : 'err');
+    }
+    async function doReadAgain() { return doRead(); }
+    async function doSignout() { await SaaS.signOut(); log('signOut', 'done', 'ok'); }
+  </script>
+</body>
+</html>
