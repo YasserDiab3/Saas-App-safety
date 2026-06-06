@@ -1,0 +1,255 @@
+/* ========================================
+   Behavior Monitoring Module - UI Enhancements
+   تطوير واجهة موديول مراقبة السلوكيات
+   (كروت النظرة العامة بنفس أسلوب قائمة المخالفات)
+   ======================================== */
+
+/* Cards */
+.behavior-overview-card .card-header,
+.behavior-form-card .card-header,
+.behavior-filters-card .card-header {
+    background: linear-gradient(135deg, rgba(147, 51, 234, 0.08), rgba(59, 130, 246, 0.06));
+}
+
+[data-theme="dark"] .behavior-overview-card .card-header,
+[data-theme="dark"] .behavior-form-card .card-header,
+[data-theme="dark"] .behavior-filters-card .card-header {
+    background: linear-gradient(135deg, rgba(147, 51, 234, 0.18), rgba(59, 130, 246, 0.12));
+}
+
+/* Overview stats — صف واحد (5 كروت)، نفس تدرجات/حدود المخالفات */
+.behavior-overview-stats-scroller {
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 0.25rem;
+    -webkit-overflow-scrolling: touch;
+}
+
+.behavior-overview-stats {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: stretch;
+    gap: 1rem;
+    width: 100%;
+}
+
+.behavior-overview-stats .behavior-stat {
+    flex: 1 1 0;
+    min-width: 11rem;
+    border-radius: 12px;
+    padding: 1.25rem 1.35rem;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.behavior-overview-stats .behavior-stat:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+}
+
+.behavior-stat-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.behavior-stat-caption {
+    margin-bottom: 0.35rem !important;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+.behavior-stat-value {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: 0.01em;
+}
+
+.behavior-stat-fa {
+    flex-shrink: 0;
+    font-size: 1.35rem;
+    opacity: 0.95;
+}
+
+/* إجمالي — وردي/أحمر مثل «إجمالي المخالفات» */
+.behavior-stat-total {
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    border: 1px solid #fca5a5;
+}
+
+.behavior-stat-total .behavior-stat-value {
+    color: #b91c1c;
+}
+
+.behavior-stat-total .behavior-stat-fa {
+    color: #dc2626;
+}
+
+/* موظفين — أزرق مثل «مخالفات الموظفين» */
+.behavior-stat-employees {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    border: 1px solid #93c5fd;
+}
+
+.behavior-stat-employees .behavior-stat-value {
+    color: #1d4ed8;
+}
+
+.behavior-stat-employees .behavior-stat-fa {
+    color: #2563eb;
+}
+
+/* مقاولين — خوخي مثل «مخالفات المقاولين» */
+.behavior-stat-contractors {
+    background: linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%);
+    border: 1px solid #fdba74;
+}
+
+.behavior-stat-contractors .behavior-stat-value {
+    color: #c2410c;
+}
+
+.behavior-stat-contractors .behavior-stat-fa {
+    color: #ea580c;
+}
+
+/* سلبي — أحمر أوضح من بطاقة الإجمالي */
+.behavior-stat-negative {
+    background: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%);
+    border: 1px solid #f87171;
+}
+
+.behavior-stat-negative .behavior-stat-value {
+    color: #991b1b;
+}
+
+.behavior-stat-negative .behavior-stat-fa {
+    color: #b91c1c;
+}
+
+/* إيجابي — أخضر مثل «إجمالي القيمة المالية» في المخالفات */
+.behavior-stat-positive {
+    background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+    border: 1px solid #86efac;
+}
+
+.behavior-stat-positive .behavior-stat-value {
+    color: #15803d;
+}
+
+.behavior-stat-positive .behavior-stat-fa {
+    color: #16a34a;
+}
+
+[data-theme="dark"] .behavior-overview-stats .behavior-stat {
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+}
+
+[data-theme="dark"] .behavior-stat-caption {
+    color: rgba(226, 232, 240, 0.88);
+}
+
+.behavior-dynamic-filter-wrap {
+    border-radius: 14px;
+    border: 1px solid rgba(99, 102, 241, 0.14);
+    background: linear-gradient(180deg, rgba(248, 250, 252, 0.95), rgba(255, 255, 255, 0.98));
+}
+
+.behavior-filter-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    padding: 0.75rem 0.85rem;
+    border: 1px dashed rgba(99, 102, 241, 0.22);
+    border-radius: 12px;
+    margin-bottom: 0.9rem;
+    background: rgba(255, 255, 255, 0.72);
+}
+
+.behavior-filter-topbar-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: #475569;
+    font-size: 0.84rem;
+    font-weight: 600;
+}
+
+.behavior-active-filter-chips {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+}
+
+.behavior-filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.28rem 0.62rem;
+    border-radius: 999px;
+    border: 1px solid rgba(99, 102, 241, 0.22);
+    background: rgba(238, 242, 255, 0.75);
+    color: #3730a3;
+    font-size: 0.74rem;
+    line-height: 1.2;
+}
+
+.behavior-filter-chip.behavior-filter-chip-muted {
+    border-color: rgba(148, 163, 184, 0.28);
+    background: rgba(248, 250, 252, 0.88);
+    color: #64748b;
+}
+
+/* Form wrapper color accents */
+.behavior-form-wrapper {
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 1rem;
+    background: linear-gradient(180deg, rgba(99, 102, 241, 0.04), rgba(255, 255, 255, 0));
+}
+
+[data-theme="dark"] .behavior-form-wrapper {
+    background: linear-gradient(180deg, rgba(99, 102, 241, 0.1), rgba(0, 0, 0, 0));
+}
+
+.behavior-form-wrapper[data-behavior-type="إيجابي"] {
+    border-color: rgba(16, 185, 129, 0.35);
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.06);
+}
+
+.behavior-form-wrapper[data-behavior-type="سلبي"] {
+    border-color: rgba(239, 68, 68, 0.35);
+    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.06);
+}
+
+/* Modal header theming */
+.behavior-modal .modal-header {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(147, 51, 234, 0.06));
+}
+
+.behavior-modal[data-behavior-type="إيجابي"] .modal-header {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.14), rgba(59, 130, 246, 0.08));
+}
+
+.behavior-modal[data-behavior-type="سلبي"] .modal-header {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.14), rgba(245, 158, 11, 0.08));
+}
+
+[data-theme="dark"] .behavior-modal .modal-header {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.18), rgba(147, 51, 234, 0.12));
+}
+
+[data-theme="dark"] .behavior-modal[data-behavior-type="إيجابي"] .modal-header {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.22), rgba(59, 130, 246, 0.14));
+}
+
+[data-theme="dark"] .behavior-modal[data-behavior-type="سلبي"] .modal-header {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.22), rgba(245, 158, 11, 0.14));
+}
