@@ -58,13 +58,38 @@
         // … extend incrementally. Unmapped CRUD falls through to convention.
     };
 
-    // Actions that REQUIRE server-side business logic (ported via Edge Function
-    // in Phase 2b). Listed so the app fails loudly & traceably, not silently.
+    // Business-logic actions — now handled by atomic Postgres RPCs (0007).
+    function clinicSheetFor(data) {
+        const pt = String((data && data.personType) || '').toLowerCase();
+        return (pt === 'contractor' || pt === 'external') ? 'ClinicContractorVisits' : 'ClinicVisits';
+    }
+    async function handleBusiness(action, data) {
+        switch (action) {
+            case 'addClinicVisit': {
+                const visit = { ...data }; const adj = data.medicationAdjustments || [];
+                return await rpc('api_add_clinic_visit', { p_sheet: clinicSheetFor(data), p_visit: visit, p_adjustments: adj });
+            }
+            case 'updateClinicVisit': {
+                const ud = data.updateData || data;
+                const visit = { ...ud, id: data.visitId || ud.id };
+                const adj = ud.medicationAdjustments || data.medicationAdjustments || [];
+                return await rpc('api_add_clinic_visit', { p_sheet: clinicSheetFor(visit), p_visit: visit, p_adjustments: adj });
+            }
+            case 'getAllClinicVisits':
+                return wrapArray(await rpc('api_get_all_clinic_visits', {}));
+            case 'updateTaskCompletionRate':
+                return await rpc('api_update_task_completion', {
+                    p_task_id: data.taskId || data.task_id,
+                    p_rate: Number(data.completionRate ?? data.completion_rate)
+                });
+            case 'getUserTasksByUserId':
+                return wrapArray(await rpc('api_get_user_tasks', { p_user_id: data.userId || data.user_id }));
+        }
+        return null;
+    }
     const BUSINESS_ACTIONS = new Set([
-        'addClinicVisit', 'updateClinicVisit',        // medication deduction (atomic + LockService)
-        'updateTaskCompletionRate',                   // per-user progress merge
-        'getUserTasksByUserId',                       // access-filtered read
-        'getAllClinicVisits'                          // merges employee+contractor sheets
+        'addClinicVisit', 'updateClinicVisit', 'updateTaskCompletionRate',
+        'getUserTasksByUserId', 'getAllClinicVisits'
     ]);
 
     // convention fallback: getAllX / addX / updateX / deleteX
@@ -113,7 +138,8 @@
         }
 
         if (BUSINESS_ACTIONS.has(action)) {
-            return { success: false, message: `action '${action}' يتطلب منطق الخادم (Edge Function) — لم يُنقل بعد (Phase 2b)`, _needsEdgeFunction: true };
+            const br = await handleBusiness(action, data);
+            if (br) return br;
         }
 
         return { success: false, message: `action غير معروف في محوّل SaaS: '${action}'`, _unmapped: true };

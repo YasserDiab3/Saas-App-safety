@@ -1274,6 +1274,14 @@ const GoogleIntegration = {
             throw new Error('يجب إدخال action في الطلب');
         }
 
+        // ✅ SaaS switch (Strangler-Fig): when enabled, route the legacy
+        // {action,data} contract to Supabase via SaaSAdapter instead of
+        // Apps Script. Zero changes to the 38 modules — they keep calling
+        // GoogleIntegration.sendRequest exactly as before.
+        if (window.SAAS_CONFIG && window.SAAS_CONFIG.useSupabaseBackend && window.SaaSAdapter) {
+            return await window.SaaSAdapter.sendRequest({ action, data });
+        }
+
         // Actions التي يمكن cache-ها (عمليات قراءة فقط)
         const cacheableActions = ['readFromSheet', 'getData', 'getSafetyTeamMembers',
             'getSafetyTeamMember', 'getOrganizationalStructure', 'getJobDescription',

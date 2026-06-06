@@ -12779,6 +12779,13 @@
         <!-- Lazy Loader - نظام التحميل الديناميكي -->
         <script src="js/modules/lazy-loader.js" defer></script>
 
+        <!-- ✅ SaaS layer (load before app modules so SaaSAdapter exists when
+             GoogleIntegration.sendRequest delegates). Controlled by
+             SAAS_CONFIG.useSupabaseBackend in saas-config.js. -->
+        <script src="js/saas/saas-config.js" defer></script>
+        <script src="js/saas/supabase-bootstrap.js" defer></script>
+        <script src="js/saas/saas-adapter.js" defer></script>
+
         <!-- Main App - Refactored Modules -->
         <!-- 1. Utils and Constants (must be loaded first) -->
         <script src="js/modules/app-utils.js?v=20260525-deploy124" defer></script>
