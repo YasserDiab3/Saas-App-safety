@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>الاشتراك والفوترة — HSE SaaS</title>
+<style>
+  *{box-sizing:border-box} body{font-family:Tahoma,Arial,sans-serif;margin:0;background:#f1f5f9;color:#1e293b;padding:24px}
+  .wrap{max-width:900px;margin:auto}
+  h1{font-size:1.4rem;color:#1e3a8a}
+  .status{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px 20px;margin:14px 0}
+  .plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:8px}
+  .plan{background:#fff;border:2px solid #e2e8f0;border-radius:14px;padding:20px;text-align:center}
+  .plan.cur{border-color:#16a34a}
+  .plan h2{margin:.2rem 0;font-size:1.2rem;color:#1e293b}
+  .plan .lim{color:#64748b;font-size:.85rem;margin:8px 0}
+  .plan button{width:100%;height:42px;border:none;border-radius:9px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;font-weight:700;cursor:pointer}
+  .plan button:disabled{background:#cbd5e1;cursor:default}
+  .badge{display:inline-block;font-size:.72rem;font-weight:700;padding:2px 8px;border-radius:999px;background:#dcfce7;color:#15803d}
+  a{color:#2563eb}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>💳 الاشتراك والفوترة</h1>
+    <div class="status" id="status">جاري التحميل…</div>
+    <div class="plans" id="plans"></div>
+    <p style="margin-top:16px"><a href="index.html">← العودة للتطبيق</a></p>
+  </div>
+
+  <script src="js/saas/saas-config.js"></script>
+  <script src="js/saas/supabase-bootstrap.js"></script>
+  <script>
+    const limits = { free:'حتى 5 مستخدمين', pro:'حتى 50 مستخدم', enterprise:'حتى 1000 مستخدم' };
+    async function load(){
+      await SaaS.ready;
+      const s = await SaaS.getSession();
+      if(!s){ location.href='login.html'; return; }
+      const { data, error } = await SaaS.client().rpc('api_billing_status');
+      if(error){ document.getElementById('status').textContent='خطأ: '+error.message; return; }
+      const t = data.tenant || {}; const sub = data.subscription || {};
+      document.getElementById('status').innerHTML =
+        `<b>المؤسسة:</b> ${t.name||'-'} &nbsp;|&nbsp; <b>الخطة:</b> <span class="badge">${t.plan_id||'free'}</span>`+
+        ` &nbsp;|&nbsp; <b>الحالة:</b> ${t.status||'-'}`+
+        (sub.current_period_end?` &nbsp;|&nbsp; التجديد: ${new Date(sub.current_period_end).toLocaleDateString('ar-EG')}`:'');
+      const plans = data.plans || [];
+      document.getElementById('plans').innerHTML = plans.map(p=>{
+        const cur = (t.plan_id===p.id);
+        const canBuy = p.id!=='free' && !cur;
+        return `<div class="plan ${cur?'cur':''}">
+          <h2>${p.name}</h2>
+          <div class="lim">${limits[p.id]||(p.max_users+' مستخدم')}</div>
+          ${cur?'<button disabled>خطتك الحالية</button>':
+             (p.id==='free'?'<button disabled>افتراضية</button>':
+              `<button onclick="checkout('${p.id}')">الاشتراك</button>`)}
+        </div>`;
+      }).join('');
+    }
+    async function checkout(plan){
+      const s = await SaaS.getSession();
+      const res = await fetch(`${SAAS_CONFIG.supabaseUrl}/functions/v1/create-checkout`, {
+        method:'POST',
+        headers:{ 'Authorization':`Bearer ${s.access_token}`, 'apikey':SAAS_CONFIG.supabaseAnonKey, 'Content-Type':'application/json' },
+        body: JSON.stringify({ plan })
+      });
+      const j = await res.json();
+      if(j.url) location.href = j.url; else alert('تعذّر بدء الدفع: '+(j.error||res.status));
+    }
+    load();
+  </script>
+</body>
+</html>

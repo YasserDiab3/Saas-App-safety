@@ -27,11 +27,28 @@ A: api_read_sheet → ما زال يرى صفه فقط ✅
   للتجربة؛ يُعاد تفعيل تأكيد البريد قبل الإطلاق العام.
 - التسلسل الصحيح: signup ثم signin (signInWithPassword) للحصول على جلسة.
 
-## ⏭️ التالي
-- **Phase 2b**: نقل أفعال منطق الخادم (BUSINESS_ACTIONS) عبر Edge Function:
-  addClinicVisit/updateClinicVisit (خصم الأدوية الذرّي)، updateTaskCompletionRate،
-  getUserTasksByUserId، getAllClinicVisits.
-- **Phase 3**: قلب `useSupabaseBackend=true` وربط `google-integration.js` →
-  تشغيل الـ38 مديول على Supabase.
-- **Phase 4**: التسجيل الذاتي وواجهة الـ onboarding/الأدوار.
-- **Phase 5**: فوترة Stripe + plan-gating.
+## ✅ Phase 2b — أفعال منطق الخادم (كود مكتمل)
+RPCs ذرّية في `0007_business_logic.sql`: api_add_clinic_visit (خصم أدوية
+atomic عبر SELECT FOR UPDATE — بديل LockService)، api_get_all_clinic_visits،
+api_update_task_completion، api_get_user_tasks. الموصِّل يربطها.
+⏳ يتطلب تطبيق الهجرة 0007 على Supabase.
+
+## ✅ Phase 3 — ربط الـ38 مديول (كود مكتمل)
+`GoogleIntegration.sendRequest` يفوّض إلى `SaaSAdapter` عند
+`useSupabaseBackend=true`. سكربتات saas مُحمّلة في index.html قبل المديولات.
+العلم يبقى false حتى ربط الجلسة + اختبار.
+
+## ✅ Phase 4 — التسجيل الذاتي (كود مكتمل)
+`signup.html` (حساب + مؤسسة → provision)، `login.html`، `saas-session.js`.
+⏳ المتبقي: ربط جلسة Supabase بـ AppState في app-bootstrap عند التفعيل.
+
+## ✅ Phase 5 — فوترة Stripe (كود مكتمل، يحتاج نشر + مفاتيح)
+`0008_billing.sql` + Edge Functions (stripe-webhook, create-checkout) +
+`billing.html` + `plan-gating.js`. خطوات النشر في `BILLING_AND_DEPLOY.md`.
+⏳ يتطلب: حساب Stripe + أسعار + نشر functions + تطبيق 0008.
+
+## ⏭️ الخطوات اليدوية المتبقية
+1. تطبيق الهجرتين 0007 + 0008 (SQL Editor أو db push).
+2. حساب Stripe + price ids + نشر الـ functions + ضبط الأسرار + webhook.
+3. ربط جلسة Supabase بـ app-bootstrap ثم قلب useSupabaseBackend=true.
+4. اختبار شامل للمديولات على Supabase ثم النشر على Vercel جديد.
