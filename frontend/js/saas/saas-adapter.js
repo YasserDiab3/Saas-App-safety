@@ -110,7 +110,22 @@
             case 'login': {
                 const r = await global.SaaS.signIn(data.email, data.password);
                 if (r.error) return { success: false, message: r.error.message };
-                return { success: true, data: { user: r.data?.user || null } };
+                // Legacy auth.js reads loginResult.user (NOT .data.user) and needs a
+                // role/permissions-bearing user, else it falls through to the local
+                // fallback and wrongly reports "invalid credentials". Tenant owner ⇒ admin.
+                const su = (r.data && r.data.user) || {};
+                const role = (su.app_metadata && su.app_metadata.role) || 'admin';
+                const user = {
+                    id: su.id,
+                    email: su.email,
+                    name: (su.user_metadata && su.user_metadata.full_name) || su.email,
+                    role: role,
+                    department: '',
+                    permissions: { admin: true, 'manage-modules': true },
+                    active: true,
+                    passwordChanged: true
+                };
+                return { success: true, user: user, data: { user: user } };
             }
             case 'readFromSheet':
                 return wrapArray(await rpc('api_read_sheet', { p_sheet: data.sheetName }));
