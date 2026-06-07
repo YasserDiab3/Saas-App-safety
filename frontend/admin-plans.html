@@ -106,7 +106,17 @@
         card.className = 'card';
         card.innerHTML =
           `<div class="plan-hd"><b>${p.name} (${p.id})</b>
-             <span class="limits">مستخدمون: ${p.max_users} · تخزين: ${p.storage_mb}MB ${allMode?'· (كل المديولات)':''}</span></div>
+             <span class="limits">${allMode?'(كل المديولات متاحة)':''}</span></div>
+           <div class="row" style="margin:0 0 12px">
+             <label class="limits">حدّ المستخدمين
+               <input type="number" min="1" id="u-${p.id}" value="${p.max_users}"
+                 style="width:90px;height:34px;border:1.5px solid #e2e8f0;border-radius:8px;padding:0 8px;margin-inline-start:6px">
+             </label>
+             <label class="limits">التخزين (MB)
+               <input type="number" min="1" id="s-${p.id}" value="${p.storage_mb}"
+                 style="width:110px;height:34px;border:1.5px solid #e2e8f0;border-radius:8px;padding:0 8px;margin-inline-start:6px">
+             </label>
+           </div>
            <div class="grid">${MODULES.map(([k,lbl]) =>
              `<label class="mod"><input type="checkbox" data-k="${k}" ${(allMode||allowed.includes(k))?'checked':''}> ${lbl}</label>`
            ).join('')}</div>
@@ -130,11 +140,20 @@
       const mods = Array.from(card.querySelectorAll('input[type=checkbox]:checked')).map(c => c.getAttribute('data-k'));
       // all checked → store [] meaning "all" (keeps semantics + future-proof)
       const payload = (mods.length === MODULES.length) ? [] : mods;
+      const maxUsers  = parseInt($('u-'+planId).value, 10);
+      const storageMb = parseInt($('s-'+planId).value, 10);
       const m = $('m-'+planId);
       m.textContent = 'جارٍ الحفظ...'; m.className = 'msg';
-      const { data, error } = await SaaS.client().rpc('api_admin_set_plan_modules', { p_plan_id: planId, p_modules: payload });
-      if (error){ m.textContent = '⛔ ' + error.message; m.className='msg err'; return; }
-      m.textContent = '✅ تم الحفظ'; m.className='msg ok';
+      const client = SaaS.client();
+      const r1 = await client.rpc('api_admin_set_plan_modules', { p_plan_id: planId, p_modules: payload });
+      if (r1.error){ m.textContent = '⛔ ' + r1.error.message; m.className='msg err'; return; }
+      const r2 = await client.rpc('api_admin_set_plan_limits', {
+        p_plan_id: planId,
+        p_max_users:  Number.isFinite(maxUsers)  ? maxUsers  : null,
+        p_storage_mb: Number.isFinite(storageMb) ? storageMb : null
+      });
+      if (r2.error){ m.textContent = '⛔ ' + r2.error.message; m.className='msg err'; return; }
+      m.textContent = '✅ تم حفظ المديولات والحدود'; m.className='msg ok';
     }
   </script>
 </body>
