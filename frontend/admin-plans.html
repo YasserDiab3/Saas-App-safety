@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>إدارة الخطط — لوحة مدير المنصّة</title>
+<style>
+  *{box-sizing:border-box}
+  body{font-family:Tahoma,Arial,sans-serif;margin:0;background:#0f172a;color:#e2e8f0;min-height:100vh}
+  .wrap{max-width:1000px;margin:0 auto;padding:24px}
+  .hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+  .hd h1{font-size:1.4rem;margin:0}
+  .pill{font-size:.78rem;background:#1e3a8a;padding:4px 10px;border-radius:999px}
+  .card{background:#fff;color:#1e293b;border-radius:14px;padding:18px 20px;margin-bottom:16px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+  .plan-hd{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e2e8f0;padding-bottom:10px;margin-bottom:12px}
+  .plan-hd b{font-size:1.1rem;color:#1e3a8a}
+  .limits{font-size:.8rem;color:#64748b}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px}
+  label.mod{display:flex;align-items:center;gap:8px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:8px 10px;font-size:.85rem;cursor:pointer}
+  label.mod input{width:16px;height:16px}
+  .row{display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap}
+  button{border:none;border-radius:9px;padding:9px 16px;font-weight:700;cursor:pointer;font-size:.88rem}
+  .save{background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff}
+  .all{background:#e2e8f0;color:#1e293b}
+  .none{background:#fee2e2;color:#b91c1c}
+  .msg{font-size:.85rem;margin-inline-start:auto}
+  .ok{color:#16a34a}.err{color:#dc2626}
+  .note{font-size:.8rem;color:#94a3b8;margin-top:6px}
+  .login{max-width:380px;margin:60px auto;background:#fff;color:#1e293b;border-radius:14px;padding:24px}
+  .login input{width:100%;height:42px;border:1.5px solid #e2e8f0;border-radius:9px;padding:0 12px;margin-top:8px}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+  <!-- login gate -->
+  <div id="login" class="login hidden">
+    <h2 style="margin:0 0 10px">🛡️ دخول مدير المنصّة</h2>
+    <input id="email" type="email" placeholder="البريد">
+    <input id="pwd" type="password" placeholder="كلمة المرور">
+    <button class="save" style="width:100%;margin-top:14px" onclick="doLogin()">دخول</button>
+    <div id="lmsg" class="msg err" style="margin-top:8px"></div>
+  </div>
+
+  <!-- panel -->
+  <div id="panel" class="wrap hidden">
+    <div class="hd">
+      <h1>⚙️ إدارة مديولات الخطط</h1>
+      <span class="pill" id="who"></span>
+    </div>
+    <div id="plans"></div>
+    <p class="note">إفراغ كل المديولات لخطة = «كل المديولات متاحة». المديولات الأساسية (لوحة التحكم/الملف/الإعدادات/المستخدمون) متاحة دائماً لكل الخطط.</p>
+  </div>
+
+  <script src="js/saas/saas-config.js"></script>
+  <script src="js/saas/supabase-bootstrap.js"></script>
+  <script>
+    // feature modules catalog (nav data-section keys) ↔ Arabic labels
+    const MODULES = [
+      ['clinic','العيادة'],['incidents','الحوادث'],['nearmiss','الحوادث الوشيكة'],
+      ['daily-observations','الملاحظات اليومية'],['user-tasks','مهام المستخدمين'],
+      ['ppe','معدات الوقاية'],['violations','المخالفات'],['training','التدريب'],
+      ['contractors','المقاولون'],['employees','الموظفون'],['chemical-safety','السلامة الكيميائية'],
+      ['fire-equipment','معدات الحريق'],['periodic-inspections','الفحوصات الدورية'],
+      ['ptw','تصاريح العمل'],['risk-assessment','تقييم المخاطر'],['emergency','الطوارئ'],
+      ['safety-budget','ميزانية السلامة'],['safety-performance-kpis','مؤشرات الأداء'],
+      ['safety-health-management','إدارة الصحة والسلامة'],['sustainability','الاستدامة'],
+      ['behavior-monitoring','مراقبة السلوك'],['action-tracking','تتبع الإجراءات'],
+      ['legal-documents','المستندات القانونية'],['iso','نظام ISO'],['sop-jha','SOP / JHA'],
+      ['change-management','إدارة التغيير'],['issuing-authorities','جهات الإصدار'],
+      ['ai-assistant','المساعد الذكي']
+    ];
+    const $ = id => document.getElementById(id);
+
+    (async () => {
+      const s = await SaaS.getSession();
+      if (!s) { $('login').classList.remove('hidden'); return; }
+      await loadPlans();
+    })();
+
+    async function doLogin(){
+      const r = await SaaS.signIn($('email').value.trim(), $('pwd').value);
+      if (r.error){ $('lmsg').textContent = r.error.message || 'فشل الدخول'; return; }
+      $('login').classList.add('hidden');
+      await loadPlans();
+    }
+
+    async function loadPlans(){
+      const client = SaaS.client();
+      const { data: me } = await client.rpc('api_me');
+      const { data, error } = await client.rpc('api_admin_list_plans');
+      if (error){
+        document.body.innerHTML = '<div class="wrap"><div class="card" style="color:#b91c1c">⛔ هذا الحساب ليس مدير منصّة. (forbidden)</div></div>';
+        return;
+      }
+      $('panel').classList.remove('hidden');
+      $('who').textContent = (me && me.user_id) ? 'مدير المنصّة' : '';
+      renderPlans(data || []);
+    }
+
+    function renderPlans(plans){
+      $('plans').innerHTML = '';
+      plans.forEach(p => {
+        const allowed = Array.isArray(p.modules) ? p.modules : [];
+        const allMode = allowed.length === 0;
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML =
+          `<div class="plan-hd"><b>${p.name} (${p.id})</b>
+             <span class="limits">مستخدمون: ${p.max_users} · تخزين: ${p.storage_mb}MB ${allMode?'· (كل المديولات)':''}</span></div>
+           <div class="grid">${MODULES.map(([k,lbl]) =>
+             `<label class="mod"><input type="checkbox" data-k="${k}" ${(allMode||allowed.includes(k))?'checked':''}> ${lbl}</label>`
+           ).join('')}</div>
+           <div class="row">
+             <button class="all"  onclick="setAll(this,true)">تحديد الكل</button>
+             <button class="none" onclick="setAll(this,false)">إلغاء الكل</button>
+             <button class="save" data-plan="${p.id}" onclick="savePlan(this)">حفظ خطة ${p.name}</button>
+             <span class="msg" id="m-${p.id}"></span>
+           </div>`;
+        $('plans').appendChild(card);
+      });
+    }
+
+    function setAll(btn, val){
+      btn.closest('.card').querySelectorAll('input[type=checkbox]').forEach(c => c.checked = val);
+    }
+
+    async function savePlan(btn){
+      const card = btn.closest('.card');
+      const planId = btn.getAttribute('data-plan');
+      const mods = Array.from(card.querySelectorAll('input[type=checkbox]:checked')).map(c => c.getAttribute('data-k'));
+      // all checked → store [] meaning "all" (keeps semantics + future-proof)
+      const payload = (mods.length === MODULES.length) ? [] : mods;
+      const m = $('m-'+planId);
+      m.textContent = 'جارٍ الحفظ...'; m.className = 'msg';
+      const { data, error } = await SaaS.client().rpc('api_admin_set_plan_modules', { p_plan_id: planId, p_modules: payload });
+      if (error){ m.textContent = '⛔ ' + error.message; m.className='msg err'; return; }
+      m.textContent = '✅ تم الحفظ'; m.className='msg ok';
+    }
+  </script>
+</body>
+</html>

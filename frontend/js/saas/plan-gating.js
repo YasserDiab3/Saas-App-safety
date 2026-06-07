@@ -25,8 +25,12 @@
             };
             return this._state;
         },
+        // Always-available modules — never gated by plan (app would break /
+        // user would be locked out without them).
+        CORE: ['dashboard', 'profile', 'settings', 'users', 'apptester'],
         isModuleAllowed(moduleKey) {
-            if (!this._state || !this._state.allowed) return true; // all allowed
+            if (this.CORE.includes(moduleKey)) return true;       // core always on
+            if (!this._state || !this._state.allowed) return true; // [] / null = all
             return this._state.allowed.includes(moduleKey);
         },
         isReadOnly() {
