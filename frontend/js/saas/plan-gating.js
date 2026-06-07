@@ -13,18 +13,16 @@
         async load() {
             await global.SaaS.ready;
             const client = global.SaaS.client();
-            const [{ data: billing }, { data: plans }] = [
-                await client.rpc('api_billing_status'), { data: null }
-            ];
+            // api_billing_status now returns the active plan's `modules` allow-list
+            // directly (the old client.from('plans') path hit a non-exposed schema
+            // and silently failed → gating never applied).
+            const { data: billing } = await client.rpc('api_billing_status');
+            const mods = billing && billing.modules;
             this._state = {
                 planId: billing?.tenant?.plan_id || 'free',
                 status: billing?.tenant?.status || 'active',
-                allowed: null // [] / null = all
+                allowed: (Array.isArray(mods) && mods.length) ? mods : null // [] / null = all
             };
-            // fetch the plan's module allow-list
-            const { data: planRows } = await client.from('plans').select('id,modules').eq('id', this._state.planId).limit(1);
-            const mods = planRows && planRows[0] && planRows[0].modules;
-            this._state.allowed = (Array.isArray(mods) && mods.length) ? mods : null;
             return this._state;
         },
         isModuleAllowed(moduleKey) {

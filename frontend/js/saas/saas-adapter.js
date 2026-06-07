@@ -102,26 +102,44 @@
         return null;
     }
 
+    // Write actions blocked when the tenant is read-only (frozen/past_due).
+    // The DB enforces this too (records RLS, migration 0009); this is the
+    // friendly UX layer so the user sees a clear message, not an RLS error.
+    const WRITE_RE = /^(save|append|update|add|create|delete|remove|patch|set|upsert)/i;
+    function isWriteAction(action) {
+        if (action === 'login' || action === 'logout') return false;
+        if (/^updateSingleRowInSheet$/.test(action)) return true;
+        return WRITE_RE.test(action);
+    }
+
     async function handle(action, data) {
         data = data || {};
+
+        // read-only (frozen / past_due) tenants may not write
+        if (isWriteAction(action) && global.SaaSGating &&
+            typeof global.SaaSGating.isReadOnly === 'function' && global.SaaSGating.isReadOnly()) {
+            return { success: false, message: 'الحساب في وضع القراءة فقط (الاشتراك متوقف أو الدفع متعذّر). يرجى تحديث الاشتراك.' };
+        }
 
         // ---- generic transport ----
         switch (action) {
             case 'login': {
                 const r = await global.SaaS.signIn(data.email, data.password);
                 if (r.error) return { success: false, message: r.error.message };
-                // Legacy auth.js reads loginResult.user (NOT .data.user) and needs a
-                // role/permissions-bearing user, else it falls through to the local
-                // fallback and wrongly reports "invalid credentials". Tenant owner ⇒ admin.
+                // Legacy auth.js reads loginResult.user (NOT .data.user). Role is
+                // resolved SERVER-SIDE from tenant_users (api_me) — never assumed.
                 const su = (r.data && r.data.user) || {};
-                const role = (su.app_metadata && su.app_metadata.role) || 'admin';
+                const role = (global.SaaSSession && global.SaaSSession.resolveRole)
+                    ? await global.SaaSSession.resolveRole()
+                    : 'user';
+                const isAdmin = (role === 'admin');
                 const user = {
                     id: su.id,
                     email: su.email,
                     name: (su.user_metadata && su.user_metadata.full_name) || su.email,
                     role: role,
                     department: '',
-                    permissions: { admin: true, 'manage-modules': true },
+                    permissions: isAdmin ? { admin: true, 'manage-modules': true } : {},
                     active: true,
                     passwordChanged: true
                 };

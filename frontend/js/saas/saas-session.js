@@ -27,21 +27,42 @@
             return true;
         },
 
+        /**
+         * Authoritative tenant role for the signed-in user (from the DB via
+         * api_me), mapped to the legacy role engine. owner/admin ⇒ 'admin'
+         * (full nav); everyone else keeps their limited role. Falls back to
+         * 'user' on any failure (least privilege).
+         */
+        async resolveRole() {
+            try {
+                await global.SaaS.ready;
+                const client = global.SaaS.client();
+                if (!client) return 'user';
+                const { data, error } = await client.rpc('api_me');
+                if (error || !data) return 'user';
+                const r = (data.role || '').toLowerCase();
+                if (r === 'owner' || r === 'admin') return 'admin';
+                return r || 'user';
+            } catch (_e) {
+                return 'user';
+            }
+        },
+
         /** populate a legacy-compatible AppState.currentUser from the Supabase user */
         async hydrateAppStateUser() {
             const u = await global.SaaS.getUser();
             if (!u) return null;
-            // SaaS tenant owner ⇒ full access. The legacy nav/permission engine
-            // grants all modules when role is an admin role (Permissions.getPermissions
-            // returns ['*'] and updateNavigation un-hides everything). app_metadata.role
-            // can override later for invited non-admin members.
-            const role = (u.app_metadata && u.app_metadata.role) || 'admin';
+            // Role is resolved SERVER-SIDE from tenant_users (never assumed).
+            // The legacy nav/permission engine grants all modules for an admin
+            // role; non-admin members get the limited default UI.
+            const role = await this.resolveRole();
+            const isAdmin = (role === 'admin');
             const cu = {
                 id: u.id,
                 email: u.email,
                 name: (u.user_metadata && u.user_metadata.full_name) || u.email,
                 role: role,
-                permissions: { admin: true, 'manage-modules': true },
+                permissions: isAdmin ? { admin: true, 'manage-modules': true } : {},
                 isBootstrap: false,
                 loginTime: new Date().toISOString()
             };
