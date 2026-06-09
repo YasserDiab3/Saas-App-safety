@@ -4,67 +4,79 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>الاشتراك والفوترة — HSE SaaS</title>
-<style>
-  *{box-sizing:border-box} body{font-family:Tahoma,Arial,sans-serif;margin:0;background:#f1f5f9;color:#1e293b;padding:24px}
-  .wrap{max-width:900px;margin:auto}
-  h1{font-size:1.4rem;color:#1e3a8a}
-  .status{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px 20px;margin:14px 0}
-  .plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:8px}
-  .plan{background:#fff;border:2px solid #e2e8f0;border-radius:14px;padding:20px;text-align:center}
-  .plan.cur{border-color:#16a34a}
-  .plan h2{margin:.2rem 0;font-size:1.2rem;color:#1e293b}
-  .plan .lim{color:#64748b;font-size:.85rem;margin:8px 0}
-  .plan button{width:100%;height:42px;border:none;border-radius:9px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;font-weight:700;cursor:pointer}
-  .plan button:disabled{background:#cbd5e1;cursor:default}
-  .badge{display:inline-block;font-size:.72rem;font-weight:700;padding:2px 8px;border-radius:999px;background:#dcfce7;color:#15803d}
-  a{color:#2563eb}
-</style>
+<link rel="stylesheet" href="css/saas-pages.css">
 </head>
-<body>
-  <div class="wrap">
-    <h1>💳 الاشتراك والفوترة</h1>
-    <div class="status" id="status">جاري التحميل…</div>
+<body data-i18n-title="billing_doctitle">
+  <div class="saas-page">
+    <div class="saas-page-hd">
+      <h1>💳 <span data-i18n="billing_title">الاشتراك والفوترة</span></h1>
+    </div>
+    <div class="saas-panel" id="status" data-i18n="loading">جاري التحميل…</div>
     <div class="plans" id="plans"></div>
-    <p style="margin-top:16px"><a href="index.html">← العودة للتطبيق</a></p>
+    <p style="margin-top:18px"><a class="saas-link" href="index.html" data-i18n="back_app">← العودة للتطبيق</a></p>
   </div>
 
   <script src="js/saas/saas-config.js"></script>
   <script src="js/saas/supabase-bootstrap.js"></script>
+  <script src="js/saas/saas-i18n.js"></script>
   <script>
-    const limits = { free:'حتى 5 مستخدمين', pro:'حتى 50 مستخدم', enterprise:'حتى 1000 مستخدم' };
-    async function load(){
+    const T = k => SaaSI18n.t(k);
+    let _data = null;
+    const limKey = { free: 'lim_free', pro: 'lim_pro', enterprise: 'lim_enterprise' };
+
+    document.addEventListener('DOMContentLoaded', () => SaaSI18n.init(() => { if (_data) render(_data); }));
+
+    async function load() {
       await SaaS.ready;
       const s = await SaaS.getSession();
-      if(!s){ location.href='login.html'; return; }
+      if (!s) { location.href = 'login.html'; return; }
       const { data, error } = await SaaS.client().rpc('api_billing_status');
-      if(error){ document.getElementById('status').textContent='خطأ: '+error.message; return; }
-      const t = data.tenant || {}; const sub = data.subscription || {};
+      if (error) { document.getElementById('status').textContent = T('err_prefix') + error.message; return; }
+      _data = data; render(data);
+    }
+
+    function statusLabel(st) {
+      const map = { trialing: 'st_trialing', active: 'st_active', past_due: 'st_past_due', frozen: 'st_frozen', canceled: 'st_canceled' };
+      return map[st] ? T(map[st]) : (st || '-');
+    }
+    function statusBadge(st) {
+      const cls = (st === 'active' || st === 'trialing') ? 'ok' : (st === 'past_due' ? 'warn' : 'err');
+      return `<span class="badge ${cls}">${statusLabel(st)}</span>`;
+    }
+
+    function render(data) {
+      const t = data.tenant || {}, sub = data.subscription || {};
+      const locale = SaaSI18n.lang === 'ar' ? 'ar-EG' : 'en-US';
       document.getElementById('status').innerHTML =
-        `<b>المؤسسة:</b> ${t.name||'-'} &nbsp;|&nbsp; <b>الخطة:</b> <span class="badge">${t.plan_id||'free'}</span>`+
-        ` &nbsp;|&nbsp; <b>الحالة:</b> ${t.status||'-'}`+
-        (sub.current_period_end?` &nbsp;|&nbsp; التجديد: ${new Date(sub.current_period_end).toLocaleDateString('ar-EG')}`:'');
+        `<b data-x>${T('lbl_org')}:</b> ${t.name || '-'} &nbsp;|&nbsp; ` +
+        `<b>${T('lbl_plan')}:</b> <span class="badge ok">${t.plan_id || 'free'}</span> &nbsp;|&nbsp; ` +
+        `<b>${T('lbl_status')}:</b> ${statusBadge(t.status)}` +
+        (sub.current_period_end ? ` &nbsp;|&nbsp; <b>${T('lbl_renewal')}:</b> ${new Date(sub.current_period_end).toLocaleDateString(locale)}` : '');
+
       const plans = data.plans || [];
-      document.getElementById('plans').innerHTML = plans.map(p=>{
-        const cur = (t.plan_id===p.id);
-        const canBuy = p.id!=='free' && !cur;
-        return `<div class="plan ${cur?'cur':''}">
-          <h2>${p.name}</h2>
-          <div class="lim">${limits[p.id]||(p.max_users+' مستخدم')}</div>
-          ${cur?'<button disabled>خطتك الحالية</button>':
-             (p.id==='free'?'<button disabled>افتراضية</button>':
-              `<button onclick="checkout('${p.id}')">الاشتراك</button>`)}
-        </div>`;
+      document.getElementById('plans').innerHTML = plans.map(p => {
+        const cur = (t.plan_id === p.id);
+        const price = limKey[p.id] ? T(limKey[p.id]) : (p.max_users + ' ' + T('users_suffix'));
+        const btn = cur
+          ? `<button class="saas-btn" disabled>${T('current_plan')}</button>`
+          : (p.id === 'free'
+              ? `<button class="saas-btn ghost" disabled>${T('default_plan')}</button>`
+              : `<button class="saas-btn" onclick="checkout('${p.id}')">${T('subscribe')}</button>`);
+        return `<div class="plan ${cur ? 'cur' : ''}"><h2>${p.name}</h2><div class="price">${price}</div>${btn}</div>`;
       }).join('');
     }
-    async function checkout(plan){
+
+    async function checkout(plan) {
       const s = await SaaS.getSession();
-      const res = await fetch(`${SAAS_CONFIG.supabaseUrl}/functions/v1/create-checkout`, {
-        method:'POST',
-        headers:{ 'Authorization':`Bearer ${s.access_token}`, 'apikey':SAAS_CONFIG.supabaseAnonKey, 'Content-Type':'application/json' },
-        body: JSON.stringify({ plan })
-      });
-      const j = await res.json();
-      if(j.url) location.href = j.url; else alert('تعذّر بدء الدفع: '+(j.error||res.status));
+      try {
+        const res = await fetch(`${SAAS_CONFIG.supabaseUrl}/functions/v1/create-checkout`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${s.access_token}`, 'apikey': SAAS_CONFIG.supabaseAnonKey, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ plan })
+        });
+        const j = await res.json();
+        if (j.url) location.href = j.url; else alert(T('checkout_failed') + ': ' + (j.error || res.status));
+      } catch (e) { alert(T('checkout_failed') + ': ' + e.message); }
     }
     load();
   </script>

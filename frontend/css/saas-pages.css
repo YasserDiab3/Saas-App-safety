@@ -1,0 +1,127 @@
+/* ============================================================
+   saas-pages.css — shared professional theme for the standalone
+   SaaS pages (login / signup / billing / platform console).
+   RTL/LTR aware via logical properties. Bilingual-ready.
+   ============================================================ */
+:root{
+  --brand-900:#0b2545; --brand-800:#13315c; --brand-700:#1e3a8a;
+  --brand-600:#2563eb; --brand-500:#3b82f6; --brand-050:#eff6ff;
+  --ink:#0f172a; --ink-2:#475569; --ink-3:#64748b;
+  --line:#e2e8f0; --line-2:#cbd5e1; --bg:#f1f5f9; --white:#fff;
+  --ok:#16a34a; --ok-bg:#dcfce7; --err:#dc2626; --err-bg:#fee2e2;
+  --warn:#b45309; --warn-bg:#fef3c7;
+  --radius:16px; --shadow:0 20px 55px rgba(8,20,45,.28);
+  --font:"Segoe UI",Tahoma,Arial,system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:var(--font); color:var(--ink); min-height:100vh;
+  background:
+    radial-gradient(1200px 500px at 100% -10%, rgba(59,130,246,.25), transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, rgba(13,49,92,.45), transparent 55%),
+    linear-gradient(135deg,#0b2545,#13315c 55%,#1e3a8a);
+}
+
+/* ---- centered auth shell ---- */
+.saas-shell{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+
+/* ---- card ---- */
+.saas-card{
+  background:var(--white); width:100%; max-width:440px; border-radius:var(--radius);
+  box-shadow:var(--shadow); overflow:hidden; animation:rise .35s ease both;
+}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.saas-head{
+  background:linear-gradient(135deg,var(--brand-700),var(--brand-600));
+  color:#fff; padding:26px 28px; text-align:center; position:relative;
+}
+.saas-logo{
+  width:52px;height:52px;margin:0 auto 10px;border-radius:14px;
+  background:rgba(255,255,255,.15); display:grid;place-items:center;font-size:1.7rem;
+  border:1px solid rgba(255,255,255,.25);
+}
+.saas-head h1{margin:0;font-size:1.3rem;font-weight:800;letter-spacing:.2px}
+.saas-head p{margin:7px 0 0;font-size:.82rem;opacity:.9}
+.saas-body{padding:26px 28px}
+
+/* ---- fields ---- */
+.saas-field{margin-bottom:14px}
+.saas-field label{display:block;font-size:.8rem;font-weight:700;color:var(--ink-2);margin-bottom:6px}
+.saas-input{
+  width:100%;height:46px;padding:0 14px;border:1.5px solid var(--line);border-radius:11px;
+  font-size:.94rem;color:var(--ink);outline:none;transition:.15s;background:#fbfdff;font-family:inherit;
+}
+.saas-input:focus{border-color:var(--brand-600);box-shadow:0 0 0 4px rgba(37,99,235,.12);background:#fff}
+
+/* ---- buttons ---- */
+.saas-btn{
+  width:100%;height:48px;border:none;border-radius:11px;cursor:pointer;font-weight:800;
+  font-size:.95rem;color:#fff;font-family:inherit;
+  background:linear-gradient(135deg,var(--brand-600),#1d4ed8);
+  transition:transform .12s, box-shadow .12s; box-shadow:0 8px 20px rgba(37,99,235,.28);
+}
+.saas-btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 12px 26px rgba(37,99,235,.36)}
+.saas-btn:active:not(:disabled){transform:translateY(0)}
+.saas-btn:disabled{opacity:.55;cursor:not-allowed;box-shadow:none}
+.saas-btn.ghost{background:#eef2f7;color:var(--brand-700);box-shadow:none}
+.saas-btn.sm{height:38px;width:auto;padding:0 16px;font-size:.85rem;border-radius:9px}
+
+/* ---- messages ---- */
+.saas-msg{margin-top:12px;font-size:.85rem;min-height:20px;text-align:center}
+.saas-msg.ok{color:var(--ok)} .saas-msg.err{color:var(--err)}
+.saas-foot{text-align:center;margin-top:16px;font-size:.85rem;color:var(--ink-3)}
+.saas-foot a{color:var(--brand-600);text-decoration:none;font-weight:800}
+.saas-foot a:hover{text-decoration:underline}
+
+/* ---- language toggle (floating) ---- */
+.saas-lang-toggle{
+  position:fixed;inset-block-start:16px;inset-inline-end:16px;z-index:50;
+  height:38px;min-width:46px;padding:0 14px;border-radius:999px;cursor:pointer;
+  border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);
+  color:#fff;font-weight:800;font-size:.85rem;font-family:inherit;backdrop-filter:blur(6px);
+  display:flex;align-items:center;gap:6px;transition:.15s;
+}
+.saas-lang-toggle:hover{background:rgba(255,255,255,.22)}
+.saas-lang-toggle::before{content:"🌐";font-size:.95rem}
+
+/* ============================================================
+   Dashboard-style pages (billing / platform console)
+   ============================================================ */
+.saas-page{max-width:1000px;margin:0 auto;padding:28px 20px}
+.saas-page-hd{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+.saas-page-hd h1{font-size:1.4rem;margin:0;color:#fff;font-weight:800}
+.saas-pill{font-size:.78rem;background:rgba(255,255,255,.15);color:#fff;padding:5px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.25)}
+.saas-panel{background:var(--white);color:var(--ink);border-radius:14px;padding:18px 20px;margin-bottom:16px;box-shadow:0 10px 30px rgba(8,20,45,.18)}
+.saas-link{color:#dbeafe;text-decoration:none;font-weight:700}
+.saas-link:hover{text-decoration:underline}
+
+/* status badges */
+.badge{display:inline-block;font-size:.72rem;font-weight:800;padding:3px 10px;border-radius:999px}
+.badge.ok{background:var(--ok-bg);color:var(--ok)}
+.badge.warn{background:var(--warn-bg);color:var(--warn)}
+.badge.err{background:var(--err-bg);color:var(--err)}
+
+/* billing plan cards */
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;margin-top:6px}
+.plan{background:var(--white);border:2px solid var(--line);border-radius:14px;padding:22px 20px;text-align:center;transition:.15s}
+.plan:hover{border-color:var(--brand-500);transform:translateY(-2px)}
+.plan.cur{border-color:var(--ok);box-shadow:0 0 0 3px rgba(22,163,74,.12)}
+.plan h2{margin:.2rem 0;font-size:1.25rem;color:var(--brand-700)}
+.plan .price{font-size:.85rem;color:var(--ink-3);margin:8px 0 14px}
+
+/* platform console */
+.plan-card{background:var(--white);color:var(--ink);border-radius:14px;padding:18px 20px;margin-bottom:16px;box-shadow:0 10px 30px rgba(8,20,45,.18)}
+.plan-card .ph{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.plan-card .ph b{font-size:1.1rem;color:var(--brand-700)}
+.muted-s{font-size:.8rem;color:var(--ink-3)}
+.lim-input{width:96px;height:36px;border:1.5px solid var(--line);border-radius:9px;padding:0 10px;margin-inline-start:6px;font-family:inherit}
+.mod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px}
+label.mod{display:flex;align-items:center;gap:8px;background:#f8fafc;border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-size:.85rem;cursor:pointer;transition:.12s}
+label.mod:hover{background:var(--brand-050);border-color:var(--brand-500)}
+label.mod input{width:16px;height:16px;accent-color:var(--brand-600)}
+.row{display:flex;gap:10px;align-items:center;margin-top:14px;flex-wrap:wrap}
+.msg-inline{font-size:.84rem;margin-inline-start:auto}
+.msg-inline.ok{color:var(--ok)} .msg-inline.err{color:var(--err)}
+
+@media (max-width:520px){ .saas-head{padding:22px} .saas-body{padding:22px} }

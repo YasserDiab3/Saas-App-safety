@@ -4,66 +4,67 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>إنشاء حساب — HSE SaaS</title>
-<style>
-  *{box-sizing:border-box}
-  body{font-family:Tahoma,Arial,sans-serif;margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
-       background:linear-gradient(135deg,#0f172a,#1e3a5f,#1e40af);color:#e2e8f0;padding:20px}
-  .card{background:#fff;color:#1e293b;border-radius:18px;box-shadow:0 25px 60px rgba(0,0,0,.35);width:100%;max-width:440px;overflow:hidden}
-  .hd{background:linear-gradient(135deg,#1e3a8a,#2563eb);color:#fff;padding:22px 26px;text-align:center}
-  .hd h1{margin:0;font-size:1.35rem}.hd p{margin:6px 0 0;font-size:.82rem;opacity:.85}
-  .bd{padding:24px 26px}
-  label{display:block;font-size:.82rem;font-weight:700;color:#475569;margin:12px 0 5px}
-  input{width:100%;height:44px;padding:0 12px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:.92rem;outline:none;transition:.15s}
-  input:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.12)}
-  button{width:100%;height:46px;margin-top:18px;border:none;border-radius:10px;background:linear-gradient(135deg,#2563eb,#1d4ed8);
-         color:#fff;font-weight:700;font-size:.95rem;cursor:pointer}
-  button:disabled{opacity:.6;cursor:not-allowed}
-  .msg{margin-top:12px;font-size:.84rem;min-height:20px}
-  .err{color:#dc2626}.ok{color:#16a34a}
-  .foot{text-align:center;margin-top:14px;font-size:.84rem;color:#64748b}
-  a{color:#2563eb;text-decoration:none;font-weight:700}
-</style>
+<link rel="stylesheet" href="css/saas-pages.css">
 </head>
-<body>
-  <div class="card">
-    <div class="hd"><h1>🛡️ إنشاء مؤسسة جديدة</h1><p>منصّة إدارة السلامة المهنية (HSE)</p></div>
-    <div class="bd">
-      <label>اسم المؤسسة *</label>
-      <input id="org" placeholder="مثال: شركة النور للصناعات">
-      <label>الاسم الكامل *</label>
-      <input id="name" placeholder="اسمك">
-      <label>البريد الإلكتروني *</label>
-      <input id="email" type="email" placeholder="you@company.com">
-      <label>كلمة المرور *</label>
-      <input id="pwd" type="password" placeholder="8 أحرف على الأقل">
-      <button id="go" onclick="doSignup()">إنشاء الحساب والمؤسسة</button>
-      <div class="msg" id="msg"></div>
-      <div class="foot">لديك حساب؟ <a href="login.html">تسجيل الدخول</a></div>
+<body data-i18n-title="signup_doctitle">
+  <div class="saas-shell">
+    <div class="saas-card">
+      <div class="saas-head">
+        <div class="saas-logo">🛡️</div>
+        <h1 data-i18n="signup_title">إنشاء مؤسسة جديدة</h1>
+        <p data-i18n="brand_sub">منصّة إدارة السلامة المهنية (HSE)</p>
+      </div>
+      <div class="saas-body">
+        <div class="saas-field">
+          <label data-i18n="f_org">اسم المؤسسة</label>
+          <input id="org" class="saas-input" data-i18n-ph="ph_org">
+        </div>
+        <div class="saas-field">
+          <label data-i18n="f_name">الاسم الكامل</label>
+          <input id="name" class="saas-input" data-i18n-ph="ph_name" autocomplete="name">
+        </div>
+        <div class="saas-field">
+          <label data-i18n="f_email">البريد الإلكتروني</label>
+          <input id="email" class="saas-input" type="email" data-i18n-ph="ph_email" autocomplete="username">
+        </div>
+        <div class="saas-field">
+          <label data-i18n="f_password">كلمة المرور</label>
+          <input id="pwd" class="saas-input" type="password" data-i18n-ph="ph_pwd8" autocomplete="new-password">
+        </div>
+        <button id="go" class="saas-btn" data-i18n="btn_signup" onclick="doSignup()">إنشاء الحساب والمؤسسة</button>
+        <div class="saas-msg" id="msg"></div>
+        <div class="saas-foot">
+          <span data-i18n="have_account">لديك حساب؟</span>
+          <a href="login.html" data-i18n="login_link">تسجيل الدخول</a>
+        </div>
+      </div>
     </div>
   </div>
 
   <script src="js/saas/saas-config.js"></script>
   <script src="js/saas/supabase-bootstrap.js"></script>
+  <script src="js/saas/saas-i18n.js"></script>
   <script>
     const $ = id => document.getElementById(id);
-    const msg = (t, cls) => { $('msg').className = 'msg ' + (cls||''); $('msg').textContent = t; };
+    const T = k => SaaSI18n.t(k);
+    const msg = (t, cls) => { $('msg').className = 'saas-msg ' + (cls || ''); $('msg').textContent = t; };
+    document.addEventListener('DOMContentLoaded', () => SaaSI18n.init());
     async function doSignup() {
-      const org=$('org').value.trim(), name=$('name').value.trim(), email=$('email').value.trim(), pwd=$('pwd').value;
-      if(!org||!name||!email||!pwd){ msg('يرجى استكمال جميع الحقول','err'); return; }
-      if(pwd.length<8){ msg('كلمة المرور 8 أحرف على الأقل','err'); return; }
-      $('go').disabled=true; msg('جاري إنشاء الحساب...');
-      try{
-        const su = await SaaS.signUp(email,pwd,name);
-        if(su.error) throw new Error(su.error.message);
-        // get a session (autoconfirm on → sign in immediately)
-        const si = await SaaS.signIn(email,pwd);
-        if(si.error) throw new Error('تم إنشاء الحساب. فعّل بريدك ثم سجّل الدخول.');
-        msg('جاري تجهيز المؤسسة...');
-        const { data, error } = await SaaS.client().rpc('api_provision_tenant', { p_name: org });
-        if(error) throw new Error(error.message);
-        msg('تم بنجاح! جارٍ فتح التطبيق...','ok');
-        setTimeout(()=> location.href='index.html', 800);
-      }catch(e){ msg(e.message||'تعذّر إنشاء الحساب','err'); $('go').disabled=false; }
+      const org = $('org').value.trim(), name = $('name').value.trim(), email = $('email').value.trim(), pwd = $('pwd').value;
+      if (!org || !name || !email || !pwd) { msg(T('su_fill_all'), 'err'); return; }
+      if (pwd.length < 8) { msg(T('su_pwd_short'), 'err'); return; }
+      $('go').disabled = true; msg(T('su_creating'));
+      try {
+        const su = await SaaS.signUp(email, pwd, name);
+        if (su.error) throw new Error(su.error.message);
+        const si = await SaaS.signIn(email, pwd);
+        if (si.error) throw new Error(T('su_confirm_email'));
+        msg(T('su_provisioning'));
+        const { error } = await SaaS.client().rpc('api_provision_tenant', { p_name: org });
+        if (error) throw new Error(error.message);
+        msg(T('su_ok'), 'ok');
+        setTimeout(() => location.href = 'index.html', 800);
+      } catch (e) { msg(e.message || T('su_failed'), 'err'); $('go').disabled = false; }
     }
   </script>
 </body>
