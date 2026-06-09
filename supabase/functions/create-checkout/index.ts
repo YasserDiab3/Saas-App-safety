@@ -16,8 +16,18 @@ const PRICE: Record<string, string | undefined> = {
   enterprise: Deno.env.get('STRIPE_PRICE_ENTERPRISE')
 };
 
+// CORS — the browser calls this cross-origin from the Vercel site.
+const CORS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS'
+};
+const json = (obj: unknown, status = 200) =>
+  new Response(JSON.stringify(obj), { status, headers: { 'Content-Type': 'application/json', ...CORS } });
+
 Deno.serve(async (req) => {
-  if (req.method !== 'POST') return new Response('method not allowed', { status: 405 });
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
+  if (req.method !== 'POST') return json({ error: 'method not allowed' }, 405);
   try {
     const authHeader = req.headers.get('Authorization') ?? '';
     const jwt = authHeader.replace('Bearer ', '');
@@ -27,11 +37,11 @@ Deno.serve(async (req) => {
     });
     const { data: userData } = await supa.auth.getUser();
     const user = userData?.user;
-    if (!user) return new Response('unauthorized', { status: 401 });
+    if (!user) return json({ error: 'unauthorized' }, 401);
 
     const { plan } = await req.json();
     const priceId = PRICE[plan];
-    if (!priceId) return new Response('unknown plan', { status: 400 });
+    if (!priceId) return json({ error: 'unknown plan' }, 400);
 
     // ensure a Stripe customer for this tenant
     const { data: billing } = await supa.rpc('api_billing_status');
@@ -54,11 +64,9 @@ Deno.serve(async (req) => {
       allow_promotion_codes: true
     });
 
-    return new Response(JSON.stringify({ url: session.url }), {
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return json({ url: session.url });
   } catch (e) {
     console.error(e);
-    return new Response(JSON.stringify({ error: (e as Error).message }), { status: 500 });
+    return json({ error: (e as Error).message }, 500);
   }
 });
