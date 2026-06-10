@@ -1278,8 +1278,16 @@ const GoogleIntegration = {
         // {action,data} contract to Supabase via SaaSAdapter instead of
         // Apps Script. Zero changes to the 38 modules — they keep calling
         // GoogleIntegration.sendRequest exactly as before.
-        if (window.SAAS_CONFIG && window.SAAS_CONFIG.useSupabaseBackend && window.SaaSAdapter) {
-            return await window.SaaSAdapter.sendRequest({ action, data });
+        if (window.SAAS_CONFIG && window.SAAS_CONFIG.useSupabaseBackend) {
+            if (window.SaaSAdapter) {
+                return await window.SaaSAdapter.sendRequest({ action, data });
+            }
+            throw new Error('SaaS backend (Supabase) غير جاهز — Apps Script معطّل في هذه النسخة');
+        }
+        // 🔒 SaaS isolation: this is the SaaS build. Even if the flag is off, we
+        // must NEVER reach the old Apps Script / Google Sheets backend.
+        if (window.SAAS_CONFIG) {
+            throw new Error('Apps Script معطّل في نسخة SaaS — فعّل useSupabaseBackend=true');
         }
 
         // Actions التي يمكن cache-ها (عمليات قراءة فقط)

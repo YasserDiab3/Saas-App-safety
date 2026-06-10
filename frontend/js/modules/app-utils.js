@@ -2955,11 +2955,10 @@ const AppState = {
     /** إعدادات Google Apps Script و Google Sheets (الاسم التاريخي googleConfig) */
     googleConfig: {
         appsScript: {
-            enabled: true,
-            // ✅ v1.0.38 — تحديث إلى @124: إصلاح خصم الأدوية للزيارات الجديدة (capturedMedicationAdjustments)
-            // كان addClinicVisitToSheet يقرأ visitData.medicationAdjustments بعد ~140 سطر من المعالجة الوسيطة
-            // → في حال أي تحول للحقل (string، fault، إلخ) كان يفشل الخصم لكن EDIT يعمل لأنه يلتقطه مبكراً
-            scriptUrl: 'https://script.google.com/macros/s/AKfycbzxF2wNoo_g0Psy2k9dOG7i4X1wuw1mWSWirdXBpRu61eMBhRFhX1-5DEmNs5Ldjdjv/exec'
+            // 🔒 نسخة SaaS: الباكند هو Supabase حصراً — Apps Script معطّل ولا رابط له
+            // لمنع أي تداخل مع النسخة الإنتاجية القديمة (Google Sheets).
+            enabled: false,
+            scriptUrl: ''
         },
         sheets: {
             // يُفعَّل تلقائياً عند ضبط spreadsheetId من الإعدادات المحفوظة؛ المعرف الرسمي يُفضَّل في Script Properties بالخادم
@@ -3048,7 +3047,7 @@ const AppState = {
                             'AKfycbwhWmcjchhLNbl6cbr_BzsjrFkZOCUFk8pgoSONvbvIXHpRnqFqnER4esHiOZYIWL7X', // @120
                             'AKfycbyFmgpaD4d2y74A1T3uWzLXXFK7YJSPw5IA45uv2TpCUX3gkQJhcgjuVmZS6zPNWcMa', // @122 — broken addClinicVisit medication deduction
                         ];
-                        const LATEST_DEPLOYMENT_URL = 'https://script.google.com/macros/s/AKfycbzxF2wNoo_g0Psy2k9dOG7i4X1wuw1mWSWirdXBpRu61eMBhRFhX1-5DEmNs5Ldjdjv/exec';
+                        const LATEST_DEPLOYMENT_URL = ''; // 🔒 SaaS: never point to Apps Script
                         if (parsedUrl && OLD_DEPLOYMENT_URLS.some(old => parsedUrl.includes(old))) {
                             parsedUrl = LATEST_DEPLOYMENT_URL;
                             // حفظ الرابط المُحدَّث تلقائياً
@@ -3085,6 +3084,17 @@ const AppState = {
             }
         }
     } catch (mergeErr) { /* تجاهل تالف hse_google_config */ }
+
+    // 🔒 SaaS isolation (enforced unconditionally): this build NEVER talks to
+    // Apps Script — the backend is Supabase only. Neutralise any scriptUrl that
+    // may have arrived from a saved hse_google_config so there is ZERO chance of
+    // reaching the old production Google Sheets, even if a flag is mis-set.
+    try {
+        if (AppState.googleConfig && AppState.googleConfig.appsScript) {
+            AppState.googleConfig.appsScript.scriptUrl = '';
+            AppState.googleConfig.appsScript.enabled = false;
+        }
+    } catch (e) { /* ignore */ }
 })();
 
 // ===== Utility Functions =====
