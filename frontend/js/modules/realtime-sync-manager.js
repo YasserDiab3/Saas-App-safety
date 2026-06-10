@@ -162,8 +162,8 @@ const RealtimeSyncManager = {
         try {
             if (this.state.usersMetaPollId) return;
 
-            const isEnabled = AppState?.googleConfig?.appsScript?.enabled && AppState?.googleConfig?.appsScript?.scriptUrl;
-            if (!isEnabled || typeof GoogleIntegration === 'undefined' || !GoogleIntegration.sendRequest) {
+            const isEnabled = AppState?.backendConfig?.server?.enabled && AppState?.backendConfig?.server?.scriptUrl;
+            if (!isEnabled || typeof Backend === 'undefined' || !Backend.sendRequest) {
                 return;
             }
 
@@ -173,7 +173,7 @@ const RealtimeSyncManager = {
                     if (!AppState?.currentUser?.email) return;
                     if (!this.config.enableAutoSync) return;
 
-                    const res = await GoogleIntegration.sendRequest({
+                    const res = await Backend.sendRequest({
                         action: 'getUsersMeta',
                         data: { __timeoutMs: 4500 }
                     });
@@ -583,7 +583,7 @@ const RealtimeSyncManager = {
      * مزامنة جميع الموديولات
      */
     async syncAll(silent = true) {
-        if (!AppState.googleConfig?.appsScript?.enabled) {
+        if (!AppState.backendConfig?.server?.enabled) {
             return false;
         }
 
@@ -692,7 +692,7 @@ const RealtimeSyncManager = {
             // ✅ حالة خاصة: إصابات العيادة تُخزَّن في ورقتَين (Injuries + ClinicContractorInjuries)
             // يجب استخدام getAllInjuries للحصول على البيانات المدمجة من كلتيهما
             if (module === 'injuries') {
-                const result = await GoogleIntegration.sendRequest({
+                const result = await Backend.sendRequest({
                     action: 'getAllInjuries',
                     data: {}
                 });
@@ -753,11 +753,11 @@ const RealtimeSyncManager = {
             }
 
             // جلب البيانات من Google Sheets
-            const result = await GoogleIntegration.sendRequest({
+            const result = await Backend.sendRequest({
                 action: 'readFromSheet',
                 data: {
                     sheetName,
-                    spreadsheetId: AppState.googleConfig.sheets.spreadsheetId
+                    spreadsheetId: AppState.backendConfig.sheets.spreadsheetId
                 }
             });
 

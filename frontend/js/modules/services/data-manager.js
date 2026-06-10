@@ -127,8 +127,8 @@ const DataManager = {
                 this._pendingSyncQueue = rawQueue.map((item) => {
                     if (!item || typeof item !== 'object') return item;
                     const sheetName = item.sheetName;
-                    const normalizedData = (typeof GoogleIntegration !== 'undefined' && typeof GoogleIntegration.prepareSheetPayload === 'function')
-                        ? GoogleIntegration.prepareSheetPayload(sheetName, item.data)
+                    const normalizedData = (typeof Backend !== 'undefined' && typeof Backend.prepareSheetPayload === 'function')
+                        ? Backend.prepareSheetPayload(sheetName, item.data)
                         : item.data;
                     return { ...item, data: normalizedData };
                 });
@@ -170,8 +170,8 @@ const DataManager = {
             item => item.sheetName === sheetName
         );
 
-        const normalizedData = (typeof GoogleIntegration !== 'undefined' && typeof GoogleIntegration.prepareSheetPayload === 'function')
-            ? GoogleIntegration.prepareSheetPayload(sheetName, data)
+        const normalizedData = (typeof Backend !== 'undefined' && typeof Backend.prepareSheetPayload === 'function')
+            ? Backend.prepareSheetPayload(sheetName, data)
             : data;
 
         const pendingItem = {
@@ -218,14 +218,14 @@ const DataManager = {
             return { success: true, synced: 0, failed: 0 };
         }
         
-        // التحقق من تفعيل Google Apps Script
-        if (!AppState.googleConfig || !AppState.googleConfig.appsScript || !AppState.googleConfig.appsScript.enabled || !AppState.googleConfig.appsScript.scriptUrl) {
-            Utils.safeLog('ℹ️ Google Apps Script غير مفعّل، تخطي المزامنة');
-            return { success: false, synced: 0, failed: 0, message: 'Google Apps Script غير مفعّل' };
+        // التحقق من تفعيل الخادم السحابي
+        if (!AppState.backendConfig || !AppState.backendConfig.server || !AppState.backendConfig.server.enabled || !AppState.backendConfig.server.scriptUrl) {
+            Utils.safeLog('ℹ️ الخادم السحابي غير مفعّل، تخطي المزامنة');
+            return { success: false, synced: 0, failed: 0, message: 'الخادم السحابي غير مفعّل' };
         }
         
         // التحقق من وجود معرف Google Sheets
-        const spreadsheetId = AppState.googleConfig.sheets?.spreadsheetId?.trim();
+        const spreadsheetId = AppState.backendConfig.sheets?.spreadsheetId?.trim();
         if (!spreadsheetId || spreadsheetId === '') {
             Utils.safeLog('ℹ️ معرف Google Sheets غير محدد، تخطي المزامنة');
             return { success: false, synced: 0, failed: 0, message: 'معرف Google Sheets غير محدد' };
@@ -249,12 +249,12 @@ const DataManager = {
             try {
                 // زيادة عداد المحاولات
                 item.retryCount = (item.retryCount || 0) + 1;
-                const preparedData = (typeof GoogleIntegration !== 'undefined' && typeof GoogleIntegration.prepareSheetPayload === 'function')
-                    ? GoogleIntegration.prepareSheetPayload(item.sheetName, item.data)
+                const preparedData = (typeof Backend !== 'undefined' && typeof Backend.prepareSheetPayload === 'function')
+                    ? Backend.prepareSheetPayload(item.sheetName, item.data)
                     : item.data;
                 
                 // محاولة المزامنة
-                await GoogleIntegration.sendToAppsScript('saveToSheet', {
+                await Backend.sendToAppsScript('saveToSheet', {
                     sheetName: item.sheetName,
                     data: preparedData,
                     spreadsheetId: spreadsheetId
@@ -521,7 +521,7 @@ const DataManager = {
     /**
      * التنفيذ الفعلي للحفظ — لا تستدعِه مباشرة، استخدم save() أو saveImmediate()
      * ملاحظة مهمة: حفظ البيانات المحلية فقط - لا يتم المزامنة مع Google Sheets هنا
-     * يتم المزامنة تلقائياً باستخدام GoogleIntegration.autoSave() عند إضافة أو تعديل البيانات في Google Sheets
+     * يتم المزامنة تلقائياً باستخدام Backend.autoSave() عند إضافة أو تعديل البيانات في Google Sheets
      */
     _saveImmediate() {
         try {
@@ -634,8 +634,8 @@ const DataManager = {
      */
     async refreshTruncatedDataFromServer() {
         if (!AppState._localDataIsTruncated) return;
-        if (typeof GoogleIntegration === 'undefined' || !GoogleIntegration.sendRequest) return;
-        if (!AppState.googleConfig?.appsScript?.enabled) return;
+        if (typeof Backend === 'undefined' || !Backend.sendRequest) return;
+        if (!AppState.backendConfig?.server?.enabled) return;
 
         // خريطة اسم الحقل في AppState → اسم الورقة في Google Sheets
         const fieldToSheetMap = {
@@ -666,7 +666,7 @@ const DataManager = {
 
         const refreshPromises = fieldsToRefresh.map(field => {
             const sheetName = fieldToSheetMap[field];
-            return GoogleIntegration.sendRequest({
+            return Backend.sendRequest({
                 action: 'readFromSheet',
                 data: { sheetName }
             }).then(result => ({ field, result }))
@@ -813,9 +813,9 @@ const DataManager = {
             
             // ✅ محاولة تحميل الإعدادات من Google Sheets فقط عند forceReload أو عدم وجود cache
             // هذا يضمن تحميل الشعار من قاعدة البيانات مرة واحدة فقط
-            if (AppState.googleConfig?.appsScript?.enabled && typeof GoogleIntegration !== 'undefined') {
+            if (AppState.backendConfig?.server?.enabled && typeof Backend !== 'undefined') {
                 try {
-                    const result = await GoogleIntegration.sendToAppsScript('getCompanySettings', {});
+                    const result = await Backend.sendToAppsScript('getCompanySettings', {});
                     if (result && result.success && result.data) {
                         // تحليل postLoginItems (سياسات/تعليمات ما بعد الدخول)
                         let postLoginItems = AppState.companySettings?.postLoginItems;
@@ -1051,13 +1051,13 @@ const DataManager = {
     },
 
     /**
-     * تحميل إعدادات الاتصال بالخادم الخلفي (المفتاح التاريخي hse_google_config)
+     * تحميل إعدادات الاتصال بالخادم الخلفي (المفتاح التاريخي hse_backend_config)
      */
-    loadGoogleConfig() {
+    loadBackendConfig() {
         try {
-            const config = localStorage.getItem('hse_google_config');
+            const config = localStorage.getItem('hse_backend_config');
             if (config) {
-                AppState.googleConfig = JSON.parse(config);
+                AppState.backendConfig = JSON.parse(config);
             }
         } catch (error) {
             Utils.safeError('❌ خطأ في تحميل إعدادات الاتصال بالخادم:', error);
@@ -1067,9 +1067,9 @@ const DataManager = {
     /**
      * حفظ إعدادات الاتصال بالخادم الخلفي
      */
-    saveGoogleConfig() {
+    saveBackendConfig() {
         try {
-            localStorage.setItem('hse_google_config', JSON.stringify(AppState.googleConfig));
+            localStorage.setItem('hse_backend_config', JSON.stringify(AppState.backendConfig));
             return true;
         } catch (error) {
             Utils.safeError('❌ خطأ في حفظ إعدادات الاتصال بالخادم:', error);

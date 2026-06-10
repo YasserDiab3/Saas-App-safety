@@ -1,8 +1,8 @@
 /**
- * طبقة الاتصال بـ Google Apps Script (Web App) كخلفية للمزامنة مع Google Sheets.
+ * طبقة الاتصال بـ الخادم السحابي (Web App) كخلفية للمزامنة مع Google Sheets.
  */
 
-const GoogleIntegration = {
+const Backend = {
     // المزامنة في التقدم - المستخدمين والآخرين
     _syncInProgress: {
         users: false,
@@ -33,11 +33,11 @@ const GoogleIntegration = {
     },
 
     /**
-     * هل خلفية Google Apps Script جاهزة (رابط Web App + تفعيل الاتصال)
+     * هل خلفية الخادم السحابي جاهزة (رابط Web App + تفعيل الاتصال)
      */
     _isBackendRpcConfigured() {
         try {
-            const sc = AppState && AppState.googleConfig && AppState.googleConfig.appsScript;
+            const sc = AppState && AppState.backendConfig && AppState.backendConfig.server;
             const url = sc && String(sc.scriptUrl || '').trim();
             if (!url) return false;
             return !!(sc && sc.enabled);
@@ -200,7 +200,7 @@ const GoogleIntegration = {
      */
     async immediateSyncWithRetry(action, data, maxRetries = 3) {
         if (!this._isBackendRpcConfigured()) {
-            throw new Error('Google Apps Script غير مفعل');
+            throw new Error('الخادم السحابي غير مفعل');
         }
 
         let lastError = null;
@@ -238,7 +238,7 @@ const GoogleIntegration = {
     },
 
     /**
-     * التحقق من صحة رابط نشر Google Apps Script (Web App ينتهي بـ /exec)
+     * التحقق من صحة رابط نشر الخادم السحابي (Web App ينتهي بـ /exec)
      */
     isValidGoogleAppsScriptUrl(url) {
         try {
@@ -657,10 +657,10 @@ const GoogleIntegration = {
             return Promise.reject(new Error('الخادم الخلفي غير مُهيأ أو غير مفعّل'));
         }
 
-        const scriptUrl = AppState.googleConfig.appsScript.scriptUrl.trim();
+        const scriptUrl = AppState.backendConfig.server.scriptUrl.trim();
 
         if (!this.isValidGoogleAppsScriptUrl(scriptUrl)) {
-            throw new Error('رابط Web App غير صالح. يجب أن يكون رابط Google Apps Script من النوع https://script.google.com/macros/s/.../exec');
+            throw new Error('رابط Web App غير صالح. يجب أن يكون رابط الخادم السحابي من النوع https://script.google.com/macros/s/.../exec');
         }
 
         try {
@@ -672,7 +672,7 @@ const GoogleIntegration = {
             const clientSessionId = this.getOrCreateClientSessionId();
 
             // التحقق من هل هو payload
-            // Google Apps Script غير مفعل - التحقق من هل هو valid Google Apps Script URL
+            // الخادم السحابي غير مفعل - التحقق من هل هو valid الخادم السحابي URL
             const cleanData = (data && typeof data === 'object')
                 ? { ...data }
                 : data;
@@ -714,7 +714,7 @@ const GoogleIntegration = {
 
             // التحقق من هل هو spreadsheetId
             // التحقق من هل هو AppState
-            let spreadsheetId = AppState.googleConfig.sheets?.spreadsheetId;
+            let spreadsheetId = AppState.backendConfig.sheets?.spreadsheetId;
 
             // التحقق من هل هو data
             if (data && typeof data === 'object' && data.spreadsheetId) {
@@ -881,13 +881,13 @@ const GoogleIntegration = {
                     (fetchError.message && fetchError.message.includes('Access-Control-Allow-Origin'));
                 
                 if (isCorsError) {
-                    // CORS error - قد يكون بسبب إعدادات Google Apps Script
+                    // CORS error - قد يكون بسبب إعدادات الخادم السحابي
                     const timeStr = new Date().toLocaleTimeString('ar-EG');
-                    throw new Error(`⚠️ فشل الاتصال مع Google Apps Script بسبب CORS!\n` +
+                    throw new Error(`⚠️ فشل الاتصال مع الخادم السحابي بسبب CORS!\n` +
                         `الوقت: ${timeStr}\n` +
                         `يرجى التحقق من:\n` +
-                        `1. نشر Google Apps Script بشكل صحيح:\n` +
-                        `   - افتح Google Apps Script Editor\n` +
+                        `1. نشر الخادم السحابي بشكل صحيح:\n` +
+                        `   - افتح الخادم السحابي Editor\n` +
                         `   - اضغط Deploy > Manage Deployments\n` +
                         `   - اضغط Edit (أيقونة القلم) على Deployment الحالي\n` +
                         `   - تأكد من:\n` +
@@ -942,7 +942,7 @@ const GoogleIntegration = {
                             `الخطأ: انتهت مهلة الاتصال\n` +
                             `الوقت: ${timeStr}\n\n` +
                             `يرجى التحقق من:\n` +
-                            `1. إعدادات Google Apps Script\n` +
+                            `1. إعدادات الخادم السحابي\n` +
                             `2. معرف Google Sheets\n` +
                             `3. الاتصال بالإنترنت`);
                     } else {
@@ -954,9 +954,9 @@ const GoogleIntegration = {
                             `عدد المحاولات: ${retryCount + 1}/${maxRetries + 1}\n` +
                             `الوقت: ${timeStr}\n\n` +
                             `يرجى التحقق من:\n` +
-                            `1. إعدادات Google Apps Script:\n` +
+                            `1. إعدادات الخادم السحابي:\n` +
                             `   - تأكد من أن السكربت منشور ومفعّل\n` +
-                            `   - افتح Google Apps Script Editor\n` +
+                            `   - افتح الخادم السحابي Editor\n` +
                             `   - اضغط Deploy > Manage Deployments\n` +
                             `   - تأكد من أن Deployment نشط ويبدأ بـ /exec\n` +
                             `   - تأكد من أن "Who has access" = "Anyone"\n` +
@@ -1012,7 +1012,7 @@ const GoogleIntegration = {
                         return this._executeRequest(action, data, retryCount + 1);
                     }
                     const statusText = status === 503 ? 'الخدمة مؤقتاً غير متاحة (503)' : status === 502 ? 'خطأ في البوابة (502)' : 'انتهت مهلة البوابة (504)';
-                    throw new Error(`⚠️ ${statusText}\n\nالخادم لا يستجيب حالياً. جرّب:\n1. تحديث الصفحة بعد دقيقة.\n2. التأكد من أن Google Apps Script منشور وأن الرابط ينتهي بـ /exec.\n3. إن كان السكربت على Google: تحقق من صفحة حالة خدمات Google.`);
+                    throw new Error(`⚠️ ${statusText}\n\nالخادم لا يستجيب حالياً. جرّب:\n1. تحديث الصفحة بعد دقيقة.\n2. التأكد من أن الخادم السحابي منشور وأن الرابط ينتهي بـ /exec.\n3. إن كان السكربت على Google: تحقق من صفحة حالة خدمات Google.`);
                 }
 
                 // باقي الأخطاء
@@ -1091,7 +1091,7 @@ const GoogleIntegration = {
                 return Promise.reject(new Error('فشل المزامنة في التقدم باستخدام Google Sheets - التحقق من هل هو Chrome extensions'));
             }
 
-            // تسجيل الخطأ فقط إذا لم يكن خطأ متوقع أو عندما يكون Google Apps Script مفعّل
+            // تسجيل الخطأ فقط إذا لم يكن خطأ متوقع أو عندما يكون الخادم السحابي مفعّل
             const errorMsg = error.message || 'خطأ غير معروف';
             const isBackendRpcConfigured = this._isBackendRpcConfigured();
 
@@ -1104,7 +1104,7 @@ const GoogleIntegration = {
             const isExpectedError = isGetPublicIPError ||
                 errorMsg.includes('معرف Google Sheets غير محدد') ||
                 errorMsg.includes('Google Sheets غير مفعّل') ||
-                errorMsg.includes('Google Apps Script') ||
+                errorMsg.includes('الخادم السحابي') ||
                 errorMsg.includes('الخادم الخلفي غير مُهيأ') ||
                 (!isBackendRpcConfigured && (errorMsg.includes('Failed to fetch') || errorMsg.includes('NetworkError')));
 
@@ -1172,10 +1172,10 @@ const GoogleIntegration = {
                 errorMsg.includes('CONNECTION_TIMED_OUT') ||
                 (errorMsg.includes('timeout') && errorMsg.includes('connection'))
             )) {
-                finalErrorMessage = 'انتهت مهلة الاتصال بخادم Google Apps Script. يرجى التحقق من:\n' +
+                finalErrorMessage = 'انتهت مهلة الاتصال بخادم الخادم السحابي. يرجى التحقق من:\n' +
                     '1. الاتصال بالإنترنت\n' +
-                    '2. رابط Google Apps Script صحيح (يجب أن ينتهي بـ /exec)\n' +
-                    '3. Google Apps Script مفعّل ومُنشَر\n' +
+                    '2. رابط الخادم السحابي صحيح (يجب أن ينتهي بـ /exec)\n' +
+                    '3. الخادم السحابي مفعّل ومُنشَر\n' +
                     '4. عدم وجود قيود على الشبكة';
             } else if (errorMsg && (
                 errorMsg.includes('Failed to fetch') ||
@@ -1187,16 +1187,16 @@ const GoogleIntegration = {
                 errorMsg.includes('Same Origin Policy') ||
                 error.name === 'TypeError' ||
                 errorMsg.includes('Network request failed') ||
-                errorMsg.includes('فشل الاتصال مع Google Apps Script بسبب CORS')
+                errorMsg.includes('فشل الاتصال مع الخادم السحابي بسبب CORS')
             )) {
                 // CORS error - use the detailed message if already set, otherwise create one
-                if (errorMsg.includes('فشل الاتصال مع Google Apps Script بسبب CORS')) {
+                if (errorMsg.includes('فشل الاتصال مع الخادم السحابي بسبب CORS')) {
                     finalErrorMessage = errorMsg; // Use the detailed message from catch block
                 } else {
-                    finalErrorMessage = `⚠️ فشل الاتصال مع Google Apps Script بسبب CORS!\n` +
+                    finalErrorMessage = `⚠️ فشل الاتصال مع الخادم السحابي بسبب CORS!\n` +
                         `يرجى التحقق من:\n` +
-                        `1. نشر Google Apps Script بشكل صحيح:\n` +
-                        `   - افتح Google Apps Script Editor\n` +
+                        `1. نشر الخادم السحابي بشكل صحيح:\n` +
+                        `   - افتح الخادم السحابي Editor\n` +
                         `   - اضغط Deploy > New Deployment\n` +
                         `   - اختر Type: Web app\n` +
                         `   - Execute as: Me\n` +
@@ -1214,7 +1214,7 @@ const GoogleIntegration = {
             } else if (errorMsg && errorMsg.includes('HTTP error')) {
                 finalErrorMessage = `فشل المزامنة في التقدم باستخدام Google Sheets - التحقق من هل هو HTTP error`;
             } else if (errorMsg && (errorMsg.includes('AbortError') || errorMsg.includes('aborted'))) {
-                finalErrorMessage = 'انتهت مهلة الاتصال بخادم Google Apps Script. يرجى التحقق من الاتصال بالإنترنت وإعدادات Google Apps Script';
+                finalErrorMessage = 'انتهت مهلة الاتصال بخادم الخادم السحابي. يرجى التحقق من الاتصال بالإنترنت وإعدادات الخادم السحابي';
             }
 
             return Promise.reject(new Error(finalErrorMessage));
@@ -1258,7 +1258,7 @@ const GoogleIntegration = {
     },
 
     /**
-     * دوال ربط ومعالجة Google Apps Script (wrapper حول sendToAppsScript)
+     * دوال ربط ومعالجة الخادم السحابي (wrapper حول sendToAppsScript)
      * التعامل مع البيانات والعمليات المرتبطة بالنماذج، قواعد البيانات،
      * والتكامل مع Google Sheets بشكل آمن ومستقر.
      *
@@ -1277,7 +1277,7 @@ const GoogleIntegration = {
         // ✅ SaaS switch (Strangler-Fig): when enabled, route the legacy
         // {action,data} contract to Supabase via SaaSAdapter instead of
         // Apps Script. Zero changes to the 38 modules — they keep calling
-        // GoogleIntegration.sendRequest exactly as before.
+        // Backend.sendRequest exactly as before.
         if (window.SAAS_CONFIG && window.SAAS_CONFIG.useSupabaseBackend) {
             if (window.SaaSAdapter) {
                 return await window.SaaSAdapter.sendRequest({ action, data });
@@ -1357,7 +1357,7 @@ const GoogleIntegration = {
                         Utils.safeLog(`تم استخدام البيانات المحلية كبديل عند فشل المزامنة: ${action}`);
                         return localData;
                     }
-                    throw new Error(result.message || 'فشل في المزامنة مع Google Apps Script');
+                    throw new Error(result.message || 'فشل في المزامنة مع الخادم السحابي');
                 }
             }
 
@@ -1369,9 +1369,9 @@ const GoogleIntegration = {
             // معالجة الأخطاء وإرجاع رسالة واضحة
             const errorMessage = error.message || 'حدث خطأ غير معروف أثناء تنفيذ الطلب';
 
-            // Check if it's an "Action not recognized" error from Google Apps Script
+            // Check if it's an "Action not recognized" error from الخادم السحابي
             if (errorMessage.includes('الإجراء غير معروف') || errorMessage.includes('Action not recognized') || errorMessage.includes('ACTION_NOT_RECOGNIZED')) {
-                // This means Google Apps Script is enabled but the action is not recognized
+                // This means الخادم السحابي is enabled but the action is not recognized
                 let detailedMessage = errorMessage;
 
                 // Add helpful context for Safety Health Management actions
@@ -1384,8 +1384,8 @@ const GoogleIntegration = {
                 throw new Error(detailedMessage);
             }
 
-            // Try local data as fallback if Google Apps Script fails due to network/connection issues
-            if (errorMessage.includes('Google Apps Script غير متاح') ||
+            // Try local data as fallback if الخادم السحابي fails due to network/connection issues
+            if (errorMessage.includes('الخادم السحابي غير متاح') ||
                 errorMessage.includes('Failed to fetch') ||
                 errorMessage.includes('NetworkError') ||
                 errorMessage.includes('CORS') ||
@@ -1501,8 +1501,8 @@ const GoogleIntegration = {
                 }
             };
 
-            if (AppState.googleConfig.sheets?.spreadsheetId) {
-                payload.data.spreadsheetId = AppState.googleConfig.sheets.spreadsheetId;
+            if (AppState.backendConfig.sheets?.spreadsheetId) {
+                payload.data.spreadsheetId = AppState.backendConfig.sheets.spreadsheetId;
             }
             if (sheetName === 'DailyObservations' && observationsRequestContext) {
                 payload.data.observationsRequestContext = observationsRequestContext;
@@ -1589,8 +1589,8 @@ const GoogleIntegration = {
                     }
                 };
 
-                if (AppState.googleConfig.sheets?.spreadsheetId) {
-                    payload.data.spreadsheetId = AppState.googleConfig.sheets.spreadsheetId;
+                if (AppState.backendConfig.sheets?.spreadsheetId) {
+                    payload.data.spreadsheetId = AppState.backendConfig.sheets.spreadsheetId;
                 }
 
                 // إضافة context خاص لـ DailyObservations إذا كان في الباتش
@@ -1652,15 +1652,15 @@ const GoogleIntegration = {
 
 
     /**
-     * جلب البيانات من Google Apps Script (Google Apps Script)
-     * sendToAppsScript تم استبدالها بـ sendRequest (Google Apps Script)
+     * جلب البيانات من الخادم السحابي (الخادم السحابي)
+     * sendToAppsScript تم استبدالها بـ sendRequest (الخادم السحابي)
      */
     async fetchData(action, data = {}) {
         try {
             const result = await this.sendToAppsScript(action, data);
             return result;
         } catch (error) {
-            // تجاهل أخطاء Circuit Breaker و Google Apps Script غير المفعل
+            // تجاهل أخطاء Circuit Breaker و الخادم السحابي غير المفعل
             const errorMsg = String(error?.message || '').toLowerCase();
             if (errorMsg.includes('circuit breaker') ||
                 errorMsg.includes('google apps script غير مفعل') ||
@@ -1675,8 +1675,8 @@ const GoogleIntegration = {
     },
 
     /**
-     * استدعاء الدالة في الخادم (Google Apps Script)
-     * wrapper لـ sendRequest تم استبدالها بـ sendRequest (Google Apps Script)
+     * استدعاء الدالة في الخادم (الخادم السحابي)
+     * wrapper لـ sendRequest تم استبدالها بـ sendRequest (الخادم السحابي)
      * @param {string} action - اسم الإجراء
      * @param {object} data - البيانات المرسلة
      * @returns {Promise<object>} - النتيجة المستلمة
@@ -1874,8 +1874,8 @@ const GoogleIntegration = {
                 sheetName,
                 data: preparedData
             };
-            if (AppState.googleConfig.sheets.spreadsheetId) {
-                payload.spreadsheetId = AppState.googleConfig.sheets.spreadsheetId;
+            if (AppState.backendConfig.sheets.spreadsheetId) {
+                payload.spreadsheetId = AppState.backendConfig.sheets.spreadsheetId;
             }
             const result = await this.sendToAppsScript('saveToSheet', payload);
             return result;
@@ -1902,8 +1902,8 @@ const GoogleIntegration = {
                 data: preparedData
             };
 
-            if (AppState.googleConfig.sheets.spreadsheetId) {
-                payload.spreadsheetId = AppState.googleConfig.sheets.spreadsheetId;
+            if (AppState.backendConfig.sheets.spreadsheetId) {
+                payload.spreadsheetId = AppState.backendConfig.sheets.spreadsheetId;
             }
 
             const result = await this.sendToAppsScript('appendToSheet', payload);
@@ -2601,7 +2601,7 @@ const GoogleIntegration = {
             let successCount = 0;
             let failCount = 0;
 
-            const spreadsheetId = AppState.googleConfig.sheets.spreadsheetId;
+            const spreadsheetId = AppState.backendConfig.sheets.spreadsheetId;
 
             if (!spreadsheetId || spreadsheetId.trim() === '') {
                 Loading.hide();
@@ -2649,7 +2649,7 @@ const GoogleIntegration = {
 
         try {
             Loading.show();
-            const spreadsheetId = AppState.googleConfig.sheets.spreadsheetId || '';
+            const spreadsheetId = AppState.backendConfig.sheets.spreadsheetId || '';
 
             const result = await this.sendToAppsScript('initializeSheets', {
                 spreadsheetId: spreadsheetId || undefined
@@ -3601,7 +3601,7 @@ const GoogleIntegration = {
                 InactivityManager.resume();
             }
 
-            // قمع الأخطاء المتوقعة (عندما يكون Google Apps Script غير مفعّل)
+            // قمع الأخطاء المتوقعة (عندما يكون الخادم السحابي غير مفعّل)
             const errorMsg = error.message || 'خطأ غير معروف';
             const isBackendRpcConfigured = this._isBackendRpcConfigured();
             const isExpectedError = !isBackendRpcConfigured ||
@@ -3647,7 +3647,7 @@ const GoogleIntegration = {
 
         // التحقق من spreadsheetId — إذا كان غير محدد في الـ Frontend نتركه للـ Backend
         // الـ Backend يملك معرّفه الخاص في دالة getSpreadsheetId() في Config.gs
-        const spreadsheetId = AppState.googleConfig.sheets?.spreadsheetId?.trim();
+        const spreadsheetId = AppState.backendConfig.sheets?.spreadsheetId?.trim();
         const hasLocalSpreadsheetId = spreadsheetId && spreadsheetId !== '' && spreadsheetId !== 'YOUR_SPREADSHEET_ID_HERE';
 
         const preparedData = this.prepareSheetPayload(sheetName, data);
@@ -3781,8 +3781,8 @@ const GoogleIntegration = {
     }
 };
 
-// تصدير للواجهة — الاسم التاريخي GoogleIntegration؛ BackendRpc للوحدات الجديدة
+// تصدير للواجهة — الاسم التاريخي Backend؛ BackendRpc للوحدات الجديدة
 if (typeof window !== 'undefined') {
-    window.GoogleIntegration = GoogleIntegration;
-    window.BackendRpc = GoogleIntegration;
+    window.Backend = Backend;
+    window.BackendRpc = Backend;
 }

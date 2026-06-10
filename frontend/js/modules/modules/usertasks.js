@@ -341,14 +341,14 @@ const UserTasks = {
      * تفعيل المزامنة التلقائية
      */
     startAutoSync() {
-        // التحقق من تكوين Google Apps Script قبل بدء المزامنة
+        // التحقق من تكوين الخادم السحابي قبل بدء المزامنة
         if (typeof AppState !== 'undefined') {
-            const isGoogleConfigured = AppState.googleConfig?.appsScript?.enabled &&
-                AppState.googleConfig?.appsScript?.scriptUrl &&
-                AppState.googleConfig.appsScript.scriptUrl.trim() !== '';
+            const isBackendConfigured = AppState.backendConfig?.server?.enabled &&
+                AppState.backendConfig?.server?.scriptUrl &&
+                AppState.backendConfig.server.scriptUrl.trim() !== '';
 
-            if (!isGoogleConfigured) {
-                Utils.safeLog('ℹ️ لن يتم تفعيل المزامنة التلقائية: Google Apps Script غير مفعل أو غير مُكوَّن');
+            if (!isBackendConfigured) {
+                Utils.safeLog('ℹ️ لن يتم تفعيل المزامنة التلقائية: الخادم السحابي غير مفعل أو غير مُكوَّن');
                 return;
             }
         }
@@ -384,28 +384,28 @@ const UserTasks = {
      */
     async syncTasks() {
         try {
-            // التحقق الشامل من توفر Google Apps Script
+            // التحقق الشامل من توفر الخادم السحابي
             if (typeof AppState === 'undefined') {
                 return;
             }
 
-            // فحص شامل لإعدادات Google Apps Script
-            const isGoogleConfigured = AppState.googleConfig?.appsScript?.enabled &&
-                AppState.googleConfig?.appsScript?.scriptUrl &&
-                AppState.googleConfig.appsScript.scriptUrl.trim() !== '';
+            // فحص شامل لإعدادات الخادم السحابي
+            const isBackendConfigured = AppState.backendConfig?.server?.enabled &&
+                AppState.backendConfig?.server?.scriptUrl &&
+                AppState.backendConfig.server.scriptUrl.trim() !== '';
 
-            if (!isGoogleConfigured) {
-                // Google Apps Script غير مفعل أو غير مُكوَّن بشكل صحيح
+            if (!isBackendConfigured) {
+                // الخادم السحابي غير مفعل أو غير مُكوَّن بشكل صحيح
                 // إيقاف المزامنة التلقائية لتجنب الأخطاء المتكررة
                 if (this.autoSyncTimer) {
                     this.stopAutoSync();
-                    Utils.safeLog('⚠️ تم إيقاف المزامنة التلقائية: Google Apps Script غير مفعل أو غير مُكوَّن');
+                    Utils.safeLog('⚠️ تم إيقاف المزامنة التلقائية: الخادم السحابي غير مفعل أو غير مُكوَّن');
                 }
                 return;
             }
 
-            if (typeof GoogleIntegration === 'undefined' || typeof GoogleIntegration.sendRequest !== 'function') {
-                Utils.safeWarn('⚠️ GoogleIntegration غير متاح');
+            if (typeof Backend === 'undefined' || typeof Backend.sendRequest !== 'function') {
+                Utils.safeWarn('⚠️ Backend غير متاح');
                 // إيقاف المزامنة التلقائية
                 if (this.autoSyncTimer) {
                     this.stopAutoSync();
@@ -422,19 +422,19 @@ const UserTasks = {
             try {
                 if (isAdmin) {
                     // المدير: جلب جميع المهام
-                    response = await GoogleIntegration.sendRequest({
+                    response = await Backend.sendRequest({
                         action: 'getAllUserTasks',
                         data: {}
                     });
                 } else {
                     // المستخدم: جلب مهامه فقط
-                    response = await GoogleIntegration.sendRequest({
+                    response = await Backend.sendRequest({
                         action: 'getUserTasksByUserId',
                         data: { userId: userId }
                     });
                 }
             } catch (requestError) {
-                // تجاهل أخطاء Circuit Breaker و Google Apps Script غير المفعل
+                // تجاهل أخطاء Circuit Breaker و الخادم السحابي غير المفعل
                 const errorMsg = String(requestError?.message || '').toLowerCase();
 
                 // فحص أخطاء الاتصال والتكوين
@@ -1295,10 +1295,10 @@ const UserTasks = {
                     // AppState.appData.userTasks مفلترة (مهامه فقط) → الحفظ الجماعي
                     // كان سيعيد كتابة ورقة UserTasks بمهام هذا المستخدم فقط فيمحو
                     // مهام جميع المستخدمين الآخرين. updateUserTask يحدّث صفّاً واحداً فقط.
-                    if (AppState.googleConfig?.appsScript?.enabled
-                        && typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendRequest) {
+                    if (AppState.backendConfig?.server?.enabled
+                        && typeof Backend !== 'undefined' && Backend.sendRequest) {
                         try {
-                            const vr = await GoogleIntegration.sendRequest({
+                            const vr = await Backend.sendRequest({
                                 action: 'updateUserTask',
                                 data: { taskId: taskId, updateData: { status: newStatus, notes: notes } }
                             });
@@ -1527,10 +1527,10 @@ const UserTasks = {
             }
 
             // محاولة الحصول من Google Sheets
-            if (AppState.googleConfig.appsScript.enabled) {
+            if (AppState.backendConfig.server.enabled) {
                 try {
                     // استخدام readFromSheets بدلاً من getUsers
-                    const users = await GoogleIntegration.readFromSheets('Users');
+                    const users = await Backend.readFromSheets('Users');
 
                     if (users && Array.isArray(users)) {
                         this.cache.members = users;
@@ -1924,17 +1924,17 @@ const UserTasks = {
             // مفلترة (مهام المستخدم فقط) → الحفظ الجماعي كان سيمسح مهام بقية
             // المستخدمين. الدوال الذرّية تكتب صفّاً واحداً فقط (appendToSheet/
             // updateSingleRowInSheet) — آمنة ولا تمسّ صفوف الآخرين.
-            if (AppState.googleConfig && AppState.googleConfig.appsScript && AppState.googleConfig.appsScript.enabled
-                && typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendRequest) {
+            if (AppState.backendConfig && AppState.backendConfig.server && AppState.backendConfig.server.enabled
+                && typeof Backend !== 'undefined' && Backend.sendRequest) {
                 try {
                     if (existingTask) {
-                        const vr = await GoogleIntegration.sendRequest({
+                        const vr = await Backend.sendRequest({
                             action: 'updateUserTask',
                             data: { taskId: savedTaskId, updateData: { ...taskData } }
                         });
                         if (vr && vr.success === false) throw new Error(vr.message || 'فشل تحديث المهمة في الخادم');
                     } else {
-                        const vr = await GoogleIntegration.sendRequest({
+                        const vr = await Backend.sendRequest({
                             action: 'addUserTask',
                             data: { id: savedTaskId, ...taskData }
                         });
@@ -2124,10 +2124,10 @@ const UserTasks = {
 
                 // ✅ FIX جذري: استخدام deleteUserTask الذرّي (حذف صفّ واحد بالـ id)
                 // بدل autoSave('UserTasks', الكامل) الذي يعيد كتابة الورقة كاملةً.
-                if (AppState.googleConfig?.appsScript?.enabled
-                    && typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendRequest) {
+                if (AppState.backendConfig?.server?.enabled
+                    && typeof Backend !== 'undefined' && Backend.sendRequest) {
                     try {
-                        const vr = await GoogleIntegration.sendRequest({
+                        const vr = await Backend.sendRequest({
                             action: 'deleteUserTask',
                             data: { taskId: taskId }
                         });

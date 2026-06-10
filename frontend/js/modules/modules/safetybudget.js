@@ -1035,7 +1035,7 @@ const SafetyBudget = {
         } else {
             Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
         }
-            await GoogleIntegration.autoSave('SafetyBudgets', AppState.appData.safetyBudgets);
+            await Backend.autoSave('SafetyBudgets', AppState.appData.safetyBudgets);
 
             AuditLog.log(budgetId ? 'update_budget' : 'create_budget', 'SafetyBudget', formData.id, {
                 year: formData.year,
@@ -1358,7 +1358,7 @@ const SafetyBudget = {
         } else {
             Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
         }
-            await GoogleIntegration.autoSave('SafetyBudgetTransactions', AppState.appData.safetyBudgetTransactions);
+            await Backend.autoSave('SafetyBudgetTransactions', AppState.appData.safetyBudgetTransactions);
 
             AuditLog.log(expenseId ? 'update_expense' : 'create_expense', 'SafetyBudget', formData.id, {
                 category: formData.category,
@@ -1391,7 +1391,7 @@ const SafetyBudget = {
         } else {
             Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
         }
-            await GoogleIntegration.autoSave('SafetyBudgetTransactions', AppState.appData.safetyBudgetTransactions);
+            await Backend.autoSave('SafetyBudgetTransactions', AppState.appData.safetyBudgetTransactions);
 
             AuditLog.log('delete_expense', 'SafetyBudget', id);
 
@@ -2318,7 +2318,7 @@ const SafetyBudget = {
         } else {
             Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
         }
-            await GoogleIntegration.autoSave('SafetyBudgetTransactions', AppState.appData.safetyBudgetTransactions);
+            await Backend.autoSave('SafetyBudgetTransactions', AppState.appData.safetyBudgetTransactions);
 
             AuditLog.log(expenseId ? 'update_expense' : 'create_expense', 'SafetyBudget', formData.id, {
                 category: formData.category,
@@ -2707,7 +2707,7 @@ const SafetyBudget = {
         } else {
             Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
         }
-            await GoogleIntegration.autoSave('SafetyBudgetTransactions', AppState.appData.safetyBudgetTransactions);
+            await Backend.autoSave('SafetyBudgetTransactions', AppState.appData.safetyBudgetTransactions);
 
             AuditLog.log('import_budget', 'SafetyBudget', null, {
                 imported,
@@ -2781,12 +2781,12 @@ SafetyBudget.ensurePurchaseOrdersLoaded = async function (forceReload = false) {
         return current;
     }
 
-    if (typeof GoogleIntegration === 'undefined' || !GoogleIntegration.readFromSheets) {
+    if (typeof Backend === 'undefined' || !Backend.readFromSheets) {
         return current;
     }
 
     try {
-        const rows = await GoogleIntegration.readFromSheets(this.purchaseOrderSheetName, 12000);
+        const rows = await Backend.readFromSheets(this.purchaseOrderSheetName, 12000);
         if (Array.isArray(rows)) {
             AppState.appData.safetyBudgetPurchaseOrders = rows.map((row) => this.normalizePurchaseOrderRecord(row));
         }
@@ -3229,7 +3229,7 @@ SafetyBudget.handlePurchaseOrderSubmit = async function (recordId, modal) {
 
         Notification.success(existing ? 'تم تحديث طلب الشراء بنجاح' : 'تم تسجيل طلب الشراء بنجاح');
 
-        GoogleIntegration.autoSave(this.purchaseOrderSheetName, collection)
+        Backend.autoSave(this.purchaseOrderSheetName, collection)
             .then(() => {
                 AuditLog.log(existing ? 'update_purchase_order' : 'create_purchase_order', 'SafetyBudget', formData.id, {
                     prNo: formData.prNo,
@@ -3330,7 +3330,7 @@ SafetyBudget.deletePurchaseOrder = async function (recordId) {
             window.DataManager.save();
         }
 
-        await GoogleIntegration.autoSave(this.purchaseOrderSheetName, AppState.appData.safetyBudgetPurchaseOrders);
+        await Backend.autoSave(this.purchaseOrderSheetName, AppState.appData.safetyBudgetPurchaseOrders);
         AuditLog.log('delete_purchase_order', 'SafetyBudget', recordId);
 
         Loading.hide();

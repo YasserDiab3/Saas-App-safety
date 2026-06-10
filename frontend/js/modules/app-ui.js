@@ -783,8 +783,8 @@ window.UI = {
         DataManager.save();
         try {
             if (typeof Utils !== 'undefined' && typeof Utils.hasCloudBackendSync === 'function' && Utils.hasCloudBackendSync() &&
-                typeof GoogleIntegration !== 'undefined' && typeof GoogleIntegration.autoSave === 'function') {
-                await GoogleIntegration.autoSave('EmergencyAlerts', AppState.appData.emergencyAlerts);
+                typeof Backend !== 'undefined' && typeof Backend.autoSave === 'function') {
+                await Backend.autoSave('EmergencyAlerts', AppState.appData.emergencyAlerts);
             }
         } catch (error) {
             Utils.safeWarn('⚠ فشل حفظ بيانات الطوارئ تلقائياً:', error);
@@ -970,8 +970,8 @@ window.UI = {
             }
             DataManager.save();
             if (typeof Utils !== 'undefined' && typeof Utils.hasCloudBackendSync === 'function' && Utils.hasCloudBackendSync() &&
-                typeof GoogleIntegration !== 'undefined' && typeof GoogleIntegration.autoSave === 'function') {
-                await GoogleIntegration.autoSave('EmergencyPlans', AppState.appData.emergencyPlans);
+                typeof Backend !== 'undefined' && typeof Backend.autoSave === 'function') {
+                await Backend.autoSave('EmergencyPlans', AppState.appData.emergencyPlans);
             }
             Loading.hide();
             modal.remove();
@@ -1399,8 +1399,8 @@ window.UI = {
         DataManager.save();
         try {
             if (typeof Utils !== 'undefined' && typeof Utils.hasCloudBackendSync === 'function' && Utils.hasCloudBackendSync() &&
-                typeof GoogleIntegration !== 'undefined' && typeof GoogleIntegration.autoSave === 'function') {
-                await GoogleIntegration.autoSave('EmergencyAlerts', AppState.appData.emergencyAlerts);
+                typeof Backend !== 'undefined' && typeof Backend.autoSave === 'function') {
+                await Backend.autoSave('EmergencyAlerts', AppState.appData.emergencyAlerts);
             }
         } catch (error) {
             Utils.safeWarn('⚠ فشل حفظ بيانات الطوارئ تلقائياً:', error);
@@ -1586,8 +1586,8 @@ window.UI = {
             }
             DataManager.save();
             if (typeof Utils !== 'undefined' && typeof Utils.hasCloudBackendSync === 'function' && Utils.hasCloudBackendSync() &&
-                typeof GoogleIntegration !== 'undefined' && typeof GoogleIntegration.autoSave === 'function') {
-                await GoogleIntegration.autoSave('EmergencyPlans', AppState.appData.emergencyPlans);
+                typeof Backend !== 'undefined' && typeof Backend.autoSave === 'function') {
+                await Backend.autoSave('EmergencyPlans', AppState.appData.emergencyPlans);
             }
             Loading.hide();
             modal.remove();
@@ -2469,9 +2469,9 @@ window.UI = {
             if (idx !== -1 && users[idx]) users[idx].postLoginPolicySeenAt = seenAt;
         }
         const userId = user.id || user.email;
-        /** مزامنة عبر Google Apps Script */
-        if (userId && typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendToAppsScript) {
-            GoogleIntegration.sendToAppsScript('updateUser', { userId: userId, updateData: { postLoginPolicySeenAt: seenAt } }).catch(() => {});
+        /** مزامنة عبر الخادم السحابي */
+        if (userId && typeof Backend !== 'undefined' && Backend.sendToAppsScript) {
+            Backend.sendToAppsScript('updateUser', { userId: userId, updateData: { postLoginPolicySeenAt: seenAt } }).catch(() => {});
         }
     },
 
@@ -3021,8 +3021,8 @@ window.UI = {
             typeof Utils === 'undefined' ||
             typeof Utils.hasCloudBackendSync !== 'function' ||
             !Utils.hasCloudBackendSync() ||
-            typeof GoogleIntegration === 'undefined' ||
-            typeof GoogleIntegration.syncData !== 'function') {
+            typeof Backend === 'undefined' ||
+            typeof Backend.syncData !== 'function') {
             return false;
         }
 
@@ -3040,7 +3040,7 @@ window.UI = {
 
         setTimeout(() => {
             try {
-                GoogleIntegration.syncData(syncOptions).catch(syncErr => {
+                Backend.syncData(syncOptions).catch(syncErr => {
                     if (AppState.debugMode && typeof Utils.safeWarn === 'function') {
                         Utils.safeWarn('⚠️ فشل التحميل التلقائي الصامت بعد تسجيل الدخول:', syncErr);
                     }
@@ -3227,7 +3227,7 @@ window.UI = {
                     Array.isArray(AppState.appData[key]) && AppState.appData[key].length > 0
                 );
                 if (!hasLocalData) {
-                    Notification.info('لا توجد بيانات محلية. فعّل الاتصال بـ Google Apps Script من الإعدادات وتحقق من ورقة البيانات.');
+                    Notification.info('لا توجد بيانات محلية. فعّل الاتصال بـ الخادم السحابي من الإعدادات وتحقق من ورقة البيانات.');
                 }
             }
         }
@@ -4156,16 +4156,16 @@ window.UI = {
             const ext = (file.name && file.name.lastIndexOf('.') >= 0) ? file.name.substring(file.name.lastIndexOf('.')) : '.jpg';
             const fileName = 'user_photo_' + (userRecord.id || userRecord.email.replace(/@/g, '_')) + '_' + Date.now() + ext;
             const mimeType = file.type || 'image/jpeg';
-            const uploadPromise = (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.uploadFileToDrive)
-                ? GoogleIntegration.uploadFileToDrive(base64Data, fileName, mimeType, 'Users')
+            const uploadPromise = (typeof Backend !== 'undefined' && Backend.uploadFileToDrive)
+                ? Backend.uploadFileToDrive(base64Data, fileName, mimeType, 'Users')
                 : Promise.reject(new Error('Google Integration غير متاح'));
             uploadPromise.then(function(uploadResult) {
                 const photoUrl = (uploadResult && (uploadResult.directLink || uploadResult.shareableLink)) || '';
                 if (!photoUrl) {
                     throw new Error('لم يتم الحصول على رابط الصورة');
                 }
-                return (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendToAppsScript)
-                    ? GoogleIntegration.sendToAppsScript('updateUser', { userId: userRecord.id, updateData: { photo: photoUrl } }).then(function(r) { return { updateResult: r, photoUrl: photoUrl }; })
+                return (typeof Backend !== 'undefined' && Backend.sendToAppsScript)
+                    ? Backend.sendToAppsScript('updateUser', { userId: userRecord.id, updateData: { photo: photoUrl } }).then(function(r) { return { updateResult: r, photoUrl: photoUrl }; })
                     : Promise.reject(new Error('Google Integration غير متاح'));
             }).then(function(data) {
                 const updateResult = data && data.updateResult;
@@ -5120,16 +5120,16 @@ window.UI = {
     async getOrCreatePublicProfileCardLink(forceRotate = false) {
         const user = AppState.currentUser;
         if (!user || !user.email) return null;
-        if (typeof GoogleIntegration === 'undefined' || typeof GoogleIntegration.callBackend !== 'function') return null;
+        if (typeof Backend === 'undefined' || typeof Backend.callBackend !== 'function') return null;
 
-        const response = await GoogleIntegration.callBackend('getOrCreatePublicProfileToken', {
+        const response = await Backend.callBackend('getOrCreatePublicProfileToken', {
             userId: user.id || '',
             email: user.email || '',
             forceRotate: !!forceRotate
         });
         if (!response || response.success === false || !response.data?.token) return null;
 
-        let scriptUrl = String(AppState?.googleConfig?.appsScript?.scriptUrl || '').trim();
+        let scriptUrl = String(AppState?.backendConfig?.server?.scriptUrl || '').trim();
         if (!scriptUrl) return null;
         // نسخة اختبار /dev قد لا تعمل كبطاقة عامة — استخدم /exec لنشر تطبيق الويب
         if (scriptUrl.indexOf('script.google.com/macros/s/') !== -1) {
@@ -5164,7 +5164,7 @@ window.UI = {
      */
     async _preloadProfileCriticalSheets() {
         try {
-            if (typeof GoogleIntegration !== 'undefined' && typeof GoogleIntegration.batchReadFromSheets === 'function') {
+            if (typeof Backend !== 'undefined' && typeof Backend.batchReadFromSheets === 'function') {
                 const need = [];
                 if (!Array.isArray(AppState.appData?.employees) || AppState.appData.employees.length === 0) {
                     need.push('Employees');
@@ -5173,24 +5173,24 @@ window.UI = {
                     need.push('AppEmergencyNumbers');
                 }
                 if (need.length > 0) {
-                    const batch = await GoogleIntegration.batchReadFromSheets(need, { timeout: 12000, batchSize: 10 });
+                    const batch = await Backend.batchReadFromSheets(need, { timeout: 12000, batchSize: 10 });
                     if (batch && batch.data) {
                         this._mergeProfileBatchIntoAppState(batch, need);
                     }
                 }
             }
             if ((!Array.isArray(AppState.appData?.employees) || AppState.appData.employees.length === 0)
-                && typeof GoogleIntegration !== 'undefined'
-                && typeof GoogleIntegration.callBackend === 'function') {
-                const employeesRes = await GoogleIntegration.callBackend('getAllEmployees', { filters: { includeInactive: true } });
+                && typeof Backend !== 'undefined'
+                && typeof Backend.callBackend === 'function') {
+                const employeesRes = await Backend.callBackend('getAllEmployees', { filters: { includeInactive: true } });
                 if (employeesRes && employeesRes.success !== false && Array.isArray(employeesRes.data)) {
                     AppState.appData.employees = employeesRes.data;
                 }
             }
             if ((!Array.isArray(AppState.appData?.employees) || AppState.appData.employees.length === 0)
-                && typeof GoogleIntegration !== 'undefined'
-                && typeof GoogleIntegration.callBackend === 'function') {
-                const directRes = await GoogleIntegration.callBackend('readFromSheet', { sheetName: 'Employees' });
+                && typeof Backend !== 'undefined'
+                && typeof Backend.callBackend === 'function') {
+                const directRes = await Backend.callBackend('readFromSheet', { sheetName: 'Employees' });
                 if (directRes && directRes.success !== false && Array.isArray(directRes.data)) {
                     AppState.appData.employees = directRes.data;
                 }
@@ -5228,11 +5228,11 @@ window.UI = {
     async _preloadProfileStatsSheets() {
         const needSheets = this._collectProfileStatsSheetNeeds();
         if (needSheets.length === 0) return false;
-        if (typeof GoogleIntegration === 'undefined' || typeof GoogleIntegration.batchReadFromSheets !== 'function') {
+        if (typeof Backend === 'undefined' || typeof Backend.batchReadFromSheets !== 'function') {
             return false;
         }
         try {
-            const batch = await GoogleIntegration.batchReadFromSheets(needSheets, { timeout: 22000, batchSize: 10 });
+            const batch = await Backend.batchReadFromSheets(needSheets, { timeout: 22000, batchSize: 10 });
             if (batch && batch.data) {
                 this._mergeProfileBatchIntoAppState(batch, needSheets);
             }
@@ -5565,12 +5565,12 @@ window.UI = {
             });
         }
 
-        if (emForm && isAdmin && typeof GoogleIntegration !== 'undefined' && GoogleIntegration.callBackend) {
+        if (emForm && isAdmin && typeof Backend !== 'undefined' && Backend.callBackend) {
             emForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const fd = new FormData(emForm);
                 const user = AppState.currentUser || {};
-                const res = await GoogleIntegration.callBackend('upsertAppEmergencyNumber', {
+                const res = await Backend.callBackend('upsertAppEmergencyNumber', {
                     id: String(fd.get('id') || '').trim(),
                     label: String(fd.get('label') || '').trim(),
                     phone: String(fd.get('phone') || '').trim(),
@@ -5606,8 +5606,8 @@ window.UI = {
                     if (!id) return;
                     if (typeof window !== 'undefined' && !window.confirm(t('module.profile.confirmDeleteEm', 'حذف هذا السجل؟'))) return;
                     const user = AppState.currentUser || {};
-                    if (typeof GoogleIntegration === 'undefined' || !GoogleIntegration.callBackend) return;
-                    const res = await GoogleIntegration.callBackend('deleteAppEmergencyNumber', {
+                    if (typeof Backend === 'undefined' || !Backend.callBackend) return;
+                    const res = await Backend.callBackend('deleteAppEmergencyNumber', {
                         id,
                         userData: {
                             id: user.id,
@@ -5768,7 +5768,7 @@ window.UI = {
             }
             const scriptUrl = typeof Utils.getAppsScriptScriptUrl === 'function'
                 ? Utils.getAppsScriptScriptUrl()
-                : ((AppState.googleConfig && AppState.googleConfig.appsScript && AppState.googleConfig.appsScript.scriptUrl) ? String(AppState.googleConfig.appsScript.scriptUrl).trim() : '');
+                : ((AppState.backendConfig && AppState.backendConfig.server && AppState.backendConfig.server.scriptUrl) ? String(AppState.backendConfig.server.scriptUrl).trim() : '');
 
             // بعد النشر: صور Drive عبر وكيل getProfileImage (يُطبَّق /exec تلقائياً في getAppsScriptScriptUrl)
             if (isDriveUrl && driveFileId && scriptUrl && scriptUrl.includes('script.google.com')) {
@@ -9599,7 +9599,7 @@ window.UI = {
         try {
             syncBtn.classList.add('syncing');
             
-            if (typeof GoogleIntegration === 'undefined') {
+            if (typeof Backend === 'undefined') {
                 throw new Error('طبقة المزامنة غير متاحة');
             }
 
@@ -9611,11 +9611,11 @@ window.UI = {
 
             const cloudSyncConfigured = typeof Utils !== 'undefined' && typeof Utils.hasCloudBackendSync === 'function'
                 ? Utils.hasCloudBackendSync()
-                : !!(AppState.googleConfig?.appsScript?.enabled && AppState.googleConfig?.appsScript?.scriptUrl);
+                : !!(AppState.backendConfig?.server?.enabled && AppState.backendConfig?.server?.scriptUrl);
             
-            if (typeof GoogleIntegration.syncData === 'function') {
+            if (typeof Backend.syncData === 'function') {
                 // ✅ تحميل تدريجي: تحميل البيانات غير المكتملة فقط
-                syncResult = await GoogleIntegration.syncData({
+                syncResult = await Backend.syncData({
                     silent: false,
                     showLoader: true,
                     notifyOnSuccess: false, // سنعرض الرسالة يدوياً
@@ -9630,9 +9630,9 @@ window.UI = {
                         window.Auth.handleUsersSyncSuccess();
                     }
                 } catch (e) { /* ignore */ }
-            } else if (typeof GoogleIntegration.syncUsers === 'function') {
+            } else if (typeof Backend.syncUsers === 'function') {
                 // استخدام syncUsers كبديل إذا لم يكن syncData متاحاً
-                syncResult = await GoogleIntegration.syncUsers(true); // force = true
+                syncResult = await Backend.syncUsers(true); // force = true
                 try {
                     if (typeof window !== 'undefined' && window.Auth && typeof window.Auth.handleUsersSyncSuccess === 'function') {
                         window.Auth.handleUsersSyncSuccess();
@@ -9640,8 +9640,8 @@ window.UI = {
                 } catch (e) { /* ignore */ }
             } else {
                 // محاولة قراءة مباشرة من ورقة البيانات عبر التكامل (كبديل أخير)
-                if (typeof GoogleIntegration.readFromSheets === 'function') {
-                    const usersData = await GoogleIntegration.readFromSheets('Users');
+                if (typeof Backend.readFromSheets === 'function') {
+                    const usersData = await Backend.readFromSheets('Users');
                     if (usersData && Array.isArray(usersData)) {
                         AppState.appData.users = usersData;
                         if (typeof DataManager !== 'undefined' && DataManager.save) {
@@ -9705,7 +9705,7 @@ window.UI = {
         } else {
             isConnected = typeof Utils !== 'undefined' && typeof Utils.hasCloudBackendSync === 'function'
                 ? Utils.hasCloudBackendSync()
-                : !!(AppState.googleConfig?.appsScript?.enabled && AppState.googleConfig?.appsScript?.scriptUrl);
+                : !!(AppState.backendConfig?.server?.enabled && AppState.backendConfig?.server?.scriptUrl);
         }
 
         // تحديث فئة الزر
@@ -9789,9 +9789,9 @@ window.UI = {
             }
 
             // التحقق من عدم وجود مزامنة قيد التنفيذ
-            if (typeof GoogleIntegration !== 'undefined' && 
-                GoogleIntegration._syncInProgress && 
-                GoogleIntegration._syncInProgress.global) {
+            if (typeof Backend !== 'undefined' && 
+                Backend._syncInProgress && 
+                Backend._syncInProgress.global) {
                 if (AppState.debugMode) {
                     Utils.safeLog('⏸️ مزامنة قيد التنفيذ - تخطي المزامنة التلقائية');
                 }
@@ -9799,13 +9799,13 @@ window.UI = {
             }
 
             // بدء المزامنة التلقائية في الخلفية (صامتة)
-            if (typeof GoogleIntegration !== 'undefined' && 
-                typeof GoogleIntegration.syncData === 'function') {
+            if (typeof Backend !== 'undefined' && 
+                typeof Backend.syncData === 'function') {
                 if (AppState.debugMode) {
                     Utils.safeLog('🔄 بدء المزامنة التلقائية الدورية في الخلفية...');
                 }
                 
-                GoogleIntegration.syncData({
+                Backend.syncData({
                     silent: true, // صامت - لا إشعارات
                     showLoader: false, // لا loader
                     notifyOnSuccess: false, // لا إشعارات نجاح

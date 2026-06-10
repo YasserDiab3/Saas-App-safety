@@ -216,7 +216,7 @@ async function migrateBlacklistPhotosToDrive() {
             console.log(`\n🔄 معالجة سجل #${i + 1}: ${record.fullName}`);
             
             try {
-                const uploadResult = await GoogleIntegration.uploadFileToDrive(
+                const uploadResult = await Backend.uploadFileToDrive(
                     record.photo,
                     `blacklist_${record.id}_${Date.now()}.jpg`,
                     'image/jpeg',

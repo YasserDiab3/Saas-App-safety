@@ -31,9 +31,9 @@ const UserActivityLog = {
 
         // 1) Prefer server-side (Apps Script) to avoid Firefox ETP/CORS blocks
         try {
-            if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration?.sendToAppsScript) {
+            if (typeof Backend !== 'undefined' && Backend?.sendToAppsScript) {
                 const result = await Utils.promiseWithTimeout(
-                    GoogleIntegration.sendToAppsScript('getPublicIP', {}),
+                    Backend.sendToAppsScript('getPublicIP', {}),
                     timeoutMs,
                     'Timeout'
                 );
@@ -100,16 +100,16 @@ const UserActivityLog = {
         try {
             DataManager.save();
             // حفظ السجلات في Google Sheets
-            if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.autoSave) {
-                GoogleIntegration.autoSave('UserActivityLog', AppState.appData.user_activity_log).catch(() => {});
+            if (typeof Backend !== 'undefined' && Backend.autoSave) {
+                Backend.autoSave('UserActivityLog', AppState.appData.user_activity_log).catch(() => {});
             }
             
             // إرسال السجل مباشرة إلى قاعدة البيانات (Backend)
-            if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendToAppsScript) {
-                GoogleIntegration.sendToAppsScript('addUserActivityLog', entry).catch(err => {
-                    // لا نسجل الخطأ إذا كانت Google Apps Script غير مفعّلة (متوقع)
+            if (typeof Backend !== 'undefined' && Backend.sendToAppsScript) {
+                Backend.sendToAppsScript('addUserActivityLog', entry).catch(err => {
+                    // لا نسجل الخطأ إذا كانت الخادم السحابي غير مفعّلة (متوقع)
                     const errorMsg = err?.message || String(err || '');
-                    if (!errorMsg.includes('Google Apps Script غير مفعل')) {
+                    if (!errorMsg.includes('الخادم السحابي غير مفعل')) {
                         Utils.safeWarn('فشل إرسال سجل النشاط إلى قاعدة البيانات:', err);
                     }
                 });
@@ -499,7 +499,7 @@ const UserActivityLog = {
                             <i class="fas fa-user-clock ml-2"></i>تقرير الجلسات اليومي (من الدخول حتى الخروج)
                         </h3>
                         <p class="text-xs text-gray-600 mb-3">
-                            يعرض الأحداث المسجّلة في سجل النشاط فقط. للبريد اليومي: أنشئ <strong>Trigger</strong> زمنياً في Google Apps Script يستدعي الدالة
+                            يعرض الأحداث المسجّلة في سجل النشاط فقط. للبريد اليومي: أنشئ <strong>Trigger</strong> زمنياً في الخادم السحابي يستدعي الدالة
                             <code class="text-xs bg-white px-1 rounded">runDailyUserSessionEmailReport</code>
                             ويمكن تعيين المستلمين عبر خاصية السكربت <code class="text-xs bg-white px-1 rounded">DAILY_ACTIVITY_REPORT_EMAILS</code>.
                         </p>
@@ -651,7 +651,7 @@ const UserActivityLog = {
         const container = document.getElementById('daily-session-report-container');
         if (!dateInput || !container) return;
         const dateStr = dateInput.value || new Date().toISOString().split('T')[0];
-        if (typeof GoogleIntegration === 'undefined' || !GoogleIntegration.sendToAppsScript) {
+        if (typeof Backend === 'undefined' || !Backend.sendToAppsScript) {
             Notification.error('التكامل مع الخادم غير متاح');
             return;
         }
@@ -661,7 +661,7 @@ const UserActivityLog = {
             try {
                 tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
             } catch (e) { /* ignore */ }
-            const result = await GoogleIntegration.sendToAppsScript('getDailyUserSessionActivityReport', {
+            const result = await Backend.sendToAppsScript('getDailyUserSessionActivityReport', {
                 date: dateStr,
                 timezone: tz
             });
@@ -914,12 +914,12 @@ const UserActivityLog = {
      * تحميل السجلات من قاعدة البيانات
      */
     async loadLogsFromBackend() {
-        if (typeof GoogleIntegration === 'undefined' || !GoogleIntegration.sendToAppsScript) {
+        if (typeof Backend === 'undefined' || !Backend.sendToAppsScript) {
             return;
         }
         
         try {
-            const result = await GoogleIntegration.sendToAppsScript('getAllUserActivityLogs', {});
+            const result = await Backend.sendToAppsScript('getAllUserActivityLogs', {});
             
             if (result && result.success && Array.isArray(result.data)) {
                 // دمج السجلات من قاعدة البيانات مع السجلات المحلية

@@ -591,8 +591,8 @@ const PTW = {
             this.refreshRegistryViewIfVisible();
 
             // المزامنة مع Google Sheets (فقط إذا لم يتم تخطي المزامنة)
-            if (!skipSync && typeof GoogleIntegration !== 'undefined' && GoogleIntegration.autoSave) {
-                await GoogleIntegration.autoSave('PTWRegistry', this.registryData);
+            if (!skipSync && typeof Backend !== 'undefined' && Backend.autoSave) {
+                await Backend.autoSave('PTWRegistry', this.registryData);
             }
             return true;
         } catch (error) {
@@ -606,13 +606,13 @@ const PTW = {
      */
     async _fetchPtwRegistryRowsNoMutation() {
         try {
-            if (!GoogleIntegration || typeof GoogleIntegration._isBackendRpcConfigured !== 'function' ||
-                !GoogleIntegration._isBackendRpcConfigured()) {
+            if (!Backend || typeof Backend._isBackendRpcConfigured !== 'function' ||
+                !Backend._isBackendRpcConfigured()) {
                 return null;
             }
-            const spreadsheetId = AppState.googleConfig?.sheets?.spreadsheetId?.trim();
+            const spreadsheetId = AppState.backendConfig?.sheets?.spreadsheetId?.trim();
             if (!spreadsheetId) return null;
-            const result = await GoogleIntegration.sendRequest({
+            const result = await Backend.sendRequest({
                 action: 'readFromSheet',
                 data: { sheetName: 'PTWRegistry', spreadsheetId }
             });
@@ -642,7 +642,7 @@ const PTW = {
     async syncManualPermitRecordsToBackend(entry, permitData, options = {}) {
         const { isNewRegistryEntry = false, isNewPermit = false } = options;
 
-        if (!entry || !permitData || typeof GoogleIntegration === 'undefined') {
+        if (!entry || !permitData || typeof Backend === 'undefined') {
             return true;
         }
 
@@ -651,13 +651,13 @@ const PTW = {
         const MANUAL_SYNC_TIMEOUT_MS = 120000;
 
         const sendSheetRecord = async (sheetName, record, appendMode = false) => {
-            const spreadsheetId = AppState.googleConfig?.sheets?.spreadsheetId?.trim();
+            const spreadsheetId = AppState.backendConfig?.sheets?.spreadsheetId?.trim();
 
             const buildPayload = (rec) => {
                 const payload = {
                     sheetName,
-                    data: (typeof GoogleIntegration.prepareSheetPayload === 'function')
-                        ? GoogleIntegration.prepareSheetPayload(sheetName, rec)
+                    data: (typeof Backend.prepareSheetPayload === 'function')
+                        ? Backend.prepareSheetPayload(sheetName, rec)
                         : rec,
                     __timeoutMs: MANUAL_SYNC_TIMEOUT_MS
                 };
@@ -667,7 +667,7 @@ const PTW = {
                 return payload;
             };
 
-            const invokeOnce = (rec) => GoogleIntegration.sendToAppsScript(
+            const invokeOnce = (rec) => Backend.sendToAppsScript(
                 appendMode ? 'appendToSheet' : 'saveToSheet',
                 buildPayload(rec)
             );
@@ -692,8 +692,8 @@ const PTW = {
             };
 
             const stripAuditCopy = (rec) => {
-                const base = (typeof GoogleIntegration.prepareSheetPayload === 'function')
-                    ? GoogleIntegration.prepareSheetPayload(sheetName, rec)
+                const base = (typeof Backend.prepareSheetPayload === 'function')
+                    ? Backend.prepareSheetPayload(sheetName, rec)
                     : { ...rec };
                 const slim = { ...base };
                 AUDIT_SYNC_KEYS.forEach((k) => { delete slim[k]; });
@@ -776,9 +776,9 @@ const PTW = {
                 throw new Error(permitResult?.message || 'فشل حفظ التصريح اليدوي في الخلفية');
             }
 
-            if (typeof GoogleIntegration.clearCache === 'function') {
-                GoogleIntegration.clearCache('PTWRegistry');
-                GoogleIntegration.clearCache('PTW');
+            if (typeof Backend.clearCache === 'function') {
+                Backend.clearCache('PTWRegistry');
+                Backend.clearCache('PTW');
             }
 
             // حفظ محلي بعد توحيد المعرفات مع الخلفية
@@ -1495,10 +1495,10 @@ const PTW = {
      */
     async loadPTWFromBackend() {
         try {
-            const rpcReady = GoogleIntegration &&
-                typeof GoogleIntegration._isBackendRpcConfigured === 'function' &&
-                GoogleIntegration._isBackendRpcConfigured();
-            if (!GoogleIntegration || !rpcReady) {
+            const rpcReady = Backend &&
+                typeof Backend._isBackendRpcConfigured === 'function' &&
+                Backend._isBackendRpcConfigured();
+            if (!Backend || !rpcReady) {
                 if (AppState.debugMode) {
                     Utils.safeLog('⚠️ Backend غير متاح - استخدام البيانات المحلية');
                 }
@@ -1511,7 +1511,7 @@ const PTW = {
 
             let result;
             try {
-                result = await GoogleIntegration.sendRequest({
+                result = await Backend.sendRequest({
                     action: 'getAllPTWs',
                     data: {}
                 });
@@ -1525,11 +1525,11 @@ const PTW = {
                     return false;
                 }
                 try {
-                    result = await GoogleIntegration.sendRequest({
+                    result = await Backend.sendRequest({
                         action: 'readFromSheet',
                         data: {
                             sheetName: 'PTW',
-                            spreadsheetId: AppState.googleConfig?.sheets?.spreadsheetId
+                            spreadsheetId: AppState.backendConfig?.sheets?.spreadsheetId
                         }
                     });
                 } catch (fallbackErr) {
@@ -1572,20 +1572,20 @@ const PTW = {
      */
     async loadRegistryFromBackend() {
         try {
-            const rpcReady = GoogleIntegration &&
-                typeof GoogleIntegration._isBackendRpcConfigured === 'function' &&
-                GoogleIntegration._isBackendRpcConfigured();
-            if (!GoogleIntegration || !rpcReady) {
+            const rpcReady = Backend &&
+                typeof Backend._isBackendRpcConfigured === 'function' &&
+                Backend._isBackendRpcConfigured();
+            if (!Backend || !rpcReady) {
                 return false;
             }
 
             // محاولة تحميل من Backend إذا كان متاحاً
             try {
-                const result = await GoogleIntegration.sendRequest({
+                const result = await Backend.sendRequest({
                     action: 'readFromSheet',
                     data: {
                         sheetName: 'PTWRegistry',
-                        spreadsheetId: AppState.googleConfig.sheets.spreadsheetId
+                        spreadsheetId: AppState.backendConfig.sheets.spreadsheetId
                     }
                 });
 
@@ -2908,7 +2908,7 @@ const PTW = {
             try {
                 // التحقق من وجود مفتاح API أولاً (مع cache)
                 if (!this.googleMapsApiKeyChecked) {
-                    const apiKey = AppState.googleConfig?.maps?.apiKey;
+                    const apiKey = AppState.backendConfig?.maps?.apiKey;
                     this.hasGoogleMapsApiKey = !!(apiKey && apiKey.trim() !== '');
                     this.googleMapsApiKeyChecked = true;
                 }
@@ -3419,7 +3419,7 @@ const PTW = {
 
             // التحقق من وجود مفتاح API (مع cache)
             if (!this.googleMapsApiKeyChecked) {
-                const apiKey = AppState.googleConfig?.maps?.apiKey;
+                const apiKey = AppState.backendConfig?.maps?.apiKey;
                 this.hasGoogleMapsApiKey = !!(apiKey && apiKey.trim() !== '');
                 this.googleMapsApiKeyChecked = true;
             }
@@ -3452,7 +3452,7 @@ const PTW = {
             // إنشاء script جديد
             // ملاحظة: يجب استبدال مفتاح API بمفتاح صالح من Google Cloud Console
             // للحصول على مفتاح: https://console.cloud.google.com/google/maps-apis
-            const apiKey = AppState.googleConfig?.maps?.apiKey;
+            const apiKey = AppState.backendConfig?.maps?.apiKey;
 
             // إنشاء callback فريد
             const callbackName = 'PTW_GoogleMapsCallback_' + Date.now();
@@ -4298,7 +4298,7 @@ const PTW = {
      */
     showMapDebugInfo() {
         // التحقق من مفتاح API
-        const apiKey = AppState.googleConfig?.maps?.apiKey;
+        const apiKey = AppState.backendConfig?.maps?.apiKey;
         const hasApiKey = apiKey && apiKey.trim() !== '';
 
         const debugInfo = {
@@ -4481,8 +4481,8 @@ const PTW = {
         }
         
         // حفظ في Google Sheets إذا كان متاحاً
-        if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.autoSave) {
-            await GoogleIntegration.autoSave('PTW_MAP_SITES', sites).catch(err => {
+        if (typeof Backend !== 'undefined' && Backend.autoSave) {
+            await Backend.autoSave('PTW_MAP_SITES', sites).catch(err => {
                 Utils.safeWarn('⚠️ تعذر حفظ إعدادات المواقع في Google Sheets:', err);
             });
         }
@@ -9043,8 +9043,8 @@ const PTW = {
         permit.closureStatus = 'completed';
 
         // حفظ التصريح
-        if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.autoSave) {
-            await GoogleIntegration.autoSave('PTW', AppState.appData.ptw);
+        if (typeof Backend !== 'undefined' && Backend.autoSave) {
+            await Backend.autoSave('PTW', AppState.appData.ptw);
         }
 
         // تحديث السجل
@@ -12141,7 +12141,7 @@ const PTW = {
                     ? this.updateRegistryEntry(formData)
                     : this.addToRegistry(formData),
                 // حفظ في Google Sheets
-                GoogleIntegration.autoSave('PTW', AppState.appData.ptw)
+                Backend.autoSave('PTW', AppState.appData.ptw)
             ]).then((results) => {
                 const localSaveFailed = results[0]?.status === 'rejected';
                 const registrySaveFailed = results[1]?.status === 'rejected';
@@ -13161,7 +13161,7 @@ const PTW = {
             }
             
             // حفظ في Google Sheets في الخلفية
-            GoogleIntegration.autoSave('PTW', AppState.appData.ptw).catch(error => {
+            Backend.autoSave('PTW', AppState.appData.ptw).catch(error => {
                 Utils.safeError('خطأ في حفظ Google Sheets:', error);
             });
 
@@ -13277,7 +13277,7 @@ const PTW = {
             } else {
                 Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
             }
-            await GoogleIntegration.autoSave('PTW', AppState.appData.ptw);
+            await Backend.autoSave('PTW', AppState.appData.ptw);
 
             Notification.success(this._t('module.ptw.notify.assignedTo', 'تم توجيه الاعتماد إلى {name}.').replace(/\{name\}/g, approval.approver || ''));
             this.triggerNotificationsUpdate();
@@ -13319,7 +13319,7 @@ const PTW = {
                 Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
             }
             // حظ تلقائي ي Google Sheets
-            await GoogleIntegration.autoSave('PTW', AppState.appData.ptw);
+            await Backend.autoSave('PTW', AppState.appData.ptw);
             Loading.hide();
             Notification.success(this._t('module.ptw.notify.deleted', 'تم حذف التصريح بنجاح'));
             this.updateKPIs(); // تحديث KPIs بعد الحذف

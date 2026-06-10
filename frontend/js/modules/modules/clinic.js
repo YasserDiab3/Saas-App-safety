@@ -3040,7 +3040,7 @@ const Clinic = {
                 }
 
                 // حذف من Google Sheets
-                await GoogleIntegration.sendRequest({
+                await Backend.sendRequest({
                     action: 'deleteMedication',
                     data: { medicationId: id }
                 });
@@ -3085,7 +3085,7 @@ const Clinic = {
                     reason: 'طلب حذف دواء'
                 };
 
-                const result = await GoogleIntegration.sendRequest({
+                const result = await Backend.sendRequest({
                     action: 'addMedicationDeletionRequest',
                     data: requestData
                 });
@@ -3134,7 +3134,7 @@ const Clinic = {
     async notifyAdminAboutDeletionRequest(medication) {
         try {
             // الحصول على جميع المستخدمين المدراء
-            const usersResult = await GoogleIntegration.sendRequest({
+            const usersResult = await Backend.sendRequest({
                 action: 'readFromSheet',
                 data: { sheetName: 'Users' }
             });
@@ -3148,7 +3148,7 @@ const Clinic = {
                 // إرسال إشعار لكل مدير
                 for (const admin of admins) {
                     if (admin.id) {
-                        await GoogleIntegration.sendRequest({
+                        await Backend.sendRequest({
                             action: 'addNotification',
                             data: {
                                 userId: admin.id,
@@ -3180,7 +3180,7 @@ const Clinic = {
     async notifyAdminAboutSupplyRequest(request) {
         try {
             // الحصول على جميع المستخدمين المدراء
-            const usersResult = await GoogleIntegration.sendRequest({
+            const usersResult = await Backend.sendRequest({
                 action: 'readFromSheet',
                 data: { sheetName: 'Users' }
             });
@@ -3201,7 +3201,7 @@ const Clinic = {
                 // إرسال إشعار لكل مدير
                 for (const admin of admins) {
                     if (admin.id) {
-                        await GoogleIntegration.sendRequest({
+                        await Backend.sendRequest({
                             action: 'addNotification',
                             data: {
                                 userId: admin.id,
@@ -3462,7 +3462,7 @@ const Clinic = {
                     clinicVisitTypes: list,
                     userData
                 };
-                const result = await GoogleIntegration.sendRequest({
+                const result = await Backend.sendRequest({
                     action: 'saveCompanySettings',
                     data: savePayload
                 });
@@ -3706,7 +3706,7 @@ const Clinic = {
      */
     async notifyAdminsAboutHighClinicVisits(visitData, monthlyCount) {
         try {
-            const usersResult = await GoogleIntegration.sendRequest({
+            const usersResult = await Backend.sendRequest({
                 action: 'readFromSheet',
                 data: { sheetName: 'Users' }
             });
@@ -3728,7 +3728,7 @@ const Clinic = {
             for (const admin of admins) {
                 if (admin.id || admin.email) {
                     try {
-                        await GoogleIntegration.sendRequest({
+                        await Backend.sendRequest({
                             action: 'addNotification',
                             data: {
                                 userId: admin.id || admin.email,
@@ -6345,7 +6345,7 @@ const Clinic = {
 
             this.renderVisitsTabContent(panel);
 
-            if (shouldLoadData && typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendRequest) {
+            if (shouldLoadData && typeof Backend !== 'undefined' && Backend.sendRequest) {
                 this.loadVisitsDataFromBackend()
                     .then(() => {
                         const p = document.querySelector('.clinic-tab-panel[data-tab-panel="visits"]');
@@ -6534,7 +6534,7 @@ const Clinic = {
             
             // تحميل بيانات الزيارات من Backend بشكل فوري
             const result = await Utils.promiseWithTimeout(
-                GoogleIntegration.sendRequest({
+                Backend.sendRequest({
                     action: 'getAllClinicVisits',
                     data: { __timeoutMs: 120000 }
                 }),
@@ -7353,7 +7353,7 @@ const Clinic = {
                         ${t('btn.refresh')}
                     </button>
                     ${(typeof Permissions !== 'undefined' && Permissions.isAdmin && Permissions.isAdmin()) ? `
-                    <button type="button" onclick="const b=this;b.disabled=true;b.innerHTML='جاري الترحيل...';GoogleIntegration.sendRequest({action:'migrateContractorVisits'}).then(r=>{alert(r.message);location.reload()}).catch(e=>{alert('خطأ:'+e);b.disabled=false;b.innerHTML='ترحيل المقاولين'})" class="btn-primary" style="background-color: #d97706; color: white;">
+                    <button type="button" onclick="const b=this;b.disabled=true;b.innerHTML='جاري الترحيل...';Backend.sendRequest({action:'migrateContractorVisits'}).then(r=>{alert(r.message);location.reload()}).catch(e=>{alert('خطأ:'+e);b.disabled=false;b.innerHTML='ترحيل المقاولين'})" class="btn-primary" style="background-color: #d97706; color: white;">
                         <i class="fas fa-broom ${iconMarginClass}"></i>
                         ترحيل المقاولين
                     </button>
@@ -8322,8 +8322,8 @@ const Clinic = {
 
         try {
             // حذف فعلي من Backend باستخدام معرف الزيارة فقط (بدون إرسال كل سجل الزيارات)
-            if (AppState.googleConfig?.appsScript?.enabled) {
-                const deleteResult = await GoogleIntegration.sendRequest({
+            if (AppState.backendConfig?.server?.enabled) {
+                const deleteResult = await Backend.sendRequest({
                     action: 'deleteClinicVisit',
                     data: { visitId: visitId }
                 });
@@ -8363,8 +8363,8 @@ const Clinic = {
                 return;
             }
 
-            const isEnabled = AppState?.googleConfig?.appsScript?.enabled && AppState?.googleConfig?.appsScript?.scriptUrl;
-            if (!isEnabled || typeof GoogleIntegration === 'undefined' || !GoogleIntegration.sendRequest) {
+            const isEnabled = AppState?.backendConfig?.server?.enabled && AppState?.backendConfig?.server?.scriptUrl;
+            if (!isEnabled || typeof Backend === 'undefined' || !Backend.sendRequest) {
                 Notification.error('تعذر إرسال طلب الحذف (الخادم غير متاح)');
                 return;
             }
@@ -8377,7 +8377,7 @@ const Clinic = {
             };
 
             Loading.show('جاري إرسال طلب حذف الزيارة...');
-            const result = await GoogleIntegration.sendRequest({
+            const result = await Backend.sendRequest({
                 action: 'addClinicVisitDeletionRequest',
                 data: {
                     visitId: visitId,
@@ -9490,12 +9490,12 @@ const Clinic = {
                 (async () => {
                     try {
                         if (isEdit) {
-                            await GoogleIntegration.sendRequest({
+                            await Backend.sendRequest({
                                 action: 'updateSickLeave',
                                 data: { leaveId: payload.id, updateData: payload }
                             });
                         } else {
-                            await GoogleIntegration.sendRequest({
+                            await Backend.sendRequest({
                                 action: 'addSickLeave',
                                 data: payload
                             });
@@ -10009,13 +10009,13 @@ const Clinic = {
                 (async () => {
                     try {
                         if (isEdit) {
-                            await GoogleIntegration.sendRequest({
+                            await Backend.sendRequest({
                                 action: 'updateInjury',
                                 data: { injuryId: payload.id, updateData: payload }
                             });
                             Utils.safeLog('✅ تم حفظ البيانات في Google Sheets (تحديث)');
                         } else {
-                            await GoogleIntegration.sendRequest({
+                            await Backend.sendRequest({
                                 action: 'addInjury',
                                 data: payload
                             });
@@ -10884,7 +10884,7 @@ const Clinic = {
                         if (isEdit) {
                             const updateDataPayload = { ...formData };
                             if (adjustmentsToSend) updateDataPayload.medicationAdjustments = adjustmentsToSend;
-                            const vr = await GoogleIntegration.sendRequest({
+                            const vr = await Backend.sendRequest({
                                 action: 'updateClinicVisit',
                                 data: { visitId: visitData.id, updateData: updateDataPayload, __timeoutMs: rpcTimeoutMs }
                             });
@@ -10892,7 +10892,7 @@ const Clinic = {
                         } else {
                             const addDataPayload = { ...formData, __timeoutMs: rpcTimeoutMs };
                             if (adjustmentsToSend) addDataPayload.medicationAdjustments = adjustmentsToSend;
-                            const vr = await GoogleIntegration.sendRequest({
+                            const vr = await Backend.sendRequest({
                                 action: 'addClinicVisit',
                                 data: addDataPayload
                             });
@@ -10908,7 +10908,7 @@ const Clinic = {
                         // الجلب المباشر يضمن أن المستخدم يرى الرصيد الفعلي بعد الخصم (لا يعتمد على
                         // الـ optimistic update الذي قد يُلغى لاحقاً من syncModule أو data-saved).
                         if (hasInventoryChange) {
-                            GoogleIntegration.sendRequest({
+                            Backend.sendRequest({
                                 action: 'getAllMedications',
                                 data: {}
                             }).then(medResult => {
@@ -11207,12 +11207,12 @@ const Clinic = {
                 (async () => {
                     try {
                         if (isEdit) {
-                            await GoogleIntegration.sendRequest({
+                            await Backend.sendRequest({
                                 action: 'updateMedication',
                                 data: { medicationId: payload.id, updateData: payload }
                             });
                         } else {
-                            await GoogleIntegration.sendRequest({
+                            await Backend.sendRequest({
                                 action: 'addMedication',
                                 data: payload
                             });
@@ -11961,21 +11961,21 @@ const Clinic = {
     async ensureApprovalsDataLoaded({ force = false } = {}) {
         if (this._approvalsLoadPromise && !force) return this._approvalsLoadPromise;
         this._approvalsLoadPromise = (async () => {
-            const isEnabled = AppState?.googleConfig?.appsScript?.enabled && AppState?.googleConfig?.appsScript?.scriptUrl;
-            if (!isEnabled || typeof GoogleIntegration === 'undefined' || !GoogleIntegration.sendRequest) {
+            const isEnabled = AppState?.backendConfig?.server?.enabled && AppState?.backendConfig?.server?.scriptUrl;
+            if (!isEnabled || typeof Backend === 'undefined' || !Backend.sendRequest) {
                 this._approvalsBackendFetchOk = true;
                 return;
             }
 
-            const deletionP = GoogleIntegration.sendRequest({
+            const deletionP = Backend.sendRequest({
                 action: 'getAllMedicationDeletionRequests',
                 data: { filters: {} }
             });
-            const supplyP = GoogleIntegration.sendRequest({
+            const supplyP = Backend.sendRequest({
                 action: 'getAllSupplyRequests',
                 data: { filters: {} }
             });
-            const visitDeletionP = GoogleIntegration.sendRequest({
+            const visitDeletionP = Backend.sendRequest({
                 action: 'getAllClinicVisitDeletionRequests',
                 data: { filters: {} }
             });
@@ -12052,7 +12052,7 @@ const Clinic = {
             if (!isStale && hasLocalAny) {
                 this._approvalsBackendFetchOk = true;
             }
-            if ((isStale || !hasLocalAny || this._approvalsBackendFetchOk !== true) && typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendRequest) {
+            if ((isStale || !hasLocalAny || this._approvalsBackendFetchOk !== true) && typeof Backend !== 'undefined' && Backend.sendRequest) {
                 const loadAndMaybeRerender = async () => {
                     await this.ensureApprovalsDataLoaded({ force: isStale && hasLocalAny });
                 };
@@ -12372,7 +12372,7 @@ const Clinic = {
 
             let result;
             if (isDeletion) {
-                result = await GoogleIntegration.sendRequest({
+                result = await Backend.sendRequest({
                     action: 'approveMedicationDeletion',
                     data: {
                         requestId: requestId,
@@ -12380,7 +12380,7 @@ const Clinic = {
                     }
                 });
             } else if (isSupply) {
-                result = await GoogleIntegration.sendRequest({
+                result = await Backend.sendRequest({
                     action: 'approveSupplyRequest',
                     data: {
                         requestId: requestId,
@@ -12388,7 +12388,7 @@ const Clinic = {
                     }
                 });
             } else if (isVisitDeletion) {
-                result = await GoogleIntegration.sendRequest({
+                result = await Backend.sendRequest({
                     action: 'approveClinicVisitDeletion',
                     data: {
                         requestId: requestId,
@@ -12416,7 +12416,7 @@ const Clinic = {
                     (async () => {
                         try {
                             // تحديث قائمة الأدوية
-                            const medicationsResult = await GoogleIntegration.sendRequest({
+                            const medicationsResult = await Backend.sendRequest({
                                 action: 'getAllMedications',
                                 data: {}
                             });
@@ -12459,7 +12459,7 @@ const Clinic = {
 
             let result;
             if (requestType === 'deletion') {
-                result = await GoogleIntegration.sendRequest({
+                result = await Backend.sendRequest({
                     action: 'rejectMedicationDeletion',
                     data: {
                         requestId: requestId,
@@ -12468,7 +12468,7 @@ const Clinic = {
                     }
                 });
             } else if (requestType === 'supply') {
-                result = await GoogleIntegration.sendRequest({
+                result = await Backend.sendRequest({
                     action: 'rejectSupplyRequest',
                     data: {
                         requestId: requestId,
@@ -12477,7 +12477,7 @@ const Clinic = {
                     }
                 });
             } else if (requestType === 'visit') {
-                result = await GoogleIntegration.sendRequest({
+                result = await Backend.sendRequest({
                     action: 'rejectClinicVisitDeletion',
                     data: {
                         requestId: requestId,
@@ -12509,17 +12509,17 @@ const Clinic = {
         try {
             let result;
             if (requestType === 'deletion') {
-                result = await GoogleIntegration.sendRequest({
+                result = await Backend.sendRequest({
                     action: 'getAllMedicationDeletionRequests',
                     data: { filters: {} }
                 });
             } else if (requestType === 'supply') {
-                result = await GoogleIntegration.sendRequest({
+                result = await Backend.sendRequest({
                     action: 'getAllSupplyRequests',
                     data: { filters: {} }
                 });
             } else if (requestType === 'visit') {
-                result = await GoogleIntegration.sendRequest({
+                result = await Backend.sendRequest({
                     action: 'getAllClinicVisitDeletionRequests',
                     data: { filters: {} }
                 });
@@ -12858,7 +12858,7 @@ const Clinic = {
      */
     async syncDataFromServer() {
         const promises = [];
-        // ✅ زيادة مهلة الطلبات الخفيفة من 8 ثوانٍ إلى 45 ثانية لتفادي مشاكل الـ Cold Starts لـ Google Apps Script
+        // ✅ زيادة مهلة الطلبات الخفيفة من 8 ثوانٍ إلى 45 ثانية لتفادي مشاكل الـ Cold Starts لـ الخادم السحابي
         const REQUEST_TIMEOUT = 45000; 
         /** سجل التردد (الموظفين + المقاولين) قد يكون كبيراً — مهلة كافية لإكمال getAllClinicVisits */
         const CLINIC_VISITS_REQUEST_TIMEOUT = 120000;
@@ -12875,7 +12875,7 @@ const Clinic = {
         // تحميل الأدوية
         promises.push(
             requestWithTimeout(
-                GoogleIntegration.sendRequest({
+                Backend.sendRequest({
                     action: 'getAllMedications',
                     data: {}
                 }),
@@ -12901,7 +12901,7 @@ const Clinic = {
         // تحميل الإجازات المرضية
         promises.push(
             requestWithTimeout(
-                GoogleIntegration.sendRequest({
+                Backend.sendRequest({
                     action: 'getAllSickLeaves',
                     data: {}
                 }),
@@ -12923,7 +12923,7 @@ const Clinic = {
         // تحميل الإصابات
         promises.push(
             requestWithTimeout(
-                GoogleIntegration.sendRequest({
+                Backend.sendRequest({
                     action: 'getAllInjuries',
                     data: {}
                 }),
@@ -13288,7 +13288,7 @@ const Clinic = {
             return (!meds || meds.length === 0) && (v.medicationsDispensed || (v.medicationsDispensedQty && v.medicationsDispensedQty > 0));
         }));
         
-        if (needsReload && typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendRequest) {
+        if (needsReload && typeof Backend !== 'undefined' && Backend.sendRequest) {
             // عرض رسالة تحميل
             panel.innerHTML = '<div class="text-center py-8 text-gray-500"><div style="width: 300px; margin: 0 auto 16px;"><div style="width: 100%; height: 6px; background: rgba(59, 130, 246, 0.2); border-radius: 3px; overflow: hidden;"><div style="height: 100%; background: linear-gradient(90deg, #3b82f6, #2563eb, #3b82f6); background-size: 200% 100%; border-radius: 3px; animation: loadingProgress 1.5s ease-in-out infinite;"></div></div></div><p>جاري تحميل البيانات...</p></div>';
             
@@ -13982,7 +13982,7 @@ const Clinic = {
             };
 
             // حفظ في Google Sheets
-            const result = await GoogleIntegration.sendRequest({
+            const result = await Backend.sendRequest({
                 action: 'addSupplyRequest',
                 data: request
             });
@@ -14858,7 +14858,7 @@ const Clinic = {
                     });
                 }
 
-                const result = await GoogleIntegration.sendRequest({
+                const result = await Backend.sendRequest({
                     action: isEdit ? 'updateClinicVisit' : 'addClinicVisit',
                     data: isEdit
                         ? { visitId: formData.id, updateData: formData, __timeoutMs: rpcTimeoutMs }

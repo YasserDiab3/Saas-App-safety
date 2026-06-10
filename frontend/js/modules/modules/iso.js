@@ -437,7 +437,7 @@ const ISO = {
         // جلب قائمة الأكواد من المركز
         let documentCodes = [];
         try {
-            const result = await GoogleIntegration.fetchData('getDocumentCodes', {});
+            const result = await Backend.fetchData('getDocumentCodes', {});
             if (result.success && result.data) {
                 documentCodes = result.data.filter(c => c.documentType === 'وثيقة' && c.status === 'نشط');
             }
@@ -595,7 +595,7 @@ const ISO = {
             }
             this.load();
 
-            GoogleIntegration.autoSave('ISODocuments', AppState.appData.isoDocuments).catch(error => {
+            Backend.autoSave('ISODocuments', AppState.appData.isoDocuments).catch(error => {
                 Utils.safeError('خطأ في حفظ Google Sheets (وثائق ISO):', error);
                 if (typeof Notification !== 'undefined' && Notification.warning) {
                     Notification.warning('تم الحفظ محلياً. تعذّرت المزامنة الفورية مع الشيت.');
@@ -611,7 +611,7 @@ const ISO = {
         // جلب قائمة الأكواد من المركز
         let documentCodes = [];
         try {
-            const result = await GoogleIntegration.fetchData('getDocumentCodes', {});
+            const result = await Backend.fetchData('getDocumentCodes', {});
             if (result.success && result.data) {
                 documentCodes = result.data.filter(c => c.documentType === 'إجراء' && c.status === 'نشط');
             }
@@ -744,7 +744,7 @@ const ISO = {
             }
             this.load();
 
-            GoogleIntegration.autoSave('ISOProcedures', AppState.appData.isoProcedures).catch(error => {
+            Backend.autoSave('ISOProcedures', AppState.appData.isoProcedures).catch(error => {
                 Utils.safeError('خطأ في حفظ Google Sheets (إجراءات ISO):', error);
                 if (typeof Notification !== 'undefined' && Notification.warning) {
                     Notification.warning('تم الحفظ محلياً. تعذّرت المزامنة الفورية مع الشيت.');
@@ -760,7 +760,7 @@ const ISO = {
         // جلب قائمة الأكواد من المركز
         let documentCodes = [];
         try {
-            const result = await GoogleIntegration.fetchData('getDocumentCodes', {});
+            const result = await Backend.fetchData('getDocumentCodes', {});
             if (result.success && result.data) {
                 documentCodes = result.data.filter(c => c.documentType === 'نموذج' && c.status === 'نشط');
             }
@@ -941,7 +941,7 @@ const ISO = {
             this.load();
             
             // 5. معالجة المهام الخلفية (Google Sheets) في الخلفية
-            GoogleIntegration.autoSave('ISOForms', AppState.appData.isoForms).catch(error => {
+            Backend.autoSave('ISOForms', AppState.appData.isoForms).catch(error => {
                 Utils.safeError('خطأ في حفظ Google Sheets:', error);
             });
         } catch (error) {
@@ -1373,7 +1373,7 @@ const ISO = {
         } else {
             Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
         }
-                await GoogleIntegration.autoSave('HSEObjectives', AppState.appData.hseObjectives);
+                await Backend.autoSave('HSEObjectives', AppState.appData.hseObjectives);
             } else {
                 AppState.appData.hseObjectives.push(formData);
                 Notification.success('تم إضافة الهد بنجاح');
@@ -1386,18 +1386,18 @@ const ISO = {
         }
 
                 // إرسال مباشر إلى الخلفية للسجل الجديد
-                if (AppState.googleConfig.appsScript.enabled && AppState.googleConfig.appsScript.scriptUrl) {
+                if (AppState.backendConfig.server.enabled && AppState.backendConfig.server.scriptUrl) {
                     try {
-                        await GoogleIntegration.sendToAppsScript('addHSEObjective', formData);
+                        await Backend.sendToAppsScript('addHSEObjective', formData);
                         Utils.safeLog('✅ تم حفظ الهدف مباشرة في الخلفية');
                     } catch (error) {
                         Utils.safeWarn('⚠ فشل الحفظ المباشر، سيتم المزامنة لاحقاً:', error);
                         // في حالة الفشل، نستخدم autoSave كبديل
-                        await GoogleIntegration.autoSave('HSEObjectives', AppState.appData.hseObjectives);
+                        await Backend.autoSave('HSEObjectives', AppState.appData.hseObjectives);
                     }
                 } else {
-                    // إذا لم يكن Google Apps Script مفعّل، نستخدم autoSave فقط
-                    await GoogleIntegration.autoSave('HSEObjectives', AppState.appData.hseObjectives);
+                    // إذا لم يكن الخادم السحابي مفعّل، نستخدم autoSave فقط
+                    await Backend.autoSave('HSEObjectives', AppState.appData.hseObjectives);
                 }
             }
 
@@ -1501,7 +1501,7 @@ const ISO = {
         } else {
             Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
         }
-                await GoogleIntegration.autoSave('EnvironmentalAspects', AppState.appData.environmentalAspects);
+                await Backend.autoSave('EnvironmentalAspects', AppState.appData.environmentalAspects);
             } else {
                 AppState.appData.environmentalAspects.push(formData);
                 Notification.success('تم إضافة الجانب البيئي بنجاح');
@@ -1514,18 +1514,18 @@ const ISO = {
         }
 
                 // إرسال مباشر إلى الخلفية للسجل الجديد
-                if (AppState.googleConfig.appsScript.enabled && AppState.googleConfig.appsScript.scriptUrl) {
+                if (AppState.backendConfig.server.enabled && AppState.backendConfig.server.scriptUrl) {
                     try {
-                        await GoogleIntegration.sendToAppsScript('addEnvironmentalAspect', formData);
+                        await Backend.sendToAppsScript('addEnvironmentalAspect', formData);
                         Utils.safeLog('✅ تم حفظ الجانب البيئي مباشرة في الخلفية');
                     } catch (error) {
                         Utils.safeWarn('⚠ فشل الحفظ المباشر، سيتم المزامنة لاحقاً:', error);
                         // في حالة الفشل، نستخدم autoSave كبديل
-                        await GoogleIntegration.autoSave('EnvironmentalAspects', AppState.appData.environmentalAspects);
+                        await Backend.autoSave('EnvironmentalAspects', AppState.appData.environmentalAspects);
                     }
                 } else {
-                    // إذا لم يكن Google Apps Script مفعّل، نستخدم autoSave فقط
-                    await GoogleIntegration.autoSave('EnvironmentalAspects', AppState.appData.environmentalAspects);
+                    // إذا لم يكن الخادم السحابي مفعّل، نستخدم autoSave فقط
+                    await Backend.autoSave('EnvironmentalAspects', AppState.appData.environmentalAspects);
                 }
             }
 
@@ -1646,7 +1646,7 @@ const ISO = {
         } else {
             Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
         }
-                await GoogleIntegration.autoSave('HSEAudits', AppState.appData.hseAudits);
+                await Backend.autoSave('HSEAudits', AppState.appData.hseAudits);
             } else {
                 AppState.appData.hseAudits.push(formData);
                 Notification.success('تم إضافة التدقيق بنجاح');
@@ -1659,18 +1659,18 @@ const ISO = {
         }
 
                 // إرسال مباشر إلى الخلفية للسجل الجديد
-                if (AppState.googleConfig.appsScript.enabled && AppState.googleConfig.appsScript.scriptUrl) {
+                if (AppState.backendConfig.server.enabled && AppState.backendConfig.server.scriptUrl) {
                     try {
-                        await GoogleIntegration.sendToAppsScript('addHSEAudit', formData);
+                        await Backend.sendToAppsScript('addHSEAudit', formData);
                         Utils.safeLog('✅ تم حفظ التدقيق مباشرة في الخلفية');
                     } catch (error) {
                         Utils.safeWarn('⚠ فشل الحفظ المباشر، سيتم المزامنة لاحقاً:', error);
                         // في حالة الفشل، نستخدم autoSave كبديل
-                        await GoogleIntegration.autoSave('HSEAudits', AppState.appData.hseAudits);
+                        await Backend.autoSave('HSEAudits', AppState.appData.hseAudits);
                     }
                 } else {
-                    // إذا لم يكن Google Apps Script مفعّل، نستخدم autoSave فقط
-                    await GoogleIntegration.autoSave('HSEAudits', AppState.appData.hseAudits);
+                    // إذا لم يكن الخادم السحابي مفعّل، نستخدم autoSave فقط
+                    await Backend.autoSave('HSEAudits', AppState.appData.hseAudits);
                 }
             }
 
@@ -1806,7 +1806,7 @@ const ISO = {
         } else {
             Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
         }
-                await GoogleIntegration.autoSave('HSENonConformities', AppState.appData.hseNonConformities);
+                await Backend.autoSave('HSENonConformities', AppState.appData.hseNonConformities);
             } else {
                 AppState.appData.hseNonConformities.push(formData);
                 Notification.success('تم إضافة عدم المطابقة بنجاح');
@@ -1819,18 +1819,18 @@ const ISO = {
         }
 
                 // إرسال مباشر إلى الخلفية للسجل الجديد
-                if (AppState.googleConfig.appsScript.enabled && AppState.googleConfig.appsScript.scriptUrl) {
+                if (AppState.backendConfig.server.enabled && AppState.backendConfig.server.scriptUrl) {
                     try {
-                        await GoogleIntegration.sendToAppsScript('addHSENonConformity', formData);
+                        await Backend.sendToAppsScript('addHSENonConformity', formData);
                         Utils.safeLog('✅ تم حفظ عدم المطابقة مباشرة في الخلفية');
                     } catch (error) {
                         Utils.safeWarn('⚠ فشل الحفظ المباشر، سيتم المزامنة لاحقاً:', error);
                         // في حالة الفشل، نستخدم autoSave كبديل
-                        await GoogleIntegration.autoSave('HSENonConformities', AppState.appData.hseNonConformities);
+                        await Backend.autoSave('HSENonConformities', AppState.appData.hseNonConformities);
                     }
                 } else {
-                    // إذا لم يكن Google Apps Script مفعّل، نستخدم autoSave فقط
-                    await GoogleIntegration.autoSave('HSENonConformities', AppState.appData.hseNonConformities);
+                    // إذا لم يكن الخادم السحابي مفعّل، نستخدم autoSave فقط
+                    await Backend.autoSave('HSENonConformities', AppState.appData.hseNonConformities);
                 }
             }
 
@@ -1970,7 +1970,7 @@ const ISO = {
         } else {
             Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
         }
-                await GoogleIntegration.autoSave('HSECorrectiveActions', AppState.appData.hseCorrectiveActions);
+                await Backend.autoSave('HSECorrectiveActions', AppState.appData.hseCorrectiveActions);
             } else {
                 AppState.appData.hseCorrectiveActions.push(formData);
                 Notification.success('تم إضافة الإجراء التصحيحي بنجاح');
@@ -1983,18 +1983,18 @@ const ISO = {
         }
 
                 // إرسال مباشر إلى الخلفية للسجل الجديد
-                if (AppState.googleConfig.appsScript.enabled && AppState.googleConfig.appsScript.scriptUrl) {
+                if (AppState.backendConfig.server.enabled && AppState.backendConfig.server.scriptUrl) {
                     try {
-                        await GoogleIntegration.sendToAppsScript('addHSECorrectiveAction', formData);
+                        await Backend.sendToAppsScript('addHSECorrectiveAction', formData);
                         Utils.safeLog('✅ تم حفظ الإجراء التصحيحي مباشرة في الخلفية');
                     } catch (error) {
                         Utils.safeWarn('⚠ فشل الحفظ المباشر، سيتم المزامنة لاحقاً:', error);
                         // في حالة الفشل، نستخدم autoSave كبديل
-                        await GoogleIntegration.autoSave('HSECorrectiveActions', AppState.appData.hseCorrectiveActions);
+                        await Backend.autoSave('HSECorrectiveActions', AppState.appData.hseCorrectiveActions);
                     }
                 } else {
-                    // إذا لم يكن Google Apps Script مفعّل، نستخدم autoSave فقط
-                    await GoogleIntegration.autoSave('HSECorrectiveActions', AppState.appData.hseCorrectiveActions);
+                    // إذا لم يكن الخادم السحابي مفعّل، نستخدم autoSave فقط
+                    await Backend.autoSave('HSECorrectiveActions', AppState.appData.hseCorrectiveActions);
                 }
             }
 
@@ -2077,8 +2077,8 @@ const ISO = {
                     setTimeout(() => reject(new Error('TIMEOUT')), LOAD_TIMEOUT_MS)
                 );
                 const fetchPromise = Promise.all([
-                    GoogleIntegration.fetchData('getDocumentCodes', {}).catch(() => ({ success: false, data: [] })),
-                    GoogleIntegration.fetchData('getDocumentVersions', { documentCodeId: null }).catch(() => ({ success: false, data: [] }))
+                    Backend.fetchData('getDocumentCodes', {}).catch(() => ({ success: false, data: [] })),
+                    Backend.fetchData('getDocumentVersions', { documentCodeId: null }).catch(() => ({ success: false, data: [] }))
                 ]);
                 const [codesResult, versionsResult] = await Promise.race([fetchPromise, timeoutPromise]);
                 if (codesResult && codesResult.success && codesResult.data) {
@@ -2331,8 +2331,8 @@ const ISO = {
             }
             Loading.show();
             const [codesRes, versionsRes] = await Promise.all([
-                GoogleIntegration.fetchData('getDocumentCodes', {}).catch(() => ({ success: false, data: [] })),
-                GoogleIntegration.fetchData('getDocumentVersions', { documentCodeId: null }).catch(() => ({ success: false, data: [] }))
+                Backend.fetchData('getDocumentCodes', {}).catch(() => ({ success: false, data: [] })),
+                Backend.fetchData('getDocumentVersions', { documentCodeId: null }).catch(() => ({ success: false, data: [] }))
             ]);
             const documentCodes = (codesRes && codesRes.success && codesRes.data) ? codesRes.data : [];
             const documentVersions = (versionsRes && versionsRes.success && versionsRes.data) ? versionsRes.data : [];
@@ -2391,8 +2391,8 @@ const ISO = {
         try {
             Loading.show();
             const [codesRes, versionsRes] = await Promise.all([
-                GoogleIntegration.fetchData('getDocumentCodes', {}).catch(() => ({ success: false, data: [] })),
-                GoogleIntegration.fetchData('getDocumentVersions', { documentCodeId: null }).catch(() => ({ success: false, data: [] }))
+                Backend.fetchData('getDocumentCodes', {}).catch(() => ({ success: false, data: [] })),
+                Backend.fetchData('getDocumentVersions', { documentCodeId: null }).catch(() => ({ success: false, data: [] }))
             ]);
             const documentCodes = (codesRes && codesRes.success && codesRes.data) ? codesRes.data : [];
             const documentVersions = (versionsRes && versionsRes.success && versionsRes.data) ? versionsRes.data : [];
@@ -2579,7 +2579,7 @@ const ISO = {
                 let added = 0, failed = 0;
                 for (const row of rows) {
                     try {
-                        const result = await GoogleIntegration.fetchData('addDocumentCode', {
+                        const result = await Backend.fetchData('addDocumentCode', {
                             code: row.code,
                             documentName: row.documentName,
                             documentType: row.documentType,
@@ -2728,7 +2728,7 @@ const ISO = {
         Loading.show();
         try {
             const action = editId ? 'updateDocumentCode' : 'addDocumentCode';
-            const result = await GoogleIntegration.fetchData(action, formData);
+            const result = await Backend.fetchData(action, formData);
 
             if (result.success) {
                 Notification.success(editId ? 'تم تحديث الكود بنجاح' : 'تم إضافة الكود بنجاح');
@@ -2743,7 +2743,7 @@ const ISO = {
             if (msg.indexOf('غير معترف به') !== -1 || msg.indexOf('ACTION_NOT_RECOGNIZED') !== -1) {
                 Notification.error(
                     'الخادم لا يتعرّف على عملية إضافة كود المستند. ' +
-                    'تأكد من: 1) تحديث ملفات Code.gs و ISO.gs و Headers.gs و Config.gs في مشروع Google Apps Script. ' +
+                    'تأكد من: 1) تحديث ملفات Code.gs و ISO.gs و Headers.gs و Config.gs في مشروع الخادم السحابي. ' +
                     '2) نشر نسخة جديدة (Deploy → Manage deployments → Edit → New version → Deploy). ' +
                     '3) استخدام الرابط الذي ينتهي بـ /exec في الإعدادات.'
                 );
@@ -2757,7 +2757,7 @@ const ISO = {
 
     async getDocumentCodeById(id) {
         try {
-            const result = await GoogleIntegration.fetchData('getDocumentCodes', {});
+            const result = await Backend.fetchData('getDocumentCodes', {});
             if (result.success && result.data) {
                 return result.data.find(c => c.id === id);
             }
@@ -2785,7 +2785,7 @@ const ISO = {
 
         Loading.show();
         try {
-            const result = await GoogleIntegration.fetchData('deleteDocumentCode', { id: id });
+            const result = await Backend.fetchData('deleteDocumentCode', { id: id });
             if (result.success) {
                 Notification.success('تم حذف الكود بنجاح');
                 this.load();
@@ -2803,7 +2803,7 @@ const ISO = {
         // جلب قائمة الأكواد
         let codes = [];
         try {
-            const result = await GoogleIntegration.fetchData('getDocumentCodes', {});
+            const result = await Backend.fetchData('getDocumentCodes', {});
             if (result.success && result.data) {
                 codes = result.data;
             }
@@ -2918,7 +2918,7 @@ const ISO = {
         Loading.show();
         try {
             const action = editId ? 'updateDocumentVersion' : 'addDocumentVersion';
-            const result = await GoogleIntegration.fetchData(action, formData);
+            const result = await Backend.fetchData(action, formData);
 
             if (result.success) {
                 Notification.success(editId ? 'تم تحديث الإصدار بنجاح' : 'تم إضافة الإصدار بنجاح');
@@ -2936,7 +2936,7 @@ const ISO = {
 
     async getDocumentVersionById(id) {
         try {
-            const result = await GoogleIntegration.fetchData('getDocumentVersions', { documentCodeId: null });
+            const result = await Backend.fetchData('getDocumentVersions', { documentCodeId: null });
             if (result.success && result.data) {
                 return result.data.find(v => v.id === id);
             }
@@ -2958,7 +2958,7 @@ const ISO = {
     async viewDocumentVersions(documentCodeId) {
         try {
             Loading.show();
-            const result = await GoogleIntegration.fetchData('getDocumentVersions', { documentCodeId: documentCodeId });
+            const result = await Backend.fetchData('getDocumentVersions', { documentCodeId: documentCodeId });
             Loading.hide();
 
             if (!result.success || !result.data) {
@@ -3108,7 +3108,7 @@ const ISO = {
             Loading.show();
 
             // جلب الكود والإصدار من المركز
-            const result = await GoogleIntegration.fetchData('getDocumentCodeAndVersion', {
+            const result = await Backend.fetchData('getDocumentCodeAndVersion', {
                 documentCode: selectedCode
             });
 

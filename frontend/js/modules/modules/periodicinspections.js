@@ -540,7 +540,7 @@ const PeriodicInspections = {
             (AppState.appData.dailySafetyCheckList && AppState.appData.dailySafetyCheckList.length > 0);
 
         // ✅ تحميل مباشر عند أول فتح إذا لم تكن البيانات جاهزة محلياً (بدون تكرار طلبات متوازية)
-        if (!hasCachedData && typeof GoogleIntegration !== 'undefined') {
+        if (!hasCachedData && typeof Backend !== 'undefined') {
             try {
                 await Promise.race([
                     this.loadInspectionDataAsync(),
@@ -726,7 +726,7 @@ const PeriodicInspections = {
         }
         this._periodicInspectionLoadPromise = (async () => {
         try {
-            const inspectionResult = await GoogleIntegration.sendRequest({
+            const inspectionResult = await Backend.sendRequest({
                 action: 'getAllPeriodicInspections',
                 data: {}
             }).catch(error => {
@@ -769,9 +769,9 @@ const PeriodicInspections = {
             }
 
             // تحميل سجل المرور اليومي للسلامة (Daily Safety Check List) من قاعدة البيانات
-            if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.readFromSheets) {
+            if (typeof Backend !== 'undefined' && Backend.readFromSheets) {
                 try {
-                    const dscData = await GoogleIntegration.readFromSheets('DailySafetyCheckList');
+                    const dscData = await Backend.readFromSheets('DailySafetyCheckList');
                     if (Array.isArray(dscData)) {
                         AppState.appData.dailySafetyCheckList = dscData;
                         dataUpdated = true;
@@ -1491,7 +1491,7 @@ const PeriodicInspections = {
                 let result;
                 if (this.state.currentEditId) {
                     // تحديث فحص موجود
-                    result = await GoogleIntegration.sendRequest({
+                    result = await Backend.sendRequest({
                         action: 'updatePeriodicInspection',
                         data: {
                             inspectionId: this.state.currentEditId,
@@ -1500,7 +1500,7 @@ const PeriodicInspections = {
                     });
                 } else {
                     // إضافة فحص جديد
-                    result = await GoogleIntegration.sendRequest({
+                    result = await Backend.sendRequest({
                         action: 'addPeriodicInspection',
                         data: inspectionData
                     });
@@ -3237,14 +3237,14 @@ const PeriodicInspections = {
         if (alreadyLoaded && !force) return true;
 
         // الخادم غير مهيأ — نكتفي بالبيانات المحلية
-        if (typeof GoogleIntegration === 'undefined' || typeof GoogleIntegration.readFromSheets !== 'function') {
+        if (typeof Backend === 'undefined' || typeof Backend.readFromSheets !== 'function') {
             if (!Array.isArray(AppState.appData.dailySafetyCheckList)) AppState.appData.dailySafetyCheckList = [];
             return false;
         }
 
         this._dscDataLoadPromise = (async () => {
             try {
-                const dscData = await GoogleIntegration.readFromSheets('DailySafetyCheckList', 20000);
+                const dscData = await Backend.readFromSheets('DailySafetyCheckList', 20000);
                 if (Array.isArray(dscData)) {
                     AppState.appData.dailySafetyCheckList = dscData;
                     this._dscDataLoadedOnce = true;
@@ -3282,8 +3282,8 @@ const PeriodicInspections = {
             if (Array.isArray(settingsTeam) && settingsTeam.length > 0) {
                 return settingsTeam.map(m => (typeof m === 'string' ? { id: m, name: m } : { id: m.id || m.name, name: m.name || m }));
             }
-            if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendRequest) {
-                return GoogleIntegration.sendRequest({ action: 'getSafetyTeamMembers', data: {} })
+            if (typeof Backend !== 'undefined' && Backend.sendRequest) {
+                return Backend.sendRequest({ action: 'getSafetyTeamMembers', data: {} })
                     .then(result => (result && Array.isArray(result.data) ? result.data.map(m => ({ id: m.id || m.name, name: m.name || m })) : []))
                     .catch(() => []);
             }
@@ -5468,8 +5468,8 @@ const PeriodicInspections = {
         if (editId) Notification.success('تم تحديث السجل بنجاح');
         else Notification.success('تم إضافة السجل بنجاح');
         // المزامنة مع الخلفية في الخلفية (بدون انتظار)
-        if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.autoSave) {
-            GoogleIntegration.autoSave('DailySafetyCheckList', list).catch(() => {});
+        if (typeof Backend !== 'undefined' && Backend.autoSave) {
+            Backend.autoSave('DailySafetyCheckList', list).catch(() => {});
         }
     },
 
@@ -5481,7 +5481,7 @@ const PeriodicInspections = {
         if (idx === -1) { Notification.error('لم يتم العثور على السجل'); return; }
         list.splice(idx, 1);
         if (typeof DataManager !== 'undefined' && DataManager.save) DataManager.save();
-        if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.autoSave) await GoogleIntegration.autoSave('DailySafetyCheckList', list).catch(() => {});
+        if (typeof Backend !== 'undefined' && Backend.autoSave) await Backend.autoSave('DailySafetyCheckList', list).catch(() => {});
         Notification.success('تم حذف السجل');
         if (this.state.currentTab === 'daily-safety-checklist' || this.state.currentTab === 'daily-safety-analytics') {
             const contentContainer = document.getElementById('periodic-inspections-content-area');

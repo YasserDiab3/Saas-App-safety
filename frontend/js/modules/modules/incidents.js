@@ -388,8 +388,8 @@ const Incidents = {
         // تشغيل غير متزامن — لا ننتظر النتيجة
         setTimeout(() => {
             try {
-                if (typeof GoogleIntegration === 'undefined' || !GoogleIntegration.sendToAppsScript) return;
-                GoogleIntegration.sendToAppsScript('cleanupIncidentsRegistry', {})
+                if (typeof Backend === 'undefined' || !Backend.sendToAppsScript) return;
+                Backend.sendToAppsScript('cleanupIncidentsRegistry', {})
                     .then((result) => {
                         if (result && result.success && (result.removed || 0) > 0) {
                             Utils.safeLog(`🧹 تنظيف IncidentsRegistry على السيرفر: حُذف ${result.removed} صف مكرر، أُبقي ${result.kept}`);
@@ -456,8 +456,8 @@ const Incidents = {
             localStorage.setItem('hse_incidents_registry', Utils.safeStringify(this.registryData));
 
             // المزامنة مع Google Sheets
-            if (sync && typeof GoogleIntegration !== 'undefined' && GoogleIntegration.autoSave) {
-                await GoogleIntegration.autoSave('IncidentsRegistry', this.registryData);
+            if (sync && typeof Backend !== 'undefined' && Backend.autoSave) {
+                await Backend.autoSave('IncidentsRegistry', this.registryData);
             }
             return true;
         } catch (error) {
@@ -2253,9 +2253,9 @@ const Incidents = {
             // تحميل التنبيهات من Backend
             let alerts = [];
             
-            if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.callAppsScript) {
+            if (typeof Backend !== 'undefined' && Backend.callAppsScript) {
                 try {
-                    const result = await GoogleIntegration.callAppsScript('getAllSafetyAlerts', {});
+                    const result = await Backend.callAppsScript('getAllSafetyAlerts', {});
                     if (result && result.success && result.data) {
                         alerts = result.data;
                         if (!AppState.appData) AppState.appData = {};
@@ -2635,7 +2635,7 @@ const Incidents = {
 
             Loading.show('جاري حذف التنبيه...');
             
-            const result = await GoogleIntegration.sendRequest({
+            const result = await Backend.sendRequest({
                 action: 'deleteSafetyAlert',
                 data: { alertId }
             });
@@ -3229,11 +3229,11 @@ const Incidents = {
             let googleSheetsSaveSuccess = false;
             
             // Save to Backend
-            if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.callAppsScript) {
+            if (typeof Backend !== 'undefined' && Backend.callAppsScript) {
                 try {
                     const result = isEdit 
-                        ? await GoogleIntegration.callAppsScript('updateSafetyAlert', { alertId, updateData: alertData })
-                        : await GoogleIntegration.callAppsScript('addSafetyAlert', { alertData });
+                        ? await Backend.callAppsScript('updateSafetyAlert', { alertId, updateData: alertData })
+                        : await Backend.callAppsScript('addSafetyAlert', { alertData });
                     
                     if (result && result.success) {
                         backendSaveSuccess = true;
@@ -3263,9 +3263,9 @@ const Incidents = {
             }
 
             // Auto-save to Google Sheets if enabled
-            if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.autoSave) {
+            if (typeof Backend !== 'undefined' && Backend.autoSave) {
                 try {
-                    await GoogleIntegration.autoSave('safetyAlerts', AppState.appData.safetyAlerts);
+                    await Backend.autoSave('safetyAlerts', AppState.appData.safetyAlerts);
                     googleSheetsSaveSuccess = true;
                 } catch (error) {
                     Utils.safeWarn('خطأ في حفظ Safety Alert إلى Google Sheets:', error);
@@ -3418,9 +3418,9 @@ const Incidents = {
             }
 
             // Update in Backend
-            if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.callAppsScript) {
+            if (typeof Backend !== 'undefined' && Backend.callAppsScript) {
                 try {
-                    const result = await GoogleIntegration.callAppsScript('updateSafetyAlert', { alertId, updateData });
+                    const result = await Backend.callAppsScript('updateSafetyAlert', { alertId, updateData });
                     if (result && result.success && result.data) {
                         AppState.appData.safetyAlerts[index] = result.data;
                     }
@@ -3430,9 +3430,9 @@ const Incidents = {
             }
 
             // Auto-save to Google Sheets
-            if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.autoSave) {
+            if (typeof Backend !== 'undefined' && Backend.autoSave) {
                 try {
-                    await GoogleIntegration.autoSave('safetyAlerts', AppState.appData.safetyAlerts);
+                    await Backend.autoSave('safetyAlerts', AppState.appData.safetyAlerts);
                 } catch (error) {
                     Utils.safeWarn('خطأ في حفظ Safety Alert إلى Google Sheets:', error);
                 }
@@ -4355,14 +4355,14 @@ const Incidents = {
             // المزامنة في الخلفية (Incidents + IncidentsRegistry + Clinic Sick Leave)
             setTimeout(() => {
                 try {
-                    if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.autoSave) {
+                    if (typeof Backend !== 'undefined' && Backend.autoSave) {
                         // ✅ إصلاح التكرار: نستخدم autoSave('Incidents') فقط (saveToSheet → UPSERT بالـ id)
                         // كان السابق يستدعي أيضاً action 'addIncident' (appendToSheet) بالتوازي → سباق
                         // قراءة/كتابة يُنتج صفّين لنفس الحادث. autoSave وحده كافٍ وآمن من التكرار.
-                        GoogleIntegration.autoSave('Incidents', AppState.appData.incidents).catch((err) => {
+                        Backend.autoSave('Incidents', AppState.appData.incidents).catch((err) => {
                             Utils.safeWarn('⚠️ فشل مزامنة الحوادث في الخلفية:', err);
                         });
-                        GoogleIntegration.autoSave('IncidentsRegistry', this.registryData).catch((err) => {
+                        Backend.autoSave('IncidentsRegistry', this.registryData).catch((err) => {
                             Utils.safeWarn('⚠️ فشل مزامنة سجل الحوادث في الخلفية:', err);
                         });
                     }
@@ -4478,8 +4478,8 @@ const Incidents = {
 
             // Sync in background
             try {
-                if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendRequest) {
-                    await GoogleIntegration.sendRequest({ action: 'addSickLeave', data: payload });
+                if (typeof Backend !== 'undefined' && Backend.sendRequest) {
+                    await Backend.sendRequest({ action: 'addSickLeave', data: payload });
                 }
             } catch (syncError) {
                 Utils.safeWarn('⚠️ فشل مزامنة الإجازة المرضية مع Google Sheets:', syncError);
@@ -4990,8 +4990,8 @@ const Incidents = {
 
     async getAnalysisSettings() {
         try {
-            if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.callAppsScript) {
-                const result = await GoogleIntegration.callAppsScript('getIncidentAnalysisSettings');
+            if (typeof Backend !== 'undefined' && Backend.callAppsScript) {
+                const result = await Backend.callAppsScript('getIncidentAnalysisSettings');
                 if (result && result.success) {
                     return result.data || {};
                 }
@@ -5216,8 +5216,8 @@ const Incidents = {
 
         try {
             Loading.show();
-            if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.callAppsScript) {
-                const result = await GoogleIntegration.callAppsScript('saveIncidentAnalysisSettings', { settings });
+            if (typeof Backend !== 'undefined' && Backend.callAppsScript) {
+                const result = await Backend.callAppsScript('saveIncidentAnalysisSettings', { settings });
                 if (result && result.success) {
                     Notification.success('تم حفظ إعدادات التحليل بنجاح');
                     // Refresh analysis tab
@@ -6969,7 +6969,7 @@ const Incidents = {
             if (formData.attachments && Array.isArray(formData.attachments) && formData.attachments.length > 0) {
                 try {
                     Utils.safeLog('Incidents: قبل processAttachments - عدد المرفقات: ' + formData.attachments.length);
-                    const processedAttachments = await GoogleIntegration.processAttachments?.(
+                    const processedAttachments = await Backend.processAttachments?.(
                         formData.attachments,
                         'Incidents'
                     ) || formData.attachments;
@@ -6987,7 +6987,7 @@ const Incidents = {
             // معالجة الصورة الرئيسية ورفعها إلى Google Drive
             if (formData.image && typeof formData.image === 'string' && formData.image.startsWith('data:')) {
                 try {
-                    const uploadResult = await GoogleIntegration.uploadFileToDrive?.(
+                    const uploadResult = await Backend.uploadFileToDrive?.(
                         formData.image,
                         `incident_${formData.id}_${Date.now()}.jpg`,
                         'image/jpeg',
@@ -7017,14 +7017,14 @@ const Incidents = {
             }
 
             // حفظ تلقائي في Google Sheets
-            await GoogleIntegration.autoSave('Incidents', AppState.appData.incidents);
+            await Backend.autoSave('Incidents', AppState.appData.incidents);
 
             // إنشاء إجراءات تلقائية في Action Tracking إذا كانت هناك إجراءات في خطة الإجراءات
             if (formData.actionPlan && Array.isArray(formData.actionPlan) && formData.actionPlan.length > 0) {
                 for (const action of formData.actionPlan) {
                     if (action.description && action.owner) {
                         try {
-                            await GoogleIntegration.sendToAppsScript?.('createActionFromModule', {
+                            await Backend.sendToAppsScript?.('createActionFromModule', {
                                 sourceModule: 'Incidents',
                                 sourceId: formData.id,
                                 sourceData: {
@@ -8037,7 +8037,7 @@ const Incidents = {
     async processNotificationBackgroundTasks(notificationData, investigationData) {
         try {
             // حفظ الإخطار في Google Sheets عبر Backend
-            const notificationResult = await GoogleIntegration.sendRequest({
+            const notificationResult = await Backend.sendRequest({
                 action: 'addIncidentNotification',
                 data: notificationData
             });
@@ -8047,11 +8047,11 @@ const Incidents = {
             } else {
                 Utils.safeWarn('⚠️ فشل حفظ الإخطار في Google Sheets، سيتم المحاولة عبر autoSave');
                 // Fallback: استخدام autoSave
-                await GoogleIntegration.autoSave('IncidentNotifications', AppState.appData.incidentNotifications);
+                await Backend.autoSave('IncidentNotifications', AppState.appData.incidentNotifications);
             }
 
             // إضافة التحقيق إلى Google Sheets
-            await GoogleIntegration.sendRequest({
+            await Backend.sendRequest({
                 action: 'addIncident',
                 data: investigationData
             });
@@ -8059,7 +8059,7 @@ const Incidents = {
             // إنشاء Action Record تلقائي
             if (notificationData.actions) {
                 try {
-                    await GoogleIntegration.sendToAppsScript?.('createActionFromModule', {
+                    await Backend.sendToAppsScript?.('createActionFromModule', {
                         sourceModule: 'IncidentNotification',
                         sourceId: notificationData.id,
                         sourceData: {
@@ -8295,7 +8295,7 @@ const Incidents = {
                     permissions: AppState.currentUser?.permissions || {}
                 };
 
-                const deleteResult = await GoogleIntegration.sendRequest({
+                const deleteResult = await Backend.sendRequest({
                     action: 'deleteIncident',
                     data: {
                         incidentId: id,
@@ -10407,8 +10407,8 @@ const Incidents = {
 
                 setTimeout(() => {
                     try {
-                        if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.autoSave) {
-                            GoogleIntegration.autoSave('Incidents', AppState.appData.incidents).catch((err) => {
+                        if (typeof Backend !== 'undefined' && Backend.autoSave) {
+                            Backend.autoSave('Incidents', AppState.appData.incidents).catch((err) => {
                                 Utils.safeWarn('⚠️ فشل autoSave للحوادث في الخلفية:', err);
                             });
                         }
@@ -10417,8 +10417,8 @@ const Incidents = {
                     }
 
                     try {
-                        if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendRequest) {
-                            GoogleIntegration.sendRequest({
+                        if (typeof Backend !== 'undefined' && Backend.sendRequest) {
+                            Backend.sendRequest({
                                 action: 'updateIncident',
                                 data: { incidentId: incidentId, updateData: updatePayload }
                             }).catch((err) => {
@@ -11076,8 +11076,8 @@ const Incidents = {
 
             setTimeout(() => {
                 try {
-                    if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.autoSave) {
-                        GoogleIntegration.autoSave('Incidents', AppState.appData.incidents).catch((err) => {
+                    if (typeof Backend !== 'undefined' && Backend.autoSave) {
+                        Backend.autoSave('Incidents', AppState.appData.incidents).catch((err) => {
                             Utils.safeWarn('⚠️ فشل autoSave للحوادث بعد الموافقة:', err);
                         });
                     }
@@ -11086,8 +11086,8 @@ const Incidents = {
                 }
 
                 try {
-                    if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendRequest) {
-                        GoogleIntegration.sendRequest({
+                    if (typeof Backend !== 'undefined' && Backend.sendRequest) {
+                        Backend.sendRequest({
                             action: 'updateIncident',
                             data: { incidentId: incidentId, updateData }
                         }).catch((err) => {
@@ -11194,8 +11194,8 @@ const Incidents = {
 
             setTimeout(() => {
                 try {
-                    if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.autoSave) {
-                        GoogleIntegration.autoSave('Incidents', AppState.appData.incidents).catch((err) => {
+                    if (typeof Backend !== 'undefined' && Backend.autoSave) {
+                        Backend.autoSave('Incidents', AppState.appData.incidents).catch((err) => {
                             Utils.safeWarn('⚠️ فشل autoSave للحوادث بعد الرفض:', err);
                         });
                     }
@@ -11204,8 +11204,8 @@ const Incidents = {
                 }
 
                 try {
-                    if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendRequest) {
-                        GoogleIntegration.sendRequest({
+                    if (typeof Backend !== 'undefined' && Backend.sendRequest) {
+                        Backend.sendRequest({
                             action: 'updateIncident',
                             data: { incidentId: incidentId, updateData }
                         }).catch((err) => {

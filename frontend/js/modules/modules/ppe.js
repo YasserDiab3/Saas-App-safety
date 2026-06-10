@@ -532,9 +532,9 @@ const PPE = {
     async preloadData() {
         try {
             // تحميل بيانات الاستلامات
-            if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendToAppsScript) {
+            if (typeof Backend !== 'undefined' && Backend.sendToAppsScript) {
                 try {
-                    const ppeResult = await GoogleIntegration.sendToAppsScript('getAllPPE', {});
+                    const ppeResult = await Backend.sendToAppsScript('getAllPPE', {});
                     if (ppeResult && ppeResult.success && Array.isArray(ppeResult.data)) {
                         AppState.appData.ppe = ppeResult.data;
                         // ✅ حفظ البيانات في localStorage للاستخدام لاحقاً
@@ -697,9 +697,9 @@ const PPE = {
                         // تحديث محلي فقط (يُستخدم مباشرة بعد الحفظ المحلي لتجنب فقدان السجل الجديد مؤقتاً)
                     } else {
                     // تحميل بيانات الاستلامات
-                    if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendToAppsScript) {
+                    if (typeof Backend !== 'undefined' && Backend.sendToAppsScript) {
                         try {
-                            const ppeResult = await GoogleIntegration.sendToAppsScript('getAllPPE', {});
+                            const ppeResult = await Backend.sendToAppsScript('getAllPPE', {});
                             if (ppeResult && ppeResult.success && Array.isArray(ppeResult.data)) {
                                 AppState.appData.ppe = ppeResult.data;
                                 // ✅ حفظ البيانات في localStorage
@@ -2418,12 +2418,12 @@ const PPE = {
                         }
 
                         // 1.1 حفظ إلزامي في الخادم قبل إعلان النجاح
-                        if (AppState.googleConfig?.appsScript?.enabled && typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendToAppsScript) {
+                        if (AppState.backendConfig?.server?.enabled && typeof Backend !== 'undefined' && Backend.sendToAppsScript) {
                             if (isEdit) {
                                 if (!updatedRecordForServer) {
                                     throw new Error('تعذر تجهيز بيانات التعديل للحفظ في الخادم.');
                                 }
-                                const serverResult = await GoogleIntegration.sendToAppsScript('updatePPE', {
+                                const serverResult = await Backend.sendToAppsScript('updatePPE', {
                                     ppeId: updatedRecordForServer.id,
                                     updateData: updatedRecordForServer
                                 });
@@ -2432,7 +2432,7 @@ const PPE = {
                                 }
                             } else {
                                 for (const rec of recordsForServer) {
-                                    const serverResult = await GoogleIntegration.sendToAppsScript('addPPE', rec);
+                                    const serverResult = await Backend.sendToAppsScript('addPPE', rec);
                                     if (!serverResult || serverResult.success !== true) {
                                         throw new Error(serverResult?.message || 'فشل حفظ الاستلام في قاعدة البيانات.');
                                     }
@@ -2465,7 +2465,7 @@ const PPE = {
                         this.refreshActiveTab({ skipRemote: true });
                         
                         // 6. معالجة المهام الخلفية (Google Sheets) في الخلفية
-                        GoogleIntegration.autoSave('PPE', AppState.appData.ppe).catch(error => {
+                        Backend.autoSave('PPE', AppState.appData.ppe).catch(error => {
                             Utils.safeError('خطأ في حفظ Google Sheets:', error);
                         });
                     } catch (error) {
@@ -2504,8 +2504,8 @@ const PPE = {
             let items = [];
             if (cacheValid) {
                 items = Array.isArray(this.state.ppeItemsListCache) ? this.state.ppeItemsListCache : [];
-            } else if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendToAppsScript) {
-                const result = await GoogleIntegration.sendToAppsScript('getPPEItemsList', {});
+            } else if (typeof Backend !== 'undefined' && Backend.sendToAppsScript) {
+                const result = await Backend.sendToAppsScript('getPPEItemsList', {});
                 if (result && result.success && result.data) {
                     items = result.data;
                     this.state.ppeItemsListCache = items;
@@ -2691,8 +2691,8 @@ const PPE = {
         Loading.show();
 
         try {
-            if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendToAppsScript) {
-                const result = await GoogleIntegration.sendToAppsScript('deletePPE', { ppeId: id });
+            if (typeof Backend !== 'undefined' && Backend.sendToAppsScript) {
+                const result = await Backend.sendToAppsScript('deletePPE', { ppeId: id });
                 
                 if (result && result.success) {
                     // حذف من AppState
@@ -3210,12 +3210,12 @@ const PPE = {
                 // ✅ 3. معالجة المهام الخلفية في الخلفية (بدون انتظار)
                 Promise.allSettled([
                     // حفظ في Google Sheets
-                    GoogleIntegration.autoSave('PPEMatrix', AppState.appData.employeePPEMatrix).catch(error => {
+                    Backend.autoSave('PPEMatrix', AppState.appData.employeePPEMatrix).catch(error => {
                         Utils.safeError('خطأ في حفظ Google Sheets:', error);
                         return { success: false, error };
                     }),
                     // حفظ مصفوفة الموظفين أيضاً
-                    GoogleIntegration.autoSave('EmployeePPEMatrixByCode', AppState.appData.employeePPEMatrixByCode).catch(error => {
+                    Backend.autoSave('EmployeePPEMatrixByCode', AppState.appData.employeePPEMatrixByCode).catch(error => {
                         Utils.safeError('خطأ في حفظ مصفوفة الموظفين في Google Sheets:', error);
                         return { success: false, error };
                     })
@@ -3359,8 +3359,8 @@ const PPE = {
                 }
 
                 // حفظ في Google Sheets في الخلفية
-                if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.autoSave) {
-                    GoogleIntegration.autoSave('EmployeePPEMatrixByCode', AppState.appData.employeePPEMatrixByCode).catch(error => {
+                if (typeof Backend !== 'undefined' && Backend.autoSave) {
+                    Backend.autoSave('EmployeePPEMatrixByCode', AppState.appData.employeePPEMatrixByCode).catch(error => {
                         Utils.safeError('خطأ في حفظ Google Sheets:', error);
                     });
                 }
@@ -3667,7 +3667,7 @@ const PPE = {
                 try {
                     const payload = { ...obj };
                     delete payload.id; // الإضافة فقط
-                    const res = await GoogleIntegration.sendToAppsScript('addPPE', payload);
+                    const res = await Backend.sendToAppsScript('addPPE', payload);
                     if (res && res.success) {
                         ok++;
                         if (candidateId) existingIds.add(candidateId);
@@ -3842,7 +3842,7 @@ const PPE = {
                 if (obj.stock_OUT !== undefined) stockData.stock_OUT = obj.stock_OUT;
                 if (obj.balance !== undefined) stockData.balance = obj.balance;
                 try {
-                    const res = await GoogleIntegration.sendToAppsScript('addOrUpdatePPEStockItem', stockData);
+                    const res = await Backend.sendToAppsScript('addOrUpdatePPEStockItem', stockData);
                     if (res && res.success) {
                         ok++;
                         existingByCode.add(codeKey);
@@ -4738,7 +4738,7 @@ const PPE = {
 
     /** طلب واحد لقائمة المخزون مع مهلة بالمللي ثوانٍ */
     async _fetchPPEStockRpcOnce(timeoutMs) {
-        const loadPromise = GoogleIntegration.sendToAppsScript('getAllPPEStockItems', { filters: {} });
+        const loadPromise = Backend.sendToAppsScript('getAllPPEStockItems', { filters: {} });
         const timeoutPromise = new Promise((_, reject) =>
             setTimeout(() => reject(new Error(this._t('module.ppe.stock.timeoutRpc', 'انتهت مهلة الخادم عند قراءة المخزون.'))), timeoutMs)
         );
@@ -4800,7 +4800,7 @@ const PPE = {
             const RPC_MS = 30000;
             const RETRY_PAUSE_MS = 700;
 
-            if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendToAppsScript) {
+            if (typeof Backend !== 'undefined' && Backend.sendToAppsScript) {
                 this.state.stockLoadHardErrorMsg = '';
                 try {
                     let result = null;
@@ -5033,8 +5033,8 @@ const PPE = {
                     updatedAt: new Date().toISOString()
                 };
 
-                if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendToAppsScript) {
-                    const result = await GoogleIntegration.sendToAppsScript('addOrUpdatePPEStockItem', stockData);
+                if (typeof Backend !== 'undefined' && Backend.sendToAppsScript) {
+                    const result = await Backend.sendToAppsScript('addOrUpdatePPEStockItem', stockData);
                     if (result && result.success) {
                         // ✅ مسح Cache لتحديث البيانات في المرة القادمة
                         this.clearCache();
@@ -5262,8 +5262,8 @@ const PPE = {
                     updatedAt: new Date().toISOString()
                 };
 
-                if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendToAppsScript) {
-                    const result = await GoogleIntegration.sendToAppsScript('addPPETransaction', transactionData);
+                if (typeof Backend !== 'undefined' && Backend.sendToAppsScript) {
+                    const result = await Backend.sendToAppsScript('addPPETransaction', transactionData);
                     if (result && result.success) {
                         // ✅ مسح Cache لتحديث البيانات في المرة القادمة (لأن الحركات تؤثر على الرصيد)
                         this.clearCache();
@@ -5363,9 +5363,9 @@ const PPE = {
 
             // الحصول على الحركات من Backend
             let transactions = [];
-            if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendToAppsScript) {
+            if (typeof Backend !== 'undefined' && Backend.sendToAppsScript) {
                 try {
-                    const result = await GoogleIntegration.sendToAppsScript('getAllPPETransactions', { filters: { itemId: itemId } });
+                    const result = await Backend.sendToAppsScript('getAllPPETransactions', { filters: { itemId: itemId } });
                     if (result && result.success) {
                         transactions = Array.isArray(result.data) ? result.data : [];
                     } else {
@@ -5588,8 +5588,8 @@ const PPE = {
         Loading.show();
 
         try {
-            if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendToAppsScript) {
-                const result = await GoogleIntegration.sendToAppsScript('deletePPEStockItem', { itemId: itemId });
+            if (typeof Backend !== 'undefined' && Backend.sendToAppsScript) {
+                const result = await Backend.sendToAppsScript('deletePPEStockItem', { itemId: itemId });
                 
                 if (result && result.success) {
                     // ✅ مسح Cache لتحديث البيانات

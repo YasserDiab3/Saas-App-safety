@@ -1220,7 +1220,7 @@ const Emergency = {
         } else {
             Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
         }
-            await GoogleIntegration.autoSave('EmergencyAlerts', AppState.appData.emergencyAlerts);
+            await Backend.autoSave('EmergencyAlerts', AppState.appData.emergencyAlerts);
 
             Loading.hide();
             modal.remove();
@@ -1319,7 +1319,7 @@ const Emergency = {
         } else {
             Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
         }
-            await GoogleIntegration.autoSave('EmergencyPlans', AppState.appData.emergencyPlans);
+            await Backend.autoSave('EmergencyPlans', AppState.appData.emergencyPlans);
 
             Loading.hide();
             modal.remove();
@@ -1388,7 +1388,7 @@ const Emergency = {
         }
 
         try {
-            await GoogleIntegration.autoSave('EmergencyAlerts', AppState.appData.emergencyAlerts);
+            await Backend.autoSave('EmergencyAlerts', AppState.appData.emergencyAlerts);
         } catch (error) {
             Utils.safeWarn('⚠ فشل حفظ بيانات التنبيه بعد الاعتماد:', error);
         }
@@ -1433,7 +1433,7 @@ const Emergency = {
         }
 
         try {
-            await GoogleIntegration.autoSave('EmergencyAlerts', AppState.appData.emergencyAlerts);
+            await Backend.autoSave('EmergencyAlerts', AppState.appData.emergencyAlerts);
         } catch (error) {
             Utils.safeWarn('⚠ فشل حفظ بيانات التنبيه بعد الإغلاق:', error);
         }

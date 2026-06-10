@@ -226,8 +226,8 @@ const Violations = {
             return this._violApprovalSettingsCache;
         }
         try {
-            if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendRequest) {
-                const res = await GoogleIntegration.sendRequest({
+            if (typeof Backend !== 'undefined' && Backend.sendRequest) {
+                const res = await Backend.sendRequest({
                     action: 'getViolationApprovalSettings',
                     data: { __timeoutMs: 20000 }
                 });
@@ -305,7 +305,7 @@ const Violations = {
                 notes: opts.notes || ''
             };
 
-            const res = await GoogleIntegration.sendRequest({
+            const res = await Backend.sendRequest({
                 action: 'addViolationApprovalRequest',
                 data: { ...payload, __timeoutMs: 30000 }
             });
@@ -321,7 +321,7 @@ const Violations = {
      */
     async fetchViolationApprovalRequests(filters = {}) {
         try {
-            const res = await GoogleIntegration.sendRequest({
+            const res = await Backend.sendRequest({
                 action: 'getAllViolationApprovalRequests',
                 data: { ...filters, __timeoutMs: 25000 }
             });
@@ -343,7 +343,7 @@ const Violations = {
             userEmail: cu.email || ''
         };
         try {
-            const res = await GoogleIntegration.sendRequest({
+            const res = await Backend.sendRequest({
                 action: 'approveViolationApprovalRequest',
                 data: { requestId, approver, notes: opts.notes || '', force: opts.force === true, __timeoutMs: 30000 }
             });
@@ -366,7 +366,7 @@ const Violations = {
             userEmail: cu.email || ''
         };
         try {
-            const res = await GoogleIntegration.sendRequest({
+            const res = await Backend.sendRequest({
                 action: 'rejectViolationApprovalRequest',
                 data: { requestId, approver, reason: String(reason || '').trim(), __timeoutMs: 30000 }
             });
@@ -382,7 +382,7 @@ const Violations = {
     async saveViolationApprovalSettings(settings) {
         const cu = AppState.currentUser || {};
         try {
-            const res = await GoogleIntegration.sendRequest({
+            const res = await Backend.sendRequest({
                 action: 'updateViolationApprovalSettings',
                 data: {
                     requireApproval: settings.requireApproval === true,
@@ -1014,7 +1014,7 @@ const Violations = {
         if (typeof window.DataManager !== 'undefined' && window.DataManager.save) {
             try { window.DataManager.save(); } catch (e) { /* ignore */ }
         }
-        GoogleIntegration.autoSave('Violations', AppState.appData.violations).catch(() => {
+        Backend.autoSave('Violations', AppState.appData.violations).catch(() => {
             Notification.warning('تم الاستيراد محلياً. راجع المزامنة مع الشيت لاحقاً.');
         });
         if (typeof ViolationTypesManager !== 'undefined' && ViolationTypesManager.ensureViolationsTypeIds) {
@@ -1128,8 +1128,8 @@ const Violations = {
             const cacheAge = lastSync ? (Date.now() - parseInt(lastSync, 10)) : Infinity;
             const CACHE_DURATION = 10 * 60 * 1000; // 10 دقائق
             const isStale = cacheAge >= CACHE_DURATION;
-            const canFetch = typeof GoogleIntegration !== 'undefined' && GoogleIntegration.readFromSheets;
-            const isEnabled = AppState?.googleConfig?.appsScript?.enabled && AppState?.googleConfig?.appsScript?.scriptUrl;
+            const canFetch = typeof Backend !== 'undefined' && Backend.readFromSheets;
+            const isEnabled = AppState?.backendConfig?.server?.enabled && AppState?.backendConfig?.server?.scriptUrl;
             if (!hasViolationsData && canFetch && isEnabled) {
                 try {
                     await this.ensureViolationsCoreDataLoaded({ force: true });
@@ -1268,14 +1268,14 @@ const Violations = {
             return this._violationsCoreLoadPromise;
         }
         this._violationsCoreLoadPromise = (async () => {
-            if (typeof GoogleIntegration === 'undefined' || !GoogleIntegration.readFromSheets) return;
+            if (typeof Backend === 'undefined' || !Backend.readFromSheets) return;
 
-            const isEnabled = AppState?.googleConfig?.appsScript?.enabled && AppState?.googleConfig?.appsScript?.scriptUrl;
+            const isEnabled = AppState?.backendConfig?.server?.enabled && AppState?.backendConfig?.server?.scriptUrl;
             if (!isEnabled) return;
 
             const [violationsData, typesData] = await Promise.all([
-                GoogleIntegration.readFromSheets('Violations').catch(() => null),
-                GoogleIntegration.readFromSheets('ViolationTypes').catch(() => null),
+                Backend.readFromSheets('Violations').catch(() => null),
+                Backend.readFromSheets('ViolationTypes').catch(() => null),
             ]);
 
             if (Array.isArray(violationsData)) {
@@ -2349,8 +2349,8 @@ const Violations = {
 
             // 2. حذف من قاعدة البيانات (Backend)
             let result;
-            if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.callBackend) {
-                result = await GoogleIntegration.callBackend('deleteViolationFromSheet', { id: id });
+            if (typeof Backend !== 'undefined' && Backend.callBackend) {
+                result = await Backend.callBackend('deleteViolationFromSheet', { id: id });
             } else {
                 throw new Error('خدمة الاتصال بالخلفية غير متوفرة');
             }
@@ -4333,7 +4333,7 @@ const Violations = {
                         if (approvalPhoto && typeof approvalPhoto === 'string' && approvalPhoto.startsWith('data:')) {
                             try {
                                 btn.innerHTML = '<i class="fas fa-cloud-upload-alt fa-spin ml-2"></i> جاري رفع الصورة...';
-                                const uploadRes = await GoogleIntegration.uploadFileToDrive?.(
+                                const uploadRes = await Backend.uploadFileToDrive?.(
                                     approvalPhoto,
                                     `violation_${formData.id}_${Date.now()}.jpg`,
                                     'image/jpeg',
@@ -4453,7 +4453,7 @@ const Violations = {
                     // رفع الصورة إلى Google Drive في الخلفية إذا كانت base64
                     if (localPhoto && localPhoto.startsWith('data:')) {
                         try {
-                            const uploadResult = await GoogleIntegration.uploadFileToDrive?.(
+                            const uploadResult = await Backend.uploadFileToDrive?.(
                                 localPhoto,
                                 `violation_${formData.id}_${Date.now()}.jpg`,
                                 'image/jpeg',
@@ -4488,17 +4488,17 @@ const Violations = {
                     // المزامنة مع Google Sheets في الخلفية — استخدام addViolation/updateViolation
                     // (بدل saveToSheet الذي يستبدل الجدول كاملاً ويسبب race conditions)
                     try {
-                        if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendRequest) {
+                        if (typeof Backend !== 'undefined' && Backend.sendRequest) {
                             // تحضير نسخة من البيانات مع الصورة النهائية (إن رُفعت)
                             const payload = Object.assign({}, formData, { photo: finalPhoto });
                             let saveRes;
                             if (isEdit) {
-                                saveRes = await GoogleIntegration.sendRequest({
+                                saveRes = await Backend.sendRequest({
                                     action: 'updateViolation',
                                     data: { violationId: formData.id, updateData: payload }
                                 });
                             } else {
-                                saveRes = await GoogleIntegration.sendRequest({
+                                saveRes = await Backend.sendRequest({
                                     action: 'addViolation',
                                     data: payload
                                 });
@@ -4993,8 +4993,8 @@ const Violations = {
             }
             let remoteOk = true;
             try {
-                if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.autoSave) {
-                    const saveRes = await GoogleIntegration.autoSave('Violations', AppState.appData.violations);
+                if (typeof Backend !== 'undefined' && Backend.autoSave) {
+                    const saveRes = await Backend.autoSave('Violations', AppState.appData.violations);
                     if (saveRes && saveRes.success === false) remoteOk = false;
                 }
             } catch (err) {
@@ -5200,7 +5200,7 @@ ${inner}
      */
     async loadBlacklistDataAsync() {
         try {
-            // التأكد من وجود AppState و GoogleIntegration
+            // التأكد من وجود AppState و Backend
             if (typeof AppState === 'undefined' || !AppState.appData) {
                 AppState.appData = {};
             }
@@ -5209,10 +5209,10 @@ ${inner}
             }
 
             // التحقق من تفعيل Google Integration
-            const isGoogleEnabled = AppState.googleConfig?.appsScript?.enabled && AppState.googleConfig?.appsScript?.scriptUrl;
-            const isGoogleIntegrationAvailable = typeof GoogleIntegration !== 'undefined' && typeof GoogleIntegration.sendRequest === 'function';
+            const isGoogleEnabled = AppState.backendConfig?.server?.enabled && AppState.backendConfig?.server?.scriptUrl;
+            const isBackendAvailable = typeof Backend !== 'undefined' && typeof Backend.sendRequest === 'function';
 
-            if (!isGoogleEnabled || !isGoogleIntegrationAvailable) {
+            if (!isGoogleEnabled || !isBackendAvailable) {
                 // إذا لم يكن Google Integration متاحاً، استخدام البيانات المحلية
                 if (AppState.debugMode) {
                     Utils.safeLog('⚠️ Google Integration غير متاح - استخدام البيانات المحلية فقط');
@@ -5221,11 +5221,11 @@ ${inner}
             }
 
             // تحميل البيانات من Google Sheets (بدون عرض مؤشر تحميل - الواجهة تُعرض أولاً)
-            const result = await GoogleIntegration.sendRequest({
+            const result = await Backend.sendRequest({
                 action: 'readFromSheet',
                 data: {
                     sheetName: 'Blacklist_Register',
-                    spreadsheetId: AppState.googleConfig?.sheets?.spreadsheetId
+                    spreadsheetId: AppState.backendConfig?.sheets?.spreadsheetId
                 }
             }).catch(error => {
                 Utils.safeWarn('⚠️ تعذر تحميل بيانات Blacklist من Google Sheets:', error);
@@ -6322,7 +6322,7 @@ ${inner}
         // رفع الصورة إذا كانت Base64
         if (photo && photo.startsWith('data:')) {
             try {
-                const uploadResult = await GoogleIntegration.uploadFileToDrive?.(
+                const uploadResult = await Backend.uploadFileToDrive?.(
                     photo,
                     `blacklist_${formData.id}_${Date.now()}.jpg`,
                     'image/jpeg',
@@ -6371,7 +6371,7 @@ ${inner}
 
             // حفظ في Google Sheets
             try {
-                await GoogleIntegration.autoSave('Blacklist_Register', AppState.appData.blacklistRegister);
+                await Backend.autoSave('Blacklist_Register', AppState.appData.blacklistRegister);
             } catch (err) {
                 if (AppState.debugMode) Utils.safeWarn('خطأ في حفظ Google Sheets:', err);
                 Notification.warning('تم الحفظ محلياً لكن فشل الحفظ في Google Sheets');
@@ -6500,7 +6500,7 @@ ${inner}
 
             // حفظ في Google Sheets
             try {
-                await GoogleIntegration.autoSave('Blacklist_Register', AppState.appData.blacklistRegister);
+                await Backend.autoSave('Blacklist_Register', AppState.appData.blacklistRegister);
             } catch (err) {
                 if (AppState.debugMode) Utils.safeWarn('خطأ في حفظ Google Sheets:', err);
                 Notification.warning('تم الحذف محلياً لكن فشل الحفظ في Google Sheets');

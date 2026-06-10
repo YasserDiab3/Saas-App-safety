@@ -105,8 +105,8 @@ const UserVersionsAdmin = {
 
             // جلب البيانات بالتوازي
             const [versionsRes, statsRes] = await Promise.all([
-                GoogleIntegration.sendToAppsScript('getAllUserVersions', { latestVersion }),
-                GoogleIntegration.sendToAppsScript('getUserVersionStats', { latestVersion })
+                Backend.sendToAppsScript('getAllUserVersions', { latestVersion }),
+                Backend.sendToAppsScript('getUserVersionStats', { latestVersion })
             ]);
 
             this._data = (versionsRes && versionsRes.success && Array.isArray(versionsRes.data)) ? versionsRes.data : [];

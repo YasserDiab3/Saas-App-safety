@@ -378,7 +378,7 @@ const DailyObservations = {
             updateData.afterExecutionImages.push(base64Image);
 
             // استدعاء API للتحديث
-            GoogleIntegration.sendRequest({
+            Backend.sendRequest({
                 action: 'updateObservation',
                 data: {
                     observationId: observationId,
@@ -463,7 +463,7 @@ const DailyObservations = {
     /** ✅ الحصول على بيانات الملاحظة */
     async _getObservationData(observationId) {
         try {
-            const result = await GoogleIntegration.sendRequest({
+            const result = await Backend.sendRequest({
                 action: 'getObservation',
                 data: { observationId: observationId }
             });
@@ -940,7 +940,7 @@ const DailyObservations = {
                 updatedAt: obs.updatedAt
             };
 
-            GoogleIntegration.sendRequest({
+            Backend.sendRequest({
                 action: 'updateObservation',
                 data: {
                     observationId: observationId,
@@ -1219,7 +1219,7 @@ const DailyObservations = {
             Notification.info('جاري تنفيذ طلب سير الملاحظة...');
         }
         try {
-            const res = await GoogleIntegration.callBackend('transitionObservationWorkflow', {
+            const res = await Backend.callBackend('transitionObservationWorkflow', {
                 observationId,
                 action,
                 comments: extra.comments || '',
@@ -1577,16 +1577,16 @@ const DailyObservations = {
             return this._dailyObsLoadPromise;
         }
         this._dailyObsLoadPromise = (async () => {
-            if (typeof GoogleIntegration === 'undefined' || !GoogleIntegration.readFromSheets) return;
+            if (typeof Backend === 'undefined' || !Backend.readFromSheets) return;
 
-            const isEnabled = AppState?.googleConfig?.appsScript?.enabled && AppState?.googleConfig?.appsScript?.scriptUrl;
+            const isEnabled = AppState?.backendConfig?.server?.enabled && AppState?.backendConfig?.server?.scriptUrl;
             if (!isEnabled) {
                 this._dailyObsBackendFetchOk = true;
                 return;
             }
 
             const ctx = typeof this.buildObservationsRequestContext === 'function' ? this.buildObservationsRequestContext() : null;
-            const data = await GoogleIntegration.readFromSheets('DailyObservations', {
+            const data = await Backend.readFromSheets('DailyObservations', {
                 timeout: 15000,
                 observationsRequestContext: ctx
             }).catch(() => null);
@@ -1769,7 +1769,7 @@ const DailyObservations = {
             const cacheAge = lastSync ? (Date.now() - parseInt(lastSync, 10)) : Infinity;
             const CACHE_DURATION = 10 * 60 * 1000;
             const isStale = cacheAge >= CACHE_DURATION;
-            if ((!hasObsData || isStale) && typeof GoogleIntegration !== 'undefined' && GoogleIntegration.readFromSheets) {
+            if ((!hasObsData || isStale) && typeof Backend !== 'undefined' && Backend.readFromSheets) {
                 void this.ensureDailyObservationsDataLoaded({ force: isStale && hasObsData })
                     .catch(() => {})
                     .finally(() => {
@@ -1788,7 +1788,7 @@ const DailyObservations = {
             } else if (hasObsData) {
                 this._dailyObsBackendFetchOk = true;
             }
-            if (typeof GoogleIntegration === 'undefined' || !GoogleIntegration.readFromSheets) {
+            if (typeof Backend === 'undefined' || !Backend.readFromSheets) {
                 this._dailyObsBackendFetchOk = true;
             }
 
@@ -2449,8 +2449,8 @@ const DailyObservations = {
             const notificationMessage = `تم اكتشاف مواقع تحتوي على عدد كبير من الملاحظات (أكثر من ${this.OBSERVATIONS_THRESHOLD} ملاحظة):\n\n${sitesDetails}\n\nيرجى مراجعة هذه المواقع وإتخاذ الإجراءات اللازمة.`;
 
             // إرسال إشعار لكل مدير (بدون انتظار لتجنب مشاكل المهلة)
-            if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendRequest &&
-                AppState?.googleConfig?.appsScript?.enabled) {
+            if (typeof Backend !== 'undefined' && Backend.sendRequest &&
+                AppState?.backendConfig?.server?.enabled) {
 
                 // إرسال الإشعارات بشكل غير متزامن دون انتظار لتجنب مشاكل المهلة
                 adminUsers.forEach((admin) => {
@@ -2458,7 +2458,7 @@ const DailyObservations = {
                     if (!adminId) return;
 
                     // إرسال بدون await لتجنب مشاكل المهلة - الإشعارات غير حرجة
-                    GoogleIntegration.sendRequest({
+                    Backend.sendRequest({
                         action: 'addNotification',
                         data: {
                             userId: adminId,
@@ -5895,8 +5895,8 @@ const DailyObservations = {
                 }
                 return;
             }
-            if (!AppState.googleConfig?.appsScript?.enabled || !AppState.googleConfig?.appsScript?.scriptUrl) {
-                Notification.error('Google Apps Script غير مفعّل. يرجى تفعيله في الإعدادات أولاً.');
+            if (!AppState.backendConfig?.server?.enabled || !AppState.backendConfig?.server?.scriptUrl) {
+                Notification.error('الخادم السحابي غير مفعّل. يرجى تفعيله في الإعدادات أولاً.');
                 return;
             }
 
@@ -5933,7 +5933,7 @@ const DailyObservations = {
             // محاولة الحصول على Template ID المحفوظ
             let savedTemplateId = null;
             try {
-                const templateResult = await GoogleIntegration.sendToAppsScript('getDailyObservationsPptTemplateId', {});
+                const templateResult = await Backend.sendToAppsScript('getDailyObservationsPptTemplateId', {});
                 if (templateResult && templateResult.success && templateResult.templateId) {
                     savedTemplateId = templateResult.templateId;
                 }
@@ -5971,7 +5971,7 @@ const DailyObservations = {
             }
 
             Loading.show('جاري إنشاء تقرير PPT...');
-            const result = await GoogleIntegration.sendToAppsScript('exportDailyObservationsPptReport', payload);
+            const result = await Backend.sendToAppsScript('exportDailyObservationsPptReport', payload);
             Loading.hide();
 
             if (!result || result.success === false) {
@@ -6031,7 +6031,7 @@ const DailyObservations = {
         let currentTemplateInfo = null;
         
         try {
-            const templateResult = await GoogleIntegration.sendToAppsScript('getDailyObservationsPptTemplateId', {});
+            const templateResult = await Backend.sendToAppsScript('getDailyObservationsPptTemplateId', {});
             if (templateResult && templateResult.success) {
                 currentTemplateId = templateResult.templateId;
                 currentTemplateInfo = {
@@ -6150,7 +6150,7 @@ const DailyObservations = {
 
             Loading.show('جاري حفظ Template ID...');
             try {
-                const result = await GoogleIntegration.sendToAppsScript('setDailyObservationsPptTemplateId', {
+                const result = await Backend.sendToAppsScript('setDailyObservationsPptTemplateId', {
                     templateId: templateId
                 });
 
@@ -6179,7 +6179,7 @@ const DailyObservations = {
             modal.querySelector('#ppt-template-id-test-btn')?.addEventListener('click', async () => {
                 Loading.show('جاري التحقق من Template...');
                 try {
-                    const result = await GoogleIntegration.sendToAppsScript('getDailyObservationsPptTemplateId', {});
+                    const result = await Backend.sendToAppsScript('getDailyObservationsPptTemplateId', {});
                     Loading.hide();
 
                     if (result && result.success) {
@@ -7932,7 +7932,7 @@ const DailyObservations = {
                         });
                     }
                     
-                    const processedAttachments = await GoogleIntegration.processAttachments?.(
+                    const processedAttachments = await Backend.processAttachments?.(
                         payload.attachments,
                         'DailyObservations'
                     );
@@ -7980,10 +7980,10 @@ const DailyObservations = {
             // المزامنة مع Google Sheets
             Loading.show('جاري المزامنة مع السحابة...');
             try {
-                await GoogleIntegration.autoSave('DailyObservations', AppState.appData.dailyObservations);
+                await Backend.autoSave('DailyObservations', AppState.appData.dailyObservations);
 
                 if (!editId && normalizedRecord?.id) {
-                    GoogleIntegration.callBackend('notifyObservationWorkflowEvent', {
+                    Backend.callBackend('notifyObservationWorkflowEvent', {
                         event: 'new_pending_specialist',
                         observationId: normalizedRecord.id
                     }).catch(function () {});
@@ -8389,7 +8389,7 @@ const DailyObservations = {
     async updateObservationDataFromBackend(observationId, modal) {
         try {
             const ctx = typeof this.buildObservationsRequestContext === 'function' ? this.buildObservationsRequestContext() : null;
-            const response = await GoogleIntegration.callBackend('getObservation', {
+            const response = await Backend.callBackend('getObservation', {
                 observationId: observationId,
                 observationsRequestContext: ctx
             });
@@ -8523,7 +8523,7 @@ const DailyObservations = {
     async handleStatusChange(observationId, newStatus) {
         Loading.show();
         try {
-            const result = await GoogleIntegration.callBackend('updateObservationStatus', {
+            const result = await Backend.callBackend('updateObservationStatus', {
                 observationId: observationId,
                 statusData: {
                     status: newStatus,
@@ -8959,7 +8959,7 @@ const DailyObservations = {
             }
 
             // حفظ في الخلفية (بدون انتظار)
-            GoogleIntegration.callBackend('addObservationUpdate', {
+            Backend.callBackend('addObservationUpdate', {
                 observationId: observationId,
                 user: AppState.currentUser?.name || 'System',
                 update: updateText,
@@ -9079,7 +9079,7 @@ const DailyObservations = {
             }
 
             // حفظ في الخلفية (بدون انتظار)
-            GoogleIntegration.callBackend('addObservationComment', {
+            Backend.callBackend('addObservationComment', {
                 observationId: observationId,
                 user: AppState.currentUser?.name || 'System',
                 comment: commentText
@@ -9120,13 +9120,13 @@ const DailyObservations = {
 
         try {
             // التحقق من تفعيل Google Integration
-            if (!AppState.googleConfig?.appsScript?.enabled || !AppState.googleConfig?.appsScript?.scriptUrl) {
+            if (!AppState.backendConfig?.server?.enabled || !AppState.backendConfig?.server?.scriptUrl) {
                 Notification.error('يجب تفعيل Google Integration أولاً');
                 return;
             }
 
-            // استدعاء API للحذف باستخدام GoogleIntegration
-            const result = await GoogleIntegration.sendRequest({
+            // استدعاء API للحذف باستخدام Backend
+            const result = await Backend.sendRequest({
                 action: 'deleteObservation',
                 data: { observationId: id }
             });
@@ -9199,13 +9199,13 @@ const DailyObservations = {
 
         try {
             // التحقق من تفعيل Google Integration
-            if (!AppState.googleConfig?.appsScript?.enabled || !AppState.googleConfig?.appsScript?.scriptUrl) {
+            if (!AppState.backendConfig?.server?.enabled || !AppState.backendConfig?.server?.scriptUrl) {
                 Notification.error('يجب تفعيل Google Integration أولاً');
                 return;
             }
 
-            // استدعاء API للحذف باستخدام GoogleIntegration
-            const result = await GoogleIntegration.sendRequest({
+            // استدعاء API للحذف باستخدام Backend
+            const result = await Backend.sendRequest({
                 action: 'deleteAllObservations',
                 data: {}
             });
@@ -9562,7 +9562,7 @@ const DailyObservations = {
                 
                 // المزامنة مع Google Sheets
                 try {
-                    await GoogleIntegration.autoSave('DailyObservations', AppState.appData.dailyObservations);
+                    await Backend.autoSave('DailyObservations', AppState.appData.dailyObservations);
                 } catch (syncError) {
                     Utils.safeError('خطأ في المزامنة مع Google Sheets:', syncError);
                 }

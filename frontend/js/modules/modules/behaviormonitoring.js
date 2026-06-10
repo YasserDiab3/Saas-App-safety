@@ -348,7 +348,7 @@ const BehaviorMonitoring = {
 
     async loadBehaviorDataAsync() {
         try {
-            const behaviorResult = await GoogleIntegration.sendRequest({
+            const behaviorResult = await Backend.sendRequest({
                 action: 'getAllBehaviors',
                 data: {}
             }).catch(error => {
@@ -361,7 +361,7 @@ const BehaviorMonitoring = {
                 return { success: false, data: [] };
             });
 
-            const contractorResult = await GoogleIntegration.sendRequest({
+            const contractorResult = await Backend.sendRequest({
                 action: 'getAllContractorBehaviors',
                 data: {}
             }).catch(error => {
@@ -1680,7 +1680,7 @@ const BehaviorMonitoring = {
             }
 
             // حفظ تلقائي في Google Sheets
-            await GoogleIntegration.autoSave('BehaviorMonitoring', AppState.appData.behaviorMonitoring);
+            await Backend.autoSave('BehaviorMonitoring', AppState.appData.behaviorMonitoring);
 
             Loading.hide();
             if (modal) modal.remove();
@@ -2574,7 +2574,7 @@ const BehaviorMonitoring = {
             if (typeof window.DataManager !== 'undefined' && window.DataManager.save) {
                 window.DataManager.save();
             }
-            await GoogleIntegration.autoSave('ContractorBehaviorMonitoring', AppState.appData.contractorBehaviorMonitoring);
+            await Backend.autoSave('ContractorBehaviorMonitoring', AppState.appData.contractorBehaviorMonitoring);
             Loading.hide();
             if (modal) modal.remove();
             this.refreshCurrentTab();

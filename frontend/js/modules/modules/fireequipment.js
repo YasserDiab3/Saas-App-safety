@@ -353,7 +353,7 @@ FireEquipment = {
                     }
 
                     // تحميل بيانات معدات الحريق من الخادم دائماً عند فتح الموديول (لضمان عرض أحدث البيانات حتى لو كانت محلياً فارغة أو قديمة)
-                    if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendRequest) {
+                    if (typeof Backend !== 'undefined' && Backend.sendRequest) {
                         this.loadFireEquipmentDataAsync()
                             .then(() => {
                                 if (this.state.currentTab === 'database') {
@@ -665,7 +665,7 @@ FireEquipment = {
     async loadFireEquipmentDataAsync() {
         try {
             const [equipmentResult, inspectionsResult, approvalRequestsResult] = await Promise.allSettled([
-                GoogleIntegration.sendRequest({
+                Backend.sendRequest({
                     // ✅ الأصول تُحفظ في FireEquipmentAssets (وليس FireEquipment القديم)
                     action: 'getAllFireEquipmentAssets',
                     data: {}
@@ -678,7 +678,7 @@ FireEquipment = {
                     Utils.safeWarn('⚠️ تعذر تحميل بيانات أصول معدات الحريق:', error);
                     return { success: false, data: [] };
                 }),
-                GoogleIntegration.sendRequest({
+                Backend.sendRequest({
                     action: 'getAllFireEquipmentInspections',
                     data: {}
                 }).catch(error => {
@@ -690,7 +690,7 @@ FireEquipment = {
                     Utils.safeWarn('⚠️ تعذر تحميل بيانات فحوصات معدات الحريق:', error);
                     return { success: false, data: [] };
                 }),
-                GoogleIntegration.sendRequest({
+                Backend.sendRequest({
                     action: 'getFireEquipmentApprovalRequests',
                     data: {}
                 }).catch(error => {
@@ -1554,7 +1554,7 @@ FireEquipment = {
      */
     async loadAssetsFromBackend() {
         try {
-            if (!GoogleIntegration || !AppState.googleConfig?.appsScript?.enabled) {
+            if (!Backend || !AppState.backendConfig?.server?.enabled) {
                 Utils.safeWarn('⚠️ Backend غير متاح - استخدام البيانات المحلية');
                 return;
             }
@@ -1564,7 +1564,7 @@ FireEquipment = {
 
             Utils.safeLog('🔄 تحميل أجهزة الحريق من Backend...');
 
-            const result = await GoogleIntegration.sendRequest({
+            const result = await Backend.sendRequest({
                 action: 'getAllFireEquipmentAssets',
                 data: {}
             });
@@ -2526,9 +2526,9 @@ FireEquipment = {
                 
                 let backendResult;
 
-                if (GoogleIntegration && AppState.googleConfig?.appsScript?.enabled) {
+                if (Backend && AppState.backendConfig?.server?.enabled) {
                     // استخدام saveOrUpdateFireEquipmentAsset للحفظ المباشر
-                    backendResult = await GoogleIntegration.sendRequest({
+                    backendResult = await Backend.sendRequest({
                         action: 'saveOrUpdateFireEquipmentAsset',
                         data: updatedAsset
                     });
@@ -3156,8 +3156,8 @@ FireEquipment = {
         // حفظ في Backend (في الخلفية)
         (async () => {
             try {
-                if (GoogleIntegration && AppState.googleConfig?.appsScript?.enabled) {
-                    const result = await GoogleIntegration.sendRequest({
+                if (Backend && AppState.backendConfig?.server?.enabled) {
+                    const result = await Backend.sendRequest({
                         action: 'addFireEquipmentApprovalRequest',
                         data: approvalRequest
                     });
@@ -3206,8 +3206,8 @@ FireEquipment = {
             // إذا لم يتم العثور على مديرين في البيانات المحلية، إرسال إشعار عام
             if (admins.length === 0) {
                 // إرسال إشعار عام للمديرين
-                if (GoogleIntegration && AppState.googleConfig?.appsScript?.enabled) {
-                    await GoogleIntegration.sendRequest({
+                if (Backend && AppState.backendConfig?.server?.enabled) {
+                    await Backend.sendRequest({
                         action: 'addNotification',
                         data: {
                             userId: 'admin', // إشعار عام للمديرين
@@ -3231,8 +3231,8 @@ FireEquipment = {
                 for (const admin of admins) {
                     if (admin.id || admin.email) {
                         try {
-                            if (GoogleIntegration && AppState.googleConfig?.appsScript?.enabled) {
-                                await GoogleIntegration.sendRequest({
+                            if (Backend && AppState.backendConfig?.server?.enabled) {
+                                await Backend.sendRequest({
                                     action: 'addNotification',
                                     data: {
                                         userId: admin.id || admin.email,
@@ -3498,9 +3498,9 @@ FireEquipment = {
                 // ✅ المزامنة في الخلفية (بدون انتظار)
                 (async () => {
             try {
-                if (GoogleIntegration && AppState.googleConfig?.appsScript?.enabled) {
+                if (Backend && AppState.backendConfig?.server?.enabled) {
                             // حفظ الفحص في Backend
-                    const inspectionResult = await GoogleIntegration.sendRequest({
+                    const inspectionResult = await Backend.sendRequest({
                         action: isEdit ? 'updateFireEquipmentInspection' : 'addFireEquipmentInspection',
                         data: inspectionPayload
                     });
@@ -3513,7 +3513,7 @@ FireEquipment = {
 
                     // تحديث asset في Backend إذا تغير status
                     if (asset) {
-                        await GoogleIntegration.sendRequest({
+                        await Backend.sendRequest({
                             action: 'saveOrUpdateFireEquipmentAsset',
                             data: asset
                         });
@@ -3973,9 +3973,9 @@ FireEquipment = {
                 // ✅ المزامنة في الخلفية (بدون انتظار)
                 (async () => {
                     try {
-                        if (GoogleIntegration && AppState.googleConfig?.appsScript?.enabled) {
+                        if (Backend && AppState.backendConfig?.server?.enabled) {
                             // حفظ الفحص في Backend
-                            const inspectionResult = await GoogleIntegration.sendRequest({
+                            const inspectionResult = await Backend.sendRequest({
                                 action: isEdit ? 'updateFireEquipmentInspection' : 'addFireEquipmentInspection',
                                 data: inspectionPayload
                             });
@@ -3988,7 +3988,7 @@ FireEquipment = {
 
                             // تحديث asset في Backend إذا تغير status
                             if (asset) {
-                                await GoogleIntegration.sendRequest({
+                                await Backend.sendRequest({
                                     action: 'saveOrUpdateFireEquipmentAsset',
                                     data: asset
                                 });
@@ -4192,7 +4192,7 @@ FireEquipment = {
         }
 
         // حفظ في Google Sheets - استخدام الطريقة الآمنة
-        if (AppState.googleConfig?.appsScript?.enabled) {
+        if (AppState.backendConfig?.server?.enabled) {
             try {
                 Utils.safeLog('🔄 بدء حفظ بيانات معدات الحريق...');
 
@@ -4204,7 +4204,7 @@ FireEquipment = {
                     // استخدام saveOrUpdateFireEquipmentAsset بدلاً من saveToSheet
                     const savePromises = assetsPayload.map(async (asset) => {
                         try {
-                            await GoogleIntegration.sendRequest({
+                            await Backend.sendRequest({
                                 action: 'saveOrUpdateFireEquipmentAsset',
                                 data: asset
                             });
@@ -4228,7 +4228,7 @@ FireEquipment = {
                     Utils.safeLog(`📋 حفظ ${inspectionsPayload.length} فحص...`);
 
                     // يمكن استخدام saveToSheet للفحوصات لأنها لا تسبب نفس المشكلة
-                    await GoogleIntegration.sendRequest({
+                    await Backend.sendRequest({
                         action: 'saveToSheet',
                         data: {
                             sheetName: 'FireEquipmentInspections',
@@ -4242,27 +4242,27 @@ FireEquipment = {
                 Utils.safeWarn('⚠️ فشل حفظ بيانات معدات الحريق في Google Sheets:', error);
 
                 // استخدام autoSave كبديل فقط في حالة الفشل
-                if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.autoSave) {
+                if (typeof Backend !== 'undefined' && Backend.autoSave) {
                     try {
                         const assetsPayload = AppState.appData.fireEquipmentAssets.map(asset => ({ ...asset }));
                         const inspectionsPayload = AppState.appData.fireEquipmentInspections.map(inspection => ({ ...inspection }));
                         await Promise.allSettled([
-                            GoogleIntegration.autoSave('FireEquipmentAssets', assetsPayload),
-                            GoogleIntegration.autoSave('FireEquipmentInspections', inspectionsPayload)
+                            Backend.autoSave('FireEquipmentAssets', assetsPayload),
+                            Backend.autoSave('FireEquipmentInspections', inspectionsPayload)
                         ]);
                     } catch (fallbackError) {
                         Utils.safeWarn('⚠️ فشل حفظ البيانات حتى باستخدام autoSave:', fallbackError);
                     }
                 }
             }
-        } else if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.autoSave) {
-            // إذا لم يكن Google Apps Script مفعّل، نستخدم autoSave
+        } else if (typeof Backend !== 'undefined' && Backend.autoSave) {
+            // إذا لم يكن الخادم السحابي مفعّل، نستخدم autoSave
             try {
                 const assetsPayload = AppState.appData.fireEquipmentAssets.map(asset => ({ ...asset }));
                 const inspectionsPayload = AppState.appData.fireEquipmentInspections.map(inspection => ({ ...inspection }));
                 await Promise.allSettled([
-                    GoogleIntegration.autoSave('FireEquipmentAssets', assetsPayload),
-                    GoogleIntegration.autoSave('FireEquipmentInspections', inspectionsPayload)
+                    Backend.autoSave('FireEquipmentAssets', assetsPayload),
+                    Backend.autoSave('FireEquipmentInspections', inspectionsPayload)
                 ]);
             } catch (error) {
                 Utils.safeWarn('⚠️ فشل حفظ بيانات معدات الحريق في Google Sheets', error);
@@ -4623,14 +4623,14 @@ FireEquipment = {
             const total = importedData.length;
 
             // استخدام Backend للحفظ المباشر
-            if (GoogleIntegration && AppState.googleConfig?.appsScript?.enabled) {
+            if (Backend && AppState.backendConfig?.server?.enabled) {
                 // تقسيم البيانات إلى دفعات صغيرة لتجنب مشاكل الشبكة
                 const BATCH_SIZE = 5;
 
                 for (let i = 0; i < total; i += BATCH_SIZE) {
                     const batch = importedData.slice(i, i + BATCH_SIZE);
                     const promises = batch.map(item => {
-                        return GoogleIntegration.sendRequest({
+                        return Backend.sendRequest({
                             action: 'saveOrUpdateFireEquipmentAsset',
                             data: item
                         }).then(res => {
@@ -5021,9 +5021,9 @@ FireEquipment = {
         try {
             // ✅ حذف من Google Sheets أولاً (قبل الحذف المحلي)
             let deleteSuccess = false;
-            if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendRequest) {
+            if (typeof Backend !== 'undefined' && Backend.sendRequest) {
                 try {
-                    const deleteResult = await GoogleIntegration.sendRequest({
+                    const deleteResult = await Backend.sendRequest({
                         action: 'deleteFireEquipment',
                         data: { assetId: assetId }
                     });
@@ -5943,8 +5943,8 @@ FireEquipment = {
      */
     async loadApprovalRequestsFromBackend() {
         try {
-            if (GoogleIntegration && AppState.googleConfig?.appsScript?.enabled) {
-                const result = await GoogleIntegration.sendRequest({
+            if (Backend && AppState.backendConfig?.server?.enabled) {
+                const result = await Backend.sendRequest({
                     action: 'getFireEquipmentApprovalRequests',
                     data: {}
                 });
@@ -5983,7 +5983,7 @@ FireEquipment = {
                     Utils.safeWarn('⚠️ استجابة غير صحيحة من Backend:', result);
                 }
             } else {
-                Utils.safeWarn('⚠️ GoogleIntegration غير متاح أو غير مفعّل');
+                Utils.safeWarn('⚠️ Backend غير متاح أو غير مفعّل');
             }
         } catch (error) {
             Utils.safeWarn('⚠️ فشل تحميل طلبات الموافقة من Backend:', error);
@@ -6145,9 +6145,9 @@ FireEquipment = {
             }
 
             // حفظ في Google Sheets إذا كان متاحاً
-            if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendRequest) {
+            if (typeof Backend !== 'undefined' && Backend.sendRequest) {
                 try {
-                    const updateResult = await GoogleIntegration.sendRequest({
+                    const updateResult = await Backend.sendRequest({
                         action: 'updateFireEquipmentApprovalRequest',
                         data: { 
                             requestId, 
@@ -6244,9 +6244,9 @@ FireEquipment = {
             }
 
             // حفظ في Google Sheets إذا كان متاحاً
-            if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendRequest) {
+            if (typeof Backend !== 'undefined' && Backend.sendRequest) {
                 try {
-                    const updateResult = await GoogleIntegration.sendRequest({
+                    const updateResult = await Backend.sendRequest({
                         action: 'updateFireEquipmentApprovalRequest',
                         data: { 
                             requestId, 
@@ -6323,8 +6323,8 @@ FireEquipment = {
                 return; // حالة غير معروفة
             }
 
-            if (GoogleIntegration && AppState.googleConfig?.appsScript?.enabled) {
-                await GoogleIntegration.sendRequest({
+            if (Backend && AppState.backendConfig?.server?.enabled) {
+                await Backend.sendRequest({
                     action: 'addNotification',
                     data: {
                         userId: userId,
@@ -6548,8 +6548,8 @@ FireEquipment = {
             }
 
             // حذف من Google Sheets إذا كان متاحاً
-            if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendRequest) {
-                await GoogleIntegration.sendRequest({
+            if (typeof Backend !== 'undefined' && Backend.sendRequest) {
+                await Backend.sendRequest({
                     action: 'deleteFireEquipmentApprovalRequest',
                     data: { requestId }
                 }).catch(error => {

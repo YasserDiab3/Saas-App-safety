@@ -232,12 +232,12 @@ const IssueTracking = {
             const filters = this.buildFilters();
             
             // التحقق من تفعيل Google Integration
-            if (!AppState.googleConfig?.appsScript?.enabled || !AppState.googleConfig?.appsScript?.scriptUrl) {
+            if (!AppState.backendConfig?.server?.enabled || !AppState.backendConfig?.server?.scriptUrl) {
                 this.showEmptyState('يجب تفعيل Google Integration أولاً');
                 return;
             }
 
-            const response = await GoogleIntegration.sendRequest({
+            const response = await Backend.sendRequest({
                 action: 'getAllIssues',
                 data: { filters: filters }
             });
@@ -470,7 +470,7 @@ const IssueTracking = {
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin ml-2"></i> جاري الحفظ...';
 
         try {
-            const response = await GoogleIntegration.sendRequest({
+            const response = await Backend.sendRequest({
                 action: 'addIssue',
                 data: issueData
             });
@@ -497,7 +497,7 @@ const IssueTracking = {
      */
     async showIssueDetail(issueId) {
         try {
-            const response = await GoogleIntegration.sendRequest({
+            const response = await Backend.sendRequest({
                 action: 'getIssue',
                 data: { issueId: issueId }
             });
@@ -690,7 +690,7 @@ const IssueTracking = {
      */
     async showStatistics() {
         try {
-            const response = await GoogleIntegration.sendRequest({
+            const response = await Backend.sendRequest({
                 action: 'getIssueStatistics',
                 data: { filters: this.buildFilters() }
             });

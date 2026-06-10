@@ -519,7 +519,7 @@ const Settings = {
                             <i class="fas fa-cloud text-green-600 ml-2"></i>
                             التكامل والمزامنة
                         </h2>
-                        <p class="settings-group-subtitle">إعدادات الاتصال بـ Google Apps Script والمزامنة مع Google Sheets</p>
+                        <p class="settings-group-subtitle">إعدادات الاتصال بـ الخادم السحابي والمزامنة مع Google Sheets</p>
                     </div>
                     <div class="settings-group-content">
                         <div class="content-card">
@@ -531,23 +531,23 @@ const Settings = {
                                     <div>
                                         <label class="flex items-center mb-4">
                                             <input type="checkbox" id="google-apps-script-enabled" class="rounded border-gray-300 text-blue-600"
-                                                ${AppState.googleConfig.appsScript.enabled ? 'checked' : ''}>
+                                                ${AppState.backendConfig.server.enabled ? 'checked' : ''}>
                                             <span class="mr-2 text-sm text-gray-700">تفعيل الاتصال بالخادم الخلفي</span>
                                         </label>
                                     </div>
                                     <div>
                                         <label class="block text-sm font-semibold text-gray-700 mb-2">
                                             <i class="fas fa-link ml-2"></i>
-                                            رابط Web App لـ Google Apps Script (مطلوب للمزامنة)
+                                            رابط Web App لـ الخادم السحابي (مطلوب للمزامنة)
                                         </label>
                                         <input type="url" id="google-apps-script-url" class="form-input"
-                                            value="${AppState.googleConfig.appsScript.scriptUrl || ''}"
+                                            value="${AppState.backendConfig.server.scriptUrl || ''}"
                                             placeholder="https://script.google.com/macros/s/…/exec">
                                     </div>
                                     <div>
                                         <label class="flex items-center mb-4">
                                             <input type="checkbox" id="google-sheets-enabled" class="rounded border-gray-300 text-blue-600"
-                                                ${AppState.googleConfig.sheets.enabled ? 'checked' : ''}>
+                                                ${AppState.backendConfig.sheets.enabled ? 'checked' : ''}>
                                             <span class="mr-2 text-sm text-gray-700">تفعيل مزامنة الجداول (إن يطلبها الخادم)</span>
                                         </label>
                                     </div>
@@ -557,7 +557,7 @@ const Settings = {
                                             معرف الجدول / المشروع (اختياري)
                                         </label>
                                         <input type="text" id="google-sheets-id" class="form-input"
-                                            value="${AppState.googleConfig.sheets.spreadsheetId || ''}"
+                                            value="${AppState.backendConfig.sheets.spreadsheetId || ''}"
                                             placeholder="إن وُجد في إعدادات الخادم">
                                     </div>
                                     <div class="flex items-center justify-end gap-4 pt-4 border-t">
@@ -1376,7 +1376,7 @@ const Settings = {
             }
             const syncBtn = document.getElementById('sync-data-btn');
             if (syncBtn) {
-                syncBtn.addEventListener('click', () => GoogleIntegration.syncData({
+                syncBtn.addEventListener('click', () => Backend.syncData({
                     silent: false,
                     showLoader: true,
                     notifyOnSuccess: true,
@@ -1392,7 +1392,7 @@ const Settings = {
             if (saveAllBtn) {
                 saveAllBtn.addEventListener('click', async () => {
                     if (confirm('هل تريد حفظ جميع البيانات في الخادم؟\nسيتم استبدال البيانات الموجودة هناك.')) {
-                        await GoogleIntegration.saveAllToSheets();
+                        await Backend.saveAllToSheets();
                     }
                 });
             }
@@ -1467,10 +1467,10 @@ const Settings = {
                         }
                         
                         // حفظ الشعار في قاعدة البيانات عند التحميل الأول
-                        if (AppState.googleConfig?.appsScript?.enabled && typeof GoogleIntegration !== 'undefined') {
+                        if (AppState.backendConfig?.server?.enabled && typeof Backend !== 'undefined') {
                             try {
                                 const userData = AppState.currentUser || {};
-                                const result = await GoogleIntegration.sendToAppsScript('saveCompanySettings', {
+                                const result = await Backend.sendToAppsScript('saveCompanySettings', {
                                     name: AppState.companySettings?.name || '',
                                     secondaryName: AppState.companySettings?.secondaryName || '',
                                     formVersion: AppState.companySettings?.formVersion || '1.0',
@@ -1569,10 +1569,10 @@ const Settings = {
                         }
                         
                         // حفظ إزالة الشعار في قاعدة البيانات
-                        if (AppState.googleConfig?.appsScript?.enabled && typeof GoogleIntegration !== 'undefined') {
+                        if (AppState.backendConfig?.server?.enabled && typeof Backend !== 'undefined') {
                             try {
                                 const userData = AppState.currentUser || {};
-                                const result = await GoogleIntegration.sendToAppsScript('saveCompanySettings', {
+                                const result = await Backend.sendToAppsScript('saveCompanySettings', {
                                     name: AppState.companySettings?.name || '',
                                     secondaryName: AppState.companySettings?.secondaryName || '',
                                     formVersion: AppState.companySettings?.formVersion || '1.0',
@@ -1978,8 +1978,8 @@ const Settings = {
             const loadPpeItemsForRules = async () => {
                 let items = [];
                 try {
-                    if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendToAppsScript) {
-                        const result = await GoogleIntegration.sendToAppsScript('getPPEItemsList', {});
+                    if (typeof Backend !== 'undefined' && Backend.sendToAppsScript) {
+                        const result = await Backend.sendToAppsScript('getPPEItemsList', {});
                         if (result && result.success && Array.isArray(result.data)) {
                             items = result.data
                                 .map(it => (it && (it.itemName || it.name) || '').toString().trim())
@@ -2149,10 +2149,10 @@ const Settings = {
                     
                     // حفظ في الخادم إذا كان متاحاً
                     let backendSyncSucceeded = true;
-                    if (AppState.googleConfig?.appsScript?.enabled && typeof GoogleIntegration !== 'undefined') {
+                    if (AppState.backendConfig?.server?.enabled && typeof Backend !== 'undefined') {
                         try {
                             const userData = AppState.currentUser || {};
-                            const result = await GoogleIntegration.sendToAppsScript('saveCompanySettings', {
+                            const result = await Backend.sendToAppsScript('saveCompanySettings', {
                                 name: newName,
                                 secondaryName,
                                 formVersion,
@@ -2246,7 +2246,7 @@ const Settings = {
                 if (typeof DataManager !== 'undefined' && DataManager.saveCompanySettings) {
                     DataManager.saveCompanySettings();
                 }
-                if (AppState.googleConfig?.appsScript?.enabled && typeof GoogleIntegration !== 'undefined') {
+                if (AppState.backendConfig?.server?.enabled && typeof Backend !== 'undefined') {
                     try {
                         const userData = AppState.currentUser || {};
                         const payload = {
@@ -2264,7 +2264,7 @@ const Settings = {
                             postLoginItems: typeof AppState.companySettings.postLoginItems === 'string' ? AppState.companySettings.postLoginItems : JSON.stringify(AppState.companySettings.postLoginItems || []),
                             userData: { email: userData.email, name: userData.name, role: userData.role, permissions: userData.permissions }
                         };
-                        await GoogleIntegration.sendToAppsScript('saveCompanySettings', payload);
+                        await Backend.sendToAppsScript('saveCompanySettings', payload);
                     } catch (e) { Utils.safeWarn('⚠️ فشل مزامنة تعليمات ما بعد الدخول:', e); }
                 }
             };
@@ -2394,10 +2394,10 @@ const Settings = {
                     DataManager.saveCompanySettings();
                     
                     // حفظ في الخادم إذا كان متاحاً
-                    if (AppState.googleConfig?.appsScript?.enabled && typeof GoogleIntegration !== 'undefined') {
+                    if (AppState.backendConfig?.server?.enabled && typeof Backend !== 'undefined') {
                         try {
                             const userData = AppState.currentUser || {};
-                            const result = await GoogleIntegration.sendToAppsScript('saveCompanySettings', {
+                            const result = await Backend.sendToAppsScript('saveCompanySettings', {
                                 name: DEFAULT_COMPANY_NAME,
                                 secondaryName: '',
                                 formVersion: '1.0',
@@ -3879,25 +3879,25 @@ const Settings = {
     async handleSubmit(e) {
         e.preventDefault();
         try {
-            const appsScriptEnabled = document.getElementById('google-apps-script-enabled');
-            const appsScriptUrl = document.getElementById('google-apps-script-url');
+            const serverEnabled = document.getElementById('google-apps-script-enabled');
+            const serverUrl = document.getElementById('google-apps-script-url');
             const sheetsEnabled = document.getElementById('google-sheets-enabled');
             const sheetsId = document.getElementById('google-sheets-id');
 
-            if (!appsScriptEnabled || !appsScriptUrl || !sheetsEnabled || !sheetsId) {
+            if (!serverEnabled || !serverUrl || !sheetsEnabled || !sheetsId) {
                 Notification.error('خطأ: لم يتم العثور على حقول النموذج');
                 return;
             }
 
-            AppState.googleConfig.appsScript.enabled = appsScriptEnabled.checked;
-            AppState.googleConfig.appsScript.scriptUrl = appsScriptUrl.value.trim();
-            AppState.googleConfig.sheets.enabled = sheetsEnabled.checked;
-            AppState.googleConfig.sheets.spreadsheetId = sheetsId.value.trim();
+            AppState.backendConfig.server.enabled = serverEnabled.checked;
+            AppState.backendConfig.server.scriptUrl = serverUrl.value.trim();
+            AppState.backendConfig.sheets.enabled = sheetsEnabled.checked;
+            AppState.backendConfig.sheets.spreadsheetId = sheetsId.value.trim();
 
             // حفظ الإعدادات باستخدام window.DataManager
             let saveSuccess = false;
-            if (typeof window.DataManager !== 'undefined' && window.DataManager.saveGoogleConfig) {
-                const saved = window.DataManager.saveGoogleConfig();
+            if (typeof window.DataManager !== 'undefined' && window.DataManager.saveBackendConfig) {
+                const saved = window.DataManager.saveBackendConfig();
                 if (saved) {
                     saveSuccess = true;
                     Notification.success('تم حفظ الإعدادات بنجاح');
@@ -3905,7 +3905,7 @@ const Settings = {
                     Notification.error('فشل حفظ الإعدادات');
                 }
             } else if (typeof window.DataManager !== 'undefined' && window.DataManager.save) {
-                // إذا لم تكن saveGoogleConfig موجودة، استخدم save() العامة
+                // إذا لم تكن saveBackendConfig موجودة، استخدم save() العامة
                 try {
                     await window.DataManager.save();
                     saveSuccess = true;
@@ -3917,7 +3917,7 @@ const Settings = {
             } else {
                 // حفظ مباشر في localStorage كحل بديل
                 try {
-                    localStorage.setItem('hse_google_config', JSON.stringify(AppState.googleConfig));
+                    localStorage.setItem('hse_backend_config', JSON.stringify(AppState.backendConfig));
                     saveSuccess = true;
                     Notification.success('تم حفظ الإعدادات بنجاح (حفظ محلي)');
                 } catch (storageError) {
@@ -3927,14 +3927,14 @@ const Settings = {
             }
 
             // اختبار الاتصال بعد حفظ الإعدادات للتأكد من نجاح الاتصال
-            if (saveSuccess && AppState.googleConfig.appsScript.enabled && AppState.googleConfig.appsScript.scriptUrl) {
+            if (saveSuccess && AppState.backendConfig.server.enabled && AppState.backendConfig.server.scriptUrl) {
                 try {
                     Loading.show();
                     // انتظار قصير للتأكد من حفظ الإعدادات
                     await new Promise(resolve => setTimeout(resolve, 500));
                     
                     // اختبار الاتصال
-                    const testResult = await GoogleIntegration.readFromSheets('Users');
+                    const testResult = await Backend.readFromSheets('Users');
                     Loading.hide();
                     
                     if (testResult && Array.isArray(testResult)) {
@@ -3957,11 +3957,11 @@ const Settings = {
     async testConnection() {
         Loading.show();
         try {
-            if (AppState.googleConfig.appsScript.enabled && AppState.googleConfig.appsScript.scriptUrl) {
+            if (AppState.backendConfig.server.enabled && AppState.backendConfig.server.scriptUrl) {
                 // استخدام timeout محسّن (30 ثانية)
                 const timeout = 30000;
                 const result = await Utils.promiseWithTimeout(
-                    GoogleIntegration.readFromSheets('Users'),
+                    Backend.readFromSheets('Users'),
                     timeout,
                     'انتهت مهلة الاتصال بالخادم\n\nتحقق من:\n1. اتصال الإنترنت\n2. صحة رابط نقطة النهاية (RPC)\n3. عدم وجود قيود على الشبكة'
                 );
@@ -3980,12 +3980,12 @@ const Settings = {
     },
 
     async initializeSheets() {
-        if (!AppState.googleConfig.appsScript.enabled) {
+        if (!AppState.backendConfig.server.enabled) {
             Notification.error('يرجى تفعيل الاتصال بالخادم أولاً');
             return;
         }
 
-        if (!AppState.googleConfig.sheets.spreadsheetId) {
+        if (!AppState.backendConfig.sheets.spreadsheetId) {
             Notification.error('يرجى إدخال معرف الجدول أولاً إذا كان مطلوباً');
             return;
         }
@@ -3998,7 +3998,7 @@ const Settings = {
 
         try {
             Loading.show();
-            await GoogleIntegration.initializeSheets();
+            await Backend.initializeSheets();
             Loading.hide();
             Notification.success('تم إنشاء جميع الأوراق بنجاح');
         } catch (error) {
@@ -4153,10 +4153,10 @@ const Settings = {
         }
 
                         // حفظ الشعار في قاعدة البيانات
-                        if (AppState.googleConfig?.appsScript?.enabled && typeof GoogleIntegration !== 'undefined') {
+                        if (AppState.backendConfig?.server?.enabled && typeof Backend !== 'undefined') {
                             try {
                                 const userData = AppState.currentUser || {};
-                                const result = await GoogleIntegration.sendToAppsScript('saveCompanySettings', {
+                                const result = await Backend.sendToAppsScript('saveCompanySettings', {
                                     name: AppState.companySettings?.name || '',
                                     secondaryName: AppState.companySettings?.secondaryName || '',
                                     formVersion: AppState.companySettings?.formVersion || '1.0',
@@ -4238,10 +4238,10 @@ const Settings = {
         }
 
                     // حفظ إزالة الشعار في قاعدة البيانات
-                    if (AppState.googleConfig?.appsScript?.enabled && typeof GoogleIntegration !== 'undefined') {
+                    if (AppState.backendConfig?.server?.enabled && typeof Backend !== 'undefined') {
                         try {
                             const userData = AppState.currentUser || {};
-                            const result = await GoogleIntegration.sendToAppsScript('saveCompanySettings', {
+                            const result = await Backend.sendToAppsScript('saveCompanySettings', {
                                 name: AppState.companySettings?.name || '',
                                 secondaryName: AppState.companySettings?.secondaryName || '',
                                 formVersion: AppState.companySettings?.formVersion || '1.0',

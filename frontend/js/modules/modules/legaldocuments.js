@@ -1231,7 +1231,7 @@ const LegalDocuments = {
         } else {
             Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
         }
-            await GoogleIntegration.autoSave('LegalDocuments', AppState.appData.legalDocuments);
+            await Backend.autoSave('LegalDocuments', AppState.appData.legalDocuments);
 
             Loading.hide();
             modal.remove();
@@ -1877,7 +1877,7 @@ const LegalDocuments = {
             } else {
                 Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
             }
-            await GoogleIntegration.autoSave('LegalInventory', AppState.appData.legalInventory);
+            await Backend.autoSave('LegalInventory', AppState.appData.legalInventory);
 
             Loading.hide();
             modal.remove();

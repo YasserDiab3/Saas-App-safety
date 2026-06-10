@@ -674,14 +674,14 @@ const Contractors = {
         const hasData = Array.isArray(evaluations) && evaluations.length > 0;
         if (hasData) return;
 
-        const canSync = typeof GoogleIntegration !== 'undefined' &&
-            typeof GoogleIntegration.syncData === 'function' &&
-            AppState.googleConfig?.appsScript?.enabled &&
-            AppState.googleConfig?.appsScript?.scriptUrl;
+        const canSync = typeof Backend !== 'undefined' &&
+            typeof Backend.syncData === 'function' &&
+            AppState.backendConfig?.server?.enabled &&
+            AppState.backendConfig?.server?.scriptUrl;
 
         if (!canSync) return;
 
-        GoogleIntegration.syncData({
+        Backend.syncData({
             sheets: ['ContractorEvaluations'],
             silent: true,
             showLoader: false,
@@ -1923,8 +1923,8 @@ const Contractors = {
                     approvedEntities[approvedIndex] = record;
                     AppState.appData.approvedContractors = approvedEntities;
                     // حفظ التغييرات
-                    if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendRequest) {
-                        GoogleIntegration.sendRequest({
+                    if (typeof Backend !== 'undefined' && Backend.sendRequest) {
+                        Backend.sendRequest({
                             action: 'updateApprovedContractor',
                             data: record
                         }).catch(err => Utils.safeWarn('خطأ في حفظ كود المقاول:', err));
@@ -2948,9 +2948,9 @@ const Contractors = {
         if (!Array.isArray(collection) || collection.length === 0) {
             // محاولة قراءة البيانات من Google Sheets إذا كانت متاحة
             try {
-                if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.syncData) {
+                if (typeof Backend !== 'undefined' && Backend.syncData) {
                     // سنقوم بمزامنة البيانات في الخلفية ولكن لا ننتظرها
-                    GoogleIntegration.syncData({
+                    Backend.syncData({
                         silent: true,
                         showLoader: false,
                         notifyOnSuccess: false,
@@ -3060,7 +3060,7 @@ const Contractors = {
 
         try {
             // التأكد من إرسال البيانات الكاملة وليس فقط السجل الجديد
-            GoogleIntegration.autoSave?.('ApprovedContractors', AppState.appData.approvedContractors).catch(error => {
+            Backend.autoSave?.('ApprovedContractors', AppState.appData.approvedContractors).catch(error => {
                 Utils.safeWarn('فشل الحفظ التلقائي لجهات الاعتماد:', error);
             });
         } catch (error) {
@@ -3151,7 +3151,7 @@ const Contractors = {
         try {
             Loading.show();
             // Call Backend
-            const result = await GoogleIntegration.sendToAppsScript('deleteApprovedContractor', { approvedContractorId: id });
+            const result = await Backend.sendToAppsScript('deleteApprovedContractor', { approvedContractorId: id });
 
             if (result.success) {
                 Notification.success('تم حذف الجهة المعتمدة بنجاح');
@@ -3221,8 +3221,8 @@ const Contractors = {
         this.refreshApprovedEntitiesList();
 
         try {
-            if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendToAppsScript) {
-                await GoogleIntegration.sendToAppsScript('updateApprovedContractor', {
+            if (typeof Backend !== 'undefined' && Backend.sendToAppsScript) {
+                await Backend.sendToAppsScript('updateApprovedContractor', {
                     approvedContractorId: record.id,
                     updateData: {
                         isActive: nextActive,
@@ -4899,7 +4899,7 @@ const Contractors = {
                     // ✅ إصلاح: استخدام addContractorApprovalRequest مباشرة بدلاً من autoSave
                     // ✅ هذا يضمن عدم حذف الطلبات الموجودة في Google Sheets
                     try {
-                        const backendResult = await GoogleIntegration.sendRequest({
+                        const backendResult = await Backend.sendRequest({
                             action: 'addContractorApprovalRequest',
                             data: approvalRequest
                         });
@@ -5031,7 +5031,7 @@ const Contractors = {
             Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
         }
         try {
-            GoogleIntegration.autoSave?.('ContractorEvaluations', AppState.appData.contractorEvaluations);
+            Backend.autoSave?.('ContractorEvaluations', AppState.appData.contractorEvaluations);
         } catch (error) {
             Utils.safeWarn('فشل الحفظ التلقائي لتقييمات المقاولين:', error);
         }
@@ -5604,7 +5604,7 @@ const Contractors = {
         }
 
         try {
-            GoogleIntegration.autoSave?.('ContractorEvaluations', AppState.appData.contractorEvaluations);
+            Backend.autoSave?.('ContractorEvaluations', AppState.appData.contractorEvaluations);
         } catch (error) {
             Utils.safeWarn('فشل تحديث تقييمات المقاولين في الحفظ السحابي:', error);
         }
@@ -5952,7 +5952,7 @@ const Contractors = {
                         Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
                     }
                     // حفظ تلقائي في Google Sheets
-                    await GoogleIntegration.autoSave('Contractors', AppState.appData.contractors);
+                    await Backend.autoSave('Contractors', AppState.appData.contractors);
 
                     // تحديث حالة الاعتماد بعد الحفظ
                     if (formData.approvalRequirements) {
@@ -5995,7 +5995,7 @@ const Contractors = {
                     // ✅ إصلاح: استخدام addContractorApprovalRequest مباشرة بدلاً من autoSave
                     // ✅ هذا يضمن عدم حذف الطلبات الموجودة في Google Sheets
                     try {
-                        const backendResult = await GoogleIntegration.sendRequest({
+                        const backendResult = await Backend.sendRequest({
                             action: 'addContractorApprovalRequest',
                             data: approvalRequest
                         });
@@ -6079,7 +6079,7 @@ const Contractors = {
             if (typeof window.DataManager !== 'undefined' && window.DataManager.save) {
                 window.DataManager.save();
             }
-            GoogleIntegration.autoSave?.('Contractors', AppState.appData.contractors).catch(() => { });
+            Backend.autoSave?.('Contractors', AppState.appData.contractors).catch(() => { });
         }
 
         const modal = document.createElement('div');
@@ -6251,7 +6251,7 @@ const Contractors = {
 
         try {
             Loading.show();
-            const result = await GoogleIntegration.sendToAppsScript('deleteContractor', { contractorId: id });
+            const result = await Backend.sendToAppsScript('deleteContractor', { contractorId: id });
 
             if (result.success) {
                 Notification.success('تم حذف المقاول بنجاح');
@@ -6784,7 +6784,7 @@ const Contractors = {
                     const fileName = file.name;
 
                     // رفع الملف إلى Google Drive
-                    const uploadResult = await GoogleIntegration.uploadFileToDrive(
+                    const uploadResult = await Backend.uploadFileToDrive(
                         base64Data,
                         fileName,
                         mimeType,
@@ -6827,7 +6827,7 @@ const Contractors = {
                             } else {
                                 Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
                             }
-                            await GoogleIntegration.autoSave('Contractors', AppState.appData.contractors);
+                            await Backend.autoSave('Contractors', AppState.appData.contractors);
 
                             // تحديث حالة الاعتماد
                             this.updateContractorApprovalStatus(contractorId);
@@ -6892,7 +6892,7 @@ const Contractors = {
                 Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
             }
             try {
-                await GoogleIntegration.autoSave('Contractors', AppState.appData.contractors);
+                await Backend.autoSave('Contractors', AppState.appData.contractors);
             } catch (error) {
                 Utils.safeWarn('فشل الحفظ التلقائي:', error);
             }
@@ -6940,7 +6940,7 @@ const Contractors = {
                 Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
             }
             try {
-                await GoogleIntegration.autoSave('Contractors', AppState.appData.contractors);
+                await Backend.autoSave('Contractors', AppState.appData.contractors);
             } catch (error) {
                 Utils.safeWarn('فشل الحفظ التلقائي:', error);
             }
@@ -6975,7 +6975,7 @@ const Contractors = {
             } else {
                 Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
             }
-            await GoogleIntegration.autoSave('Contractors', AppState.appData.contractors);
+            await Backend.autoSave('Contractors', AppState.appData.contractors);
 
             // تحديث حالة الاعتماد
             this.updateContractorApprovalStatus(contractorId);
@@ -7117,8 +7117,8 @@ const Contractors = {
             Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
         }
         try {
-            GoogleIntegration.autoSave?.('Contractors', AppState.appData.contractors);
-            GoogleIntegration.autoSave?.('ApprovedContractors', AppState.appData.approvedContractors);
+            Backend.autoSave?.('Contractors', AppState.appData.contractors);
+            Backend.autoSave?.('ApprovedContractors', AppState.appData.approvedContractors);
         } catch (error) {
             Utils.safeWarn('فشل الحفظ التلقائي:', error);
         }
@@ -7893,7 +7893,7 @@ const Contractors = {
 
         // حفظ في Google Sheets
         try {
-            const result = await GoogleIntegration.callBackend('addContractorDeletionRequest', deletionRequest);
+            const result = await Backend.callBackend('addContractorDeletionRequest', deletionRequest);
             if (result && result.success) {
                 Notification.success('تم إرسال طلب الحذف بنجاح. سيتم مراجعته من قبل مدير النظام.');
                 return true;
@@ -8007,10 +8007,10 @@ const Contractors = {
      */
     renderApprovalRequestSectionPlaceholder() {
         const isAdmin = Permissions.isAdmin();
-        const circuitOpen = (typeof GoogleIntegration !== 'undefined' &&
-            GoogleIntegration?._circuitBreaker?.isOpen);
-        const remainingSeconds = circuitOpen && GoogleIntegration?._circuitBreaker?.openUntil
-            ? Math.max(0, Math.ceil((GoogleIntegration._circuitBreaker.openUntil - Date.now()) / 1000))
+        const circuitOpen = (typeof Backend !== 'undefined' &&
+            Backend?._circuitBreaker?.isOpen);
+        const remainingSeconds = circuitOpen && Backend?._circuitBreaker?.openUntil
+            ? Math.max(0, Math.ceil((Backend._circuitBreaker.openUntil - Date.now()) / 1000))
             : null;
 
         return `
@@ -8694,7 +8694,7 @@ const Contractors = {
                             reader.readAsDataURL(file);
                         });
 
-                        const uploadResult = await GoogleIntegration.uploadFileToDrive(
+                        const uploadResult = await Backend.uploadFileToDrive(
                             base64Data,
                             file.name,
                             file.type,
@@ -8754,7 +8754,7 @@ const Contractors = {
             Utils.safeLog('🔄 إرسال الطلب إلى Backend بدون ID (tempId=' + actualTempId + ' سيتم استبداله بـ CAR_... من Backend)');
             
             // ✅ إرسال الطلب إلى Backend
-                const backendResult = await GoogleIntegration.sendRequest({
+                const backendResult = await Backend.sendRequest({
                     action: 'addContractorApprovalRequest',
                     data: requestData
                 });
@@ -8936,7 +8936,7 @@ const Contractors = {
             if (admins.length === 0) {
                 // إذا لم نجد مدراء محلياً، نحاول قراءتهم من Google Sheets
                 try {
-                    const usersResult = await GoogleIntegration.sendRequest({
+                    const usersResult = await Backend.sendRequest({
                         action: 'readFromSheet',
                         data: { sheetName: 'Users' }
                     });
@@ -8963,7 +8963,7 @@ const Contractors = {
             for (const admin of admins) {
                 if (admin.id || admin.email) {
                     try {
-                        await GoogleIntegration.sendRequest({
+                        await Backend.sendRequest({
                             action: 'addNotification',
                             data: {
                                 userId: admin.id || admin.email,
@@ -9573,7 +9573,7 @@ const Contractors = {
                 ? 'updateContractorDeletionRequest' 
                 : 'updateContractorApprovalRequest';
                 
-            const result = await GoogleIntegration.sendRequest({
+            const result = await Backend.sendRequest({
                 action: action,
                 data: {
                     requestId: requestId,
@@ -9623,7 +9623,7 @@ const Contractors = {
             // استدعاء Backend لاعتماد طلب الحذف
             try {
                 Loading.show();
-                const result = await GoogleIntegration.callBackend('approveContractorDeletionRequest', {
+                const result = await Backend.callBackend('approveContractorDeletionRequest', {
                     requestId: requestId,
                     userData: AppState.currentUser
                 });
@@ -9746,7 +9746,7 @@ const Contractors = {
 
             // استدعاء Backend لاعتماد الطلب أولاً
             // هذا يضمن تطابق البيانات بين Frontend و Backend
-            const backendResult = await GoogleIntegration.callBackend('approveContractorApprovalRequest', {
+            const backendResult = await Backend.callBackend('approveContractorApprovalRequest', {
                 requestId: actualRequestId, // ✅ استخدام ID الصحيح (CAR_...)
                 userData: AppState.currentUser
             });
@@ -9831,7 +9831,7 @@ const Contractors = {
                 AppState.appData.contractorEvaluations.push(request.evaluationData);
 
                 // حفظ تلقائي بدون await
-                GoogleIntegration.autoSave?.('ContractorEvaluations', AppState.appData.contractorEvaluations).catch(error => {
+                Backend.autoSave?.('ContractorEvaluations', AppState.appData.contractorEvaluations).catch(error => {
                     Utils.safeWarn('فشل الحفظ التلقائي للتقييمات:', error);
                 });
             }
@@ -9849,7 +9849,7 @@ const Contractors = {
             // ✅ تحسين: مزامنة فقط الأوراق المتعلقة بالمقاولين لتجنب إظهار شاشة Database loaded الكاملة
             try {
                 Utils.safeLog('🔄 بدء مزامنة بيانات المقاولين من Backend...');
-                await GoogleIntegration.syncData({
+                await Backend.syncData({
                     silent: true,         // ✅ تغيير: صامتة لتجنب إظهار شاشة Database loaded
                     showLoader: false,    // ✅ تغيير: عدم إظهار loader الكامل
                     notifyOnSuccess: false,
@@ -9949,7 +9949,7 @@ const Contractors = {
 
             try {
                 Loading.show();
-                const result = await GoogleIntegration.callBackend('rejectContractorDeletionRequest', {
+                const result = await Backend.callBackend('rejectContractorDeletionRequest', {
                     requestId: requestId,
                     rejectionReason: reason,
                     userData: AppState.currentUser
@@ -9998,7 +9998,7 @@ const Contractors = {
 
             // ✅ إصلاح: استخدام rejectContractorApprovalRequest في Backend مباشرة
             // ✅ هذا يضمن عدم حذف الطلبات الموجودة في Google Sheets
-            const backendResult = await GoogleIntegration.sendRequest({
+            const backendResult = await Backend.sendRequest({
                 action: 'rejectContractorApprovalRequest',
                 data: {
                     requestId: requestId,
@@ -10073,11 +10073,11 @@ const Contractors = {
 
         let evaluations = AppState.appData.contractorEvaluations || [];
         let violations = AppState.appData.violations || [];
-        if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.readFromSheets && AppState.googleConfig?.appsScript?.enabled) {
+        if (typeof Backend !== 'undefined' && Backend.readFromSheets && AppState.backendConfig?.server?.enabled) {
             try {
                 const [v, ev] = await Promise.all([
-                    GoogleIntegration.readFromSheets('Violations'),
-                    GoogleIntegration.readFromSheets('ContractorEvaluations')
+                    Backend.readFromSheets('Violations'),
+                    Backend.readFromSheets('ContractorEvaluations')
                 ]);
                 if (Array.isArray(v)) {
                     AppState.appData.violations = v;
@@ -11774,7 +11774,7 @@ const Contractors = {
 
         (async () => {
             try {
-                if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.syncData && AppState.googleConfig?.appsScript?.enabled) {
+                if (typeof Backend !== 'undefined' && Backend.syncData && AppState.backendConfig?.server?.enabled) {
                     const needCT = !AppState.appData.contractorTrainings?.length;
                     const needT = !AppState.appData.training?.length;
                     const needPTW = (!AppState.appData.ptw || !AppState.appData.ptw.length) && (!AppState.appData.ptwRegistry || !AppState.appData.ptwRegistry.length);
@@ -11792,7 +11792,7 @@ const Contractors = {
                         if (needClinic) syncSheets.push('ClinicVisits', 'ClinicContractorVisits');
                         if (needInj) syncSheets.push('Injuries', 'ClinicContractorInjuries');
                         if (syncSheets.length) {
-                            GoogleIntegration.syncData({
+                            Backend.syncData({
                                 sheets: [...new Set(syncSheets)],
                                 silent: true,
                                 showLoader: false,
@@ -11806,8 +11806,8 @@ const Contractors = {
                 }
 
                 let serverDetailedAnalytics = null;
-                if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendRequest && AppState.googleConfig?.appsScript?.enabled) {
-                    const analyticsRes = await GoogleIntegration.sendRequest({
+                if (typeof Backend !== 'undefined' && Backend.sendRequest && AppState.backendConfig?.server?.enabled) {
+                    const analyticsRes = await Backend.sendRequest({
                         action: 'getContractorDetailedAnalytics',
                         data: { contractor, contractorId: analyticsLookupKey }
                     });

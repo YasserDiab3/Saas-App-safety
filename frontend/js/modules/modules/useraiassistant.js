@@ -226,7 +226,7 @@ const UserAIAssistant = {
      */
     async showSmartRecommendations() {
         try {
-            if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendToAppsScript) {
+            if (typeof Backend !== 'undefined' && Backend.sendToAppsScript) {
                 const context = {
                     userId: AppState.currentUser?.email || AppState.currentUser?.id || 'unknown',
                     userName: AppState.currentUser?.name || AppState.currentUser?.displayName || 'Unknown',
@@ -234,7 +234,7 @@ const UserAIAssistant = {
                 };
 
                 try {
-                    const recommendations = await GoogleIntegration.sendToAppsScript('getSmartRecommendations', {
+                    const recommendations = await Backend.sendToAppsScript('getSmartRecommendations', {
                         userId: context.userId,
                         context: context
                     });
@@ -597,7 +597,7 @@ const UserAIAssistant = {
             const enhancedMessage = this.enhanceMessageWithContext(message);
 
             // محاولة استخدام Backend AI أولاً
-            if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendToAppsScript) {
+            if (typeof Backend !== 'undefined' && Backend.sendToAppsScript) {
                 const context = {
                     userId: AppState.currentUser?.email || AppState.currentUser?.id || 'unknown',
                     userName: AppState.currentUser?.name || AppState.currentUser?.displayName || 'Unknown',
@@ -610,7 +610,7 @@ const UserAIAssistant = {
                 };
 
                 try {
-                    const aiResponse = await GoogleIntegration.sendToAppsScript('processAIQuestion', {
+                    const aiResponse = await Backend.sendToAppsScript('processAIQuestion', {
                         question: enhancedMessage,
                         context: context
                     });
@@ -1066,9 +1066,9 @@ const UserAIAssistant = {
      */
     logQuestion(question, response) {
         // يمكن إضافة منطق لتسجيل الأسئلة والردود للتحليل
-        if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendToAppsScript) {
+        if (typeof Backend !== 'undefined' && Backend.sendToAppsScript) {
             try {
-                GoogleIntegration.sendToAppsScript('logAIQuestion', {
+                Backend.sendToAppsScript('logAIQuestion', {
                     question: question,
                     response: response.text,
                     intent: response.intent,

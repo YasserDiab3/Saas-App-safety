@@ -1,6 +1,6 @@
 /**
  * DataRepository — طبقة عزل تخزين رقيقة للانتقال المستقبلي عن Google Sheets فقط.
- * حاليًا تفوّض إلى Google Apps Script عبر GoogleIntegration.
+ * حاليًا تفوّض إلى الخادم السحابي عبر Backend.
  *
  * عند الهجرة إلى Firebase أو Supabase، يُستبدل التنفيذ هنا مع الإبقاء على نفس الأسماء قدر الإمكان.
  */
@@ -27,11 +27,11 @@
             if (!sheetName) {
                 return { success: false, message: 'sheetName مطلوب' };
             }
-            if (typeof GoogleIntegration === 'undefined' || typeof GoogleIntegration.sendToAppsScript !== 'function') {
-                return { success: false, message: 'GoogleIntegration غير متاح' };
+            if (typeof Backend === 'undefined' || typeof Backend.sendToAppsScript !== 'function') {
+                return { success: false, message: 'Backend غير متاح' };
             }
             const payload = Object.assign({}, extraPayload || {}, { sheetName: sheetName });
-            return GoogleIntegration.sendToAppsScript('readFromSheet', payload);
+            return Backend.sendToAppsScript('readFromSheet', payload);
         }
     };
 

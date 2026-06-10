@@ -342,8 +342,8 @@ window.Auth = {
         // البيانات المحلية تُستخدم كـ fallback فقط إذا فشل الخادم.
         let localUsersCount = Array.isArray(AppState.appData.users) ? AppState.appData.users.length : 0;
         const canSyncUsers = !!(typeof Utils !== 'undefined' && typeof Utils.hasCloudBackendSync === 'function' && Utils.hasCloudBackendSync() &&
-            typeof GoogleIntegration !== 'undefined' &&
-            typeof GoogleIntegration.syncUsers === 'function');
+            typeof Backend !== 'undefined' &&
+            typeof Backend.syncUsers === 'function');
 
         // تحميل سريع للبيانات المحلية فقط (بدون شبكة) لضمان توفّر fallback إذا فشل الخادم
         if (localUsersCount === 0 && typeof window.DataManager !== 'undefined' && window.DataManager.load) {
@@ -364,10 +364,10 @@ window.Auth = {
         let loginResult = null;
         let loginMethod = 'local';
 
-        if (canSyncUsers && typeof GoogleIntegration !== 'undefined') {
+        if (canSyncUsers && typeof Backend !== 'undefined') {
             try {
                 Utils.safeLog('🔒 محاولة تسجيل الدخول عبر الخادم...');
-                loginResult = await GoogleIntegration.sendRequest({
+                loginResult = await Backend.sendRequest({
                     action: 'login',
                     data: { email, password }
                 });
@@ -691,9 +691,9 @@ window.Auth = {
         }
 
         // تحميل إعدادات Google بشكل دائم بعد تسجيل الدخول (يجب أن تكون متاحة لجميع المستخدمين)
-        if (typeof window.DataManager !== 'undefined' && window.DataManager.loadGoogleConfig) {
+        if (typeof window.DataManager !== 'undefined' && window.DataManager.loadBackendConfig) {
             try {
-                window.DataManager.loadGoogleConfig();
+                window.DataManager.loadBackendConfig();
                 Utils.safeLog('✅ تم تحميل إعدادات Google بعد تسجيل الدخول');
             } catch (configError) {
                 Utils.safeWarn('⚠️ خطأ في تحميل إعدادات Google بعد تسجيل الدخول:', configError);
@@ -747,7 +747,7 @@ window.Auth = {
                 }
 
                 // ✅ الخطوة 2: تحميل البيانات الأساسية بشكل متسلسل (مهم جداً)
-                if (typeof Utils !== 'undefined' && typeof Utils.hasCloudBackendSync === 'function' && Utils.hasCloudBackendSync() && typeof GoogleIntegration !== 'undefined') {
+                if (typeof Utils !== 'undefined' && typeof Utils.hasCloudBackendSync === 'function' && Utils.hasCloudBackendSync() && typeof Backend !== 'undefined') {
                     const prioritySheets = ['Users', 'Employees', 'ExternalWorkforceMonthly', 'Contractors', 'ApprovedContractors'];
                     const sheetMapping = {
                         'Users': 'users',
@@ -763,7 +763,7 @@ window.Auth = {
                     let cursor = 0;
                     const loadPrioritySheet = async (sheetName) => {
                         try {
-                            const data = await GoogleIntegration.readFromSheets(sheetName, 8000);
+                            const data = await Backend.readFromSheets(sheetName, 8000);
                             const key = sheetMapping[sheetName];
 
                             if (key && Array.isArray(data) && data.length > 0) {
@@ -929,7 +929,7 @@ window.Auth = {
                     window.DataManager.saveImmediate();
                 }
 
-                if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendToAppsScript &&
+                if (typeof Backend !== 'undefined' && Backend.sendToAppsScript &&
                     typeof Utils !== 'undefined' && typeof Utils.hasCloudBackendSync === 'function' && Utils.hasCloudBackendSync()) {
                     const userId = users[userIndex].id;
                     const updateData = {
@@ -938,7 +938,7 @@ window.Auth = {
                         activeSessionId: null // مسح معرف الجلسة في Google Sheets
                     };
                     
-                    GoogleIntegration.sendToAppsScript('updateUser', {
+                    Backend.sendToAppsScript('updateUser', {
                         userId: userId,
                         updateData: updateData
                     }).then(updateResult => {
@@ -1598,9 +1598,9 @@ window.Auth = {
         }
 
         // حفظ في Google Sheets إذا كان معّلاً
-        if (AppState.googleConfig && AppState.googleConfig.appsScript && AppState.googleConfig.appsScript.enabled && AppState.googleConfig.sheets && AppState.googleConfig.sheets.spreadsheetId) {
+        if (AppState.backendConfig && AppState.backendConfig.server && AppState.backendConfig.server.enabled && AppState.backendConfig.sheets && AppState.backendConfig.sheets.spreadsheetId) {
             try {
-                await GoogleIntegration.autoSave('Users', AppState.appData.users);
+                await Backend.autoSave('Users', AppState.appData.users);
                 Utils.safeLog('✅ تم حفظ كلمة المرور الجديدة في Google Sheets');
             } catch (error) {
                 Utils.safeWarn('⚠ فشل حظ كلمة المرور ي Google Sheets:', error);
@@ -1616,7 +1616,7 @@ window.Auth = {
      * يتم تحميل البيانات بشكل متتالي لضمان عدم فقدان أي بيانات
      */
     async loadModulesDataSequentially() {
-        if (!AppState.googleConfig?.appsScript?.enabled || typeof GoogleIntegration === 'undefined') {
+        if (!AppState.backendConfig?.server?.enabled || typeof Backend === 'undefined') {
             return;
         }
 
@@ -1785,7 +1785,7 @@ window.Auth = {
                     // ✅ تحسين: تحميل جميع أوراق الموديول بشكل متوازي لتسريع العملية
                     const sheetPromises = sheets.map(async (sheetName) => {
                         try {
-                            const data = await GoogleIntegration.readFromSheets(sheetName, PER_SHEET_TIMEOUT_MS);
+                            const data = await Backend.readFromSheets(sheetName, PER_SHEET_TIMEOUT_MS);
                             const key = sheetToKeyMap[sheetName];
                             
                             if (key && Array.isArray(data)) {
@@ -1949,9 +1949,9 @@ window.Auth = {
 
         // حفظ تلقائياً في Google Sheets
         try {
-            if (AppState.googleConfig.appsScript.enabled && AppState.googleConfig.appsScript.scriptUrl) {
+            if (AppState.backendConfig.server.enabled && AppState.backendConfig.server.scriptUrl) {
                 // استخدام resetUserPassword في Backend أولاً
-                let result = await GoogleIntegration.sendToAppsScript('resetUserPassword', {
+                let result = await Backend.sendToAppsScript('resetUserPassword', {
                     userId: user.id,
                     email: user.email,
                     newPassword: tempPassword
@@ -1965,7 +1965,7 @@ window.Auth = {
                     }
                 } else {
                     // إذا فشل، نحاول updateUser
-                    result = await GoogleIntegration.sendToAppsScript('updateUser', {
+                    result = await Backend.sendToAppsScript('updateUser', {
                         userId: user.id,
                         updateData: {
                             passwordHash: hashedTemp,
@@ -1979,7 +1979,7 @@ window.Auth = {
                         Utils.safeLog('✅ تم تحديث كلمة المرور في Google Sheets بنجاح (عبر updateUser)');
                     } else {
                         // إذا فشل، نحاول autoSave
-                        await GoogleIntegration.autoSave('Users', AppState.appData.users);
+                        await Backend.autoSave('Users', AppState.appData.users);
                     }
                 }
             }
@@ -1987,7 +1987,7 @@ window.Auth = {
             Utils.safeWarn('⚠ فشل تحديث كلمة المرور في Google Sheets:', error);
             // نحاول autoSave كبديل
             try {
-                await GoogleIntegration.autoSave('Users', AppState.appData.users);
+                await Backend.autoSave('Users', AppState.appData.users);
             } catch (autoSaveError) {
                 Utils.safeWarn('⚠ فشل autoSave أيضاً:', autoSaveError);
             }

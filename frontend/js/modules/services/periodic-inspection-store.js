@@ -107,8 +107,8 @@ const PeriodicInspectionStore = {
 
         DataManager.save();
 
-        if (options.autoSave !== false && GoogleIntegration && typeof GoogleIntegration.autoSave === 'function') {
-            GoogleIntegration.autoSave('PeriodicInspectionCategories', data).catch(() => {});
+        if (options.autoSave !== false && Backend && typeof Backend.autoSave === 'function') {
+            Backend.autoSave('PeriodicInspectionCategories', data).catch(() => {});
         }
 
         return normalized;
@@ -140,9 +140,9 @@ const PeriodicInspectionStore = {
         data.periodicInspectionChecklists = data.periodicInspectionChecklists.filter(list => list.categoryId !== categoryId);
 
         DataManager.save();
-        if (GoogleIntegration && typeof GoogleIntegration.autoSave === 'function') {
-            GoogleIntegration.autoSave('PeriodicInspectionCategories', data.periodicInspectionCategories).catch(() => {});
-            GoogleIntegration.autoSave('PeriodicInspectionChecklists', data.periodicInspectionChecklists).catch(() => {});
+        if (Backend && typeof Backend.autoSave === 'function') {
+            Backend.autoSave('PeriodicInspectionCategories', data.periodicInspectionCategories).catch(() => {});
+            Backend.autoSave('PeriodicInspectionChecklists', data.periodicInspectionChecklists).catch(() => {});
         }
         return true;
     },
@@ -192,8 +192,8 @@ const PeriodicInspectionStore = {
         }
 
         DataManager.save();
-        if (options.autoSave !== false && GoogleIntegration && typeof GoogleIntegration.autoSave === 'function') {
-            GoogleIntegration.autoSave('PeriodicInspectionChecklists', AppState.appData.periodicInspectionChecklists).catch(() => {});
+        if (options.autoSave !== false && Backend && typeof Backend.autoSave === 'function') {
+            Backend.autoSave('PeriodicInspectionChecklists', AppState.appData.periodicInspectionChecklists).catch(() => {});
         }
 
         return checklist;
@@ -250,8 +250,8 @@ const PeriodicInspectionStore = {
         }
 
         DataManager.save();
-        if (options.autoSave !== false && GoogleIntegration && typeof GoogleIntegration.autoSave === 'function') {
-            GoogleIntegration.autoSave('PeriodicInspectionSchedules', schedules).catch(() => {});
+        if (options.autoSave !== false && Backend && typeof Backend.autoSave === 'function') {
+            Backend.autoSave('PeriodicInspectionSchedules', schedules).catch(() => {});
         }
 
         return normalized;
@@ -267,8 +267,8 @@ const PeriodicInspectionStore = {
         }
         AppState.appData.periodicInspectionSchedules = schedules.filter(schedule => schedule.id !== scheduleId);
         DataManager.save();
-        if (GoogleIntegration && typeof GoogleIntegration.autoSave === 'function') {
-            GoogleIntegration.autoSave('PeriodicInspectionSchedules', AppState.appData.periodicInspectionSchedules).catch(() => {});
+        if (Backend && typeof Backend.autoSave === 'function') {
+            Backend.autoSave('PeriodicInspectionSchedules', AppState.appData.periodicInspectionSchedules).catch(() => {});
         }
         return true;
     },
@@ -327,8 +327,8 @@ const PeriodicInspectionStore = {
         }
 
         DataManager.save();
-        if (options.autoSave !== false && GoogleIntegration && typeof GoogleIntegration.autoSave === 'function') {
-            GoogleIntegration.autoSave('PeriodicInspectionRecords', records).catch(() => {});
+        if (options.autoSave !== false && Backend && typeof Backend.autoSave === 'function') {
+            Backend.autoSave('PeriodicInspectionRecords', records).catch(() => {});
         }
 
         // تحديث الجدول بعد الفحص
@@ -352,8 +352,8 @@ const PeriodicInspectionStore = {
         AppState.appData.periodicInspectionRecords = records.filter(record => record.id !== recordId);
 
         DataManager.save();
-        if (GoogleIntegration && typeof GoogleIntegration.autoSave === 'function') {
-            GoogleIntegration.autoSave('PeriodicInspectionRecords', AppState.appData.periodicInspectionRecords).catch(() => {});
+        if (Backend && typeof Backend.autoSave === 'function') {
+            Backend.autoSave('PeriodicInspectionRecords', AppState.appData.periodicInspectionRecords).catch(() => {});
         }
         return true;
     },
@@ -417,8 +417,8 @@ const PeriodicInspectionStore = {
         schedule.updatedAt = new Date().toISOString();
 
         DataManager.save();
-        if (options.autoSave !== false && GoogleIntegration && typeof GoogleIntegration.autoSave === 'function') {
-            GoogleIntegration.autoSave('PeriodicInspectionSchedules', schedules).catch(() => {});
+        if (options.autoSave !== false && Backend && typeof Backend.autoSave === 'function') {
+            Backend.autoSave('PeriodicInspectionSchedules', schedules).catch(() => {});
         }
     },
 

@@ -1011,9 +1011,9 @@ const SafetyPerformanceKPIs = {
         const tasks = [];
         const readSheet = (sheetName, key) => {
             if (Array.isArray(data[key]) && data[key].length > 0) return;
-            if (typeof GoogleIntegration === 'undefined' || typeof GoogleIntegration.readFromSheets !== 'function') return;
+            if (typeof Backend === 'undefined' || typeof Backend.readFromSheets !== 'function') return;
             tasks.push(
-                GoogleIntegration.readFromSheets(sheetName, 15000)
+                Backend.readFromSheets(sheetName, 15000)
                     .then(result => {
                         if (Array.isArray(result)) data[key] = result;
                     })
@@ -1022,9 +1022,9 @@ const SafetyPerformanceKPIs = {
         };
         const requestData = (action, key) => {
             if (Array.isArray(data[key]) && data[key].length > 0) return;
-            if (typeof GoogleIntegration === 'undefined' || typeof GoogleIntegration.sendRequest !== 'function') return;
+            if (typeof Backend === 'undefined' || typeof Backend.sendRequest !== 'function') return;
             tasks.push(
-                GoogleIntegration.sendRequest({ action, data: {} })
+                Backend.sendRequest({ action, data: {} })
                     .then(result => {
                         if (result?.success && Array.isArray(result.data)) data[key] = result.data;
                     })
@@ -1663,8 +1663,8 @@ const SafetyPerformanceKPIs = {
 
         this._scorecardCache.clear();
         this.renderScorecardTable(true);
-        if (typeof GoogleIntegration !== 'undefined' && typeof GoogleIntegration.autoSave === 'function') {
-            GoogleIntegration.autoSave('SafetyPerformanceKPIs', records).catch(() => {});
+        if (typeof Backend !== 'undefined' && typeof Backend.autoSave === 'function') {
+            Backend.autoSave('SafetyPerformanceKPIs', records).catch(() => {});
         }
     },
 
@@ -4526,7 +4526,7 @@ SafetyPerformanceKPIs.loadKPIAnnualPlans = async function() {
         const yearSelector = document.getElementById('kpi-annual-year-selector');
         const year = yearSelector ? parseInt(yearSelector.value) : new Date().getFullYear();
         
-        const response = await GoogleIntegration.callBackend('getKPIAnnualPlans', { filters: { year } });
+        const response = await Backend.callBackend('getKPIAnnualPlans', { filters: { year } });
         
         if (response && response.success) {
             this.renderKPIAnnualPlanTable(response.data || []);
@@ -4744,7 +4744,7 @@ SafetyPerformanceKPIs.saveKPIAnnualPlan = async function(id = null) {
             dec: document.getElementById('kpi-plan-dec')?.value || '0'
         };
 
-        const response = await GoogleIntegration.callBackend('saveKPIAnnualPlan', planData);
+        const response = await Backend.callBackend('saveKPIAnnualPlan', planData);
         
         if (response && response.success) {
             Notification.success(id ? this._t('module.kpi.notify.updateSuccess','تم تحديث المؤشر بنجاح') : this._t('module.kpi.notify.saveSuccess','تم إضافة المؤشر بنجاح'));
@@ -4778,7 +4778,7 @@ SafetyPerformanceKPIs.saveKPIAnnualPlan = async function(id = null) {
 SafetyPerformanceKPIs.editKPIAnnualPlan = async function(id) {
     try {
         const year = new Date().getFullYear();
-        const response = await GoogleIntegration.callBackend('getKPIAnnualPlans', { filters: { year } });
+        const response = await Backend.callBackend('getKPIAnnualPlans', { filters: { year } });
         
         if (response && response.success) {
             const plan = (response.data || []).find(p => p.id === id);
@@ -4814,7 +4814,7 @@ SafetyPerformanceKPIs.deleteKPIAnnualPlan = async function(id) {
     if (!confirm(this._t('module.kpi.notify.deleteConfirm','هل أنت متأكد من حذف هذا المؤشر؟'))) return;
     
     try {
-        const response = await GoogleIntegration.callBackend('deleteKPIAnnualPlan', { planId: id });
+        const response = await Backend.callBackend('deleteKPIAnnualPlan', { planId: id });
         
         if (response && response.success) {
             Notification.success(this._t('module.kpi.notify.deleteSuccess','تم حذف المؤشر بنجاح'));
@@ -4836,8 +4836,8 @@ SafetyPerformanceKPIs.loadHSEMonitoringPlans = async function() {
         
         // Load both Annual Plan and Monitoring Plan data in parallel
         const [annualResponse, monitoringResponse] = await Promise.all([
-            GoogleIntegration.callBackend('getKPIAnnualPlans', { filters: { year } }),
-            GoogleIntegration.callBackend('getHSEMonitoringPlans', { filters: { year } })
+            Backend.callBackend('getKPIAnnualPlans', { filters: { year } }),
+            Backend.callBackend('getHSEMonitoringPlans', { filters: { year } })
         ]);
         
         // Get data from both sources
@@ -5119,7 +5119,7 @@ SafetyPerformanceKPIs.saveHSEMonitoringPlan = async function(id = null) {
             planData['executed_' + m] = document.getElementById(`hse-plan-executed-${m}`)?.value || '0';
         });
 
-        const response = await GoogleIntegration.callBackend('saveHSEMonitoringPlan', planData);
+        const response = await Backend.callBackend('saveHSEMonitoringPlan', planData);
         
         if (response && response.success) {
             Notification.success(id ? this._t('module.kpi.notify.updateSuccess','تم تحديث النشاط بنجاح') : this._t('module.kpi.notify.saveSuccess','تم إضافة النشاط بنجاح'));
@@ -5153,7 +5153,7 @@ SafetyPerformanceKPIs.saveHSEMonitoringPlan = async function(id = null) {
 SafetyPerformanceKPIs.editHSEMonitoringPlan = async function(id) {
     try {
         const year = new Date().getFullYear();
-        const response = await GoogleIntegration.callBackend('getHSEMonitoringPlans', { filters: { year } });
+        const response = await Backend.callBackend('getHSEMonitoringPlans', { filters: { year } });
         
         if (response && response.success) {
             const plan = (response.data || []).find(p => p.id === id);
@@ -5192,7 +5192,7 @@ SafetyPerformanceKPIs.deleteHSEMonitoringPlan = async function(id) {
     if (!confirm(this._t('module.kpi.notify.deleteConfirm','هل أنت متأكد من حذف هذا النشاط؟'))) return;
     
     try {
-        const response = await GoogleIntegration.callBackend('deleteHSEMonitoringPlan', { planId: id });
+        const response = await Backend.callBackend('deleteHSEMonitoringPlan', { planId: id });
         
         if (response && response.success) {
             Notification.success(this._t('module.kpi.notify.deleteSuccess','تم حذف النشاط بنجاح'));
@@ -5212,7 +5212,7 @@ SafetyPerformanceKPIs.exportAnnualPlanToExcel = async function() {
         const yearSelector = document.getElementById('kpi-annual-year-selector');
         const year = yearSelector ? parseInt(yearSelector.value) : new Date().getFullYear();
         
-        const response = await GoogleIntegration.callBackend('getKPIAnnualPlans', { filters: { year } });
+        const response = await Backend.callBackend('getKPIAnnualPlans', { filters: { year } });
         
         if (!response || !response.success || !response.data || response.data.length === 0) {
             Notification.warning(this._t('module.kpi.notify.noData','لا توجد بيانات للتصدير'));
@@ -5260,7 +5260,7 @@ SafetyPerformanceKPIs.exportAnnualPlanToPDF = async function() {
         const yearSelector = document.getElementById('kpi-annual-year-selector');
         const year = yearSelector ? parseInt(yearSelector.value) : new Date().getFullYear();
         
-        const response = await GoogleIntegration.callBackend('getKPIAnnualPlans', { filters: { year } });
+        const response = await Backend.callBackend('getKPIAnnualPlans', { filters: { year } });
         
         if (!response || !response.success || !response.data || response.data.length === 0) {
             Notification.warning(this._t('module.kpi.notify.noData','لا توجد بيانات للتصدير'));
@@ -5365,7 +5365,7 @@ SafetyPerformanceKPIs.exportMonitoringPlanToExcel = async function() {
         const yearSelector = document.getElementById('hse-monitoring-year-selector');
         const year = yearSelector ? parseInt(yearSelector.value) : new Date().getFullYear();
         
-        const response = await GoogleIntegration.callBackend('getHSEMonitoringPlans', { filters: { year } });
+        const response = await Backend.callBackend('getHSEMonitoringPlans', { filters: { year } });
         
         if (!response || !response.success || !response.data || response.data.length === 0) {
             Notification.warning(this._t('module.kpi.notify.noData','لا توجد بيانات للتصدير'));
@@ -5424,7 +5424,7 @@ SafetyPerformanceKPIs.exportMonitoringPlanToPDF = async function() {
         const yearSelector = document.getElementById('hse-monitoring-year-selector');
         const year = yearSelector ? parseInt(yearSelector.value) : new Date().getFullYear();
         
-        const response = await GoogleIntegration.callBackend('getHSEMonitoringPlans', { filters: { year } });
+        const response = await Backend.callBackend('getHSEMonitoringPlans', { filters: { year } });
         
         if (!response || !response.success || !response.data || response.data.length === 0) {
             Notification.warning(this._t('module.kpi.notify.noData','لا توجد بيانات للتصدير'));

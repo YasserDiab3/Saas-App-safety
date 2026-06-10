@@ -1062,7 +1062,7 @@ const NearMiss = {
                             hasDirectLink: !!attachments[0].directLink
                         });
                     }
-                    attachments = await GoogleIntegration.processAttachments?.(
+                    attachments = await Backend.processAttachments?.(
                         attachments,
                         'NearMiss'
                     ) || attachments;
@@ -1153,16 +1153,16 @@ const NearMiss = {
             this.refreshFilterOptions();
             
             // 6. معالجة المهام الخلفية (Google Sheets) في الخلفية
-            if (GoogleIntegration?.sendRequest) {
+            if (Backend?.sendRequest) {
                 Promise.resolve().then(async () => {
                     try {
                         if (this.state.editingId) {
-                            await GoogleIntegration.sendRequest({
+                            await Backend.sendRequest({
                                 action: 'updateNearMiss',
                                 data: { nearMissId: this.state.editingId, updateData: updatedRecord }
                             });
                         } else {
-                            await GoogleIntegration.sendRequest({
+                            await Backend.sendRequest({
                                 action: 'addNearMiss',
                                 data: newRecord
                             });
@@ -1560,9 +1560,9 @@ const NearMiss = {
         } else {
             Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
         }
-            if (GoogleIntegration?.sendRequest) {
+            if (Backend?.sendRequest) {
                 try {
-                    await GoogleIntegration.sendRequest({
+                    await Backend.sendRequest({
                         action: 'deleteNearMiss',
                         data: { nearMissId: id }
                     });

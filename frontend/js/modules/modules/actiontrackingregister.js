@@ -253,13 +253,13 @@ const ActionTrackingRegister = {
 
     async loadSettings() {
         // التحقق من تفعيل Google Integration قبل إجراء الطلبات
-        if (!AppState.googleConfig?.appsScript?.enabled || !AppState.googleConfig?.appsScript?.scriptUrl) {
+        if (!AppState.backendConfig?.server?.enabled || !AppState.backendConfig?.server?.scriptUrl) {
             this.settings = this.getDefaultSettings();
             return;
         }
 
-        // التحقق من توفر GoogleIntegration
-        if (typeof GoogleIntegration === 'undefined' || typeof GoogleIntegration.sendRequest !== 'function') {
+        // التحقق من توفر Backend
+        if (typeof Backend === 'undefined' || typeof Backend.sendRequest !== 'function') {
             this.settings = this.getDefaultSettings();
             return;
         }
@@ -267,7 +267,7 @@ const ActionTrackingRegister = {
         try {
             const timeout = 60000; // 60 ثانية timeout
             const response = await Utils.promiseWithTimeout(
-                GoogleIntegration.sendRequest({ action: 'getActionTrackingSettings', data: {} }),
+                Backend.sendRequest({ action: 'getActionTrackingSettings', data: {} }),
                 timeout,
                 'انتهت مهلة الاتصال بالخادم'
             );
@@ -278,9 +278,9 @@ const ActionTrackingRegister = {
                 this.settings = this.getDefaultSettings();
             }
         } catch (error) {
-            // Don't log errors for Google Apps Script not enabled - just use default settings
+            // Don't log errors for الخادم السحابي not enabled - just use default settings
             const errorMessage = error?.message || '';
-            if (!errorMessage.includes('Google Apps Script') && !errorMessage.includes('غير مفعّل') && !errorMessage.includes('انتهت مهلة الاتصال')) {
+            if (!errorMessage.includes('الخادم السحابي') && !errorMessage.includes('غير مفعّل') && !errorMessage.includes('انتهت مهلة الاتصال')) {
                 Utils.safeWarn('خطأ في تحميل إعدادات Action Tracking:', error);
             }
             this.settings = this.getDefaultSettings();
@@ -423,12 +423,12 @@ const ActionTrackingRegister = {
         this.renderKPIs(localKPIs);
 
         // التحقق من تفعيل Google Integration قبل إجراء الطلبات
-        if (!AppState.googleConfig?.appsScript?.enabled || !AppState.googleConfig?.appsScript?.scriptUrl) {
+        if (!AppState.backendConfig?.server?.enabled || !AppState.backendConfig?.server?.scriptUrl) {
             return; // البيانات المحلية معروضة بالفعل
         }
 
-        // التحقق من توفر GoogleIntegration
-        if (typeof GoogleIntegration === 'undefined' || typeof GoogleIntegration.sendRequest !== 'function') {
+        // التحقق من توفر Backend
+        if (typeof Backend === 'undefined' || typeof Backend.sendRequest !== 'function') {
             return; // البيانات المحلية معروضة بالفعل
         }
 
@@ -437,7 +437,7 @@ const ActionTrackingRegister = {
             try {
                 const timeout = 30000; // تقليل timeout إلى 30 ثانية لتسريع الاستجابة
                 const response = await Utils.promiseWithTimeout(
-                    GoogleIntegration.sendRequest({ action: 'getActionTrackingKPIs', data: {} }),
+                    Backend.sendRequest({ action: 'getActionTrackingKPIs', data: {} }),
                     timeout,
                     'انتهت مهلة الاتصال بالخادم'
                 );
@@ -450,9 +450,9 @@ const ActionTrackingRegister = {
                     }
                 }
             } catch (error) {
-                // Don't log errors for Google Apps Script not enabled - just use local data
+                // Don't log errors for الخادم السحابي not enabled - just use local data
                 const errorMessage = error?.message || '';
-                if (!errorMessage.includes('Google Apps Script') && !errorMessage.includes('غير مفعّل') && !errorMessage.includes('انتهت مهلة الاتصال')) {
+                if (!errorMessage.includes('الخادم السحابي') && !errorMessage.includes('غير مفعّل') && !errorMessage.includes('انتهت مهلة الاتصال')) {
                     Utils.safeWarn('خطأ في تحميل KPIs:', error);
                 }
                 // في حالة الخطأ، البيانات المحلية معروضة بالفعل
@@ -655,16 +655,16 @@ const ActionTrackingRegister = {
         }
 
         // تحميل البيانات من Backend في الخلفية (بدون تأخير العرض)
-        const isGoogleEnabled = AppState.googleConfig?.appsScript?.enabled && AppState.googleConfig?.appsScript?.scriptUrl;
-        const isGoogleIntegrationAvailable = typeof GoogleIntegration !== 'undefined' && typeof GoogleIntegration.sendRequest === 'function';
+        const isGoogleEnabled = AppState.backendConfig?.server?.enabled && AppState.backendConfig?.server?.scriptUrl;
+        const isBackendAvailable = typeof Backend !== 'undefined' && typeof Backend.sendRequest === 'function';
 
-        if (isGoogleEnabled && isGoogleIntegrationAvailable) {
+        if (isGoogleEnabled && isBackendAvailable) {
             // تحميل البيانات من Backend بشكل غير متزامن (لا ننتظر)
             Promise.resolve().then(async () => {
                 try {
                     const timeout = 30000; // تقليل timeout إلى 30 ثانية لتسريع الاستجابة
                     const response = await Utils.promiseWithTimeout(
-                        GoogleIntegration.sendRequest({ action: 'getAllActionTracking', data: {} }),
+                        Backend.sendRequest({ action: 'getAllActionTracking', data: {} }),
                         timeout,
                         'انتهت مهلة الاتصال بالخادم'
                     );
@@ -681,9 +681,9 @@ const ActionTrackingRegister = {
                         }
                     }
                 } catch (error) {
-                    // Don't log errors for Google Apps Script not enabled - just use local data
+                    // Don't log errors for الخادم السحابي not enabled - just use local data
                     const errorMessage = error?.message || '';
-                    if (!errorMessage.includes('Google Apps Script') && !errorMessage.includes('غير مفعّل') && !errorMessage.includes('انتهت مهلة الاتصال')) {
+                    if (!errorMessage.includes('الخادم السحابي') && !errorMessage.includes('غير مفعّل') && !errorMessage.includes('انتهت مهلة الاتصال')) {
                         Utils.safeWarn('خطأ في تحميل الإجراءات من Backend:', error);
                     }
                     // في حالة الخطأ، نستخدم البيانات المحلية (تم عرضها بالفعل)
@@ -694,7 +694,7 @@ const ActionTrackingRegister = {
         }
 
         // إذا لم تكن هناك بيانات محلية، نعرض رسالة فارغة
-        if (localItems.length === 0 && (!isGoogleEnabled || !isGoogleIntegrationAvailable)) {
+        if (localItems.length === 0 && (!isGoogleEnabled || !isBackendAvailable)) {
             this.renderActionListItems([], tableBody);
         }
     },
@@ -1429,7 +1429,7 @@ const ActionTrackingRegister = {
             // توليد رقم تسلسلي إذا كان جديداً
             if (!actionData || !actionData.serialNumber) {
                 try {
-                    const allActionsResponse = await GoogleIntegration.callBackend('getAllActionTracking', {});
+                    const allActionsResponse = await Backend.callBackend('getAllActionTracking', {});
                     const allActions = allActionsResponse.success ? (allActionsResponse.data || []) : (AppState.appData.actionTrackingRegister || []);
                     formData.serialNumber = (allActions.length + 1).toString();
                 } catch (error) {
@@ -1442,7 +1442,7 @@ const ActionTrackingRegister = {
             try {
                 let result;
                 if (actionData) {
-                    result = await GoogleIntegration.callBackend('updateActionTracking', {
+                    result = await Backend.callBackend('updateActionTracking', {
                         actionId: actionData.id,
                         updateData: {
                             ...formData,
@@ -1451,7 +1451,7 @@ const ActionTrackingRegister = {
                         }
                     });
                 } else {
-                    result = await GoogleIntegration.callBackend('addActionTracking', formData);
+                    result = await Backend.callBackend('addActionTracking', formData);
                 }
 
                 if (result.success) {
@@ -1497,7 +1497,7 @@ const ActionTrackingRegister = {
     async editEntry(id) {
         // محاولة تحميل البيانات من Backend أولاً
         try {
-            const response = await GoogleIntegration.callBackend('getActionTracking', { actionId: id });
+            const response = await Backend.callBackend('getActionTracking', { actionId: id });
             if (response.success && response.data) {
                 const index = AppState.appData.actionTrackingRegister.findIndex(a => a.id === id);
                 if (index !== -1) {
@@ -1523,7 +1523,7 @@ const ActionTrackingRegister = {
 
         Loading.show();
         try {
-            const result = await GoogleIntegration.callBackend('deleteActionTracking', { actionId: id });
+            const result = await Backend.callBackend('deleteActionTracking', { actionId: id });
 
             if (result.success) {
                 AppState.appData.actionTrackingRegister = AppState.appData.actionTrackingRegister.filter(a => a.id !== id);
@@ -1548,7 +1548,7 @@ const ActionTrackingRegister = {
     async viewAction(id) {
         // محاولة تحميل البيانات من Backend
         try {
-            const response = await GoogleIntegration.callBackend('getActionTracking', { actionId: id });
+            const response = await Backend.callBackend('getActionTracking', { actionId: id });
             if (response.success && response.data) {
                 const index = AppState.appData.actionTrackingRegister.findIndex(a => a.id === id);
                 if (index !== -1) {
@@ -1893,7 +1893,7 @@ const ActionTrackingRegister = {
 
             Loading.show();
             try {
-                const result = await GoogleIntegration.callBackend('addActionUpdate', {
+                const result = await Backend.callBackend('addActionUpdate', {
                     actionId: actionId,
                     user: AppState.currentUser?.name || 'System',
                     update: updateText,
@@ -1959,7 +1959,7 @@ const ActionTrackingRegister = {
 
             Loading.show();
             try {
-                const result = await GoogleIntegration.callBackend('addActionComment', {
+                const result = await Backend.callBackend('addActionComment', {
                     actionId: actionId,
                     user: AppState.currentUser?.name || 'System',
                     comment: commentText
@@ -2425,7 +2425,7 @@ const ActionTrackingRegister = {
                 }
             };
 
-            const result = await GoogleIntegration.callBackend('saveActionTrackingSettings', payload);
+            const result = await Backend.callBackend('saveActionTrackingSettings', payload);
             if (result.success) {
                 Notification.success('تم حفظ الإعدادات بنجاح');
                 await this.loadSettings();

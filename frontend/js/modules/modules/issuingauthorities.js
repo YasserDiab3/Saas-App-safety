@@ -129,7 +129,7 @@ const IssuingAuthorities = {
             return this.t('module.issuingAuthorities.err.forbidden', 'تعذر الاتصال بالخادم (403). تحقق من صلاحية نشر Web App (Who has access) وأن الرابط صحيح.');
         }
         if (kind === 'timeout') {
-            return this.t('module.issuingAuthorities.err.timeout', 'الخادم تأخر في الاستجابة. يرجى إعادة المحاولة أو التحقق من حالة Google Apps Script.');
+            return this.t('module.issuingAuthorities.err.timeout', 'الخادم تأخر في الاستجابة. يرجى إعادة المحاولة أو التحقق من حالة الخادم السحابي.');
         }
         if (kind === 'unknown_action') {
             return this.t('module.issuingAuthorities.err.unknownAction', 'نسخة الخادم أقدم من الواجهة الحالية. يلزم إعادة نشر Web App بأحدث ملفات Backend.');
@@ -223,7 +223,7 @@ const IssuingAuthorities = {
             return local;
         }
         try {
-            const res = await this._withTimeout(GoogleIntegration.sendRequest({
+            const res = await this._withTimeout(Backend.sendRequest({
                 action: 'readFromSheet',
                 data: { sheetName: 'Employees' }
             }), 8000);
@@ -513,7 +513,7 @@ const IssuingAuthorities = {
             const sheetName = this._activeCategory === 'contractors'
                 ? 'PTWContractorIssuingAuthorities'
                 : 'PTWIssuingAuthorities';
-            const fallbackResult = await this._withTimeout(GoogleIntegration.sendRequest({
+            const fallbackResult = await this._withTimeout(Backend.sendRequest({
                 action: 'readFromSheet',
                 data: { sheetName }
             }), 7000);
@@ -765,8 +765,8 @@ const IssuingAuthorities = {
 
     /** مسح cache قراءة الشيتين بعد أي تعديل حتى يعكس الجدول أحدث بيانات من الخادم. */
     _bustIssuingAuthoritiesSheetCache() {
-        if (typeof GoogleIntegration !== 'undefined' && typeof GoogleIntegration.invalidateReadFromSheetCacheForSheets === 'function') {
-            GoogleIntegration.invalidateReadFromSheetCacheForSheets([
+        if (typeof Backend !== 'undefined' && typeof Backend.invalidateReadFromSheetCacheForSheets === 'function') {
+            Backend.invalidateReadFromSheetCacheForSheets([
                 'PTWIssuingAuthorities',
                 'PTWContractorIssuingAuthorities'
             ]);
@@ -782,7 +782,7 @@ const IssuingAuthorities = {
         const categoryKey = isContractor ? 'contractors' : 'employees';
         const getAction = isContractor ? 'getAllContractorIssuingAuthorities' : 'getAllIssuingAuthorities';
         try {
-            const fallbackResult = await this._withTimeout(GoogleIntegration.sendRequest({
+            const fallbackResult = await this._withTimeout(Backend.sendRequest({
                 action: 'readFromSheet',
                 data: { sheetName }
             }), 7000);
@@ -796,7 +796,7 @@ const IssuingAuthorities = {
         if (!this._unsupportedActions[categoryKey]) {
             try {
                 const result = await this._withTimeout(
-                    GoogleIntegration.sendRequest({ action: getAction, data: {} }),
+                    Backend.sendRequest({ action: getAction, data: {} }),
                     4500
                 );
                 if (result && result.success) {
@@ -837,14 +837,14 @@ const IssuingAuthorities = {
     async _fetchContractorOptions() {
         try {
             let rows = [];
-            const primary = await this._withTimeout(GoogleIntegration.sendRequest({
+            const primary = await this._withTimeout(Backend.sendRequest({
                 action: 'getAllApprovedContractors',
                 data: { filters: {} }
             }), 7000);
             if (primary && primary.success && Array.isArray(primary.data)) {
                 rows = primary.data;
             } else {
-                const fallback = await this._withTimeout(GoogleIntegration.sendRequest({
+                const fallback = await this._withTimeout(Backend.sendRequest({
                     action: 'readFromSheet',
                     data: { sheetName: 'ApprovedContractors' }
                 }), 7000);
@@ -1771,7 +1771,7 @@ const IssuingAuthorities = {
             if (!ok && !this._unsupportedActions[categoryKey]) {
                 try {
                     const result = await this._withTimeout(
-                        GoogleIntegration.sendRequest({ action: getAction, data: {} }),
+                        Backend.sendRequest({ action: getAction, data: {} }),
                         4500
                     );
                     if (result && result.success) {
@@ -2140,7 +2140,7 @@ const IssuingAuthorities = {
             // 2) Backend lookup/fallback if local cache misses.
             let result = null;
             try {
-                result = await this._withTimeout(GoogleIntegration.sendRequest({
+                result = await this._withTimeout(Backend.sendRequest({
                     action: 'getEmployeeByCode',
                     data: { employeeCode: query }
                 }), 4500);
@@ -2148,7 +2148,7 @@ const IssuingAuthorities = {
                 // fallback below
             }
             if (!result || !result.success || !result.data) {
-                const fallback = await this._withTimeout(GoogleIntegration.sendRequest({
+                const fallback = await this._withTimeout(Backend.sendRequest({
                     action: 'readFromSheet',
                     data: { sheetName: 'Employees' }
                 }), 7000);
@@ -2377,12 +2377,12 @@ const IssuingAuthorities = {
             if (this._currentEditId) {
                 payload.id = this._currentEditId;
                 result = await this._withTimeout(
-                    GoogleIntegration.sendRequest({ action: actions.update, data: payload }),
+                    Backend.sendRequest({ action: actions.update, data: payload }),
                     SAVE_RPC_MS
                 );
             } else {
                 result = await this._withTimeout(
-                    GoogleIntegration.sendRequest({ action: actions.add, data: payload }),
+                    Backend.sendRequest({ action: actions.add, data: payload }),
                     SAVE_RPC_MS
                 );
             }
@@ -2466,7 +2466,7 @@ const IssuingAuthorities = {
             const userData = AppState && AppState.currentUser ? AppState.currentUser : {};
             const delCategory = this._categoryForWrite(null, id);
             const actions = this._actionsForCategory(delCategory);
-            const result = await GoogleIntegration.sendRequest({
+            const result = await Backend.sendRequest({
                 action: actions.remove,
                 data: { id, userData }
             });

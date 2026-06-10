@@ -512,8 +512,8 @@ const Dashboard = {
         const forceRefresh = opts && opts.forceRefresh === true;
         try {
             if (!AppState || !AppState.appData) return;
-            if (typeof GoogleIntegration === 'undefined' || typeof GoogleIntegration.batchReadFromSheets !== 'function') return;
-            if (typeof GoogleIntegration._isBackendRpcConfigured !== 'function' || !GoogleIntegration._isBackendRpcConfigured()) return;
+            if (typeof Backend === 'undefined' || typeof Backend.batchReadFromSheets !== 'function') return;
+            if (typeof Backend._isBackendRpcConfigured !== 'function' || !Backend._isBackendRpcConfigured()) return;
 
             // كاش 5 دقائق للزيارات المتكررة — لكن أول فتح لكل جلسة يجلب دائماً بغض النظر عن الكاش
             const CACHE_MS = 5 * 60 * 1000;
@@ -561,7 +561,7 @@ const Dashboard = {
                 return;
             }
 
-            const res = await GoogleIntegration.batchReadFromSheets(sheetNames, { timeout: 45000, batchSize: 12 });
+            const res = await Backend.batchReadFromSheets(sheetNames, { timeout: 45000, batchSize: 12 });
             const map = res && res.data && typeof res.data === 'object' ? res.data : {};
 
             tuples.forEach(([sheet, appKey]) => {
@@ -766,7 +766,7 @@ const Dashboard = {
             if (!AppState || !AppState.appData) return;
             if (!this.dashboardCan('clinic')) return;
             if (typeof Clinic === 'undefined' || typeof Clinic.loadVisitsDataFromBackend !== 'function') return;
-            if (typeof GoogleIntegration === 'undefined' || typeof GoogleIntegration.sendRequest !== 'function') return;
+            if (typeof Backend === 'undefined' || typeof Backend.sendRequest !== 'function') return;
 
             if (!forceRefresh && typeof Clinic.shouldFetchClinicVisitsFromBackend === 'function') {
                 if (!Clinic.shouldFetchClinicVisitsFromBackend()) return;
@@ -1585,8 +1585,8 @@ const Dashboard = {
         try {
             for (const { sheetName, key } of toLoad) {
                 try {
-                    if (typeof GoogleIntegration === 'undefined' || !GoogleIntegration.readFromSheets) continue;
-                    const data = await GoogleIntegration.readFromSheets(sheetName);
+                    if (typeof Backend === 'undefined' || !Backend.readFromSheets) continue;
+                    const data = await Backend.readFromSheets(sheetName);
                     if (Array.isArray(data)) {
                         AppState.appData[key] = data;
                         if (Utils.safeLog) Utils.safeLog(`✅ تقرير الموظف: تم تحميل ${sheetName} (${data.length} سجل)`);
@@ -1595,10 +1595,10 @@ const Dashboard = {
                     if (Utils.safeWarn) Utils.safeWarn(`⚠️ تقرير الموظف: فشل تحميل ${sheetName}:`, err?.message || err);
                 }
             }
-            if ((!ad.training || ad.training.length === 0) && typeof GoogleIntegration !== 'undefined' && (GoogleIntegration.sendToAppsScript || GoogleIntegration.sendRequest)) {
+            if ((!ad.training || ad.training.length === 0) && typeof Backend !== 'undefined' && (Backend.sendToAppsScript || Backend.sendRequest)) {
                 try {
-                    const send = GoogleIntegration.sendToAppsScript || ((opts) => GoogleIntegration.sendRequest && GoogleIntegration.sendRequest({ action: opts.action || opts.method, data: opts.data || {} }));
-                    const trainingRes = await (GoogleIntegration.sendToAppsScript ? GoogleIntegration.sendToAppsScript('getAllTrainings', {}) : Promise.resolve(GoogleIntegration.sendRequest({ action: 'getAllTrainings', data: {} })));
+                    const send = Backend.sendToAppsScript || ((opts) => Backend.sendRequest && Backend.sendRequest({ action: opts.action || opts.method, data: opts.data || {} }));
+                    const trainingRes = await (Backend.sendToAppsScript ? Backend.sendToAppsScript('getAllTrainings', {}) : Promise.resolve(Backend.sendRequest({ action: 'getAllTrainings', data: {} })));
                     const trainingData = (trainingRes && (trainingRes.data || trainingRes.value)) && (Array.isArray(trainingRes.data) ? trainingRes.data : Array.isArray(trainingRes.value) ? trainingRes.value : Array.isArray((trainingRes.value || {}).data) ? (trainingRes.value || {}).data : null);
                     if (Array.isArray(trainingData) && trainingData.length > 0) {
                         AppState.appData.training = trainingData;
@@ -1608,9 +1608,9 @@ const Dashboard = {
                     if (Utils.safeWarn) Utils.safeWarn('⚠️ تقرير الموظف: فشل getAllTrainings:', e?.message || e);
                 }
             }
-            if ((!ad.trainingAttendance || ad.trainingAttendance.length === 0) && typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendRequest) {
+            if ((!ad.trainingAttendance || ad.trainingAttendance.length === 0) && typeof Backend !== 'undefined' && Backend.sendRequest) {
                 try {
-                    const attRes = await GoogleIntegration.sendRequest({ action: 'getAllTrainingAttendance', data: {} });
+                    const attRes = await Backend.sendRequest({ action: 'getAllTrainingAttendance', data: {} });
                     const attData = (attRes && attRes.value && Array.isArray(attRes.value.data) && attRes.value.data) ? attRes.value.data
                         : (attRes && Array.isArray(attRes.data) ? attRes.data : (Array.isArray(attRes && attRes.value) ? attRes.value : null));
                     if (Array.isArray(attData)) {
@@ -1621,9 +1621,9 @@ const Dashboard = {
                     if (Utils.safeWarn) Utils.safeWarn('⚠️ تقرير الموظف: فشل getAllTrainingAttendance:', e?.message || e);
                 }
             }
-            if (sheetToKey.PPE && (!ad.ppe || ad.ppe.length === 0) && typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendToAppsScript) {
+            if (sheetToKey.PPE && (!ad.ppe || ad.ppe.length === 0) && typeof Backend !== 'undefined' && Backend.sendToAppsScript) {
                 try {
-                    const ppeResult = await GoogleIntegration.sendToAppsScript('getAllPPE', {});
+                    const ppeResult = await Backend.sendToAppsScript('getAllPPE', {});
                     if (ppeResult && ppeResult.success && Array.isArray(ppeResult.data)) {
                         AppState.appData.ppe = ppeResult.data;
                         if (Utils.safeLog) Utils.safeLog('✅ تقرير الموظف: تم تحميل PPE عبر getAllPPE');
@@ -2349,9 +2349,9 @@ const Dashboard = {
         this.contractorReportRequests.set(requestKey, contractorReportPromise);
         this.renderContractorReportLoading(reportContractor, contractorCodeVal);
         let serverDetailedAnalytics = null;
-        if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendRequest && AppState.googleConfig?.appsScript?.enabled) {
+        if (typeof Backend !== 'undefined' && Backend.sendRequest && AppState.backendConfig?.server?.enabled) {
             try {
-                const analyticsRes = await GoogleIntegration.sendRequest({
+                const analyticsRes = await Backend.sendRequest({
                     action: 'getContractorDetailedAnalytics',
                     data: { contractor: reportContractor, contractorId: contractorLookupKey }
                 });
@@ -3308,8 +3308,8 @@ const Dashboard = {
                                 self.applyEnglishNumberFormat(contCountDashEl);
                             } else {
                                 // البيانات غير محملة — اجلبها من الخادم وحدّث الكارت
-                                if (typeof GoogleIntegration !== 'undefined' && typeof GoogleIntegration.readFromSheets === 'function') {
-                                    GoogleIntegration.readFromSheets('ExternalWorkforceMonthly', 15000)
+                                if (typeof Backend !== 'undefined' && typeof Backend.readFromSheets === 'function') {
+                                    Backend.readFromSheets('ExternalWorkforceMonthly', 15000)
                                         .then(rows => {
                                             if (Array.isArray(rows) && rows.length > 0) {
                                                 AppState.appData.externalWorkforceMonthly = rows;
@@ -3709,9 +3709,9 @@ const Dashboard = {
             // جلب المهام من Backend API
             let userTasks = [];
 
-            if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendToAppsScript) {
+            if (typeof Backend !== 'undefined' && Backend.sendToAppsScript) {
                 try {
-                    const response = await GoogleIntegration.sendToAppsScript('getUserTasksByUserId', {
+                    const response = await Backend.sendToAppsScript('getUserTasksByUserId', {
                         userId: userId
                     });
 
@@ -3719,7 +3719,7 @@ const Dashboard = {
                         userTasks = Array.isArray(response.data) ? response.data : [];
                     }
                 } catch (apiError) {
-                    // تجاهل أخطاء Circuit Breaker و Google Apps Script غير المفعل
+                    // تجاهل أخطاء Circuit Breaker و الخادم السحابي غير المفعل
                     const errorMsg = String(apiError?.message || '').toLowerCase();
                     if (!errorMsg.includes('circuit breaker') &&
                         !errorMsg.includes('google apps script غير مفعل') &&

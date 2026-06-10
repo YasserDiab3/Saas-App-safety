@@ -561,27 +561,27 @@ const Training = {
         }
 
         // التحقق من تفعيل Google Integration قبل إجراء الطلبات
-        if (!AppState.googleConfig?.appsScript?.enabled || !AppState.googleConfig?.appsScript?.scriptUrl) {
+        if (!AppState.backendConfig?.server?.enabled || !AppState.backendConfig?.server?.scriptUrl) {
             if (AppState.debugMode) {
-                Utils.safeLog('⚠️ Google Apps Script غير مفعل - استخدام البيانات المحلية فقط');
+                Utils.safeLog('⚠️ الخادم السحابي غير مفعل - استخدام البيانات المحلية فقط');
             }
             this._trainingBackendFetchOk = true;
             return;
         }
 
-        // التحقق من توفر GoogleIntegration
-        if (typeof GoogleIntegration === 'undefined' || typeof GoogleIntegration.sendRequest !== 'function') {
-            Utils.safeWarn('⚠️ GoogleIntegration غير متاح - استخدام البيانات المحلية');
+        // التحقق من توفر Backend
+        if (typeof Backend === 'undefined' || typeof Backend.sendRequest !== 'function') {
+            Utils.safeWarn('⚠️ Backend غير متاح - استخدام البيانات المحلية');
             this._trainingBackendFetchOk = true;
             return;
         }
 
-        // طابور GoogleIntegration ينفّذ طلبات متتالية: 5 طلبات كانت تُراكم ~60–80 ثانية.
+        // طابور Backend ينفّذ طلبات متتالية: 5 طلبات كانت تُراكم ~60–80 ثانية.
         // 1) تفضيل getTrainingModuleBundle (طلب شبكة واحد من الخادم).
-        // 2) إصلاح تصنيف «ثقيل» لـ getAll* في google-integration + __timeoutMs للطلبات الاحتياطية.
+        // 2) إصلاح تصنيف «ثقيل» لـ getAll* في backend-client + __timeoutMs للطلبات الاحتياطية.
         const bundleTimeoutMs = 25000;
         const fallbackTimeoutMs = 12000;
-        const timeoutMessage = 'انتهت مهلة الاتصال بالخادم\n\nتحقق من الاتصال وإعدادات Google Apps Script.';
+        const timeoutMessage = 'انتهت مهلة الاتصال بالخادم\n\nتحقق من الاتصال وإعدادات الخادم السحابي.';
 
         // حفظ/قراءة حالة عدم دعم getTrainingModuleBundle بين جلسات المتصفح
         const bundleUnsupportedKey = 'training_bundle_action_unsupported';
@@ -619,7 +619,7 @@ const Training = {
             let bundleRaw = null;
             if (!this._bundleActionUnsupported) {
                 bundleRaw = await Utils.promiseWithTimeout(
-                    GoogleIntegration.sendRequest({
+                    Backend.sendRequest({
                         action: 'getTrainingModuleBundle',
                         data: { filters: {}, __timeoutMs: bundleTimeoutMs }
                     }),
@@ -669,7 +669,7 @@ const Training = {
             const dataOpts = { filters: {}, __timeoutMs: fallbackTimeoutMs };
             const runAction = async (action, warnLabel) => {
                 const result = await requestWithTimeout(
-                    GoogleIntegration.sendRequest({ action, data: { ...dataOpts } })
+                    Backend.sendRequest({ action, data: { ...dataOpts } })
                 ).catch(error => {
                     const errorMsg = error?.message || error?.toString() || '';
                     if (errorMsg.includes('انتهت مهلة الاتصال') || errorMsg.includes('timeout')) {
@@ -4962,20 +4962,20 @@ const Training = {
                     // المزامنة مع Google Sheets في الخلفية
                     (async () => {
                         try {
-                            if (AppState.googleConfig?.appsScript?.enabled && typeof GoogleIntegration !== 'undefined') {
+                            if (AppState.backendConfig?.server?.enabled && typeof Backend !== 'undefined') {
                                 if (existing) {
-                                    await GoogleIntegration.sendRequest({
+                                    await Backend.sendRequest({
                                         action: 'updateContractorTraining',
                                         data: { trainingId: entry.id, updateData: entry }
                                     });
                                 } else {
-                                    await GoogleIntegration.sendRequest({
+                                    await Backend.sendRequest({
                                         action: 'addContractorTraining',
                                         data: entry
                                     });
                                 }
-                            } else if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.autoSave) {
-                                await GoogleIntegration.autoSave('ContractorTrainings', AppState.appData.contractorTrainings);
+                            } else if (typeof Backend !== 'undefined' && Backend.autoSave) {
+                                await Backend.autoSave('ContractorTrainings', AppState.appData.contractorTrainings);
                             }
                         } catch (syncError) {
                             Utils.safeWarn('⚠️ فشل المزامنة مع Google Sheets (سيتم المحاولة لاحقاً):', syncError);
@@ -5144,11 +5144,11 @@ const Training = {
         }
         
         // حفظ في Google Sheets
-        if (AppState.googleConfig?.appsScript?.enabled) {
+        if (AppState.backendConfig?.server?.enabled) {
             try {
                 // استخدام saveToSheet لحذف السجل
                 const filteredTrainings = AppState.appData.contractorTrainings.filter(t => t.id !== trainingId);
-                await GoogleIntegration.sendRequest({
+                await Backend.sendRequest({
                     action: 'saveToSheet',
                     data: {
                         sheetName: 'ContractorTrainings',
@@ -5158,15 +5158,15 @@ const Training = {
             } catch (error) {
                 Utils.safeWarn('⚠️ فشل حذف تدريب المقاول من Google Sheets، سيتم المحاولة لاحقاً:', error);
                 // استخدام autoSave كبديل فقط في حالة الفشل
-                if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.autoSave) {
-                    await GoogleIntegration.autoSave?.('ContractorTrainings', AppState.appData.contractorTrainings).catch(() => {
+                if (typeof Backend !== 'undefined' && Backend.autoSave) {
+                    await Backend.autoSave?.('ContractorTrainings', AppState.appData.contractorTrainings).catch(() => {
                         // تجاهل الأخطاء في autoSave أيضاً
                     });
                 }
             }
-        } else if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.autoSave) {
-            // إذا لم يكن Google Apps Script مفعّل، نستخدم autoSave
-            await GoogleIntegration.autoSave?.('ContractorTrainings', AppState.appData.contractorTrainings);
+        } else if (typeof Backend !== 'undefined' && Backend.autoSave) {
+            // إذا لم يكن الخادم السحابي مفعّل، نستخدم autoSave
+            await Backend.autoSave?.('ContractorTrainings', AppState.appData.contractorTrainings);
         }
         
         await this.refreshContractorTrainingList();
@@ -6857,10 +6857,10 @@ const Training = {
                 }
                 
                 // حفظ في Google Sheets
-                if (AppState.googleConfig?.appsScript?.enabled) {
+                if (AppState.backendConfig?.server?.enabled) {
                     try {
                         // حفظ التدريب
-                        await GoogleIntegration.sendRequest({
+                        await Backend.sendRequest({
                             action: 'addTraining',
                             data: trainingRecord
                         });
@@ -6869,7 +6869,7 @@ const Training = {
                         if (participantEntry && participantEntry.employeeCode) {
                             const employeeMatrix = AppState.appData.employeeTrainingMatrix[participantEntry.employeeCode];
                             if (employeeMatrix && employeeMatrix.length > 0) {
-                                await GoogleIntegration.sendRequest({
+                                await Backend.sendRequest({
                                     action: 'updateEmployeeTrainingMatrix',
                                     data: {
                                         employeeId: participantEntry.employeeCode,
@@ -6883,20 +6883,20 @@ const Training = {
                     } catch (error) {
                         Utils.safeWarn('⚠️ فشل حفظ التدريب في Google Sheets، سيتم المحاولة لاحقاً:', error);
                         // استخدام autoSave كبديل فقط في حالة الفشل
-                        if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.autoSave) {
+                        if (typeof Backend !== 'undefined' && Backend.autoSave) {
                             await Promise.allSettled([
-                                GoogleIntegration.autoSave?.('Training', AppState.appData.training),
-                                GoogleIntegration.autoSave?.('EmployeeTrainingMatrix', AppState.appData.employeeTrainingMatrix)
+                                Backend.autoSave?.('Training', AppState.appData.training),
+                                Backend.autoSave?.('EmployeeTrainingMatrix', AppState.appData.employeeTrainingMatrix)
                             ]).catch(() => {
                                 // تجاهل الأخطاء في autoSave أيضاً
                             });
                         }
                     }
-                } else if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.autoSave) {
-                    // إذا لم يكن Google Apps Script مفعّل، نستخدم autoSave
+                } else if (typeof Backend !== 'undefined' && Backend.autoSave) {
+                    // إذا لم يكن الخادم السحابي مفعّل، نستخدم autoSave
                     await Promise.allSettled([
-                        GoogleIntegration.autoSave?.('Training', AppState.appData.training),
-                        GoogleIntegration.autoSave?.('EmployeeTrainingMatrix', AppState.appData.employeeTrainingMatrix)
+                        Backend.autoSave?.('Training', AppState.appData.training),
+                        Backend.autoSave?.('EmployeeTrainingMatrix', AppState.appData.employeeTrainingMatrix)
                     ]);
                 }
 
@@ -8636,14 +8636,14 @@ const Training = {
             //   بدلاً من إرسال المصفوفة كاملة (500+) التي تتسبب في timeout على الخادم
             // — EmployeeTrainingMatrix: ما زلنا نرسل المصفوفة كاملة لأنها object صغير الحجم
             const changedAttendance = [...(attendanceChanges.added || []), ...(attendanceChanges.updated || [])];
-            const attendancePromise = (changedAttendance.length > 0 && typeof GoogleIntegration !== 'undefined' && GoogleIntegration.autoSave)
-                ? GoogleIntegration.autoSave('TrainingAttendance', changedAttendance)
+            const attendancePromise = (changedAttendance.length > 0 && typeof Backend !== 'undefined' && Backend.autoSave)
+                ? Backend.autoSave('TrainingAttendance', changedAttendance)
                 : Promise.resolve();
 
             Promise.allSettled([
                 // برنامج التدريب نفسه: نرسل سجل واحد (UPSERT بالـ id)
-                GoogleIntegration.autoSave('Training', [formData]),
-                GoogleIntegration.autoSave('EmployeeTrainingMatrix', AppState.appData.employeeTrainingMatrix),
+                Backend.autoSave('Training', [formData]),
+                Backend.autoSave('EmployeeTrainingMatrix', AppState.appData.employeeTrainingMatrix),
                 attendancePromise
             ]).then((results) => {
                 // ✅ تسجيل تشخيصي لكل نتيجة (تُساعد في تشخيص فشل الحفظ مستقبلاً)
@@ -8694,9 +8694,9 @@ const Training = {
             }
             
             // حذف من Google Sheets إذا كان مفعلاً
-            if (AppState.googleConfig?.appsScript?.enabled) {
+            if (AppState.backendConfig?.server?.enabled) {
                 try {
-                    const result = await GoogleIntegration.sendToAppsScript('deleteTraining', { 
+                    const result = await Backend.sendToAppsScript('deleteTraining', { 
                         trainingId: id,
                         id: id 
                     });
@@ -8706,22 +8706,22 @@ const Training = {
                     }
                     
                     // مسح الـ cache بعد الحذف الناجح
-                    if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.clearCache) {
-                        GoogleIntegration.clearCache('Training');
+                    if (typeof Backend !== 'undefined' && Backend.clearCache) {
+                        Backend.clearCache('Training');
                     }
                 } catch (error) {
                     Utils.safeWarn('⚠️ فشل حذف البرنامج من Google Sheets، سيتم المحاولة لاحقاً:', error);
                     // محاولة الحفظ التلقائي كبديل
-                    if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.autoSave) {
-                        await GoogleIntegration.autoSave('Training', AppState.appData.training).catch(err => {
+                    if (typeof Backend !== 'undefined' && Backend.autoSave) {
+                        await Backend.autoSave('Training', AppState.appData.training).catch(err => {
                             Utils.safeWarn('⚠️ فشل حفظ التعديلات في Google Sheets:', err);
                         });
                     }
                 }
             } else {
                 // إذا لم يكن Google Sheets مفعلاً، استخدم autoSave فقط
-                if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.autoSave) {
-                    await GoogleIntegration.autoSave('Training', AppState.appData.training).catch(err => {
+                if (typeof Backend !== 'undefined' && Backend.autoSave) {
+                    await Backend.autoSave('Training', AppState.appData.training).catch(err => {
                         Utils.safeWarn('⚠️ فشل حفظ التعديلات في Google Sheets:', err);
                     });
                 }
@@ -9043,9 +9043,9 @@ const Training = {
 
         try {
             Loading.show();
-            if (typeof GoogleIntegration !== 'undefined' && typeof GoogleIntegration.sendRequest === 'function') {
+            if (typeof Backend !== 'undefined' && typeof Backend.sendRequest === 'function') {
                 try {
-                    const res = await GoogleIntegration.sendRequest({ action: 'getTraining', data: { trainingId: id } });
+                    const res = await Backend.sendRequest({ action: 'getTraining', data: { trainingId: id } });
                     if (res && res.success && res.data) training = res.data;
                 } catch (e) {
                     Utils.safeWarn('جلب تفاصيل البرنامج للطباعة:', e);
@@ -9093,9 +9093,9 @@ const Training = {
 
         try {
             Loading.show();
-            if (typeof GoogleIntegration !== 'undefined' && typeof GoogleIntegration.sendRequest === 'function') {
+            if (typeof Backend !== 'undefined' && typeof Backend.sendRequest === 'function') {
                 try {
-                    const res = await GoogleIntegration.sendRequest({ action: 'getTraining', data: { trainingId: id } });
+                    const res = await Backend.sendRequest({ action: 'getTraining', data: { trainingId: id } });
                     if (res && res.success && res.data) training = res.data;
                 } catch (e) {
                     Utils.safeWarn('جلب تفاصيل البرنامج للتصدير:', e);
@@ -12942,8 +12942,8 @@ const Training = {
             }
 
             // حفظ تلقائي في Google Sheets
-            if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.autoSave) {
-                await GoogleIntegration.autoSave('TrainingAttendance', AppState.appData.trainingAttendance).catch(err => {
+            if (typeof Backend !== 'undefined' && Backend.autoSave) {
+                await Backend.autoSave('TrainingAttendance', AppState.appData.trainingAttendance).catch(err => {
                     Utils.safeWarn('⚠️ فشل حفظ سجل التدريب في Google Sheets:', err);
                     Notification.error('فشل حفظ سجل التدريب في Google Sheets. سيتم الاحتفاظ بالتغييرات محلياً فقط حتى يتم الحفظ بنجاح.');
                 });
@@ -13093,8 +13093,8 @@ const Training = {
                 }
                 
                 // حفظ في Google Sheets
-                if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.autoSave) {
-                    await GoogleIntegration.autoSave('TrainingAnalysisData', AppState.appData.trainingAnalysisData).catch(err => {
+                if (typeof Backend !== 'undefined' && Backend.autoSave) {
+                    await Backend.autoSave('TrainingAnalysisData', AppState.appData.trainingAnalysisData).catch(err => {
                         Utils.safeWarn('⚠️ فشل حفظ بيانات التحليل في Google Sheets:', err);
                     });
                 }
@@ -13264,8 +13264,8 @@ const Training = {
                 if (typeof window.DataManager !== 'undefined' && window.DataManager.save) {
                     await window.DataManager.save();
                 }
-                if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.autoSave) {
-                    await GoogleIntegration.autoSave('TrainingAttendance', AppState.appData.trainingAttendance).catch(err => {
+                if (typeof Backend !== 'undefined' && Backend.autoSave) {
+                    await Backend.autoSave('TrainingAttendance', AppState.appData.trainingAttendance).catch(err => {
                         Utils.safeWarn('⚠️ فشل حفظ سجل التدريب في Google Sheets:', err);
                         Notification.error('فشل حفظ سجل التدريب في Google Sheets. سيتم الاحتفاظ بالتغييرات محلياً فقط حتى يتم الحفظ بنجاح.');
                     });
@@ -13580,8 +13580,8 @@ const Training = {
                     }
                     
                     // حفظ في Google Sheets
-                    if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.autoSave) {
-                        await GoogleIntegration.autoSave('TrainingAttendance', registry).catch(err => {
+                    if (typeof Backend !== 'undefined' && Backend.autoSave) {
+                        await Backend.autoSave('TrainingAttendance', registry).catch(err => {
                             Utils.safeWarn('⚠️ فشل حفظ التعديلات في Google Sheets:', err);
                             Notification.error('فشل حفظ تعديلات سجل التدريب في Google Sheets. سيتم الاحتفاظ بالتغييرات محلياً فقط حتى يتم الحفظ بنجاح.');
                         });
@@ -13631,8 +13631,8 @@ const Training = {
                 }
                 
                 // حفظ في Google Sheets
-                if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.autoSave) {
-                    await GoogleIntegration.autoSave('TrainingAttendance', registry).catch(err => {
+                if (typeof Backend !== 'undefined' && Backend.autoSave) {
+                    await Backend.autoSave('TrainingAttendance', registry).catch(err => {
                         Utils.safeWarn('⚠️ فشل حفظ التعديلات في Google Sheets:', err);
                         Notification.error('فشل حفظ تعديلات سجل التدريب في Google Sheets. سيتم الاحتفاظ بالتغييرات محلياً فقط حتى يتم الحفظ بنجاح.');
                     });

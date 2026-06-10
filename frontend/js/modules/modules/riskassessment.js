@@ -1097,7 +1097,7 @@ const RiskAssessment = (() => {
         } else {
             Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
         }
-                await GoogleIntegration.autoSave?.('RiskAssessments', AppState.appData.riskAssessments);
+                await Backend.autoSave?.('RiskAssessments', AppState.appData.riskAssessments);
 
                 modal.remove();
                 await this.loadRiskAssessmentsList();
@@ -1338,7 +1338,7 @@ const RiskAssessment = (() => {
         } else {
             Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
         }
-                await GoogleIntegration.autoSave?.('RiskAssessments', AppState.appData.riskAssessments);
+                await Backend.autoSave?.('RiskAssessments', AppState.appData.riskAssessments);
                 Notification.success('تم حذف التقييم بنجاح');
                 await this.loadRiskAssessmentsList();
             } catch (error) {

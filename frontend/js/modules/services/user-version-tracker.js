@@ -105,9 +105,9 @@ const UserVersionTracker = {
                 isNewSession: !!opts.isNewSession
             };
 
-            if (typeof GoogleIntegration === 'undefined' || !GoogleIntegration.sendToAppsScript) return;
+            if (typeof Backend === 'undefined' || !Backend.sendToAppsScript) return;
 
-            const result = await GoogleIntegration.sendToAppsScript('reportUserVersion', payload);
+            const result = await Backend.sendToAppsScript('reportUserVersion', payload);
             this._lastReportTime = Date.now();
 
             if (result && result.success) {

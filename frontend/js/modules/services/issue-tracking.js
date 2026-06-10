@@ -46,11 +46,11 @@ const IssueTrackingService = {
             };
 
             // التحقق من تفعيل Google Integration
-            if (!AppState.googleConfig?.appsScript?.enabled || !AppState.googleConfig?.appsScript?.scriptUrl) {
+            if (!AppState.backendConfig?.server?.enabled || !AppState.backendConfig?.server?.scriptUrl) {
                 throw new Error('يجب تفعيل Google Integration أولاً');
             }
 
-            const response = await GoogleIntegration.sendRequest({
+            const response = await Backend.sendRequest({
                 action: 'addIssue',
                 data: fullIssueData
             });
@@ -298,11 +298,11 @@ const IssueTrackingService = {
     async getOpenIssuesCount() {
         try {
             // التحقق من تفعيل Google Integration
-            if (!AppState.googleConfig?.appsScript?.enabled || !AppState.googleConfig?.appsScript?.scriptUrl) {
+            if (!AppState.backendConfig?.server?.enabled || !AppState.backendConfig?.server?.scriptUrl) {
                 return 0;
             }
 
-            const response = await GoogleIntegration.sendRequest({
+            const response = await Backend.sendRequest({
                 action: 'getAllIssues',
                 data: { filters: { status: 'New' } }
             });
@@ -323,11 +323,11 @@ const IssueTrackingService = {
     async getCriticalIssues() {
         try {
             // التحقق من تفعيل Google Integration
-            if (!AppState.googleConfig?.appsScript?.enabled || !AppState.googleConfig?.appsScript?.scriptUrl) {
+            if (!AppState.backendConfig?.server?.enabled || !AppState.backendConfig?.server?.scriptUrl) {
                 return [];
             }
 
-            const response = await GoogleIntegration.sendRequest({
+            const response = await Backend.sendRequest({
                 action: 'getAllIssues',
                 data: { filters: { priority: 'Critical', status: 'New' } }
             });

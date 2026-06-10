@@ -454,14 +454,14 @@ const Permissions = {
         const cloudReady = typeof Utils !== 'undefined' && typeof Utils.hasCloudBackendSync === 'function' && Utils.hasCloudBackendSync();
         const hasRemoteSettingsApi = !!(
             cloudReady &&
-            typeof GoogleIntegration !== 'undefined' &&
-            typeof GoogleIntegration.sendToAppsScript === 'function'
+            typeof Backend !== 'undefined' &&
+            typeof Backend.sendToAppsScript === 'function'
         );
 
         // محاولة تحميل إعدادات الشركة من Google Sheets أولاً
         if (hasRemoteSettingsApi) {
             try {
-                const companyResult = await GoogleIntegration.sendToAppsScript('getCompanySettings', {});
+                const companyResult = await Backend.sendToAppsScript('getCompanySettings', {});
                 if (companyResult && companyResult.success && companyResult.data) {
                     // تحليل postLoginItems إذا كانت نصاً (JSON)
                     let postLoginItems = AppState.companySettings?.postLoginItems;
@@ -559,7 +559,7 @@ const Permissions = {
         if (hasRemoteSettingsApi) {
             try {
                 // ✅ إصلاح: تحميل مباشر من قاعدة البيانات بدون تأخير
-                const result = await GoogleIntegration.sendToAppsScript('getFormSettings', {});
+                const result = await Backend.sendToAppsScript('getFormSettings', {});
                 if (result && result.success && result.data) {
                     // ✅ إصلاح: تحديث AppState بالبيانات من Google Sheets مع التأكد من وجود الأماكن الفرعية
                     if (Array.isArray(result.data.sites) && result.data.sites.length > 0) {
@@ -1436,10 +1436,10 @@ const Permissions = {
         }
 
         // مزامنة مع Google Sheets إذا كان متاحاً
-        if (AppState.googleConfig?.appsScript?.enabled && typeof GoogleIntegration !== 'undefined') {
+        if (AppState.backendConfig?.server?.enabled && typeof Backend !== 'undefined') {
             try {
                 const userData = AppState.currentUser || {};
-                const result = await GoogleIntegration.sendToAppsScript('saveFormSettings', {
+                const result = await Backend.sendToAppsScript('saveFormSettings', {
                     id: 'FORM-SETTINGS-1',
                     sites: sites,
                     departments: departments,
@@ -2113,8 +2113,8 @@ const Permissions = {
                     dm.save();
                 }
                 await Promise.allSettled([
-                    GoogleIntegration.autoSave?.('Training', AppState.appData.training),
-                    GoogleIntegration.autoSave?.('EmployeeTrainingMatrix', AppState.appData.employeeTrainingMatrix)
+                    Backend.autoSave?.('Training', AppState.appData.training),
+                    Backend.autoSave?.('EmployeeTrainingMatrix', AppState.appData.employeeTrainingMatrix)
                 ]);
                 
                 await this.refreshTrainingMatrix();
@@ -2952,9 +2952,9 @@ const AppState = {
         lastSyncTime: 0, // آخر مرة تم فيها التحميل الكامل
         userEmail: null // البريد الإلكتروني للمستخدم الحالي
     },
-    /** إعدادات Google Apps Script و Google Sheets (الاسم التاريخي googleConfig) */
-    googleConfig: {
-        appsScript: {
+    /** إعدادات الخادم السحابي و Google Sheets (الاسم التاريخي backendConfig) */
+    backendConfig: {
+        server: {
             // 🔒 نسخة SaaS: الباكند هو Supabase حصراً — Apps Script معطّل ولا رابط له
             // لمنع أي تداخل مع النسخة الإنتاجية القديمة (Google Sheets).
             enabled: false,
@@ -3021,17 +3021,17 @@ const AppState = {
     legalAutoNotify: false // تفعيل التنبيهات التلقائية للتحديثات القانونية
 };
 
-(function applyGoogleConfigFromStorage() {
+(function applyBackendConfigFromStorage() {
     /** دمج إعدادات الاتصال من localStorage قبل أي وحدة أخرى */
     try {
-        if (typeof localStorage !== 'undefined' && AppState.googleConfig) {
-            const raw = localStorage.getItem('hse_google_config');
+        if (typeof localStorage !== 'undefined' && AppState.backendConfig) {
+            const raw = localStorage.getItem('hse_backend_config');
             if (raw) {
                 const parsed = JSON.parse(raw);
                 if (parsed && typeof parsed === 'object') {
-                    if (parsed.appsScript && typeof parsed.appsScript === 'object') {
-                        const currentApps = AppState.googleConfig.appsScript || {};
-                        const parsedApps = parsed.appsScript || {};
+                    if (parsed.server && typeof parsed.server === 'object') {
+                        const currentApps = AppState.backendConfig.server || {};
+                        const parsedApps = parsed.server || {};
                         let parsedUrl = String(parsedApps.scriptUrl || '').trim();
                         // ✅ ترقية تلقائية من نشرات قديمة إلى @124 (إصلاح خصم الأدوية لزيارة جديدة + دائرة اعتماد المخالفات)
                         const OLD_DEPLOYMENT_URLS = [
@@ -3052,11 +3052,11 @@ const AppState = {
                             parsedUrl = LATEST_DEPLOYMENT_URL;
                             // حفظ الرابط المُحدَّث تلقائياً
                             try {
-                                const updatedConfig = { ...parsed, appsScript: { ...parsedApps, scriptUrl: LATEST_DEPLOYMENT_URL } };
-                                localStorage.setItem('hse_google_config', JSON.stringify(updatedConfig));
+                                const updatedConfig = { ...parsed, server: { ...parsedApps, scriptUrl: LATEST_DEPLOYMENT_URL } };
+                                localStorage.setItem('hse_backend_config', JSON.stringify(updatedConfig));
                             } catch(e) { /* ignore */ }
                         }
-                        AppState.googleConfig.appsScript = {
+                        AppState.backendConfig.server = {
                             ...currentApps,
                             ...parsedApps,
                             scriptUrl: parsedUrl || String(currentApps.scriptUrl || '').trim(),
@@ -3064,10 +3064,10 @@ const AppState = {
                         };
                     }
                     if (parsed.sheets && typeof parsed.sheets === 'object') {
-                        const currentSheets = AppState.googleConfig.sheets || {};
+                        const currentSheets = AppState.backendConfig.sheets || {};
                         const parsedSheets = parsed.sheets || {};
                         const parsedSheetId = String(parsedSheets.spreadsheetId || '').trim();
-                        AppState.googleConfig.sheets = {
+                        AppState.backendConfig.sheets = {
                             ...currentSheets,
                             ...parsedSheets,
                             spreadsheetId: parsedSheetId || String(currentSheets.spreadsheetId || '').trim(),
@@ -3075,24 +3075,24 @@ const AppState = {
                         };
                     }
                     if (parsed.maps && typeof parsed.maps === 'object') {
-                        AppState.googleConfig.maps = {
-                            ...AppState.googleConfig.maps,
+                        AppState.backendConfig.maps = {
+                            ...AppState.backendConfig.maps,
                             ...parsed.maps
                         };
                     }
                 }
             }
         }
-    } catch (mergeErr) { /* تجاهل تالف hse_google_config */ }
+    } catch (mergeErr) { /* تجاهل تالف hse_backend_config */ }
 
     // 🔒 SaaS isolation (enforced unconditionally): this build NEVER talks to
     // Apps Script — the backend is Supabase only. Neutralise any scriptUrl that
-    // may have arrived from a saved hse_google_config so there is ZERO chance of
+    // may have arrived from a saved hse_backend_config so there is ZERO chance of
     // reaching the old production Google Sheets, even if a flag is mis-set.
     try {
-        if (AppState.googleConfig && AppState.googleConfig.appsScript) {
-            AppState.googleConfig.appsScript.scriptUrl = '';
-            AppState.googleConfig.appsScript.enabled = false;
+        if (AppState.backendConfig && AppState.backendConfig.server) {
+            AppState.backendConfig.server.scriptUrl = '';
+            AppState.backendConfig.server.enabled = false;
         }
     } catch (e) { /* ignore */ }
 })();
@@ -3111,13 +3111,13 @@ const Utils = {
     },
 
     /**
-     * هل يوجد مسار مزامنة عبر Google Apps Script (تفعيل + رابط Web App /exec)
+     * هل يوجد مسار مزامنة عبر الخادم السحابي (تفعيل + رابط Web App /exec)
      */
     hasCloudBackendSync() {
-        const gc = typeof AppState !== 'undefined' ? AppState.googleConfig : null;
-        if (!gc || !gc.appsScript) return false;
-        const url = String(gc.appsScript.scriptUrl || '').trim();
-        return !!(gc.appsScript.enabled && url);
+        const gc = typeof AppState !== 'undefined' ? AppState.backendConfig : null;
+        if (!gc || !gc.server) return false;
+        const url = String(gc.server.scriptUrl || '').trim();
+        return !!(gc.server.enabled && url);
     },
 
     /**
@@ -3250,8 +3250,8 @@ const Utils = {
         if (allText.includes('خطأ في طلب google sheets') &&
             (allText.includes('failed to fetch') || allText.includes('networkerror'))) {
             // التحقق من حالة Google Sheets
-            const isGoogleAppsScriptEnabled = window.AppState?.googleConfig?.appsScript?.enabled &&
-                window.AppState?.googleConfig?.appsScript?.scriptUrl;
+            const isGoogleAppsScriptEnabled = window.AppState?.backendConfig?.server?.enabled &&
+                window.AppState?.backendConfig?.server?.scriptUrl;
             if (!isGoogleAppsScriptEnabled) {
                 return; // تجاهل الخطأ إذا كانت Google Sheets غير مفعّلة
             }
@@ -3642,8 +3642,8 @@ const Utils = {
      */
     getAppsScriptScriptUrl() {
         try {
-            let u = (typeof AppState !== 'undefined' && AppState.googleConfig && AppState.googleConfig.appsScript && AppState.googleConfig.appsScript.scriptUrl)
-                ? String(AppState.googleConfig.appsScript.scriptUrl).trim()
+            let u = (typeof AppState !== 'undefined' && AppState.backendConfig && AppState.backendConfig.server && AppState.backendConfig.server.scriptUrl)
+                ? String(AppState.backendConfig.server.scriptUrl).trim()
                 : '';
             // نشر الويب يعمل عادة عبر /exec؛ /dev قد يعيد HTML أو يرفض طلبات getProfileImage
             if (u && u.indexOf('script.google.com/macros/s/') !== -1) {
@@ -4849,26 +4849,26 @@ const Utils = {
         let recommendation = 'تحقق من إعدادات Google Integration واتصال الإنترنت';
 
         // التحقق من نوع الخطأ وتنسيق الرسالة
-        if (errorMessage.includes('Google Apps Script غير مفعل') ||
+        if (errorMessage.includes('الخادم السحابي غير مفعل') ||
             errorMessage.includes('غير مفعّل') ||
             errorMessage.includes('غير مفعل')) {
-            message = 'Google Apps Script غير مفعّل';
-            recommendation = 'يرجى تفعيل Google Apps Script من الإعدادات وإدخال رابط الخادم';
+            message = 'الخادم السحابي غير مفعّل';
+            recommendation = 'يرجى تفعيل الخادم السحابي من الإعدادات وإدخال رابط الخادم';
         } else if (errorMessage.includes('رابط') && (errorMessage.includes('غير صحيح') || errorMessage.includes('غير محدد'))) {
-            message = 'رابط Google Apps Script غير صحيح أو غير محدد';
+            message = 'رابط الخادم السحابي غير صحيح أو غير محدد';
             recommendation = 'يجب أن ينتهي رابط الخادم بـ /exec (مثال: https://script.google.com/macros/s/.../exec)';
         } else if (errorMessage.includes('Timeout') ||
             errorMessage.includes('انتهت مهلة') ||
             errorMessage.includes('timeout') ||
             errorMessage.includes('timed out')) {
             message = 'انتهت مهلة الاتصال بالخادم';
-            recommendation = 'تحقق من:\n1. اتصال الإنترنت\n2. أن Google Apps Script منشور ومفعّل\n3. عدم وجود قيود على الشبكة';
+            recommendation = 'تحقق من:\n1. اتصال الإنترنت\n2. أن الخادم السحابي منشور ومفعّل\n3. عدم وجود قيود على الشبكة';
         } else if (errorMessage.includes('Failed to fetch') ||
             errorMessage.includes('NetworkError') ||
             errorMessage.includes('CORS') ||
             errorMessage.includes('Network request failed')) {
             message = 'فشل الاتصال بالخادم';
-            recommendation = 'تحقق من:\n1. اتصال الإنترنت\n2. رابط Google Apps Script صحيح\n3. أن الخادم منشور ومفعّل';
+            recommendation = 'تحقق من:\n1. اتصال الإنترنت\n2. رابط الخادم السحابي صحيح\n3. أن الخادم منشور ومفعّل';
         } else if (errorMessage.includes('غير معترف به') ||
             errorMessage.includes('Action not recognized') ||
             errorMessage.includes('ACTION_NOT_RECOGNIZED')) {
@@ -4877,7 +4877,7 @@ const Utils = {
         } else if (errorMessage.includes('فشل الاتصال') ||
             errorMessage.includes('Connection failed')) {
             message = errorMessage.includes('فشل الاتصال') ? errorMessage : 'فشل الاتصال بالخلفية';
-            recommendation = 'تحقق من:\n1. إعدادات Google Integration\n2. اتصال الإنترنت\n3. أن Google Apps Script منشور ومفعّل';
+            recommendation = 'تحقق من:\n1. إعدادات Google Integration\n2. اتصال الإنترنت\n3. أن الخادم السحابي منشور ومفعّل';
         } else if (errorMessage.trim() !== '') {
             // إذا كانت الرسالة واضحة، نستخدمها كما هي
             message = errorMessage;
@@ -5082,9 +5082,9 @@ const ViolationTypesManager = {
         const existing = Array.isArray(AppState.appData.violationTypes)
             ? AppState.appData.violationTypes.slice()
             : [];
-        const backendEnabled = (typeof GoogleIntegration !== 'undefined'
-            && typeof GoogleIntegration._isBackendRpcConfigured === 'function'
-            && GoogleIntegration._isBackendRpcConfigured());
+        const backendEnabled = (typeof Backend !== 'undefined'
+            && typeof Backend._isBackendRpcConfigured === 'function'
+            && Backend._isBackendRpcConfigured());
         const hasViolationTypesSynced = !!(AppState?.syncMeta?.sheets && AppState.syncMeta.sheets.ViolationTypes);
 
         // إذا كانت الخلفية مفعلة لكن لم يتم تحميل ViolationTypes بعد، لا ننشئ الافتراضيات حتى لا نطغى على البيانات الحقيقية بعد التحميل
@@ -5435,9 +5435,9 @@ const ViolationTypesManager = {
             dm.save();
         }
 
-        if (syncSheets && typeof GoogleIntegration !== 'undefined' && typeof GoogleIntegration.sendRequest === 'function') {
+        if (syncSheets && typeof Backend !== 'undefined' && typeof Backend.sendRequest === 'function') {
             // حفظ لقطة الأنواع الكاملة في ViolationTypes عبر الخادم (diff + حذف صفوف حقيقي)
-            GoogleIntegration.sendRequest({
+            Backend.sendRequest({
                 action: 'saveViolationTypes',
                 data: {
                     violationTypes: AppState.appData.violationTypes || [],
@@ -5448,8 +5448,8 @@ const ViolationTypesManager = {
     },
 
     syncViolations() {
-        if (typeof GoogleIntegration !== 'undefined' && typeof GoogleIntegration.autoSave === 'function') {
-            GoogleIntegration.autoSave('Violations', AppState.appData.violations).catch(() => { });
+        if (typeof Backend !== 'undefined' && typeof Backend.autoSave === 'function') {
+            Backend.autoSave('Violations', AppState.appData.violations).catch(() => { });
         }
     }
 };
@@ -7103,13 +7103,13 @@ const EmployeeHelper = {
                 return Array.isArray(after) && after.length > 0;
             }
 
-            // تشغيل بدون Backend (file://) أو عدم وجود GoogleIntegration/Config.
+            // تشغيل بدون Backend (file://) أو عدم وجود Backend/Config.
             if (AppState?.runningWithoutBackend) return false;
-            if (typeof GoogleIntegration === 'undefined' || typeof GoogleIntegration.sendRequest !== 'function') return false;
-            if (!AppState?.googleConfig?.appsScript?.enabled || !AppState?.googleConfig?.appsScript?.scriptUrl) return false;
+            if (typeof Backend === 'undefined' || typeof Backend.sendRequest !== 'function') return false;
+            if (!AppState?.backendConfig?.server?.enabled || !AppState?.backendConfig?.server?.scriptUrl) return false;
 
             this._employeesLoadPromise = (async () => {
-                let result = await GoogleIntegration.sendRequest({
+                let result = await Backend.sendRequest({
                     action: 'getAllEmployees',
                     data: { filters: { includeInactive } }
                 });
@@ -7117,7 +7117,7 @@ const EmployeeHelper = {
                 const needFallback = !result || !result.success || !Array.isArray(result.data) || result.data.length === 0;
                 if (needFallback) {
                     try {
-                        const alt = await GoogleIntegration.sendRequest({
+                        const alt = await Backend.sendRequest({
                             action: 'readFromSheet',
                             data: { sheetName: 'Employees' }
                         });
@@ -7858,9 +7858,9 @@ function removeDefaultUsersIfNeeded(options = {}) {
                     ? Permissions.isCurrentUserAdmin()
                     : (AppState.currentUser?.role || '').toLowerCase() === 'admin';
 
-                if (isAdmin && typeof GoogleIntegration !== 'undefined' && typeof GoogleIntegration.autoSave === 'function' &&
-                    AppState.googleConfig?.appsScript?.enabled) {
-                    GoogleIntegration.autoSave('Users', AppState.appData.users).catch(() => { });
+                if (isAdmin && typeof Backend !== 'undefined' && typeof Backend.autoSave === 'function' &&
+                    AppState.backendConfig?.server?.enabled) {
+                    Backend.autoSave('Users', AppState.appData.users).catch(() => { });
                 }
             } catch (e) {
                 // ignore

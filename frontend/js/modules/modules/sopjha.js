@@ -204,9 +204,9 @@ const SOPJHA = {
         const items = AppState.appData.sopJHA || [];
 
         // تحميل البيانات من Google Sheets بشكل غير متزامن (بعد عرض الواجهة)
-        if (items.length === 0 && typeof GoogleIntegration !== 'undefined' && GoogleIntegration.readFromSheets) {
+        if (items.length === 0 && typeof Backend !== 'undefined' && Backend.readFromSheets) {
             // تحميل البيانات في الخلفية بدون انتظار
-            GoogleIntegration.readFromSheets('SOPJHA').then(data => {
+            Backend.readFromSheets('SOPJHA').then(data => {
                 if (data && Array.isArray(data) && data.length > 0) {
                     AppState.appData.sopJHA = data;
                     // تحديث الواجهة بعد تحميل البيانات
@@ -484,8 +484,8 @@ const SOPJHA = {
             this.load();
             
             // 5. معالجة المهام الخلفية (Google Sheets) في الخلفية
-            if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.autoSave) {
-                GoogleIntegration.autoSave('SOPJHA', AppState.appData.sopJHA).catch(error => {
+            if (typeof Backend !== 'undefined' && Backend.autoSave) {
+                Backend.autoSave('SOPJHA', AppState.appData.sopJHA).catch(error => {
                     Utils.safeError('خطأ في حفظ Google Sheets:', error);
                 });
             }
@@ -590,8 +590,8 @@ const SOPJHA = {
             }
             
             // حفظ في Google Sheets
-            if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.autoSave) {
-                await GoogleIntegration.autoSave('SOPJHA', AppState.appData.sopJHA);
+            if (typeof Backend !== 'undefined' && Backend.autoSave) {
+                await Backend.autoSave('SOPJHA', AppState.appData.sopJHA);
             }
             
             Loading.hide();

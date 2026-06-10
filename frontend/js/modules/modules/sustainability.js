@@ -4565,20 +4565,20 @@ ${innerContent}
      */
     async loadWasteManagementFromSheets() {
         // التحقق من تفعيل Google Integration
-        if (!AppState.googleConfig?.appsScript?.enabled || !AppState.googleConfig?.appsScript?.scriptUrl) {
+        if (!AppState.backendConfig?.server?.enabled || !AppState.backendConfig?.server?.scriptUrl) {
             return;
         }
 
-        if (typeof GoogleIntegration === 'undefined' || typeof GoogleIntegration.sendRequest !== 'function') {
+        if (typeof Backend === 'undefined' || typeof Backend.sendRequest !== 'function') {
             return;
         }
 
         try {
-            const spreadsheetId = AppState.googleConfig?.sheets?.spreadsheetId;
+            const spreadsheetId = AppState.backendConfig?.sheets?.spreadsheetId;
             if (!spreadsheetId) return;
 
             // استخدام طلب واحد لجلب كافة جداول إدارة المخلفات (أسرع بكثير)
-            const result = await GoogleIntegration.sendRequest({
+            const result = await Backend.sendRequest({
                 action: 'batchReadSheets',
                 data: {
                     sheetNames: [
@@ -4635,11 +4635,11 @@ ${innerContent}
      * — طلبات متوازية لتقليل زمن الانتظار، ودمج متزامن لمنع تكرار الشبكة.
      */
     async loadResourceConsumptionFromSheets() {
-        if (!AppState.googleConfig?.appsScript?.enabled || !AppState.googleConfig?.appsScript?.scriptUrl) {
+        if (!AppState.backendConfig?.server?.enabled || !AppState.backendConfig?.server?.scriptUrl) {
             return;
         }
 
-        if (typeof GoogleIntegration === 'undefined' || typeof GoogleIntegration.sendRequest !== 'function') {
+        if (typeof Backend === 'undefined' || typeof Backend.sendRequest !== 'function') {
             return;
         }
 
@@ -4647,7 +4647,7 @@ ${innerContent}
             return this._resourceConsumptionFetchPromise;
         }
 
-        const spreadsheetId = AppState.googleConfig?.sheets?.spreadsheetId;
+        const spreadsheetId = AppState.backendConfig?.sheets?.spreadsheetId;
         if (!spreadsheetId) return;
 
         this._resourceConsumptionFetchPromise = (async () => {
@@ -4663,7 +4663,7 @@ ${innerContent}
                 const normalizeList = (list = []) => (Array.isArray(list) ? list : []).map((row) => this.normalizeResourceConsumptionRecord(row)).filter(Boolean);
 
                 // استخدام batchReadSheets بدلاً من إرسال 3 طلبات متزامنة قد تسبب تأخيراً أو اختناقاً في الخادم
-                const result = await GoogleIntegration.sendRequest({
+                const result = await Backend.sendRequest({
                     action: 'batchReadSheets',
                     data: {
                         sheetNames: [
@@ -4812,16 +4812,16 @@ ${innerContent}
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
             }));
-            await GoogleIntegration.autoSave('WasteManagement_RegularWasteTypes', wasteTypesData);
+            await Backend.autoSave('WasteManagement_RegularWasteTypes', wasteTypesData);
 
             // حفظ سجلات المخلفات العادية
-            await GoogleIntegration.autoSave('WasteManagement_RegularWasteRecords', wasteData.regularWasteRecords || []);
+            await Backend.autoSave('WasteManagement_RegularWasteRecords', wasteData.regularWasteRecords || []);
 
             // حفظ عمليات بيع المخلفات العادية
-            await GoogleIntegration.autoSave('WasteManagement_RegularWasteSales', wasteData.regularWasteSales || []);
+            await Backend.autoSave('WasteManagement_RegularWasteSales', wasteData.regularWasteSales || []);
 
             // حفظ سجلات المخلفات الخطرة
-            await GoogleIntegration.autoSave('WasteManagement_HazardousWasteRecords', wasteData.hazardousWasteRecords || []);
+            await Backend.autoSave('WasteManagement_HazardousWasteRecords', wasteData.hazardousWasteRecords || []);
 
             return { success: true };
         } catch (error) {
@@ -4849,7 +4849,7 @@ ${innerContent}
         try {
             const results = [];
             for (const { sheetName, rows } of tasks) {
-                const res = await GoogleIntegration.autoSave(sheetName, rows, { silent: true });
+                const res = await Backend.autoSave(sheetName, rows, { silent: true });
                 results.push({
                     sheetName,
                     success: !!(res && res.success),

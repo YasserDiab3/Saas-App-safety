@@ -902,9 +902,9 @@ const Employees = {
         const tasks = [];
 
         if ((!Array.isArray(data.approvedContractors) || data.approvedContractors.length === 0) &&
-            typeof GoogleIntegration !== 'undefined' && typeof GoogleIntegration.readFromSheets === 'function') {
+            typeof Backend !== 'undefined' && typeof Backend.readFromSheets === 'function') {
             tasks.push(
-                GoogleIntegration.readFromSheets('ApprovedContractors', 15000)
+                Backend.readFromSheets('ApprovedContractors', 15000)
                     .then(result => {
                         if (Array.isArray(result)) data.approvedContractors = result;
                     })
@@ -913,9 +913,9 @@ const Employees = {
         }
 
         if ((forceReload || !Array.isArray(data.externalWorkforceMonthly) || data.externalWorkforceMonthly.length === 0) &&
-            typeof GoogleIntegration !== 'undefined' && typeof GoogleIntegration.readFromSheets === 'function') {
+            typeof Backend !== 'undefined' && typeof Backend.readFromSheets === 'function') {
             tasks.push(
-                GoogleIntegration.readFromSheets('ExternalWorkforceMonthly', 15000)
+                Backend.readFromSheets('ExternalWorkforceMonthly', 15000)
                     .then(result => {
                         if (Array.isArray(result)) data.externalWorkforceMonthly = result;
                     })
@@ -1411,8 +1411,8 @@ const Employees = {
             this._externalWorkforceCache.clear();
             this.renderExternalWorkforceTable();
             if (typeof DataManager !== 'undefined' && typeof DataManager.save === 'function') DataManager.save();
-            if (typeof GoogleIntegration !== 'undefined' && typeof GoogleIntegration.autoSave === 'function') {
-                await GoogleIntegration.autoSave('ExternalWorkforceMonthly', records).catch(() => {});
+            if (typeof Backend !== 'undefined' && typeof Backend.autoSave === 'function') {
+                await Backend.autoSave('ExternalWorkforceMonthly', records).catch(() => {});
             }
             window.dispatchEvent(new CustomEvent('employeesDataUpdated', { detail: { externalWorkforce: true, year } }));
             Notification.success(`Imported ${updatedRows} rows successfully`);
@@ -1634,8 +1634,8 @@ const Employees = {
         if (typeof DataManager !== 'undefined' && typeof DataManager.save === 'function') {
             DataManager.save();
         }
-        if (typeof GoogleIntegration !== 'undefined' && typeof GoogleIntegration.autoSave === 'function') {
-            GoogleIntegration.autoSave('ExternalWorkforceMonthly', records).catch(() => {});
+        if (typeof Backend !== 'undefined' && typeof Backend.autoSave === 'function') {
+            Backend.autoSave('ExternalWorkforceMonthly', records).catch(() => {});
         }
 
         window.dispatchEvent(new CustomEvent('employeesDataUpdated', {
@@ -2018,7 +2018,7 @@ const Employees = {
                 AppState.appData.employees = this.cache.data;
             }
             // ✅ مرة واحدة لكل جلسة: إذا عداد المستقيلين 0 والكاش قد يكون قديماً، جلب كامل من الخادم في الخلفية
-            if (!this.config._refreshedOnceForInactive && AppState.appData.employees.length > 0 && AppState.googleConfig?.appsScript?.enabled) {
+            if (!this.config._refreshedOnceForInactive && AppState.appData.employees.length > 0 && AppState.backendConfig?.server?.enabled) {
                 const inactiveInCache = (AppState.appData.employees || []).filter(e => this.isEmployeeInactive(e)).length;
                 if (inactiveInCache === 0) {
                     this.config._refreshedOnceForInactive = true;
@@ -2071,9 +2071,9 @@ const Employees = {
 
         try {
             // التحقق من تفعيل Google Integration
-            if (!AppState.googleConfig?.appsScript?.enabled || !AppState.googleConfig?.appsScript?.scriptUrl) {
+            if (!AppState.backendConfig?.server?.enabled || !AppState.backendConfig?.server?.scriptUrl) {
                 if (AppState.debugMode) {
-                    Utils.safeLog('⚠️ Google Apps Script غير مفعّل - استخدام البيانات المحلية فقط');
+                    Utils.safeLog('⚠️ الخادم السحابي غير مفعّل - استخدام البيانات المحلية فقط');
                 }
                 // استخدام البيانات المحلية إذا كانت موجودة
                 if (AppState.appData.employees && Array.isArray(AppState.appData.employees)) {
@@ -2085,10 +2085,10 @@ const Employees = {
                 return false;
             }
 
-            // التحقق من وجود GoogleIntegration
-            if (typeof GoogleIntegration === 'undefined' || !GoogleIntegration.sendRequest) {
+            // التحقق من وجود Backend
+            if (typeof Backend === 'undefined' || !Backend.sendRequest) {
                 if (AppState.debugMode) {
-                    Utils.safeWarn('⚠️ GoogleIntegration غير متاح');
+                    Utils.safeWarn('⚠️ Backend غير متاح');
                 }
                 // استخدام البيانات المحلية إذا كانت موجودة
                 if (AppState.appData.employees && Array.isArray(AppState.appData.employees)) {
@@ -2103,7 +2103,7 @@ const Employees = {
             // محاولة تحميل البيانات من Backend باستخدام getAllEmployees
             // ✅ includeInactive: true لاستلام جميع الموظفين (نشطين + مستقيلين) حتى يظهر عداد المستقيلين بشكل صحيح
             try {
-                const result = await GoogleIntegration.sendRequest({
+                const result = await Backend.sendRequest({
                     action: 'getAllEmployees',
                     data: { filters: { includeInactive: true } }
                 });
@@ -2133,11 +2133,11 @@ const Employees = {
                         Utils.safeWarn('⚠️ getAllEmployees فشل، جاري المحاولة بـ readFromSheet...');
                     }
                     
-                    const sheetResult = await GoogleIntegration.sendRequest({
+                    const sheetResult = await Backend.sendRequest({
                         action: 'readFromSheet',
                         data: { 
                             sheetName: 'Employees',
-                            spreadsheetId: AppState.googleConfig.sheets.spreadsheetId
+                            spreadsheetId: AppState.backendConfig.sheets.spreadsheetId
                         }
                     });
 
@@ -2204,17 +2204,17 @@ const Employees = {
         
         try {
             // التحقق من تفعيل Google Integration
-            if (!AppState.googleConfig?.appsScript?.enabled || !AppState.googleConfig?.appsScript?.scriptUrl) {
+            if (!AppState.backendConfig?.server?.enabled || !AppState.backendConfig?.server?.scriptUrl) {
                 return;
             }
 
-            // التحقق من وجود GoogleIntegration
-            if (typeof GoogleIntegration === 'undefined' || !GoogleIntegration.sendRequest) {
+            // التحقق من وجود Backend
+            if (typeof Backend === 'undefined' || !Backend.sendRequest) {
                 return;
             }
 
             // محاولة تحميل البيانات من Backend
-            const result = await GoogleIntegration.sendRequest({
+            const result = await Backend.sendRequest({
                 action: 'getAllEmployees',
                 data: { filters: { includeInactive: true } }
             });
@@ -3094,7 +3094,7 @@ const Employees = {
             if (typeof window.DataManager !== 'undefined' && window.DataManager.save) {
                 window.DataManager.save();
             }
-            await GoogleIntegration.autoSave('Employees', AppState.appData.employees);
+            await Backend.autoSave('Employees', AppState.appData.employees);
 
             // ✅ تحديث القائمة مع الحفاظ على حالة showInactive
             const showInactive = document.getElementById('show-inactive-employees')?.checked || false;
@@ -3153,12 +3153,12 @@ const Employees = {
         }
 
         try {
-            if (typeof GoogleIntegration === 'undefined' || !GoogleIntegration.callBackend) {
-                throw new Error('GoogleIntegration غير متاح');
+            if (typeof Backend === 'undefined' || !Backend.callBackend) {
+                throw new Error('Backend غير متاح');
             }
 
             // ✅ حذف من الخلفية أولاً (محمي برقم سري في Apps Script)
-            const res = await GoogleIntegration.callBackend('deleteAllEmployees', { pin: String(pin || '').trim() });
+            const res = await Backend.callBackend('deleteAllEmployees', { pin: String(pin || '').trim() });
             if (!res || !res.success) {
                 throw new Error(res?.message || 'فشل حذف بيانات الموظفين من قاعدة البيانات');
             }
@@ -3555,7 +3555,7 @@ const Employees = {
         } else {
             Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
         }
-                await GoogleIntegration.autoSave('Employees', AppState.appData.employees);
+                await Backend.autoSave('Employees', AppState.appData.employees);
 
                 // تحديث Cache
                 this.cache.data = AppState.appData.employees;
@@ -3736,7 +3736,7 @@ const Employees = {
             Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
         }
             // حفظ تلقائي في Google Sheets
-            await GoogleIntegration.autoSave('Employees', AppState.appData.employees);
+            await Backend.autoSave('Employees', AppState.appData.employees);
 
             // تحديث Cache
             this.cache.data = AppState.appData.employees;
@@ -4320,8 +4320,8 @@ const Employees = {
             
             // ✅ تنفيذ المزامنة مع Backend في الخلفية لتجنب عدم استجابة النظام
             // نستخدم sendToAppsScript فقط (بدون autoSave) لتحديث صف واحد بدلاً من رفع كل السجلات
-            if (AppState.googleConfig?.appsScript?.enabled) {
-                GoogleIntegration.sendToAppsScript('deactivateEmployee', { employeeId: id })
+            if (AppState.backendConfig?.server?.enabled) {
+                Backend.sendToAppsScript('deactivateEmployee', { employeeId: id })
                     .then(res => {
                         if (!res || !res.success) {
                             Utils.safeWarn('⚠️ فشل إلغاء تفعيل الموظف من Google Sheets:', res?.message);
@@ -4389,8 +4389,8 @@ const Employees = {
             
             // ✅ تنفيذ المزامنة مع Backend في الخلفية لتجنب عدم استجابة النظام
             // نستخدم sendToAppsScript فقط للحذف الدقيق والسريع
-            if (AppState.googleConfig?.appsScript?.enabled) {
-                GoogleIntegration.sendToAppsScript('deleteEmployee', { employeeId: id })
+            if (AppState.backendConfig?.server?.enabled) {
+                Backend.sendToAppsScript('deleteEmployee', { employeeId: id })
                     .then(res => {
                         if (!res || !res.success) {
                             Utils.safeWarn('⚠️ فشل الحذف من Google Sheets:', res?.message);

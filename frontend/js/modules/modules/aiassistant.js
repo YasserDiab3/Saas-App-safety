@@ -120,9 +120,9 @@ Object.assign(window.AIAssistant, {
             // محاولة تحسين التحليل بـ Gemini
             let geminiEnhancement = '';
             try {
-                if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendToAppsScript) {
+                if (typeof Backend !== 'undefined' && Backend.sendToAppsScript) {
                     const geminiQ = `قدم تحليلاً ذكياً لـ ${dataType === 'incidents' ? 'الحوادث' : dataType === 'training' ? 'التدريب' : dataType === 'risk' ? 'المخاطر' : 'جميع البيانات'} بناءً على: ${analysis}`;
-                    const geminiRes = await GoogleIntegration.sendToAppsScript('processAIQuestion', {
+                    const geminiRes = await Backend.sendToAppsScript('processAIQuestion', {
                         question: geminiQ,
                         context: { userId: AppState.currentUser?.id, userName: AppState.currentUser?.name, userRole: AppState.currentUser?.role }
                     });
@@ -223,8 +223,8 @@ Object.assign(window.AIAssistant, {
         if (loadingBox) loadingBox.classList.remove('hidden');
 
         try {
-            if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendToAppsScript) {
-                const response = await GoogleIntegration.sendToAppsScript('processAIQuestion', {
+            if (typeof Backend !== 'undefined' && Backend.sendToAppsScript) {
+                const response = await Backend.sendToAppsScript('processAIQuestion', {
                     question: question,
                     context: {
                         userId: AppState.currentUser?.id || null,
@@ -729,8 +729,8 @@ Object.assign(window.AIAssistant, {
         } else {
             Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
         }
-            if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.autoSave) {
-                await GoogleIntegration.autoSave('AIAssistantSettings', [settings]);
+            if (typeof Backend !== 'undefined' && Backend.autoSave) {
+                await Backend.autoSave('AIAssistantSettings', [settings]);
             }
             Notification.success('تم حفظ الإعدادات بنجاح');
             modal.remove();
@@ -1048,8 +1048,8 @@ Object.assign(window.AIAssistant, {
             Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
         }
 
-            if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.autoSave) {
-                await GoogleIntegration.autoSave('UserAILog', AppState.appData.userAILog);
+            if (typeof Backend !== 'undefined' && Backend.autoSave) {
+                await Backend.autoSave('UserAILog', AppState.appData.userAILog);
             }
 
             Notification.success(`تم حذف ${logs.length - maxLogEntries} سجل قديم`);

@@ -70,9 +70,9 @@ const AIAssistant = {
                 case 'general_question':
                 default:
                     // استخدام Backend AI إذا كان متاحاً
-                    if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendToAppsScript) {
+                    if (typeof Backend !== 'undefined' && Backend.sendToAppsScript) {
                         try {
-                            const backendResponse = await GoogleIntegration.sendToAppsScript('processAIQuestion', {
+                            const backendResponse = await Backend.sendToAppsScript('processAIQuestion', {
                                 question: question,
                                 context: {
                                     userId: AppState.currentUser?.id || null,
@@ -1211,8 +1211,8 @@ const AIAssistant = {
             // إذا كان هناك موظف، الحصول على مصفوفة التدريب
             if (employee) {
                 try {
-                    if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendToAppsScript) {
-                        const result = await GoogleIntegration.sendToAppsScript('getEmployeeTrainingMatrix', {
+                    if (typeof Backend !== 'undefined' && Backend.sendToAppsScript) {
+                        const result = await Backend.sendToAppsScript('getEmployeeTrainingMatrix', {
                             employeeId: employee.id || employee.employeeNumber
                         });
                         
@@ -1564,8 +1564,8 @@ const AIAssistant = {
                 
                 if (employee) {
                     try {
-                        if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendToAppsScript) {
-                            const result = await GoogleIntegration.sendToAppsScript('getPPEMatrix', {
+                        if (typeof Backend !== 'undefined' && Backend.sendToAppsScript) {
+                            const result = await Backend.sendToAppsScript('getPPEMatrix', {
                                 employeeId: employee.id || employee.employeeNumber
                             });
                             

@@ -281,7 +281,7 @@ const ChangeManagement = {
         if (!container) return;
         if (this.state._loadInProgress) return;
 
-        if (!AppState.googleConfig?.appsScript?.enabled || !AppState.googleConfig?.appsScript?.scriptUrl) {
+        if (!AppState.backendConfig?.server?.enabled || !AppState.backendConfig?.server?.scriptUrl) {
             const c = document.getElementById('change-requests-count');
             if (c) c.textContent = '—';
             container.innerHTML = this.showEmptyState('يجب تفعيل Google Integration أولاً');
@@ -311,7 +311,7 @@ const ChangeManagement = {
         }
 
         try {
-            const response = await GoogleIntegration.sendRequest({
+            const response = await Backend.sendRequest({
                 action: 'getAllChangeRequests',
                 data: { filters: this.buildFilters() }
             });
@@ -1029,7 +1029,7 @@ const ChangeManagement = {
         const el = modal ? modal.querySelector('#change-form-request-number') : document.getElementById('change-form-request-number');
         if (!el) return;
         try {
-            const response = await GoogleIntegration.sendRequest({ action: 'getNextChangeRequestNumber', data: {} });
+            const response = await Backend.sendRequest({ action: 'getNextChangeRequestNumber', data: {} });
             if (response && response.success && response.data && response.data.requestNumber) {
                 el.textContent = response.data.requestNumber;
                 el.style.color = 'var(--primary-color)';
@@ -1216,7 +1216,7 @@ const ChangeManagement = {
 
         (async () => {
             try {
-                const response = await GoogleIntegration.sendRequest({
+                const response = await Backend.sendRequest({
                     action: 'addChangeRequest',
                     data: data
                 });
@@ -1246,7 +1246,7 @@ const ChangeManagement = {
         if (!req) {
             if (typeof Loading !== 'undefined' && Loading.show) Loading.show('جاري تحميل التفاصيل...');
             try {
-                const response = await GoogleIntegration.sendRequest({
+                const response = await Backend.sendRequest({
                     action: 'getChangeRequest',
                     data: { requestId: requestId }
                 });
@@ -1361,7 +1361,7 @@ const ChangeManagement = {
         if (status === 'Closed') updateData.closedBy = updatedBy;
 
         try {
-            const response = await GoogleIntegration.sendRequest({
+            const response = await Backend.sendRequest({
                 action: 'updateChangeRequest',
                 data: {
                     requestId: requestId,
@@ -1390,7 +1390,7 @@ const ChangeManagement = {
             updatedBy: user.email || user.name || updatedBy,
             updateNote: 'تم رفض الطلب'
         };
-        GoogleIntegration.sendRequest({
+        Backend.sendRequest({
             action: 'updateChangeRequest',
             data: { requestId: requestId, updateData: updateData }
         }).then(response => {
@@ -1411,7 +1411,7 @@ const ChangeManagement = {
         }
         if (typeof Loading !== 'undefined' && Loading.show) Loading.show('جاري تحميل الإحصائيات...');
         try {
-            const response = await GoogleIntegration.sendRequest({
+            const response = await Backend.sendRequest({
                 action: 'getChangeRequestStatistics',
                 data: { filters: this.buildFilters() }
             });
@@ -1786,7 +1786,7 @@ ${data.map(r => '<tr>' + (Object.keys(data[0] || {})).map(k => '<td>' + safe(r[k
             if (typeof Loading !== 'undefined' && Loading.show) Loading.show('جاري تحديث حالة الاعتماد...');
 
             // الحصول على آخر نسخة من الطلب من الخادم
-            const response = await GoogleIntegration.sendRequest({
+            const response = await Backend.sendRequest({
                 action: 'getChangeRequest',
                 data: { requestId }
             });
@@ -1882,7 +1882,7 @@ ${data.map(r => '<tr>' + (Object.keys(data[0] || {})).map(k => '<td>' + safe(r[k
                 updateData.rejectionReason = rejectionReason;
             }
 
-            const updateResponse = await GoogleIntegration.sendRequest({
+            const updateResponse = await Backend.sendRequest({
                 action: 'updateChangeRequest',
                 data: {
                     requestId: requestId,
@@ -1917,10 +1917,10 @@ ${data.map(r => '<tr>' + (Object.keys(data[0] || {})).map(k => '<td>' + safe(r[k
             const list = Array.isArray(this.state.lastRequests) ? this.state.lastRequests : [];
             let req = list.find(r => String(r.id) === String(requestId));
 
-            // إذا لم يكن موجوداً في الذاكرة، نحاول جلبه من Google Apps Script
-            if (!req && typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendRequest) {
+            // إذا لم يكن موجوداً في الذاكرة، نحاول جلبه من الخادم السحابي
+            if (!req && typeof Backend !== 'undefined' && Backend.sendRequest) {
                 if (typeof Loading !== 'undefined' && Loading.show) Loading.show('جاري تحميل بيانات الطلب...');
-                const response = await GoogleIntegration.sendRequest({
+                const response = await Backend.sendRequest({
                     action: 'getChangeRequest',
                     data: { requestId }
                 });

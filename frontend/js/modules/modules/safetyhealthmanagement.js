@@ -12,32 +12,32 @@ const SafetyHealthManagement = {
         period: '',
         search: ''
     },
-    // دالة مساعدة للتحقق من حالة Google Apps Script
+    // دالة مساعدة للتحقق من حالة الخادم السحابي
     isGoogleAppsScriptEnabled() {
         // التحقق من وجود AppState أولاً
-        if (typeof AppState === 'undefined' || !AppState.googleConfig) {
+        if (typeof AppState === 'undefined' || !AppState.backendConfig) {
             return false;
         }
         
-        // التحقق من تفعيل Google Apps Script ووجود scriptUrl
-        const appsScriptConfig = AppState.googleConfig?.appsScript;
-        if (!appsScriptConfig) {
+        // التحقق من تفعيل الخادم السحابي ووجود scriptUrl
+        const serverConfig = AppState.backendConfig?.server;
+        if (!serverConfig) {
             return false;
         }
         
         // التحقق من أن enabled هو true (وليس undefined أو null)
-        if (appsScriptConfig.enabled !== true) {
+        if (serverConfig.enabled !== true) {
             return false;
         }
         
         // التحقق من وجود scriptUrl (يجب أن يكون string غير فارغ)
-        const scriptUrl = appsScriptConfig.scriptUrl;
+        const scriptUrl = serverConfig.scriptUrl;
         if (!scriptUrl || typeof scriptUrl !== 'string' || scriptUrl.trim() === '') {
             return false;
         }
         
-        // التحقق من وجود GoogleIntegration و sendRequest
-        if (typeof GoogleIntegration === 'undefined' || typeof GoogleIntegration.sendRequest !== 'function') {
+        // التحقق من وجود Backend و sendRequest
+        if (typeof Backend === 'undefined' || typeof Backend.sendRequest !== 'function') {
             return false;
         }
         
@@ -47,19 +47,19 @@ const SafetyHealthManagement = {
     // دالة مساعدة للتحقق من وجود بيانات محلية كبديل
     hasLocalDataAvailable(action, data = {}) {
         try {
-            if (typeof GoogleIntegration === 'undefined' || typeof GoogleIntegration.getLocalData !== 'function') {
+            if (typeof Backend === 'undefined' || typeof Backend.getLocalData !== 'function') {
                 return false;
             }
-            const localData = GoogleIntegration.getLocalData(action, data);
+            const localData = Backend.getLocalData(action, data);
             return localData !== null && localData !== undefined;
         } catch (error) {
             return false;
         }
     },
     
-    // دالة مساعدة للتحقق من إمكانية استخدام البيانات (Google Apps Script أو بيانات محلية)
+    // دالة مساعدة للتحقق من إمكانية استخدام البيانات (الخادم السحابي أو بيانات محلية)
     canAccessData(action = null, data = {}) {
-        // إذا كان Google Apps Script مفعلاً، يمكننا الوصول للبيانات
+        // إذا كان الخادم السحابي مفعلاً، يمكننا الوصول للبيانات
         if (this.isGoogleAppsScriptEnabled()) {
             return true;
         }
@@ -87,7 +87,7 @@ const SafetyHealthManagement = {
         }
         
         // إذا لم يكن مفعلاً ولا توجد بيانات محلية
-        return 'Google Apps Script غير مفعّل. يرجى تفعيله من الإعدادات';
+        return 'الخادم السحابي غير مفعّل. يرجى تفعيله من الإعدادات';
     },
     // حد أقصى لزمن تحميل التبويبات (2 ثانية) ثم عرض واجهة فوراً مع استكمال التحميل في الخلفية
     LOAD_TIMEOUT_MS: 2000,
@@ -1061,7 +1061,7 @@ const SafetyHealthManagement = {
                 return;
             }
 
-            const fetchPromise = GoogleIntegration.sendRequest({
+            const fetchPromise = Backend.sendRequest({
                 action: 'getSafetyTeamMembers',
                 data: {}
             });
@@ -1126,7 +1126,7 @@ const SafetyHealthManagement = {
                 return;
             }
 
-            if (!errorMessage.includes('Google Apps Script') && !errorMessage.includes('غير مفعّل')) {
+            if (!errorMessage.includes('الخادم السحابي') && !errorMessage.includes('غير مفعّل')) {
                 Utils.safeError('خطأ في تحميل أعضاء الفريق:', errorMessage, error);
             }
             if (!this.cache.members || this.cache.members.length === 0) {
@@ -1441,7 +1441,7 @@ const SafetyHealthManagement = {
             if (!employee) {
                 try {
                     // Try to read from Employees sheet directly
-                    const response = await GoogleIntegration.sendRequest({
+                    const response = await Backend.sendRequest({
                         action: 'readFromSheet',
                         data: { sheetName: 'Employees' }
                     });
@@ -1562,7 +1562,7 @@ const SafetyHealthManagement = {
             const action = editId ? 'updateSafetyTeamMember' : 'addSafetyTeamMember';
             const payload = editId ? { memberId: editId, updateData: formData } : formData;
 
-            const response = await GoogleIntegration.sendRequest({
+            const response = await Backend.sendRequest({
                 action: action,
                 data: payload
             });
@@ -1595,7 +1595,7 @@ const SafetyHealthManagement = {
 
         try {
             Loading.show();
-            const response = await GoogleIntegration.sendRequest({
+            const response = await Backend.sendRequest({
                 action: 'getSafetyTeamMember',
                 data: { memberId: memberId }
             });
@@ -1658,7 +1658,7 @@ const SafetyHealthManagement = {
 
             Loading.show();
 
-            const response = await GoogleIntegration.sendRequest({
+            const response = await Backend.sendRequest({
                 action: 'deleteSafetyTeamMember',
                 data: { memberId: memberId }
             });
@@ -1771,7 +1771,7 @@ const SafetyHealthManagement = {
 
         try {
             container.innerHTML = '<div class="empty-state"><p class="text-gray-500">جاري التحميل...</p></div>';
-            const fetchPromise = GoogleIntegration.sendRequest({
+            const fetchPromise = Backend.sendRequest({
                 action: 'getOrganizationalStructure',
                 data: {}
             });
@@ -1829,7 +1829,7 @@ const SafetyHealthManagement = {
                 return;
             }
 
-            // لا نعرض خطأ في Console إذا كان Google Apps Script غير مفعّل (تم التحقق مسبقاً)
+            // لا نعرض خطأ في Console إذا كان الخادم السحابي غير مفعّل (تم التحقق مسبقاً)
             const isGoogleEnabled = this.isGoogleAppsScriptEnabled();
             if (isGoogleEnabled) {
             Utils.safeError('خطأ في تحميل الهيكل الوظيفي:', errorMessage, error);
@@ -1841,11 +1841,11 @@ const SafetyHealthManagement = {
             if (errorMessage.includes('غير معترف به') || errorMessage.includes('Action not recognized') || errorMessage.includes('ACTION_NOT_RECOGNIZED')) {
                 displayMessage = errorMessage;
                 showError = isGoogleEnabled;
-            } else if (errorMessage.includes('Google Apps Script غير مفعّل')) {
-                displayMessage = 'Google Apps Script غير مفعّل. يرجى تفعيله من الإعدادات';
+            } else if (errorMessage.includes('الخادم السحابي غير مفعّل')) {
+                displayMessage = 'الخادم السحابي غير مفعّل. يرجى تفعيله من الإعدادات';
                     showError = false;
             } else if (isGoogleEnabled && (errorMessage.includes('Failed to fetch') || errorMessage.includes('NetworkError') || errorMessage.includes('CORS'))) {
-                    displayMessage = 'فشل الاتصال بالخادم. يرجى التحقق من الاتصال بالإنترنت وإعدادات Google Apps Script';
+                    displayMessage = 'فشل الاتصال بالخادم. يرجى التحقق من الاتصال بالإنترنت وإعدادات الخادم السحابي';
                 showError = true;
             } else if (isGoogleEnabled && errorMessage.includes('فشل الاتصال')) {
                 displayMessage = errorMessage;
@@ -1966,7 +1966,7 @@ const SafetyHealthManagement = {
         }
 
         try {
-            const response = await GoogleIntegration.sendRequest({
+            const response = await Backend.sendRequest({
                 action: 'getSafetyTeamMembers',
                 data: {}
             });
@@ -1997,7 +1997,7 @@ const SafetyHealthManagement = {
         let memberName = '';
         if (memberId) {
             try {
-                const response = await GoogleIntegration.sendRequest({
+                const response = await Backend.sendRequest({
                     action: 'getSafetyTeamMember',
                     data: { memberId: memberId }
                 });
@@ -2027,7 +2027,7 @@ const SafetyHealthManagement = {
 
         Loading.show();
         try {
-            const response = await GoogleIntegration.sendRequest({
+            const response = await Backend.sendRequest({
                 action: 'saveOrganizationalStructure',
                 data: formData
             });
@@ -2073,8 +2073,8 @@ const SafetyHealthManagement = {
             this.loadingStates.structure = true;
             Loading.show();
             const [membersRes, structureRes] = await Promise.all([
-                GoogleIntegration.sendRequest({ action: 'getSafetyTeamMembers', data: {} }),
-                GoogleIntegration.sendRequest({ action: 'getOrganizationalStructure', data: {} })
+                Backend.sendRequest({ action: 'getSafetyTeamMembers', data: {} }),
+                Backend.sendRequest({ action: 'getOrganizationalStructure', data: {} })
             ]);
             const members = (membersRes.success && membersRes.data) ? (Array.isArray(membersRes.data) ? membersRes.data : []) : [];
             const structure = (structureRes.success && structureRes.data) ? (Array.isArray(structureRes.data) ? structureRes.data : []) : [];
@@ -2098,7 +2098,7 @@ const SafetyHealthManagement = {
                     order: maxOrder + i + 1,
                     description: m.department ? 'القسم: ' + (m.department || '') : ''
                 };
-                const response = await GoogleIntegration.sendRequest({
+                const response = await Backend.sendRequest({
                     action: 'saveOrganizationalStructure',
                     data: formData
                 });
@@ -2129,7 +2129,7 @@ const SafetyHealthManagement = {
             // استخدام Cache إذا كان متاحاً
             let structure = this.cache.structure;
             if (!structure) {
-                const response = await GoogleIntegration.sendRequest({
+                const response = await Backend.sendRequest({
                     action: 'getOrganizationalStructure',
                     data: {}
                 });
@@ -2172,7 +2172,7 @@ const SafetyHealthManagement = {
             Loading.show();
 
             // الحصول على الهيكل الحالي
-            const response = await GoogleIntegration.sendRequest({
+            const response = await Backend.sendRequest({
                 action: 'getOrganizationalStructure',
                 data: {}
             });
@@ -2182,7 +2182,7 @@ const SafetyHealthManagement = {
                 const filtered = structure.filter(item => item.id !== id);
 
                 // حفظ الهيكل المحدث
-                const saveResponse = await GoogleIntegration.sendRequest({
+                const saveResponse = await Backend.sendRequest({
                     action: 'saveOrganizationalStructure',
                     data: { structure: filtered }
                 });
@@ -2237,7 +2237,7 @@ const SafetyHealthManagement = {
         const container = document.getElementById('job-descriptions-list');
         if (!container || !members || members.length === 0) return;
         const jdPromises = members.map(member =>
-            GoogleIntegration.sendRequest({ action: 'getJobDescription', data: { memberId: member.id } })
+            Backend.sendRequest({ action: 'getJobDescription', data: { memberId: member.id } })
                 .then(jdResponse => (jdResponse && jdResponse.success && jdResponse.data)
                     ? { ...jdResponse.data, member }
                     : { member, hasDescription: false })
@@ -2290,7 +2290,7 @@ const SafetyHealthManagement = {
             let members = this._getMembersFromCache();
             let membersPromise = null;
             if (!members || members.length === 0) {
-                membersPromise = GoogleIntegration.sendRequest({ action: 'getSafetyTeamMembers', data: {} });
+                membersPromise = Backend.sendRequest({ action: 'getSafetyTeamMembers', data: {} });
                 try {
                     const membersResponse = await this._raceWithTimeout(membersPromise);
                     if (membersResponse && membersResponse.success && membersResponse.data) {
@@ -2348,11 +2348,11 @@ const SafetyHealthManagement = {
             if (errorMessage.includes('غير معترف به') || errorMessage.includes('Action not recognized') || errorMessage.includes('ACTION_NOT_RECOGNIZED')) {
                 displayMessage = errorMessage;
                 showError = isGoogleEnabled;
-            } else if (errorMessage.includes('Google Apps Script غير مفعّل')) {
-                displayMessage = 'Google Apps Script غير مفعّل. يرجى تفعيله من الإعدادات';
+            } else if (errorMessage.includes('الخادم السحابي غير مفعّل')) {
+                displayMessage = 'الخادم السحابي غير مفعّل. يرجى تفعيله من الإعدادات';
                     showError = false;
             } else if (isGoogleEnabled && (errorMessage.includes('Failed to fetch') || errorMessage.includes('NetworkError') || errorMessage.includes('CORS'))) {
-                    displayMessage = 'فشل الاتصال بالخادم. يرجى التحقق من الاتصال بالإنترنت وإعدادات Google Apps Script';
+                    displayMessage = 'فشل الاتصال بالخادم. يرجى التحقق من الاتصال بالإنترنت وإعدادات الخادم السحابي';
                 showError = true;
             } else if (isGoogleEnabled && errorMessage.includes('فشل الاتصال')) {
                 displayMessage = errorMessage;
@@ -2505,7 +2505,7 @@ const SafetyHealthManagement = {
             const action = editId ? 'updateJobDescription' : 'saveJobDescription';
             const payload = editId ? { jobDescriptionId: editId, updateData: formData } : formData;
 
-            const response = await GoogleIntegration.sendRequest({
+            const response = await Backend.sendRequest({
                 action: action,
                 data: payload
             });
@@ -2622,7 +2622,7 @@ const SafetyHealthManagement = {
         }
 
         try {
-            const fetchPromise = GoogleIntegration.sendRequest({ action: 'getSafetyTeamMembers', data: {} });
+            const fetchPromise = Backend.sendRequest({ action: 'getSafetyTeamMembers', data: {} });
             let response;
             try {
                 response = await this._raceWithTimeout(fetchPromise);
@@ -2675,7 +2675,7 @@ const SafetyHealthManagement = {
                 return;
             }
 
-            // لا نعرض خطأ في Console إذا كان Google Apps Script غير مفعّل (تم التحقق مسبقاً)
+            // لا نعرض خطأ في Console إذا كان الخادم السحابي غير مفعّل (تم التحقق مسبقاً)
             const isGoogleEnabled = this.isGoogleAppsScriptEnabled();
             if (isGoogleEnabled && container) {
             Utils.safeError('خطأ في تحميل مؤشرات الأداء:', errorMessage, error);
@@ -2688,11 +2688,11 @@ const SafetyHealthManagement = {
                 if (errorMessage.includes('غير معترف به') || errorMessage.includes('Action not recognized') || errorMessage.includes('ACTION_NOT_RECOGNIZED')) {
                     displayMessage = errorMessage;
                     showError = isGoogleEnabled;
-                } else if (errorMessage.includes('Google Apps Script غير مفعّل')) {
-                    displayMessage = 'Google Apps Script غير مفعّل. يرجى تفعيله من الإعدادات';
+                } else if (errorMessage.includes('الخادم السحابي غير مفعّل')) {
+                    displayMessage = 'الخادم السحابي غير مفعّل. يرجى تفعيله من الإعدادات';
                         showError = false;
                 } else if (isGoogleEnabled && (errorMessage.includes('Failed to fetch') || errorMessage.includes('NetworkError') || errorMessage.includes('CORS'))) {
-                        displayMessage = 'فشل الاتصال بالخادم. يرجى التحقق من الاتصال بالإنترنت وإعدادات Google Apps Script';
+                        displayMessage = 'فشل الاتصال بالخادم. يرجى التحقق من الاتصال بالإنترنت وإعدادات الخادم السحابي';
                     showError = true;
                 } else if (isGoogleEnabled && errorMessage.includes('فشل الاتصال')) {
                     displayMessage = errorMessage;
@@ -2752,7 +2752,7 @@ const SafetyHealthManagement = {
         }
 
         try {
-            const fetchPromise = GoogleIntegration.sendRequest({
+            const fetchPromise = Backend.sendRequest({
                 action: 'getSafetyTeamKPIs',
                 data: { memberId: memberId, period: period || null }
             });
@@ -2803,17 +2803,17 @@ const SafetyHealthManagement = {
             const errorMessage = error?.message || error?.toString() || 'خطأ غير معروف';
             Utils.safeError('خطأ في تحميل مؤشرات الأداء:', errorMessage, error);
 
-            // التحقق من حالة Google Apps Script قبل إظهار الرسالة
+            // التحقق من حالة الخادم السحابي قبل إظهار الرسالة
             const isGoogleEnabled = this.isGoogleAppsScriptEnabled();
             let displayMessage = 'حدث خطأ في تحميل مؤشرات الأداء';
             let showError = true;
 
             if (errorMessage.includes('غير معترف به') || errorMessage.includes('Action not recognized') || errorMessage.includes('ACTION_NOT_RECOGNIZED')) {
                 displayMessage = errorMessage; // Use the detailed error message from sendRequest
-            } else if (errorMessage.includes('Google Apps Script غير مفعّل')) {
-                // إظهار الرسالة فقط إذا كان Google Apps Script غير مفعّل فعلاً
+            } else if (errorMessage.includes('الخادم السحابي غير مفعّل')) {
+                // إظهار الرسالة فقط إذا كان الخادم السحابي غير مفعّل فعلاً
                 if (!isGoogleEnabled) {
-                    displayMessage = 'Google Apps Script غير مفعّل. يرجى تفعيله من الإعدادات أو التحقق من الاتصال بالإنترنت';
+                    displayMessage = 'الخادم السحابي غير مفعّل. يرجى تفعيله من الإعدادات أو التحقق من الاتصال بالإنترنت';
                 } else {
                     // إذا كان مفعلاً ولكن الرسالة تحتوي على "غير مفعّل"، قد تكون القائمة فارغة
                     displayMessage = 'لا توجد مؤشرات أداء محسوبة. اضغط على "حساب KPIs"';
@@ -2825,7 +2825,7 @@ const SafetyHealthManagement = {
                 showError = false;
             } else if (errorMessage.includes('Failed to fetch') || errorMessage.includes('NetworkError') || errorMessage.includes('CORS')) {
                 if (isGoogleEnabled) {
-                    displayMessage = 'فشل الاتصال بالخادم. يرجى التحقق من الاتصال بالإنترنت وإعدادات Google Apps Script';
+                    displayMessage = 'فشل الاتصال بالخادم. يرجى التحقق من الاتصال بالإنترنت وإعدادات الخادم السحابي';
                 } else {
                     // إذا كان Google غير مفعّل، لا نعرض رسالة خطأ
                     displayMessage = 'لا توجد مؤشرات أداء محسوبة. اضغط على "حساب KPIs"';
@@ -2992,13 +2992,13 @@ const SafetyHealthManagement = {
     },
 
     async calculateKPIs() {
-        // التحقق من إمكانية الوصول للبيانات (لحساب KPIs يجب أن يكون Google Apps Script مفعلاً)
+        // التحقق من إمكانية الوصول للبيانات (لحساب KPIs يجب أن يكون الخادم السحابي مفعلاً)
         if (!this.isGoogleAppsScriptEnabled()) {
             const accessMessage = this.getDataAccessMessage('calculateSafetyTeamKPIs', {});
             if (accessMessage) {
                 Notification.error(accessMessage);
             } else {
-                Notification.error('لا يمكن حساب مؤشرات الأداء بدون تفعيل Google Apps Script');
+                Notification.error('لا يمكن حساب مؤشرات الأداء بدون تفعيل الخادم السحابي');
             }
             return;
         }
@@ -3035,7 +3035,7 @@ const SafetyHealthManagement = {
                 throw new Error('معرف العضو غير صحيح');
             }
 
-            const response = await GoogleIntegration.sendRequest({
+            const response = await Backend.sendRequest({
                 action: 'calculateSafetyTeamKPIs',
                 data: { 
                     memberId: memberId.trim(), 
@@ -3060,7 +3060,7 @@ const SafetyHealthManagement = {
                 kpiData.calculatedBy = AppState.currentUser?.id || AppState.currentUser?.username || 'unknown';
                 
                 // حفظ المؤشرات المحسوبة
-                const saveResponse = await GoogleIntegration.sendRequest({
+                const saveResponse = await Backend.sendRequest({
                     action: 'addSafetyTeamKPI',
                     data: kpiData
                 });
@@ -3110,7 +3110,7 @@ const SafetyHealthManagement = {
 
         try {
             Loading.show();
-            const response = await GoogleIntegration.sendRequest({
+            const response = await Backend.sendRequest({
                 action: 'getSafetyTeamKPIs',
                 data: { memberId: memberId }
             });
@@ -3200,7 +3200,7 @@ const SafetyHealthManagement = {
 
             try {
                 Loading.show();
-                const response = await GoogleIntegration.sendRequest({
+                const response = await Backend.sendRequest({
                     action: 'updateSafetyTeamKPI',
                     data: { kpiId: kpi.id, updateData: updateData }
                 });
@@ -3277,7 +3277,7 @@ const SafetyHealthManagement = {
 
         try {
             // Load team members for dropdown
-            const membersResponse = await GoogleIntegration.sendRequest({
+            const membersResponse = await Backend.sendRequest({
                 action: 'getSafetyTeamMembers',
                 data: {}
             });
@@ -3309,7 +3309,7 @@ const SafetyHealthManagement = {
 
         try {
             Loading.show();
-            const response = await GoogleIntegration.sendRequest({
+            const response = await Backend.sendRequest({
                 action: 'getSafetyTeamTasks',
                 data: { memberId: memberId }
             });
@@ -3464,11 +3464,11 @@ const SafetyHealthManagement = {
             try {
                 Loading.show();
                 const response = task
-                    ? await GoogleIntegration.sendRequest({
+                    ? await Backend.sendRequest({
                         action: 'updateSafetyTeamTask',
                         data: { taskId: task.id, updateData: taskData }
                     })
-                    : await GoogleIntegration.sendRequest({
+                    : await Backend.sendRequest({
                         action: 'addSafetyTeamTask',
                         data: taskData
                     });
@@ -3496,7 +3496,7 @@ const SafetyHealthManagement = {
         try {
             Loading.show();
             const memberId = document.getElementById('task-member-select').value;
-            const response = await GoogleIntegration.sendRequest({
+            const response = await Backend.sendRequest({
                 action: 'getSafetyTeamTasks',
                 data: { memberId: memberId }
             });
@@ -3523,7 +3523,7 @@ const SafetyHealthManagement = {
 
         try {
             Loading.show();
-            const response = await GoogleIntegration.sendRequest({
+            const response = await Backend.sendRequest({
                 action: 'deleteSafetyTeamTask',
                 data: { taskId: taskId }
             });
@@ -3590,7 +3590,7 @@ const SafetyHealthManagement = {
         }
 
         try {
-            const fetchPromise = GoogleIntegration.sendRequest({ action: 'getSafetyTeamMembers', data: {} });
+            const fetchPromise = Backend.sendRequest({ action: 'getSafetyTeamMembers', data: {} });
             let membersResponse;
             try {
                 membersResponse = await this._raceWithTimeout(fetchPromise);
@@ -3623,17 +3623,17 @@ const SafetyHealthManagement = {
             Utils.safeError('خطأ في تحميل التقارير:', errorMessage, error);
 
             if (memberSelect) {
-                // التحقق من حالة Google Apps Script قبل إظهار الرسالة
+                // التحقق من حالة الخادم السحابي قبل إظهار الرسالة
                 const isGoogleEnabled = this.isGoogleAppsScriptEnabled();
                 let displayMessage = 'حدث خطأ في تحميل التقارير';
                 let showError = true;
 
                 if (errorMessage.includes('غير معترف به') || errorMessage.includes('Action not recognized') || errorMessage.includes('ACTION_NOT_RECOGNIZED')) {
                     displayMessage = errorMessage; // Use the detailed error message from sendRequest
-                } else if (errorMessage.includes('Google Apps Script غير مفعّل')) {
-                    // إظهار الرسالة فقط إذا كان Google Apps Script غير مفعّل فعلاً
+                } else if (errorMessage.includes('الخادم السحابي غير مفعّل')) {
+                    // إظهار الرسالة فقط إذا كان الخادم السحابي غير مفعّل فعلاً
                     if (!isGoogleEnabled) {
-                        displayMessage = 'Google Apps Script غير مفعّل. يرجى تفعيله من الإعدادات أو التحقق من الاتصال بالإنترنت';
+                        displayMessage = 'الخادم السحابي غير مفعّل. يرجى تفعيله من الإعدادات أو التحقق من الاتصال بالإنترنت';
                     } else {
                         // إذا كان مفعلاً ولكن الرسالة تحتوي على "غير مفعّل"، قد تكون القائمة فارغة
                         displayMessage = 'اختر عضو الفريق وإنشاء تقرير الأداء';
@@ -3645,7 +3645,7 @@ const SafetyHealthManagement = {
                     showError = false;
                 } else if (errorMessage.includes('Failed to fetch') || errorMessage.includes('NetworkError') || errorMessage.includes('CORS')) {
                     if (isGoogleEnabled) {
-                        displayMessage = 'فشل الاتصال بالخادم. يرجى التحقق من الاتصال بالإنترنت وإعدادات Google Apps Script';
+                        displayMessage = 'فشل الاتصال بالخادم. يرجى التحقق من الاتصال بالإنترنت وإعدادات الخادم السحابي';
                     } else {
                         // إذا كان Google غير مفعّل، لا نعرض رسالة خطأ
                         displayMessage = 'اختر عضو الفريق وإنشاء تقرير الأداء';
@@ -3692,7 +3692,7 @@ const SafetyHealthManagement = {
             var now = new Date();
             var startDate = new Date(now.getFullYear(), now.getMonth(), 1);
             var endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            const response = await GoogleIntegration.sendRequest({
+            const response = await Backend.sendRequest({
                 action: 'generateSafetyTeamPerformanceReport',
                 data: { memberId: memberId, startDate: startDate.toISOString ? startDate.toISOString().slice(0, 10) : startDate, endDate: endDate.toISOString ? endDate.toISOString().slice(0, 10) : endDate }
             });
@@ -3779,7 +3779,7 @@ const SafetyHealthManagement = {
 
         try {
             Loading.show();
-            const response = await GoogleIntegration.sendRequest({
+            const response = await Backend.sendRequest({
                 action: 'generateSafetyTeamPerformanceReport',
                 data: { memberId: memberId }
             });
@@ -3942,7 +3942,7 @@ const SafetyHealthManagement = {
 
         try {
             Loading.show();
-            const response = await GoogleIntegration.sendRequest({
+            const response = await Backend.sendRequest({
                 action: 'generateSafetyTeamPerformanceReport',
                 data: { memberId: memberId }
             });
@@ -4129,7 +4129,7 @@ const SafetyHealthManagement = {
 
             try {
                 Loading.show();
-                const response = await GoogleIntegration.sendRequest({
+                const response = await Backend.sendRequest({
                     action: 'generateAttendanceReport',
                     data: { memberId: memberId, period: period, year: year, month: month }
                 });
@@ -4282,7 +4282,7 @@ const SafetyHealthManagement = {
         }
 
         try {
-            const fetchPromise = GoogleIntegration.sendRequest({ action: 'getSafetyTeamMembers', data: {} });
+            const fetchPromise = Backend.sendRequest({ action: 'getSafetyTeamMembers', data: {} });
             let membersResponse;
             try {
                 membersResponse = await this._raceWithTimeout(fetchPromise);
@@ -4322,7 +4322,7 @@ const SafetyHealthManagement = {
 
         try {
             Loading.show();
-            const response = await GoogleIntegration.sendRequest({
+            const response = await Backend.sendRequest({
                 action: 'getSafetyTeamAttendance',
                 data: { memberId: memberId }
             });
@@ -4373,7 +4373,7 @@ const SafetyHealthManagement = {
 
         try {
             Loading.show();
-            const response = await GoogleIntegration.sendRequest({
+            const response = await Backend.sendRequest({
                 action: 'getSafetyTeamLeaves',
                 data: { memberId: memberId }
             });
@@ -4503,7 +4503,7 @@ const SafetyHealthManagement = {
 
         Loading.show();
         try {
-            const response = await GoogleIntegration.sendRequest({
+            const response = await Backend.sendRequest({
                 action: 'addSafetyTeamAttendance',
                 data: formData
             });
@@ -4610,7 +4610,7 @@ const SafetyHealthManagement = {
 
         Loading.show();
         try {
-            const response = await GoogleIntegration.sendRequest({
+            const response = await Backend.sendRequest({
                 action: 'addSafetyTeamLeave',
                 data: formData
             });
@@ -4660,7 +4660,7 @@ const SafetyHealthManagement = {
         // التحقق من إمكانية الوصول للبيانات (للإعدادات، نحاول جلبها حتى لو لم يكن مفعلاً لعرض القيم الافتراضية)
         const isGoogleEnabled = this.isGoogleAppsScriptEnabled();
         if (!isGoogleEnabled) {
-            // عرض الإعدادات الافتراضية إذا لم يكن Google Apps Script مفعلاً
+            // عرض الإعدادات الافتراضية إذا لم يكن الخادم السحابي مفعلاً
             const defaultSettings = {
                 leaveTypes: ['سنوية', 'مرضية', 'طارئة', 'أخرى'],
                 attendanceStatuses: ['حاضر', 'متأخر', 'غائب', 'عمل ميداني'],
@@ -4683,7 +4683,7 @@ const SafetyHealthManagement = {
 
         try {
             container.innerHTML = '<div class="empty-state"><p class="text-gray-500">جاري التحميل...</p></div>';
-            const fetchPromise = GoogleIntegration.sendRequest({
+            const fetchPromise = Backend.sendRequest({
                 action: 'getSafetyHealthManagementSettings',
                 data: {}
             });
@@ -4730,7 +4730,7 @@ const SafetyHealthManagement = {
         } catch (error) {
             const errorMessage = error?.message || error?.toString() || 'خطأ غير معروف';
             
-            // لا نعرض خطأ في Console إذا كان Google Apps Script غير مفعّل (تم التحقق مسبقاً)
+            // لا نعرض خطأ في Console إذا كان الخادم السحابي غير مفعّل (تم التحقق مسبقاً)
             const isGoogleEnabled = this.isGoogleAppsScriptEnabled();
             if (isGoogleEnabled) {
                 Utils.safeError('خطأ في تحميل الإعدادات:', errorMessage, error);
@@ -4940,10 +4940,10 @@ const SafetyHealthManagement = {
         const container = document.getElementById('leave-types-container');
         if (!container) return;
 
-        // التحقق من حالة Google Apps Script قبل محاولة الحفظ
-        // عمليات الحفظ تتطلب Google Apps Script بشكل إلزامي
+        // التحقق من حالة الخادم السحابي قبل محاولة الحفظ
+        // عمليات الحفظ تتطلب الخادم السحابي بشكل إلزامي
         if (!this.isGoogleAppsScriptEnabled()) {
-            Notification.warning('لا يمكن حفظ التغييرات. يرجى تفعيل Google Apps Script من الإعدادات');
+            Notification.warning('لا يمكن حفظ التغييرات. يرجى تفعيل الخادم السحابي من الإعدادات');
             return;
         }
 
@@ -4958,7 +4958,7 @@ const SafetyHealthManagement = {
 
         Loading.show();
         try {
-            const response = await GoogleIntegration.sendRequest({
+            const response = await Backend.sendRequest({
                 action: 'updateLeaveTypes',
                 data: { leaveTypes: leaveTypes }
             });
@@ -5004,10 +5004,10 @@ const SafetyHealthManagement = {
         const container = document.getElementById('attendance-statuses-container');
         if (!container) return;
 
-        // التحقق من حالة Google Apps Script قبل محاولة الحفظ
-        // عمليات الحفظ تتطلب Google Apps Script بشكل إلزامي
+        // التحقق من حالة الخادم السحابي قبل محاولة الحفظ
+        // عمليات الحفظ تتطلب الخادم السحابي بشكل إلزامي
         if (!this.isGoogleAppsScriptEnabled()) {
-            Notification.warning('لا يمكن حفظ التغييرات. يرجى تفعيل Google Apps Script من الإعدادات');
+            Notification.warning('لا يمكن حفظ التغييرات. يرجى تفعيل الخادم السحابي من الإعدادات');
             return;
         }
 
@@ -5022,7 +5022,7 @@ const SafetyHealthManagement = {
 
         Loading.show();
         try {
-            const response = await GoogleIntegration.sendRequest({
+            const response = await Backend.sendRequest({
                 action: 'updateAttendanceStatuses',
                 data: { statuses: statuses }
             });
@@ -5191,10 +5191,10 @@ const SafetyHealthManagement = {
     },
 
     async saveKPITargets(modal = null) {
-        // التحقق من حالة Google Apps Script قبل محاولة الحفظ
-        // عمليات الحفظ تتطلب Google Apps Script بشكل إلزامي
+        // التحقق من حالة الخادم السحابي قبل محاولة الحفظ
+        // عمليات الحفظ تتطلب الخادم السحابي بشكل إلزامي
         if (!this.isGoogleAppsScriptEnabled()) {
-            Notification.warning('لا يمكن حفظ التغييرات. يرجى تفعيل Google Apps Script من الإعدادات');
+            Notification.warning('لا يمكن حفظ التغييرات. يرجى تفعيل الخادم السحابي من الإعدادات');
             return;
         }
 
@@ -5230,7 +5230,7 @@ const SafetyHealthManagement = {
 
         Loading.show();
         try {
-            const response = await GoogleIntegration.sendRequest({
+            const response = await Backend.sendRequest({
                 action: 'updateKPITargets',
                 data: { targets: targets }
             });
@@ -5268,7 +5268,7 @@ const SafetyHealthManagement = {
 
         try {
             Loading.show();
-            const response = await GoogleIntegration.sendRequest({
+            const response = await Backend.sendRequest({
                 action: 'getSafetyHealthManagementSettings',
                 data: {}
             });
@@ -5448,10 +5448,10 @@ const SafetyHealthManagement = {
     },
 
     async handleCustomKPISubmit(modal, kpiId = null) {
-        // التحقق من حالة Google Apps Script قبل محاولة الحفظ
-        // عمليات الحفظ تتطلب Google Apps Script بشكل إلزامي
+        // التحقق من حالة الخادم السحابي قبل محاولة الحفظ
+        // عمليات الحفظ تتطلب الخادم السحابي بشكل إلزامي
         if (!this.isGoogleAppsScriptEnabled()) {
-            Notification.warning('لا يمكن حفظ التغييرات. يرجى تفعيل Google Apps Script من الإعدادات');
+            Notification.warning('لا يمكن حفظ التغييرات. يرجى تفعيل الخادم السحابي من الإعدادات');
             return;
         }
 
@@ -5483,7 +5483,7 @@ const SafetyHealthManagement = {
             const action = kpiId ? 'updateCustomKPI' : 'addCustomKPI';
             const payload = kpiId ? { kpiId: kpiId, updateData: kpiData } : kpiData;
 
-            const response = await GoogleIntegration.sendRequest({
+            const response = await Backend.sendRequest({
                 action: action,
                 data: payload
             });
@@ -5504,15 +5504,15 @@ const SafetyHealthManagement = {
     },
 
     async editCustomKPI(kpiId) {
-        // التحقق من حالة Google Apps Script قبل محاولة التعديل
+        // التحقق من حالة الخادم السحابي قبل محاولة التعديل
         if (!this.isGoogleAppsScriptEnabled()) {
-            Notification.warning('Google Apps Script غير مفعّل. لا يمكن تعديل المؤشر');
+            Notification.warning('الخادم السحابي غير مفعّل. لا يمكن تعديل المؤشر');
             return;
         }
 
         try {
             Loading.show();
-            const response = await GoogleIntegration.sendRequest({
+            const response = await Backend.sendRequest({
                 action: 'getSafetyHealthManagementSettings',
                 data: {}
             });
@@ -5536,9 +5536,9 @@ const SafetyHealthManagement = {
     },
 
     async deleteCustomKPI(kpiId) {
-        // التحقق من حالة Google Apps Script قبل محاولة الحذف
+        // التحقق من حالة الخادم السحابي قبل محاولة الحذف
         if (!this.isGoogleAppsScriptEnabled()) {
-            Notification.warning('Google Apps Script غير مفعّل. لا يمكن حذف المؤشر');
+            Notification.warning('الخادم السحابي غير مفعّل. لا يمكن حذف المؤشر');
             return;
         }
 
@@ -5548,7 +5548,7 @@ const SafetyHealthManagement = {
 
         try {
             Loading.show();
-            const response = await GoogleIntegration.sendRequest({
+            const response = await Backend.sendRequest({
                 action: 'deleteCustomKPI',
                 data: { kpiId: kpiId }
             });
@@ -5582,7 +5582,7 @@ const SafetyHealthManagement = {
 
             // Sheet 1: Team Members
             try {
-                const membersResponse = await GoogleIntegration.sendRequest({
+                const membersResponse = await Backend.sendRequest({
                     action: 'getSafetyTeamMembers',
                     data: {}
                 });
@@ -5615,7 +5615,7 @@ const SafetyHealthManagement = {
 
             // Sheet 2: Organizational Structure
             try {
-                const structureResponse = await GoogleIntegration.sendRequest({
+                const structureResponse = await Backend.sendRequest({
                     action: 'getOrganizationalStructure',
                     data: {}
                 });
@@ -5644,7 +5644,7 @@ const SafetyHealthManagement = {
 
             // Sheet 3: Job Descriptions
             try {
-                const membersResponse = await GoogleIntegration.sendRequest({
+                const membersResponse = await Backend.sendRequest({
                     action: 'getSafetyTeamMembers',
                     data: {}
                 });
@@ -5657,7 +5657,7 @@ const SafetyHealthManagement = {
 
                     for (const member of members) {
                         try {
-                            const jdResponse = await GoogleIntegration.sendRequest({
+                            const jdResponse = await Backend.sendRequest({
                                 action: 'getJobDescription',
                                 data: { memberId: member.id }
                             });
@@ -5823,17 +5823,17 @@ const SafetyHealthManagement = {
             const attendanceList = document.getElementById('attendance-list');
             const leavesList = document.getElementById('leaves-list');
             if (attendanceList) {
-                attendanceList.innerHTML = '<div class="empty-state"><p class="text-gray-500">Google Apps Script غير مفعّل. يرجى تفعيله من الإعدادات</p></div>';
+                attendanceList.innerHTML = '<div class="empty-state"><p class="text-gray-500">الخادم السحابي غير مفعّل. يرجى تفعيله من الإعدادات</p></div>';
             }
             if (leavesList) {
-                leavesList.innerHTML = '<div class="empty-state"><p class="text-gray-500">Google Apps Script غير مفعّل. يرجى تفعيله من الإعدادات</p></div>';
+                leavesList.innerHTML = '<div class="empty-state"><p class="text-gray-500">الخادم السحابي غير مفعّل. يرجى تفعيله من الإعدادات</p></div>';
             }
             return;
         }
 
         try {
             // Load team members
-            const membersResponse = await GoogleIntegration.sendRequest({
+            const membersResponse = await Backend.sendRequest({
                 action: 'getSafetyTeamMembers',
                 data: {}
             });
@@ -5902,7 +5902,7 @@ const SafetyHealthManagement = {
 
         try {
             Loading.show();
-            const response = await GoogleIntegration.sendRequest({
+            const response = await Backend.sendRequest({
                 action: 'getSafetyTeamAttendance',
                 data: { memberId: memberId }
             });
@@ -5985,7 +5985,7 @@ const SafetyHealthManagement = {
 
         try {
             Loading.show();
-            const response = await GoogleIntegration.sendRequest({
+            const response = await Backend.sendRequest({
                 action: 'getSafetyTeamLeaves',
                 data: { memberId: memberId }
             });
@@ -6138,11 +6138,11 @@ const SafetyHealthManagement = {
             try {
                 Loading.show();
                 const response = data
-                    ? await GoogleIntegration.sendRequest({
+                    ? await Backend.sendRequest({
                         action: 'updateSafetyTeamAttendance',
                         data: { attendanceId: data.id, updateData: attendanceData }
                     })
-                    : await GoogleIntegration.sendRequest({
+                    : await Backend.sendRequest({
                         action: 'addSafetyTeamAttendance',
                         data: attendanceData
                     });
@@ -6276,11 +6276,11 @@ const SafetyHealthManagement = {
             try {
                 Loading.show();
                 const response = data
-                    ? await GoogleIntegration.sendRequest({
+                    ? await Backend.sendRequest({
                         action: 'updateSafetyTeamLeave',
                         data: { leaveId: data.id, updateData: leaveData }
                     })
-                    : await GoogleIntegration.sendRequest({
+                    : await Backend.sendRequest({
                         action: 'addSafetyTeamLeave',
                         data: leaveData
                     });
@@ -6316,7 +6316,7 @@ const SafetyHealthManagement = {
                 return;
             }
 
-            const response = await GoogleIntegration.sendRequest({
+            const response = await Backend.sendRequest({
                 action: 'getSafetyTeamAttendance',
                 data: { memberId: memberId }
             });
@@ -6344,7 +6344,7 @@ const SafetyHealthManagement = {
 
         try {
             Loading.show();
-            const response = await GoogleIntegration.sendRequest({
+            const response = await Backend.sendRequest({
                 action: 'deleteSafetyTeamAttendance',
                 data: { attendanceId: attendanceId }
             });
@@ -6374,7 +6374,7 @@ const SafetyHealthManagement = {
                 return;
             }
 
-            const response = await GoogleIntegration.sendRequest({
+            const response = await Backend.sendRequest({
                 action: 'getSafetyTeamLeaves',
                 data: { memberId: memberId }
             });
@@ -6449,7 +6449,7 @@ const SafetyHealthManagement = {
         }
 
         try {
-            const fetchPromise = GoogleIntegration.sendRequest({ action: 'getSafetyTeamMembers', data: {} });
+            const fetchPromise = Backend.sendRequest({ action: 'getSafetyTeamMembers', data: {} });
             let membersResponse;
             try {
                 membersResponse = await this._raceWithTimeout(fetchPromise);
@@ -6522,16 +6522,16 @@ const SafetyHealthManagement = {
             const mid = String(memberId);
             const [memberResponse, incidentsResponse, nearMissResponse, ptwResponse, trainingResponse,
                    inspectionsResponse, attendanceResponse, leavesResponse, kpisResponse, observationsResponse] = await Promise.all([
-                GoogleIntegration.sendRequest({ action: 'getSafetyTeamMember', data: { memberId: memberId } }),
-                GoogleIntegration.sendRequest({ action: 'getAllIncidents', data: { filters: {} } }).then(v => ({ status: 'fulfilled', value: v })).catch(e => ({ status: 'rejected', reason: e })),
-                GoogleIntegration.sendRequest({ action: 'getAllNearMisses', data: { filters: {} } }).then(v => ({ status: 'fulfilled', value: v })).catch(e => ({ status: 'rejected', reason: e })),
-                GoogleIntegration.sendRequest({ action: 'getAllPTWs', data: { filters: {} } }).then(v => ({ status: 'fulfilled', value: v })).catch(e => ({ status: 'rejected', reason: e })),
-                GoogleIntegration.sendRequest({ action: 'getAllTrainings', data: { filters: {} } }).then(v => ({ status: 'fulfilled', value: v })).catch(e => ({ status: 'rejected', reason: e })),
-                GoogleIntegration.sendRequest({ action: 'getAllPeriodicInspectionRecords', data: { filters: {} } }).then(v => ({ status: 'fulfilled', value: v })).catch(e => ({ status: 'rejected', reason: e })),
-                GoogleIntegration.sendRequest({ action: 'getSafetyTeamAttendance', data: { memberId: memberId } }).then(v => ({ status: 'fulfilled', value: v })).catch(e => ({ status: 'rejected', reason: e })),
-                GoogleIntegration.sendRequest({ action: 'getSafetyTeamLeaves', data: { memberId: memberId } }).then(v => ({ status: 'fulfilled', value: v })).catch(e => ({ status: 'rejected', reason: e })),
-                GoogleIntegration.sendRequest({ action: 'getSafetyTeamKPIs', data: { memberId: memberId } }).then(v => ({ status: 'fulfilled', value: v })).catch(e => ({ status: 'rejected', reason: e })),
-                GoogleIntegration.sendRequest({ action: 'getAllObservations', data: { filters: {} } }).then(v => ({ status: 'fulfilled', value: v })).catch(e => ({ status: 'rejected', reason: e }))
+                Backend.sendRequest({ action: 'getSafetyTeamMember', data: { memberId: memberId } }),
+                Backend.sendRequest({ action: 'getAllIncidents', data: { filters: {} } }).then(v => ({ status: 'fulfilled', value: v })).catch(e => ({ status: 'rejected', reason: e })),
+                Backend.sendRequest({ action: 'getAllNearMisses', data: { filters: {} } }).then(v => ({ status: 'fulfilled', value: v })).catch(e => ({ status: 'rejected', reason: e })),
+                Backend.sendRequest({ action: 'getAllPTWs', data: { filters: {} } }).then(v => ({ status: 'fulfilled', value: v })).catch(e => ({ status: 'rejected', reason: e })),
+                Backend.sendRequest({ action: 'getAllTrainings', data: { filters: {} } }).then(v => ({ status: 'fulfilled', value: v })).catch(e => ({ status: 'rejected', reason: e })),
+                Backend.sendRequest({ action: 'getAllPeriodicInspectionRecords', data: { filters: {} } }).then(v => ({ status: 'fulfilled', value: v })).catch(e => ({ status: 'rejected', reason: e })),
+                Backend.sendRequest({ action: 'getSafetyTeamAttendance', data: { memberId: memberId } }).then(v => ({ status: 'fulfilled', value: v })).catch(e => ({ status: 'rejected', reason: e })),
+                Backend.sendRequest({ action: 'getSafetyTeamLeaves', data: { memberId: memberId } }).then(v => ({ status: 'fulfilled', value: v })).catch(e => ({ status: 'rejected', reason: e })),
+                Backend.sendRequest({ action: 'getSafetyTeamKPIs', data: { memberId: memberId } }).then(v => ({ status: 'fulfilled', value: v })).catch(e => ({ status: 'rejected', reason: e })),
+                Backend.sendRequest({ action: 'getAllObservations', data: { filters: {} } }).then(v => ({ status: 'fulfilled', value: v })).catch(e => ({ status: 'rejected', reason: e }))
             ]);
 
             if (!memberResponse.success || !memberResponse.data) {
@@ -6842,7 +6842,7 @@ const SafetyHealthManagement = {
 
         try {
             Loading.show();
-            const response = await GoogleIntegration.sendRequest({
+            const response = await Backend.sendRequest({
                 action: 'deleteSafetyTeamLeave',
                 data: { leaveId: leaveId }
             });

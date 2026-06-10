@@ -23,8 +23,8 @@ const AuditLog = {
 
         try {
             DataManager.save();
-            if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.autoSave) {
-                GoogleIntegration.autoSave('AuditLog', AppState.appData.auditLog).catch(() => {});
+            if (typeof Backend !== 'undefined' && Backend.autoSave) {
+                Backend.autoSave('AuditLog', AppState.appData.auditLog).catch(() => {});
             }
         } catch (error) {
             Utils.safeWarn('⚠️ خطأ في حفظ سجل التدقيق:', error);

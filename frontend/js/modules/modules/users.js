@@ -514,7 +514,7 @@ const Users = {
         let users = AppState.appData.users || [];
 
         if (users.length === 0 && typeof Permissions !== 'undefined' && typeof Permissions.isCurrentUserEffectiveAdmin === 'function' && Permissions.isCurrentUserEffectiveAdmin()) {
-            if (typeof GoogleIntegration !== 'undefined' && typeof GoogleIntegration.syncUsers === 'function') {
+            if (typeof Backend !== 'undefined' && typeof Backend.syncUsers === 'function') {
                 try {
                     container.innerHTML = `
                         <div class="empty-state">
@@ -526,7 +526,7 @@ const Users = {
                             <p class="text-gray-500">جاري جلب المستخدمين من الخادم...</p>
                         </div>
                     `;
-                    await GoogleIntegration.syncUsers(true);
+                    await Backend.syncUsers(true);
                     users = AppState.appData.users || [];
                 } catch (e) {
                     if (typeof Utils !== 'undefined' && Utils.safeWarn) Utils.safeWarn('تعذر مزامنة المستخدمين:', e);
@@ -1313,9 +1313,9 @@ const Users = {
                 Loading.hide();
                 
                 // المزامنة مع Google Sheets في الخلفية (غير متزامنة)
-                if (AppState.googleConfig.appsScript.enabled) {
+                if (AppState.backendConfig.server.enabled) {
                     // تشغيل المزامنة في الخلفية بدون انتظار
-                    GoogleIntegration.immediateSyncWithRetry('addUser', formData, 3)
+                    Backend.immediateSyncWithRetry('addUser', formData, 3)
                         .then(addUserResult => {
                             if (addUserResult && addUserResult.success) {
                                 Utils.safeLog('✅ تم إضافة المستخدم الجديد إلى Google Sheets بنجاح');
@@ -1370,9 +1370,9 @@ const Users = {
                 Loading.hide();
                 
                 // المزامنة مع Google Sheets في الخلفية (غير متزامنة)
-                if (AppState.googleConfig.appsScript.enabled) {
+                if (AppState.backendConfig.server.enabled) {
                     // تشغيل المزامنة في الخلفية بدون انتظار
-                    GoogleIntegration.immediateSyncWithRetry('updateUser', {
+                    Backend.immediateSyncWithRetry('updateUser', {
                         userId: formData.id,
                         updateData: formData
                     }, 3)
@@ -1383,7 +1383,7 @@ const Users = {
                             } else if (updateResult && updateResult.shouldDefer) {
                                 // فشلت جميع المحاولات - أضف إلى قائمة الانتظار
                                 Utils.safeWarn('⚠️ فشلت المزامنة بعد 3 محاولات:', updateResult?.message);
-                                GoogleIntegration.autoSave('Users', AppState.appData.users)
+                                Backend.autoSave('Users', AppState.appData.users)
                                     .catch(err => Utils.safeWarn('⚠️ خطأ في autoSave:', err));
                                 Notification.warning('سيتم المزامنة مع Google Sheets تلقائياً لاحقاً.');
                             } else {
@@ -1394,7 +1394,7 @@ const Users = {
                         })
                         .catch(updateError => {
                             Utils.safeError('❌ خطأ غير متوقع في تحديث المستخدم:', updateError);
-                            GoogleIntegration.autoSave('Users', AppState.appData.users)
+                            Backend.autoSave('Users', AppState.appData.users)
                                 .catch(err => Utils.safeWarn('⚠️ خطأ في autoSave:', err));
                             Notification.warning('حدث خطأ في المزامنة مع Google Sheets. سيتم المحاولة لاحقاً.');
                         });
@@ -1663,9 +1663,9 @@ const Users = {
             let deleteSuccess = false;
 
             // 1) حذف من قاعدة البيانات (Google Sheets) أولاً ثم تحديث الواجهة
-            if (AppState.googleConfig.appsScript.enabled) {
+            if (AppState.backendConfig.server.enabled) {
                 try {
-                    const result = await GoogleIntegration.sendToAppsScript('deleteUser', { userId });
+                    const result = await Backend.sendToAppsScript('deleteUser', { userId });
                     deleteSuccess = result && result.success === true;
                     if (!deleteSuccess && result && result.message) {
                         throw new Error(result.message);
@@ -1674,7 +1674,7 @@ const Users = {
                     // محاولة بديلة: حفظ قائمة المستخدمين بعد إزالة المستخدم
                     const filteredUsers = AppState.appData.users.filter(u => u.id !== userId);
                     try {
-                        await GoogleIntegration.autoSave('Users', filteredUsers);
+                        await Backend.autoSave('Users', filteredUsers);
                         deleteSuccess = true;
                     } catch (autoSaveErr) {
                         Utils.safeWarn('⚠️ فشل الحذف من Google Sheets وبديل autoSave:', autoSaveErr);
@@ -1685,7 +1685,7 @@ const Users = {
                     }
                 }
             } else {
-                await GoogleIntegration.autoSave('Users', AppState.appData.users.filter(u => u.id !== userId));
+                await Backend.autoSave('Users', AppState.appData.users.filter(u => u.id !== userId));
                 deleteSuccess = true;
             }
 
@@ -2019,7 +2019,7 @@ const Users = {
 
             // حفظ تلقائي في Google Sheets
             if (successCount > 0) {
-                await GoogleIntegration.autoSave('Users', AppState.appData.users);
+                await Backend.autoSave('Users', AppState.appData.users);
             }
 
             Loading.hide();

@@ -681,29 +681,29 @@ const AppTester = {
                 return { ...this._backendTestCache.result, message: `${this._backendTestCache.result.message} (cached)` };
             }
 
-            // التحقق من وجود GoogleIntegration
-            if (typeof GoogleIntegration === 'undefined' || typeof GoogleIntegration.sendRequest !== 'function') {
+            // التحقق من وجود Backend
+            if (typeof Backend === 'undefined' || typeof Backend.sendRequest !== 'function') {
                 const result = {
                     name: 'الربط مع الخلفية',
                     passed: true,
                     severity: null,
-                    message: 'GoogleIntegration غير متاح - تم تخطي الاختبار (سيتم استخدام البيانات المحلية)',
+                    message: 'Backend غير متاح - تم تخطي الاختبار (سيتم استخدام البيانات المحلية)',
                     recommendation: null
                 };
                 this._backendTestCache = { timestamp: Date.now(), result };
                 return result;
             }
 
-            // التحقق من إعدادات Google Apps Script
-            const isEnabled = AppState?.googleConfig?.appsScript?.enabled;
-            const scriptUrl = AppState?.googleConfig?.appsScript?.scriptUrl;
+            // التحقق من إعدادات الخادم السحابي
+            const isEnabled = AppState?.backendConfig?.server?.enabled;
+            const scriptUrl = AppState?.backendConfig?.server?.scriptUrl;
 
             if (!isEnabled || !scriptUrl || scriptUrl.trim() === '') {
                 const result = {
                     name: 'الربط مع الخلفية',
                     passed: true,
                     severity: null,
-                    message: 'Google Apps Script غير مفعّل أو رابط الخادم غير محدد - تم تخطي الاختبار (سيتم استخدام البيانات المحلية)',
+                    message: 'الخادم السحابي غير مفعّل أو رابط الخادم غير محدد - تم تخطي الاختبار (سيتم استخدام البيانات المحلية)',
                     recommendation: null
                 };
                 this._backendTestCache = { timestamp: Date.now(), result };
@@ -716,7 +716,7 @@ const AppTester = {
                     name: 'الربط مع الخلفية',
                     passed: true,
                     severity: null,
-                    message: 'رابط Google Apps Script غير صحيح - تم تخطي الاختبار (سيتم استخدام البيانات المحلية)',
+                    message: 'رابط الخادم السحابي غير صحيح - تم تخطي الاختبار (سيتم استخدام البيانات المحلية)',
                     recommendation: null
                 };
                 this._backendTestCache = { timestamp: Date.now(), result };
@@ -724,9 +724,9 @@ const AppTester = {
             }
 
             // التحقق من Circuit Breaker قبل الاختبار
-            if (GoogleIntegration._circuitBreaker && GoogleIntegration._circuitBreaker.isOpen) {
-                const remainingTime = GoogleIntegration._circuitBreaker.openUntil 
-                    ? Math.ceil((GoogleIntegration._circuitBreaker.openUntil - Date.now()) / 1000)
+            if (Backend._circuitBreaker && Backend._circuitBreaker.isOpen) {
+                const remainingTime = Backend._circuitBreaker.openUntil 
+                    ? Math.ceil((Backend._circuitBreaker.openUntil - Date.now()) / 1000)
                     : 30;
                 
                 if (remainingTime > 0) {
@@ -741,8 +741,8 @@ const AppTester = {
                     return result;
                 } else {
                     // انتهت فترة Circuit Breaker - إغلاقه
-                    if (typeof GoogleIntegration._closeCircuitBreaker === 'function') {
-                        GoogleIntegration._closeCircuitBreaker();
+                    if (typeof Backend._closeCircuitBreaker === 'function') {
+                        Backend._closeCircuitBreaker();
                     }
                 }
             }
@@ -752,7 +752,7 @@ const AppTester = {
             // اختبار الاتصال بالخلفية
             try {
                 const testRequest = await Utils.promiseWithTimeout(
-                    GoogleIntegration.sendRequest({
+                    Backend.sendRequest({
                         action: 'testConnection',
                         data: {}
                     }),
@@ -782,7 +782,7 @@ const AppTester = {
                         duration: duration,
                         severity: 'medium',
                         message: errorMsg,
-                        recommendation: 'تحقق من:\n1. إعدادات Google Integration\n2. اتصال الإنترنت\n3. أن Google Apps Script منشور ومفعّل'
+                        recommendation: 'تحقق من:\n1. إعدادات Google Integration\n2. اتصال الإنترنت\n3. أن الخادم السحابي منشور ومفعّل'
                     };
                     this._backendTestCache = { timestamp: Date.now(), result };
                     return result;
@@ -795,8 +795,8 @@ const AppTester = {
                 // تحسين رسائل الخطأ حسب نوع الخطأ
                 const errorMsg = testError.message || testError.toString() || '';
                 
-                if (errorMsg.includes('Google Apps Script غير مفعل') || errorMsg.includes('غير مفعّل')) {
-                    errorMessage = 'Google Apps Script غير مفعّل - سيتم استخدام البيانات المحلية';
+                if (errorMsg.includes('الخادم السحابي غير مفعل') || errorMsg.includes('غير مفعّل')) {
+                    errorMessage = 'الخادم السحابي غير مفعّل - سيتم استخدام البيانات المحلية';
                 } else if (errorMsg.includes('Circuit Breaker مفتوح') || errorMsg.includes('Circuit Breaker')) {
                     errorMessage = `Circuit Breaker مفتوح - سيتم استخدام البيانات المحلية (إعادة المحاولة بعد 30 ثانية)`;
                 } else if (errorMsg.includes('Timeout') || errorMsg.includes('انتهت مهلة')) {
@@ -804,7 +804,7 @@ const AppTester = {
                 } else if (errorMsg.includes('Failed to fetch') || errorMsg.includes('NetworkError') || errorMsg.includes('CORS')) {
                     errorMessage = 'تعذر الاتصال بالخلفية (Network/CORS) - سيتم استخدام البيانات المحلية';
                 } else if (errorMsg.includes('URL غير معرف') || errorMsg.includes('غير صحيح')) {
-                    errorMessage = 'رابط Google Apps Script غير صحيح - سيتم استخدام البيانات المحلية';
+                    errorMessage = 'رابط الخادم السحابي غير صحيح - سيتم استخدام البيانات المحلية';
                 } else {
                     errorMessage = `تعذر الاتصال بالخلفية: ${errorMsg}`;
                 }
@@ -1535,10 +1535,10 @@ const AppTester = {
                 reportHTML: this.generateReportHTML()
             };
 
-            // محاولة إرسال التقرير عبر GoogleIntegration
-            if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendRequest) {
+            // محاولة إرسال التقرير عبر Backend
+            if (typeof Backend !== 'undefined' && Backend.sendRequest) {
                 try {
-                    const response = await GoogleIntegration.sendRequest({
+                    const response = await Backend.sendRequest({
                         action: 'saveTestReport',
                         data: report
                     });
@@ -1553,7 +1553,7 @@ const AppTester = {
                         throw new Error(response?.message || 'فشل إرسال التقرير');
                     }
                 } catch (googleError) {
-                    Utils.safeWarn('فشل إرسال التقرير عبر GoogleIntegration، جاري المحاولة بطريقة بديلة:', googleError);
+                    Utils.safeWarn('فشل إرسال التقرير عبر Backend، جاري المحاولة بطريقة بديلة:', googleError);
                     // المحاولة بطريقة بديلة
                     await this.sendReportAlternative(report);
                 }

@@ -15,7 +15,7 @@
  * - services/user-activity-log.js - User activity logging
  * - services/cloud-storage-integration.js - Cloud storage (OneDrive, Google Drive, SharePoint)
  * - services/workflow.js - Workflow engine
- * - services/google-integration.js - Google Apps Script and Sheets integration
+ * - services/backend-client.js - الخادم السحابي and Sheets integration
  */
 
 // All services are already loaded via script tags and exposed to window
@@ -30,15 +30,15 @@ if (typeof window !== 'undefined') {
     if (!window.DataManager) {
         console.error('❌ DataManager not loaded! Make sure services/data-manager.js is loaded before app-services.js');
     }
-    if (!window.GoogleIntegration) {
-        console.error('❌ GoogleIntegration not loaded! Make sure services/google-integration.js is loaded before app-services.js');
+    if (!window.Backend) {
+        console.error('❌ Backend not loaded! Make sure services/backend-client.js is loaded before app-services.js');
     }
     
     // Add syncSpecificSheets helper function if it doesn't exist
-    if (window.GoogleIntegration && !window.GoogleIntegration.syncSpecificSheets) {
-        window.GoogleIntegration.syncSpecificSheets = async function(sheetNames = [], options = {}) {
+    if (window.Backend && !window.Backend.syncSpecificSheets) {
+        window.Backend.syncSpecificSheets = async function(sheetNames = [], options = {}) {
             const { silent = false, showLoader = false, notifyOnSuccess = !silent, notifyOnError = !silent } = options;
-            if (!AppState.googleConfig.appsScript.enabled || !AppState.googleConfig.appsScript.scriptUrl) {
+            if (!AppState.backendConfig.server.enabled || !AppState.backendConfig.server.scriptUrl) {
                 if (!silent) Utils.safeLog('Google Sheets غير مفعّل');
                 return false;
             }
@@ -53,9 +53,9 @@ if (typeof window !== 'undefined') {
                 const mappedSheets = sheetNames.map(name => sheetMapping[name.toLowerCase()] || name);
                 const syncPromises = mappedSheets.map(async (sheetName) => {
                     try {
-                        const result = await window.GoogleIntegration.sendRequest({
+                        const result = await window.Backend.sendRequest({
                             action: 'readFromSheet',
-                            data: { sheetName, spreadsheetId: AppState.googleConfig.sheets.spreadsheetId }
+                            data: { sheetName, spreadsheetId: AppState.backendConfig.sheets.spreadsheetId }
                         });
                         if (result && result.success) {
                             const dataKey = sheetName.charAt(0).toLowerCase() + sheetName.slice(1);

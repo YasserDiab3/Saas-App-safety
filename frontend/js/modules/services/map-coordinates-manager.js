@@ -18,9 +18,9 @@ const MapCoordinatesManager = {
     async loadMapSites() {
         try {
             // 1. محاولة التحميل من Google Sheets (الأولوية الأولى - مشترك لجميع المستخدمين)
-            if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.getData) {
+            if (typeof Backend !== 'undefined' && Backend.getData) {
                 try {
-                    const sheetsData = await GoogleIntegration.getData(this.SHEETS_KEY);
+                    const sheetsData = await Backend.getData(this.SHEETS_KEY);
                     if (sheetsData && Array.isArray(sheetsData) && sheetsData.length > 0) {
                         if (typeof Utils !== 'undefined' && Utils.safeLog) {
                             Utils.safeLog('✅ تم تحميل إحداثيات المواقع من Google Sheets:', sheetsData.length, 'موقع');
@@ -82,9 +82,9 @@ const MapCoordinatesManager = {
 
         try {
             // 1. حفظ في Google Sheets (مشترك لجميع المستخدمين)
-            if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.autoSave) {
+            if (typeof Backend !== 'undefined' && Backend.autoSave) {
                 try {
-                    await GoogleIntegration.autoSave(this.SHEETS_KEY, sites);
+                    await Backend.autoSave(this.SHEETS_KEY, sites);
                     if (typeof Utils !== 'undefined' && Utils.safeLog) {
                         Utils.safeLog('✅ تم حفظ إحداثيات المواقع في Google Sheets');
                     }
@@ -166,9 +166,9 @@ const MapCoordinatesManager = {
     async loadDefaultCoordinates() {
         try {
             // 1. محاولة التحميل من Google Sheets
-            if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.getData) {
+            if (typeof Backend !== 'undefined' && Backend.getData) {
                 try {
-                    const sheetsData = await GoogleIntegration.getData('PTW_DEFAULT_COORDINATES');
+                    const sheetsData = await Backend.getData('PTW_DEFAULT_COORDINATES');
                     if (sheetsData && sheetsData.latitude && sheetsData.longitude) {
                         if (typeof Utils !== 'undefined' && Utils.safeLog) {
                             Utils.safeLog('✅ تم تحميل الإحداثيات الافتراضية من Google Sheets');
@@ -254,9 +254,9 @@ const MapCoordinatesManager = {
             };
 
             // 1. حفظ في Google Sheets
-            if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.autoSave) {
+            if (typeof Backend !== 'undefined' && Backend.autoSave) {
                 try {
-                    await GoogleIntegration.autoSave('PTW_DEFAULT_COORDINATES', data);
+                    await Backend.autoSave('PTW_DEFAULT_COORDINATES', data);
                     if (typeof Utils !== 'undefined' && Utils.safeLog) {
                         Utils.safeLog('✅ تم حفظ الإحداثيات الافتراضية في Google Sheets');
                     }
@@ -336,13 +336,13 @@ const MapCoordinatesManager = {
      */
     async syncFromGoogleSheets() {
         try {
-            if (typeof GoogleIntegration === 'undefined' || !GoogleIntegration.getData) {
+            if (typeof Backend === 'undefined' || !Backend.getData) {
                 // لا نعرض تحذير - هذا طبيعي عند عدم تفعيل Google Integration
                 return false;
             }
 
             // تحميل المواقع
-            const sites = await GoogleIntegration.getData(this.SHEETS_KEY);
+            const sites = await Backend.getData(this.SHEETS_KEY);
             if (sites && Array.isArray(sites)) {
                 this.saveMapSitesLocal(sites);
                 if (typeof AppState !== 'undefined') {
@@ -355,7 +355,7 @@ const MapCoordinatesManager = {
             }
 
             // تحميل الإحداثيات الافتراضية
-            const defaultCoords = await GoogleIntegration.getData('PTW_DEFAULT_COORDINATES');
+            const defaultCoords = await Backend.getData('PTW_DEFAULT_COORDINATES');
             if (defaultCoords && defaultCoords.latitude && defaultCoords.longitude) {
                 const coords = {
                     lat: parseFloat(defaultCoords.latitude),
@@ -395,9 +395,9 @@ const MapCoordinatesManager = {
             };
 
             // تحميل من Google Sheets
-            if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.getData) {
+            if (typeof Backend !== 'undefined' && Backend.getData) {
                 try {
-                    sources.googleSheets = await GoogleIntegration.getData(this.SHEETS_KEY);
+                    sources.googleSheets = await Backend.getData(this.SHEETS_KEY);
                 } catch (e) {
                     if (typeof Utils !== 'undefined' && Utils.safeWarn) {
                         Utils.safeWarn('⚠️ تعذر تحميل من Google Sheets:', e);

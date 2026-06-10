@@ -303,22 +303,22 @@ const ChemicalSafety = {
             return this._chemicalDataLoadPromise;
         }
         this._chemicalDataLoadPromise = (async () => {
-            if (!AppState.googleConfig?.appsScript?.enabled || !AppState.googleConfig?.appsScript?.scriptUrl) {
+            if (!AppState.backendConfig?.server?.enabled || !AppState.backendConfig?.server?.scriptUrl) {
                 this._chemicalBackendFetchOk = true;
                 this.loadChemicalList();
                 return;
             }
-            if (typeof GoogleIntegration === 'undefined' || typeof GoogleIntegration.sendRequest !== 'function') {
+            if (typeof Backend === 'undefined' || typeof Backend.sendRequest !== 'function') {
                 this._chemicalBackendFetchOk = true;
                 this.loadChemicalList();
                 return;
             }
             try {
-                const result = await GoogleIntegration.sendRequest({
+                const result = await Backend.sendRequest({
                     action: 'readFromSheet',
                     data: {
                         sheetName: 'Chemical_Register',
-                        spreadsheetId: AppState.googleConfig?.sheets?.spreadsheetId
+                        spreadsheetId: AppState.backendConfig?.sheets?.spreadsheetId
                     }
                 }).catch(error => {
                     Utils.safeWarn('⚠️ تعذر تحميل بيانات السجل:', error);
@@ -2344,7 +2344,7 @@ const ChemicalSafety = {
 
             // رفع ملفات MSDS
             if (this.msdsFiles.arabic) {
-                const uploadResult = await GoogleIntegration.uploadMultipleFilesToDrive(
+                const uploadResult = await Backend.uploadMultipleFilesToDrive(
                     [{ file: this.msdsFiles.arabic, name: `MSDS_Arabic_${formData.id}.pdf` }],
                     'ChemicalManagement'
                 );
@@ -2357,7 +2357,7 @@ const ChemicalSafety = {
             }
 
             if (this.msdsFiles.english) {
-                const uploadResult = await GoogleIntegration.uploadMultipleFilesToDrive(
+                const uploadResult = await Backend.uploadMultipleFilesToDrive(
                     [{ file: this.msdsFiles.english, name: `MSDS_English_${formData.id}.pdf` }],
                     'ChemicalManagement'
                 );
@@ -2384,12 +2384,12 @@ const ChemicalSafety = {
             }
 
             // حفظ في Google Sheets
-            await GoogleIntegration.sendRequest({
+            await Backend.sendRequest({
                 action: 'saveToSheet',
                 data: {
                     sheetName: 'Chemical_Register',
                     data: formData,
-                    spreadsheetId: AppState.googleConfig?.sheets?.spreadsheetId
+                    spreadsheetId: AppState.backendConfig?.sheets?.spreadsheetId
                 }
             });
 
@@ -2680,12 +2680,12 @@ const ChemicalSafety = {
             AppState.appData.chemicalRegister = AppState.appData.chemicalRegister.filter(c => c.id !== id);
 
             // حذف من Google Sheets
-            await GoogleIntegration.sendRequest({
+            await Backend.sendRequest({
                 action: 'deleteFromSheet',
                 data: {
                     sheetName: 'Chemical_Register',
                     id: id,
-                    spreadsheetId: AppState.googleConfig?.sheets?.spreadsheetId
+                    spreadsheetId: AppState.backendConfig?.sheets?.spreadsheetId
                 }
             });
 

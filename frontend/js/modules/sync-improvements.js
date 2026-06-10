@@ -192,8 +192,8 @@
                     success = false;
                 }
 
-                const rcMerge = typeof GoogleIntegration !== 'undefined' && typeof GoogleIntegration.applyResourceConsumptionSheetSyncResult === 'function'
-                    ? GoogleIntegration.applyResourceConsumptionSheetSyncResult(sheetName, { data, error, success })
+                const rcMerge = typeof Backend !== 'undefined' && typeof Backend.applyResourceConsumptionSheetSyncResult === 'function'
+                    ? Backend.applyResourceConsumptionSheetSyncResult(sheetName, { data, error, success })
                     : null;
                 if (rcMerge && rcMerge.handled) {
                     if (rcMerge.failed) {
@@ -272,15 +272,15 @@
     // تصدير للاستخدام العام
     window.SyncImprovements = SyncImprovements;
     
-    // Monkey patch لدالة syncData في GoogleIntegration
-    // ننتظر حتى يتم تحميل GoogleIntegration ثم نقوم بالـ patch
+    // Monkey patch لدالة syncData في Backend
+    // ننتظر حتى يتم تحميل Backend ثم نقوم بالـ patch
     document.addEventListener('DOMContentLoaded', function() {
         // استخدام setTimeout للتأكد من تحميل جميع الملفات
         setTimeout(function() {
-            if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.syncData) {
-                const originalSyncData = GoogleIntegration.syncData;
+            if (typeof Backend !== 'undefined' && Backend.syncData) {
+                const originalSyncData = Backend.syncData;
                 
-                GoogleIntegration.syncData = async function(options = {}) {
+                Backend.syncData = async function(options = {}) {
                     const {
                         silent = false,
                         showLoader = false,
@@ -300,7 +300,7 @@
                     const effectiveNotifyOnSuccess = notifyOnSuccess && !suppressProgressOverlay;
                     const effectiveNotifyOnError = notifyOnError && !suppressProgressOverlay;
                     
-                    if (!AppState.googleConfig.appsScript.enabled || !AppState.googleConfig.appsScript.scriptUrl) {
+                    if (!AppState.backendConfig.server.enabled || !AppState.backendConfig.server.scriptUrl) {
                         if (!silent) {
                             Utils.safeLog('Google Sheets غير مفعل أو لا يوجد رابط سكريبت - سيتم استخدام البيانات المحلية');
                             Notification.warning('Google Sheets غير مفعل. يتم استخدام البيانات المحلية فقط');
@@ -492,7 +492,7 @@
                             // معالجة الدفعة
                             const { syncedInBatch, failedInBatch } = await SyncImprovements.processBatch(
                                 batch,
-                                GoogleIntegration.readFromSheets.bind(GoogleIntegration),
+                                Backend.readFromSheets.bind(Backend),
                                 sheetMapping,
                                 shouldLog
                             );
@@ -527,7 +527,7 @@
                         // ✅ إصلاح: إعادة جلب الإصابات المدمجة (Injuries + ClinicContractorInjuries)
                         // لأن processBatch يقرأ ورقة Injuries فقط وقد يمسح إصابات المقاولين
                         try {
-                            const injuriesResult = await GoogleIntegration.sendRequest({
+                            const injuriesResult = await Backend.sendRequest({
                                 action: 'getAllInjuries',
                                 data: {}
                             });

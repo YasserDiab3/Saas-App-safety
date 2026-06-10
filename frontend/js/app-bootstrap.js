@@ -276,9 +276,9 @@
                         log('⚠️ تعذر تنفيذ تنظيف الحسابات الافتراضية legacy:', cleanupError);
                     }
                     
-                    if (window.DataManager && window.DataManager.loadGoogleConfig) {
+                    if (window.DataManager && window.DataManager.loadBackendConfig) {
                         try {
-                            window.DataManager.loadGoogleConfig();
+                            window.DataManager.loadBackendConfig();
                             log('✅ تم تحميل إعدادات الاتصال بالخادم بنجاح');
                         } catch (configError) {
                             console.warn('⚠️ خطأ في تحميل إعدادات الاتصال بالخادم:', configError);
@@ -900,7 +900,7 @@
             this._permissionLoadKey = permissionsKey;
 
             const currentPromise = (async () => {
-                if (!userPermissions || typeof GoogleIntegration === 'undefined') {
+                if (!userPermissions || typeof Backend === 'undefined') {
                     return this.loadSharedDataFallback();
                 }
 
@@ -939,7 +939,7 @@
                 const fetchedKeys = [];
 
                 try {
-                    const batchResult = await GoogleIntegration.batchReadFromSheets(sheetNames, {
+                    const batchResult = await Backend.batchReadFromSheets(sheetNames, {
                         timeout: 30000
                     });
 
@@ -974,7 +974,7 @@
                         try {
                             const action = this.getActionForDataType(dataType);
                             const sheetName = this.getSheetNameForDataType(dataType);
-                            const result = await GoogleIntegration.sendRequest({
+                            const result = await Backend.sendRequest({
                                 action,
                                 data: sheetName ? { sheetName } : {}
                             });
@@ -1160,7 +1160,7 @@
             }
 
             const currentPromise = (async () => {
-                if (typeof GoogleIntegration === 'undefined' || !GoogleIntegration.sendRequest ||
+                if (typeof Backend === 'undefined' || !Backend.sendRequest ||
                     typeof Utils === 'undefined' || !Utils.hasCloudBackendSync || !Utils.hasCloudBackendSync()) {
                     return;
                 }
@@ -1184,7 +1184,7 @@
 
                 const fetchedFallbackKeys = [];
                 try {
-                    const batchResult = await GoogleIntegration.batchReadFromSheets(fallbackSheets);
+                    const batchResult = await Backend.batchReadFromSheets(fallbackSheets);
 
                     if (batchResult && batchResult.data) {
                         if (batchResult.data['ApprovedContractors']) {

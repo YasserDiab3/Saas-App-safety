@@ -46,9 +46,9 @@ const ConnectionMonitor = {
             return;
         }
 
-        // التحقق من تفعيل Google Apps Script
-        if (!AppState.googleConfig || !AppState.googleConfig.appsScript || !AppState.googleConfig.appsScript.enabled) {
-            Utils.safeLog('ℹ️ Google Apps Script غير مفعل - تخطي مراقبة الاتصال');
+        // التحقق من تفعيل الخادم السحابي
+        if (!AppState.backendConfig || !AppState.backendConfig.server || !AppState.backendConfig.server.enabled) {
+            Utils.safeLog('ℹ️ الخادم السحابي غير مفعل - تخطي مراقبة الاتصال');
             return;
         }
 
@@ -87,8 +87,8 @@ const ConnectionMonitor = {
             return;
         }
 
-        // التحقق من تفعيل Google Apps Script
-        if (!AppState.googleConfig || !AppState.googleConfig.appsScript || !AppState.googleConfig.appsScript.enabled || !AppState.googleConfig.appsScript.scriptUrl) {
+        // التحقق من تفعيل الخادم السحابي
+        if (!AppState.backendConfig || !AppState.backendConfig.server || !AppState.backendConfig.server.enabled || !AppState.backendConfig.server.scriptUrl) {
             return;
         }
 
@@ -97,9 +97,9 @@ const ConnectionMonitor = {
         try {
             // محاولة قراءة بيانات بسيطة من Google Sheets
             // استخدام timeout أطول (60 ثانية) لتجنب أخطاء timeout غير ضرورية
-            if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.readFromSheets) {
+            if (typeof Backend !== 'undefined' && Backend.readFromSheets) {
                 const result = await Utils.promiseWithTimeout(
-                    GoogleIntegration.readFromSheets('Users'),
+                    Backend.readFromSheets('Users'),
                     60000, // 60 ثانية بدلاً من 15 ثانية
                     'انتهت مهلة الاتصال'
                 );
@@ -117,7 +117,7 @@ const ConnectionMonitor = {
 
                 Utils.safeLog('✅ فحص الاتصال: نجح');
             } else {
-                throw new Error('GoogleIntegration غير متاح');
+                throw new Error('Backend غير متاح');
             }
         } catch (error) {
             // فشل الاتصال
@@ -193,7 +193,7 @@ const ConnectionMonitor = {
                          `الخطأ: انتهت مهلة الاتصال\n` +
                          `الوقت: ${new Date().toLocaleString('ar-SA')}\n\n` +
                          `يرجى التحقق من:\n` +
-                         `1. إعدادات Google Apps Script\n` +
+                         `1. إعدادات الخادم السحابي\n` +
                          `2. معرف Google Sheets\n` +
                          `3. الاتصال بالإنترنت\n\n` +
                          `💡 سيتم استخدام البيانات المحلية حتى يتم استعادة الاتصال.`;
@@ -202,7 +202,7 @@ const ConnectionMonitor = {
                          `الخطأ: ${errorMessage}\n` +
                          `الوقت: ${new Date().toLocaleString('ar-SA')}\n\n` +
                          `يرجى التحقق من:\n` +
-                         `1. إعدادات Google Apps Script\n` +
+                         `1. إعدادات الخادم السحابي\n` +
                          `2. معرف Google Sheets\n` +
                          `3. الاتصال بالإنترنت`;
             }

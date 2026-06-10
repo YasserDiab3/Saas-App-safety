@@ -126,7 +126,7 @@ const BackupUI = {
             };
             
             // استدعاء API
-            const result = await GoogleIntegration.fetchData('createManualBackup', {
+            const result = await Backend.fetchData('createManualBackup', {
                 userData: userData
             });
             
@@ -158,7 +158,7 @@ const BackupUI = {
      */
     async loadBackupStatistics() {
         try {
-            const result = await GoogleIntegration.fetchData('getBackupStatistics', {});
+            const result = await Backend.fetchData('getBackupStatistics', {});
             
             if (result && result.success && result.data) {
                 const stats = result.data;
@@ -198,7 +198,7 @@ const BackupUI = {
                 }
             }
         } catch (error) {
-            // تجاهل أخطاء Circuit Breaker و Google Apps Script غير المفعل
+            // تجاهل أخطاء Circuit Breaker و الخادم السحابي غير المفعل
             const errorMsg = String(error?.message || '').toLowerCase();
             if (!errorMsg.includes('circuit breaker') && 
                 !errorMsg.includes('google apps script غير مفعل') &&
@@ -221,7 +221,7 @@ const BackupUI = {
         if (!listContainer) return;
         
         try {
-            const result = await GoogleIntegration.fetchData('getAllBackups', {});
+            const result = await Backend.fetchData('getAllBackups', {});
             
             if (result && result.success && result.data) {
                 const backups = result.data || [];
@@ -299,7 +299,7 @@ const BackupUI = {
                 listContainer.innerHTML = '<p class="text-red-500 text-center py-4">خطأ في تحميل النسخ الاحتياطية</p>';
             }
         } catch (error) {
-            // تجاهل أخطاء Circuit Breaker و Google Apps Script غير المفعل
+            // تجاهل أخطاء Circuit Breaker و الخادم السحابي غير المفعل
             const errorMsg = String(error?.message || '').toLowerCase();
             if (!errorMsg.includes('circuit breaker') && 
                 !errorMsg.includes('google apps script غير مفعل') &&
@@ -320,7 +320,7 @@ const BackupUI = {
      */
     async loadBackupSettings() {
         try {
-            const result = await GoogleIntegration.fetchData('getBackupSettings', {});
+            const result = await Backend.fetchData('getBackupSettings', {});
             
             if (result && result.success && result.data) {
                 const settings = result.data;
@@ -342,7 +342,7 @@ const BackupUI = {
                 }
             }
         } catch (error) {
-            // تجاهل أخطاء Circuit Breaker و Google Apps Script غير المفعل
+            // تجاهل أخطاء Circuit Breaker و الخادم السحابي غير المفعل
             const errorMsg = String(error?.message || '').toLowerCase();
             if (!errorMsg.includes('circuit breaker') && 
                 !errorMsg.includes('google apps script غير مفعل') &&
@@ -383,7 +383,7 @@ const BackupUI = {
                 role: 'admin'
             };
             
-            const result = await GoogleIntegration.fetchData('saveBackupSettings', {
+            const result = await Backend.fetchData('saveBackupSettings', {
                 ...settings,
                 userData: userData
             });
@@ -412,7 +412,7 @@ const BackupUI = {
      */
     async downloadBackup(backupId) {
         try {
-            const result = await GoogleIntegration.fetchData('downloadBackup', {
+            const result = await Backend.fetchData('downloadBackup', {
                 backupId: backupId
             });
             
@@ -448,7 +448,7 @@ const BackupUI = {
                 role: 'admin'
             };
             
-            const result = await GoogleIntegration.fetchData('deleteBackup', {
+            const result = await Backend.fetchData('deleteBackup', {
                 backupId: backupId,
                 userData: userData
             });

@@ -5963,7 +5963,7 @@
                             return; // Suppress - blocked by ad blockers, not a real error
                         }
 
-                        // Suppress CORS console errors for Google Apps Script
+                        // Suppress CORS console errors for الخادم السحابي
                         // These are browser-level warnings but handled by application code
                         if (
                             (allText.includes("script.google.com") ||
@@ -5999,7 +5999,7 @@
                                 (allText.includes("cors") &&
                                     allText.includes("header")))
                         ) {
-                            return; // Suppress - handled by google-integration.js with user-friendly messages
+                            return; // Suppress - handled by backend-client.js with user-friendly messages
                         }
 
                         // Suppress Tailwind CDN CORS errors - CDN not used in production
@@ -6294,7 +6294,7 @@
                             return false; // قمع فوري - لا نسمح بتمرير الخطأ
                         }
 
-                        // Suppress CORS and 503 errors for Tailwind CDN, Google Apps Script, and Google Drive
+                        // Suppress CORS and 503 errors for Tailwind CDN, الخادم السحابي, and Google Drive
                         if (
                             (message.includes("cdn.tailwindcss.com") ||
                                 message.includes("script.google.com") ||
@@ -6323,7 +6323,7 @@
                             return false;
                         }
 
-                        // Suppress CORS errors for Google Apps Script specifically
+                        // Suppress CORS errors for الخادم السحابي specifically
                         if (
                             (filename.includes("script.google.com") ||
                                 filename.includes("google.com/macros") ||
@@ -6411,7 +6411,7 @@
                             return false;
                         }
 
-                        // Suppress CORS console errors for Google Apps Script (handled by application code)
+                        // Suppress CORS console errors for الخادم السحابي (handled by application code)
                         // These are logged by the browser but handled gracefully by the fetch error handler
                         if (
                             (message.includes("script.google.com") ||
@@ -6450,7 +6450,7 @@
                                 message.includes("ERR_FAILED"))
                         ) {
                             // Don't prevent default, but suppress console noise
-                            // The actual error is handled in google-integration.js with user-friendly messages
+                            // The actual error is handled in backend-client.js with user-friendly messages
                             e.preventDefault();
                             e.stopPropagation();
                             e.stopImmediatePropagation();
@@ -7126,7 +7126,7 @@
                                 errorText.includes("cors") ||
                                 errorText.includes("cross-origin"))
                         ) {
-                            return; // Suppress - handled by google-integration.js
+                            return; // Suppress - handled by backend-client.js
                         }
 
                         // Suppress 503 errors from CDN and external resources
@@ -8678,7 +8678,7 @@
                         return false;
                     }
 
-                    // Suppress CORS errors for Tailwind CDN, Google Apps Script, and Google Drive
+                    // Suppress CORS errors for Tailwind CDN, الخادم السحابي, and Google Drive
                     if (
                         e.message &&
                         ((e.message.includes("cdn.tailwindcss.com") &&
@@ -12780,7 +12780,7 @@
         <script src="js/modules/lazy-loader.js" defer></script>
 
         <!-- ✅ SaaS layer (load before app modules so SaaSAdapter exists when
-             GoogleIntegration.sendRequest delegates). Controlled by
+             Backend.sendRequest delegates). Controlled by
              SAAS_CONFIG.useSupabaseBackend in saas-config.js. -->
         <script src="js/saas/saas-config.js" defer></script>
         <script src="js/saas/supabase-bootstrap.js" defer></script>
@@ -12817,11 +12817,11 @@
             defer
         ></script>
         <script src="js/modules/services/workflow.js" defer></script>
-        <script src="js/modules/services/google-integration.js?v=20260506-createdby-fix2" defer></script>
+        <script src="js/modules/services/backend-client.js?v=20260506-createdby-fix2" defer></script>
         <script src="js/modules/services/data-repository.js" defer></script>
         <script src="js/modules/services/smart-cache.js" defer></script>
         <script src="js/modules/services/connection-monitor.js" defer></script>
-        <!-- ✅ تتبّع إصدارات المستخدمين (silent background reporter — يتطلب google-integration) -->
+        <!-- ✅ تتبّع إصدارات المستخدمين (silent background reporter — يتطلب backend-client) -->
         <script src="js/modules/services/user-version-tracker.js" defer></script>
         <script src="js/modules/services/ai-assistant.js" defer></script>
         <script
@@ -12847,7 +12847,7 @@
         
         <!-- تحميل جميع الموديولات مباشرة (بدلاً من modules-loader.js) -->
         <script src="js/modules/modules/users.js" defer></script>
-        <!-- ✅ لوحة متابعة إصدارات المستخدمين (admin) — تستخدم google-integration الذي حُمّل أعلاه -->
+        <!-- ✅ لوحة متابعة إصدارات المستخدمين (admin) — تستخدم backend-client الذي حُمّل أعلاه -->
         <script src="js/modules/modules/user-versions-admin.js" defer></script>
         <script src="js/modules/modules/incidents.js?v=20260525-registry-dedupe" defer></script>
         <script src="js/modules/modules/nearmiss.js" defer></script>

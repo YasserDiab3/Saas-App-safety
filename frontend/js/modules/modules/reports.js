@@ -323,10 +323,10 @@ const Reports = {
         const needAttendance = !Array.isArray(AppState.appData.trainingAttendance);
         const needTraining = !Array.isArray(AppState.appData.training);
         if (!needContractor && !needAttendance && !needTraining) return;
-        if (typeof GoogleIntegration === 'undefined' || typeof GoogleIntegration.sendRequest !== 'function') return;
-        if (!AppState.googleConfig?.appsScript?.enabled || !AppState.googleConfig?.appsScript?.scriptUrl) return;
+        if (typeof Backend === 'undefined' || typeof Backend.sendRequest !== 'function') return;
+        if (!AppState.backendConfig?.server?.enabled || !AppState.backendConfig?.server?.scriptUrl) return;
         try {
-            const req = (action) => Promise.resolve(GoogleIntegration.sendRequest({ action, data: {} }))
+            const req = (action) => Promise.resolve(Backend.sendRequest({ action, data: {} }))
                 .then(r => (r && r.success && Array.isArray(r.data) ? r.data : []))
                 .catch(() => []);
             const [contractorData, attendanceData, trainingData] = await Promise.all([
