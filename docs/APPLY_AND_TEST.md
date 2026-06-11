@@ -7,14 +7,17 @@
 افتح **Supabase Dashboard → SQL Editor → New query**، ثم انسخ والصق محتوى كل
 ملف بالترتيب واضغط Run:
 
-1. `supabase/migrations/0001_saas_core.sql`
-2. `supabase/migrations/0002_records_store.sql`
-3. `supabase/migrations/0003_seed.sql`
-4. `supabase/migrations/0004_provisioning.sql`
-5. `supabase/migrations/0005_public_api.sql`
-6. `supabase/migrations/0006_tenant_resolution.sql`
+1. `0001_saas_core.sql` … `0011_billing_fixes.sql` (11 ملفاً بالترتيب)
 
-> أو عبر CLI: `supabase link --project-ref tbkajjarkqhsdiabufjv` ثم `supabase db push`.
+> **CLI (موصى به):**
+> ```bash
+> supabase link --project-ref tbkajjarkqhsdiabufjv
+> supabase db push --yes
+> supabase migration list   # Local = Remote لكل 0001–0011
+> ```
+> إن كانت 0001–0006 مطبّقة يدوياً سابقاً: `supabase migration repair 0001 --status applied` … حتى 0006، ثم `db push`.
+
+**تحقق بعد التطبيق:** `supabase/scripts/verify_migrations.sql` في SQL Editor.
 
 ### تحقق سريع (في SQL Editor)
 ```sql
@@ -51,18 +54,18 @@ Dashboard → **Authentication → Providers → Email**: فعّل Email signup.
 - أفعال CRUD المسماة الشائعة (`getAllMedications`, `addUserTask`, …) عبر خريطة
   `ACTION_MAP` + اصطلاح `getAllX`.
 
-## ما لم يُنقل بعد (Phase 2b — يحتاج Edge Function بمنطق خادم)
+## Phase 2b — منطق الأعمال (0007 — مطبّق)
 
-مُدرجة في `BUSINESS_ACTIONS` داخل `saas-adapter.js` (تُرجِع خطأً واضحاً، لا فشل صامت):
-- `addClinicVisit` / `updateClinicVisit` — خصم الأدوية الذرّي (+ LockService).
-- `updateTaskCompletionRate` — دمج تقدّم كل مستخدم.
-- `getUserTasksByUserId` — قراءة مُفلترة بالصلاحية.
-- `getAllClinicVisits` — دمج جدولَي زيارات الموظفين والمقاولين.
+RPCs ذرّية + ربط في `saas-adapter.js`:
+- `addClinicVisit` / `updateClinicVisit` → `api_add_clinic_visit`
+- `getAllClinicVisits` → `api_get_all_clinic_visits`
+- `updateTaskCompletionRate` → `api_update_task_completion`
+- `getUserTasksByUserId` → `api_get_user_tasks`
 
-تُنقَل هذه على دفعات في Phase 2b.
+اختبار تفصيلي: `docs/SUPABASE_MODULE_TEST_CHECKLIST.md` §4.
 
 ## ملاحظة عزل
 
-`useSupabaseBackend` في `saas-config.js` = **false** الآن — التطبيق الرئيسي لم
-يُحوَّل بعد. صفحة الاختبار مستقلة. يُقلب إلى true في Phase 3 بعد نجاح الاختبار.
+`useSupabaseBackend` في `saas-config.js` = **true** — التطبيق يستخدم Supabase.
+Checklist شامل: `docs/SUPABASE_MODULE_TEST_CHECKLIST.md`.
 الإنتاج (`clinic-repo`) لا يُمَس إطلاقاً.

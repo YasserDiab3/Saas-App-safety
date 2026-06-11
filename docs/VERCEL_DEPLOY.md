@@ -2,28 +2,52 @@
 
 المستودع: https://github.com/YasserDiab3/Saas-App-safety
 
-## إعداد مشروع Vercel (مرة واحدة)
-الطريقة الأبسط (لا تحتاج أي إعداد في اللوحة — `vercel.json` يتكفّل بكل شيء):
+## الإعداد الموصى به (Production Build)
+
+`vercel.json` في **جذر المستودع** يضبط تلقائياً:
+
+| الإعداد | القيمة |
+|---------|--------|
+| Install | `cd frontend && npm ci` |
+| Build | `cd frontend && npm run build` |
+| Output | `dist/` (نسخة minified بدون console/debugger) |
+| Security headers | HSTS, X-Frame-Options, COOP, … |
+
+### خطوات Vercel (مرة واحدة)
+
 1. Vercel → **Add New → Project** → استورد `Saas-App-safety`.
-2. Root Directory = **اتركه على الجذر** (`./`).
-3. Framework Preset = **Other** · Build Command = (فارغ) · Output Directory = (فارغ).
-4. Deploy → ثم **Redeploy** بعد آخر push.
+2. **Root Directory** = `./` (الجذر — لا تغيّره).
+3. Framework Preset = **Other** — اترك Build/Output فارغين في اللوحة (يُقرأ من `vercel.json`).
+4. Deploy → **Redeploy** بعد كل push على `main`.
 
-> `vercel.json` في الجذر يعيد توجيه كل المسارات إلى `/frontend/...`
-> (`/` → `/frontend/index.html` و `/(.*)` → `/frontend/$1`)، فيُخدَم الموقع
-> من داخل مجلد frontend دون ضبط Root Directory.
+> **لا تستخدم** Root Directory = `frontend` مع إعداد الجذر الحالي — اختر طريقة واحدة فقط.
 
-> بديل: يمكن بدلاً من ذلك ضبط **Root Directory = `frontend`** في اللوحة
-> (حينها يُتجاهل rewrite الجذر ويُخدَم index.html مباشرة). أي الطريقتين تعمل.
+### بناء محلي (تحقق قبل النشر)
+
+```bash
+cd frontend
+npm ci
+npm run build
+# الناتج: frontend/dist/ + dist/ عند جذر المستودع
+npx serve ../dist
+```
+
+### بديل: Root Directory = frontend
+
+إذا فضّلت ضبط **Root Directory = `frontend`** في لوحة Vercel، يُستخدم `frontend/vercel.json`
+(نفس build + headers، Output = `dist` داخل frontend).
 
 ## بعد النشر
-- الرابط سيفتح `index.html` → بوابة SaaS (`useSupabaseBackend=true`) →
-  إن لا توجد جلسة Supabase → تحويل إلى `login.html`.
-- جديد؟ افتح `/signup.html` → أنشئ حساب + مؤسسة → يفتح التطبيق على Supabase.
-- صفحة اختبار الاتصال المعزولة: `/saas-test.html`.
+
+- `/` → `index.html` (SPA + `useSupabaseBackend=true`).
+- لا جلسة → تحويل إلى `/login.html`.
+- تسجيل جديد → `/signup.html`.
+- اختبار معزول → `/saas-test.html`.
+- فوترة → `/billing.html`.
 
 ## ملاحظات
-- مفتاح anon عام (آمن في المتصفح، محميّ بـ RLS) — وجوده في الريبو طبيعي.
-- لتفعيل تأكيد البريد لاحقاً: Supabase → Auth → عطّل autoconfirm.
-- الفوترة (Stripe) تحتاج نشر الـ Edge Functions + الأسرار (انظر BILLING_AND_DEPLOY.md).
-- CORS: استدعاءات Supabase تعمل من أي دومين عبر anon key — لا إعداد إضافي.
+
+- مفتاح anon عام — آمن مع RLS.
+- قبل الإطلاق العام: فعّل **Confirm email** في Supabase Auth.
+- Stripe: انشر Edge Functions + الأسرار (انظر `BILLING_AND_DEPLOY.md`).
+- مجلد `dist/` في `.gitignore` — Vercel يبنيه عند كل deploy.
