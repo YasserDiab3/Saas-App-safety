@@ -20,7 +20,10 @@
 0011       → billing_fixes (apply_subscription public wrapper) ✅
 ```
 
-**تحقق:** شغّل `supabase/scripts/verify_migrations.sql` في SQL Editor.
+**تحقق:** 
+- CLI: `node supabase/scripts/verify_migrations.mjs` (RPC probe)
+- SQL Editor: `supabase/scripts/verify_migrations.sql`
+- P0 smoke: `SMOKE_EMAIL=... SMOKE_PASSWORD=... node supabase/scripts/p0_module_smoke.mjs`
 
 ## ✅ Phase 2 — طبقة API + الموصِّل
 RPCs `public.api_*` + `frontend/js/saas/` — E2E multi-tenant ناجح.
@@ -34,10 +37,10 @@ RPCs في `0007` مطبّقة. الموصّل يربط: `addClinicVisit`, `getAl
 ## ✅ Phase 4 — التسجيل الذاتي
 `signup.html`, `login.html`, `saas-session.js`, `hydrateAppStateUser()`.
 
-## ⏳ Phase 5 — فوترة Stripe (كود جاهز، نشر يدوي)
+## ⏳ Phase 5 — فوترة Stripe
 - الهجرات 0008 + 0011 مطبّقة على DB ✅
-- Edge Functions: `create-checkout`, `stripe-webhook` — **تحتاج** `supabase functions deploy` + secrets + webhook Stripe
-- اختبار: `billing.html` → checkout → webhook → `plan-gating.js`
+- Edge Functions منشورة ✅: `stripe-webhook`, `create-checkout`
+- ⏳ **متبقي:** أسرار Stripe + webhook في Dashboard (انظر أدناه)
 
 ## ✅ Vercel Production Build
 - `vercel.json` (الجذر): `npm ci` + `npm run build` → `dist/` + security headers
