@@ -16,11 +16,15 @@
 ### خطوات Vercel (مرة واحدة)
 
 1. Vercel → **Add New → Project** → استورد `Saas-App-safety`.
-2. **Root Directory** = `./` (الجذر — لا تغيّره).
-3. Framework Preset = **Other** — اترك Build/Output فارغين في اللوحة (يُقرأ من `vercel.json`).
-4. Deploy → **Redeploy** بعد كل push على `main`.
+2. **Root Directory** = `./` (جذر المستودع — **مهم**).
+3. Framework Preset = **Other**.
+4. في **Project Settings → Build & Development**:
+   - Build Command = (فارغ — يُقرأ من `vercel.json`: `npm run build`)
+   - Output Directory = (فارغ — يُقرأ من `vercel.json`: `dist`)
+   - **لا تضبط** Output = `frontend` يدوياً — يسبب **HTTP 503**.
+5. Deploy → **Redeploy** بعد كل push على `main`.
 
-> **لا تستخدم** Root Directory = `frontend` مع إعداد الجذر الحالي — اختر طريقة واحدة فقط.
+> إذا ظهر **503**: غالباً فشل البناء أو Output Directory خاطئ. افتح Deployments → آخر build → Build Logs.
 
 ### بناء محلي (تحقق قبل النشر)
 
