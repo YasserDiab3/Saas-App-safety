@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>فريق المؤسسة — HSE SaaS</title>
+<link rel="stylesheet" href="css/saas-pages.css">
+</head>
+<body>
+  <div class="saas-page">
+    <div class="saas-page-hd">
+      <h1>👥 <span data-i18n="team_title">فريق المؤسسة</span></h1>
+    </div>
+    <div class="saas-panel" id="status" data-i18n="loading">جاري التحميل…</div>
+    <div class="saas-panel" id="limits"></div>
+    <div class="saas-panel">
+      <h2 data-i18n="team_invite">دعوة عضو جديد</h2>
+      <div class="saas-field">
+        <label data-i18n="f_email">البريد الإلكتروني</label>
+        <input id="email" class="saas-input" type="email">
+      </div>
+      <div class="saas-field">
+        <label data-i18n="team_role">الدور</label>
+        <select id="role" class="saas-input">
+          <option value="user">user</option>
+          <option value="safety_officer">safety_officer</option>
+          <option value="admin">admin</option>
+        </select>
+      </div>
+      <button class="saas-btn" id="inviteBtn" data-i18n="team_send">إرسال الدعوة</button>
+      <div class="saas-msg" id="msg"></div>
+      <div id="inviteLink" class="saas-msg ok" style="display:none;margin-top:12px"></div>
+    </div>
+    <div class="saas-panel">
+      <h2 data-i18n="team_pending">دعوات معلّقة</h2>
+      <div id="list"></div>
+    </div>
+    <p style="margin-top:18px">
+      <a class="saas-link" href="/" data-i18n="back_app">← العودة للتطبيق</a>
+      &nbsp;|&nbsp;
+      <a class="saas-link" href="billing.html" data-i18n="billing_title">الفوترة</a>
+    </p>
+  </div>
+  <script src="js/saas/saas-config.js"></script>
+  <script src="js/saas/supabase-bootstrap.js"></script>
+  <script src="js/saas/saas-i18n.js"></script>
+  <script>
+    const T = k => SaaSI18n.t(k);
+    const $ = id => document.getElementById(id);
+    const msg = (t, cls) => { $('msg').className = 'saas-msg ' + (cls || ''); $('msg').textContent = t; };
+
+    async function load() {
+      await SaaS.ready;
+      const s = await SaaS.getSession();
+      if (!s) { location.href = 'login.html'; return; }
+      const me = await SaaS.client().rpc('api_me');
+      if (me.error || !['owner','admin'].includes((me.data?.role || '').toLowerCase())) {
+        $('status').textContent = T('team_forbidden');
+        $('inviteBtn').disabled = true;
+        return;
+      }
+      const { data, error } = await SaaS.client().rpc('api_billing_status');
+      if (error) { $('status').textContent = error.message; return; }
+      const lim = data.limits || {};
+      $('status').innerHTML = `<b>${T('lbl_org')}:</b> ${data.tenant?.name || '-'} | <b>${T('lbl_plan')}:</b> ${data.tenant?.plan_id}`;
+      $('limits').textContent = `${T('team_seats')}: ${lim.user_count || 0} + ${lim.pending_invites || 0} ${T('team_pending_short')} / ${lim.max_users || '-'}`;
+      renderInvites(await SaaS.client().rpc('api_list_invitations'));
+    }
+
+    function renderInvites(res) {
+      const rows = res.data || [];
+      if (!rows.length) { $('list').innerHTML = `<p class="muted-s">${T('team_none')}</p>`; return; }
+      $('list').innerHTML = rows.map(i => {
+        const pending = !i.accepted_at;
+        return `<div style="padding:8px 0;border-bottom:1px solid var(--line)">
+          <b>${i.email}</b> — ${i.role}
+          ${pending ? `<button class="saas-btn ghost" style="margin-inline-start:8px" onclick="revoke('${i.id}')">${T('team_revoke')}</button>` : ' ✓'}
+        </div>`;
+      }).join('');
+    }
+
+    async function invite() {
+      $('inviteBtn').disabled = true;
+      msg(T('su_creating'));
+      try {
+        const res = await SaaS.client().rpc('api_invite_member', {
+          p_email: $('email').value.trim(),
+          p_role: $('role').value
+        });
+        if (res.error) throw new Error(res.error.message);
+        const url = location.origin + (res.data.accept_url || '');
+        $('inviteLink').style.display = 'block';
+        $('inviteLink').textContent = T('team_link') + ': ' + url;
+        msg(T('team_sent'), 'ok');
+        load();
+      } catch (e) { msg(e.message, 'err'); }
+      $('inviteBtn').disabled = false;
+    }
+
+    async function revoke(id) {
+      await SaaS.client().rpc('api_revoke_invitation', { p_invitation_id: id });
+      load();
+    }
+    window.revoke = revoke;
+    $('inviteBtn').onclick = invite;
+    document.addEventListener('DOMContentLoaded', () => SaaSI18n.init(load));
+  </script>
+</body>
+</html>

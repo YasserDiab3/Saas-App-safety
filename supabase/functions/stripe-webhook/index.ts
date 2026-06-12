@@ -25,16 +25,25 @@ function planFromPrice(priceId: string | null): string {
   return (priceId && map[priceId]) || 'free';
 }
 
+function customerId(sub: { customer?: string | { id?: string } }): string {
+  const c = sub.customer;
+  return typeof c === 'string' ? c : (c?.id ?? '');
+}
+
 async function applySub(sub: any) {
   const priceId = sub.items?.data?.[0]?.price?.id ?? null;
-  await admin.rpc('apply_subscription', {
-    p_customer_id: sub.customer,
+  const { error } = await admin.rpc('apply_subscription', {
+    p_customer_id: customerId(sub),
     p_subscription_id: sub.id,
     p_plan_id: planFromPrice(priceId),
     p_status: sub.status,
     p_period_end: sub.current_period_end ? new Date(sub.current_period_end * 1000).toISOString() : null,
     p_cancel_at_period_end: !!sub.cancel_at_period_end
   });
+  if (error) {
+    console.error('apply_subscription failed', error);
+    throw error;
+  }
 }
 
 Deno.serve(async (req) => {

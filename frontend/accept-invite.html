@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>قبول الدعوة — HSE SaaS</title>
+<link rel="stylesheet" href="css/saas-pages.css">
+</head>
+<body>
+  <div class="saas-shell">
+    <div class="saas-card">
+      <div class="saas-head">
+        <div class="saas-logo">🛡️</div>
+        <h1 data-i18n="invite_accept_title">قبول دعوة المؤسسة</h1>
+      </div>
+      <div class="saas-body">
+        <div class="saas-msg" id="msg" data-i18n="loading">جاري التحميل…</div>
+        <button id="go" class="saas-btn" style="display:none" data-i18n="invite_accept_btn">قبول والدخول</button>
+        <div class="saas-foot" style="margin-top:16px">
+          <a href="login.html" data-i18n="login_link">تسجيل الدخول</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="js/saas/saas-config.js"></script>
+  <script src="js/saas/supabase-bootstrap.js"></script>
+  <script src="js/saas/saas-i18n.js"></script>
+  <script>
+    const T = k => SaaSI18n.t(k);
+    const token = new URLSearchParams(location.search).get('token');
+    const msg = (t, cls) => {
+      const el = document.getElementById('msg');
+      el.className = 'saas-msg ' + (cls || '');
+      el.textContent = t;
+    };
+
+    async function init() {
+      document.addEventListener('DOMContentLoaded', () => SaaSI18n.init());
+      if (!token) { msg(T('invite_no_token'), 'err'); return; }
+      const s = await SaaS.getSession();
+      if (!s) {
+        msg(T('invite_login_first'));
+        setTimeout(() => { location.href = 'login.html?redirect=' + encodeURIComponent(location.pathname + location.search); }, 2000);
+        return;
+      }
+      document.getElementById('go').style.display = 'block';
+      msg(T('invite_ready'));
+    }
+
+    async function accept() {
+      document.getElementById('go').disabled = true;
+      msg(T('loading'));
+      try {
+        const res = await SaaS.client().rpc('api_accept_invitation', { p_token: token });
+        if (res.error) throw new Error(res.error.message);
+        msg(T('invite_done'), 'ok');
+        setTimeout(() => { location.href = '/'; }, 1500);
+      } catch (e) {
+        msg(e.message, 'err');
+        document.getElementById('go').disabled = false;
+      }
+    }
+
+    document.getElementById('go').onclick = accept;
+    SaaS.ready.then(init);
+  </script>
+</body>
+</html>

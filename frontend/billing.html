@@ -47,11 +47,18 @@
     function render(data) {
       const t = data.tenant || {}, sub = data.subscription || {};
       const locale = SaaSI18n.lang === 'ar' ? 'ar-EG' : 'en-US';
-      document.getElementById('status').innerHTML =
+      const lim = data.limits || {};
+      let html =
         `<b data-x>${T('lbl_org')}:</b> ${t.name || '-'} &nbsp;|&nbsp; ` +
         `<b>${T('lbl_plan')}:</b> <span class="badge ok">${t.plan_id || 'free'}</span> &nbsp;|&nbsp; ` +
-        `<b>${T('lbl_status')}:</b> ${statusBadge(t.status)}` +
-        (sub.current_period_end ? ` &nbsp;|&nbsp; <b>${T('lbl_renewal')}:</b> ${new Date(sub.current_period_end).toLocaleDateString(locale)}` : '');
+        `<b>${T('lbl_status')}:</b> ${statusBadge(t.status)}`;
+      if (t.trial_ends_at) html += ` &nbsp;|&nbsp; <b>${T('lbl_trial')}:</b> ${new Date(t.trial_ends_at).toLocaleDateString(locale)}`;
+      if (lim.max_users) html += ` &nbsp;|&nbsp; <b>${T('lbl_seats')}:</b> ${lim.user_count || 0}/${lim.max_users}`;
+      if (lim.storage_mb) html += ` &nbsp;|&nbsp; <b>${T('lbl_storage')}:</b> ${lim.storage_used_mb || 0}/${lim.storage_mb} MB`;
+      if (sub.current_period_end) html += ` &nbsp;|&nbsp; <b>${T('lbl_renewal')}:</b> ${new Date(sub.current_period_end).toLocaleDateString(locale)}`;
+      if (data.payment_required) html += `<div class="saas-msg warn" style="margin-top:12px">${T('payment_required_banner')} <a href="billing.html">${T('subscribe')}</a></div>`;
+      html += ` &nbsp;|&nbsp; <a class="saas-link" href="team.html">${T('team_title')}</a>`;
+      document.getElementById('status').innerHTML = html;
 
       const plans = data.plans || [];
       document.getElementById('plans').innerHTML = plans.map(p => {

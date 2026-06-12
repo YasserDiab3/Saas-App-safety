@@ -18,9 +18,8 @@
         async requireTenant(onboardingUrl) {
             await global.SaaS.ready;
             const client = global.SaaS.client();
-            // tenant is resolved server-side (profiles.default_tenant_id); confirm via a cheap RPC
-            const { data, error } = await client.rpc('api_read_sheet', { p_sheet: '__tenant_probe__' });
-            if (error && /no active tenant/i.test(error.message || '')) {
+            const { data, error } = await client.rpc('api_me');
+            if (error || !data || !data.tenant_id) {
                 location.href = onboardingUrl || 'signup.html?step=org';
                 return false;
             }

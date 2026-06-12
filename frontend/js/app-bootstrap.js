@@ -742,6 +742,8 @@
             try {
                 const user = await window.SaaSSession.requireSession('login.html');
                 if (!user) return; // تمت إعادة التوجيه لصفحة الدخول
+                const hasTenant = await window.SaaSSession.requireTenant('signup.html?step=org');
+                if (!hasTenant) return;
                 await window.SaaSSession.hydrateAppStateUser();
                 this._sessionRestored = true;
                 log('✅ جلسة Supabase صالحة — فتح التطبيق');
@@ -750,7 +752,12 @@
                 }
                 // تطبيق قيود الخطة على القوائم (إن توفّر)
                 if (window.SaaSGating && typeof window.SaaSGating.load === 'function') {
-                    window.SaaSGating.load().then(() => window.SaaSGating.applyToNav()).catch(() => {});
+                    window.SaaSGating.load().then(() => {
+                        window.SaaSGating.applyToNav();
+                        if (typeof window.SaaSGating.showPaymentBanner === 'function') {
+                            window.SaaSGating.showPaymentBanner();
+                        }
+                    }).catch(() => {});
                 }
             } catch (e) {
                 log('⚠️ فشل بوابة SaaS — تحويل لصفحة الدخول:', e);

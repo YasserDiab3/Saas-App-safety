@@ -47,6 +47,17 @@
       users_suffix: 'مستخدم', checkout_failed: 'تعذّر بدء الدفع', err_prefix: 'خطأ: ',
       st_trialing: 'تجريبي', st_active: 'فعّال', st_past_due: 'متأخر السداد',
       st_frozen: 'مجمّد', st_canceled: 'ملغى',
+      payment_required_banner: 'انتهت التجربة المجانية (7 أيام) — أضف بيانات الدفع للمتابعة:',
+      lbl_trial: 'نهاية التجربة', lbl_seats: 'المقاعد', lbl_storage: 'التخزين',
+
+      team_title: 'فريق المؤسسة', team_invite: 'دعوة عضو جديد', team_role: 'الدور',
+      team_send: 'إرسال الدعوة', team_pending: 'دعوات معلّقة', team_seats: 'المقاعد المستخدمة',
+      team_pending_short: 'معلّقة', team_none: 'لا توجد دعوات', team_revoke: 'إلغاء',
+      team_sent: 'تم إنشاء الدعوة', team_link: 'رابط الدعوة', team_forbidden: 'يتطلب صلاحية مالك أو مدير',
+
+      invite_accept_title: 'قبول دعوة المؤسسة', invite_accept_btn: 'قبول والدخول',
+      invite_no_token: 'رابط الدعوة غير صالح', invite_login_first: 'سجّل الدخول أولاً…',
+      invite_ready: 'اضغط لقبول الدعوة والانضمام للمؤسسة', invite_done: 'تم الانضمام — جاري التحويل…',
 
       // platform console
       pf_doctitle: 'إدارة الخطط — لوحة مدير المنصّة',
@@ -91,6 +102,17 @@
       users_suffix: 'users', checkout_failed: 'Could not start checkout', err_prefix: 'Error: ',
       st_trialing: 'Trial', st_active: 'Active', st_past_due: 'Past due',
       st_frozen: 'Frozen', st_canceled: 'Canceled',
+      payment_required_banner: 'Free trial ended (7 days) — add payment to continue:',
+      lbl_trial: 'Trial ends', lbl_seats: 'Seats', lbl_storage: 'Storage',
+
+      team_title: 'Team', team_invite: 'Invite member', team_role: 'Role',
+      team_send: 'Send invite', team_pending: 'Pending invites', team_seats: 'Seats used',
+      team_pending_short: 'pending', team_none: 'No invites', team_revoke: 'Revoke',
+      team_sent: 'Invite created', team_link: 'Invite link', team_forbidden: 'Owner or admin only',
+
+      invite_accept_title: 'Accept invitation', invite_accept_btn: 'Accept & enter',
+      invite_no_token: 'Invalid invite link', invite_login_first: 'Sign in first…',
+      invite_ready: 'Click to accept and join the organization', invite_done: 'Joined — redirecting…',
 
       pf_doctitle: 'Plans — Platform Admin Console',
       pf_login_title: 'Platform Admin Login', pf_title: 'Plan Modules Management',
