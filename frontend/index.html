@@ -9569,19 +9569,16 @@
                     <!-- Login Footer -->
                     <footer class="login-footer" dir="rtl">
                         <div class="login-footer-content">
-                            <div class="login-footer-row">
-                                <span id="login-footer-copyright"
-                                    >© QHSSE Global Consultant — كل الحقوق محفوظة 2025</span
+                            <div class="login-footer-row login-footer-row--copyright">
+                                <span id="login-footer-rights"
+                                    >كل الحقوق محفوظة 2025</span
+                                >
+                                <span class="login-footer-separator" aria-hidden="true">|</span>
+                                <span id="login-footer-brand" dir="ltr"
+                                    >QHSSE Global Consultant ®</span
                                 >
                             </div>
-                            <div class="login-footer-row">
-                                <span
-                                    id="login-footer-version"
-                                    class="login-footer-version-badge"
-                                    dir="ltr"
-                                    >2.2.12</span
-                                >
-                                <span class="login-footer-separator">|</span>
+                            <div class="login-footer-row login-footer-row--center">
                                 <a
                                     href="#"
                                     id="privacy-policy-link"
@@ -9590,6 +9587,21 @@
                                         >سياسة الخصوصية</span
                                     ></a
                                 >
+                            </div>
+                            <div class="login-footer-row login-footer-row--center login-footer-version-wrap">
+                                <span
+                                    id="login-footer-version"
+                                    class="login-footer-version-badge"
+                                    dir="ltr"
+                                    title="إصدار التطبيق"
+                                    >…</span
+                                >
+                                <button
+                                    type="button"
+                                    id="login-footer-update"
+                                    class="login-footer-update-badge"
+                                    hidden
+                                >تحديث متاح</button>
                             </div>
                         </div>
                     </footer>
@@ -9617,9 +9629,8 @@
                         submitAria: "تسجيل الدخول",
                         help: "مساعدة / Help",
                         helpAria: "مساعدة",
-                        footerCopyright:
-                            "© QHSSE Global Consultant — كل الحقوق محفوظة 2025",
-                        footerVersion: "2.2.12",
+                        footerRights: "كل الحقوق محفوظة 2025",
+                        footerBrand: "QHSSE Global Consultant ®",
                         footerPrivacy: "سياسة الخصوصية",
                         langToggleAria: "تبديل اللغة",
                         langCurrent: "AR",
@@ -9641,9 +9652,8 @@
                         submitAria: "Log in",
                         help: "Help",
                         helpAria: "Help",
-                        footerCopyright:
-                            "© QHSSE Global Consultant — All rights reserved 2025",
-                        footerVersion: "2.2.12",
+                        footerRights: "All rights reserved 2025",
+                        footerBrand: "QHSSE Global Consultant ®",
                         footerPrivacy: "Privacy Policy",
                         langToggleAria: "Switch language",
                         langCurrent: "EN",
@@ -9716,11 +9726,13 @@
                     if (helpB) helpB.setAttribute("aria-label", t.helpAria);
                     if (byId("login-help-text"))
                         byId("login-help-text").textContent = t.help;
-                    if (byId("login-footer-copyright"))
-                        byId("login-footer-copyright").textContent =
-                            t.footerCopyright;
-                    if (byId("login-footer-version"))
-                        byId("login-footer-version").textContent = t.footerVersion;
+                    if (byId("login-footer-rights"))
+                        byId("login-footer-rights").textContent = t.footerRights;
+                    if (byId("login-footer-brand"))
+                        byId("login-footer-brand").textContent = t.footerBrand;
+                    if (window.SaaSVersion && typeof window.SaaSVersion.initLoginScreen === "function") {
+                        window.SaaSVersion.initLoginScreen(lang);
+                    }
                     if (byId("login-footer-privacy"))
                         byId("login-footer-privacy").textContent =
                             t.footerPrivacy;
@@ -12776,6 +12788,7 @@
              SAAS_CONFIG.useSupabaseBackend in saas-config.js. -->
         <script src="js/saas/saas-config.js" defer></script>
         <script src="js/saas/saas-brand.js" defer></script>
+        <script src="js/saas/saas-version.js" defer></script>
         <script src="js/saas/supabase-bootstrap.js" defer></script>
         <script src="js/saas/saas-adapter.js" defer></script>
         <script src="js/saas/saas-tenant-cache.js" defer></script>

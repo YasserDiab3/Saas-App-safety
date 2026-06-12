@@ -1,0 +1,31 @@
+---
+description: App version bump and update notification (version.json)
+globs: frontend/version.json,frontend/js/modules/app-utils.js,frontend/index.html
+alwaysApply: false
+---
+
+# App version — single source of truth
+
+## When releasing any user-facing change
+
+1. **Bump only** `frontend/version.json` — increment semver (`version` field).
+2. Optionally add `message` (AR/EN summary shown in the update modal).
+3. Keep `frontend/js/modules/app-utils.js` → `AppState.appVersion` in sync with the same value (fallback before `saas-version.js` loads).
+4. Do **not** hardcode version strings in `index.html` login footer — `saas-version.js` reads `version.json` and shows `V{version}`.
+5. Do **not** duplicate version in SaaS HTML pages unless using `SaaSVersion.formatDisplay()`.
+
+## How updates are detected
+
+- `frontend/js/saas/saas-version.js` fetches `/version.json` (no cache).
+- Compares with `localStorage.hse_last_seen_version`.
+- **Login screen**: shows pulsing badge + "تحديث متاح" when server version is newer.
+- **Inside app**: `UI._showUpdateModal` (also polled on tab focus every 5 min).
+
+## Example version.json
+
+```json
+{
+  "version": "2.2.13",
+  "message": "تحسينات الأمان وواجهة تسجيل الدخول"
+}
+```

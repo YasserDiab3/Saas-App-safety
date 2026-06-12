@@ -2733,6 +2733,10 @@ window.UI = {
      */
     async _checkServerVersion() {
         try {
+            if (typeof window !== 'undefined' && window.SaaSVersion && typeof window.SaaSVersion.notifyIfUpdate === 'function') {
+                await window.SaaSVersion.notifyIfUpdate();
+                return;
+            }
             if (typeof fetch === 'undefined') return;
             const base = (typeof window !== 'undefined' && window.location && window.location.origin) ? window.location.origin : '';
             const isFileProtocol = typeof window !== 'undefined' && window.location && window.location.protocol === 'file:';
@@ -2749,7 +2753,6 @@ window.UI = {
                 ? String(localStorage.getItem(storageKey)).trim()
                 : '';
 
-            // إذا لم يكن هناك إصدار محفوظ للمستخدم من قبل، خزّن الإصدار الحالي وانهِ بدون إظهار نافذة
             if (!lastSeen) {
                 try { if (typeof localStorage !== 'undefined') localStorage.setItem(storageKey, serverVersion); } catch (e) {}
                 if (AppState && AppState.debugMode) console.log('🌐 [UpdateNotif] أول فحص خادم — تخزين ' + serverVersion);
@@ -2758,7 +2761,6 @@ window.UI = {
 
             if (typeof this._compareVersions !== 'function') return;
             const cmp = this._compareVersions(serverVersion, lastSeen);
-            // عرض نافذة التحديث فقط إذا كان إصدار الخادم أحدث تسلسلياً من آخر إصدار شاهده المستخدم
             if (cmp <= 0) {
                 if (AppState && AppState.debugMode) {
                     console.log('🌐 [UpdateNotif] خادم=' + serverVersion + ' lastSeen=' + lastSeen + ' (cmp=' + cmp + ') — لا تغيير');
@@ -2829,7 +2831,12 @@ window.UI = {
      */
     _showUpdateMessageIfNeeded() {
         try {
-            const currentVersion = (typeof AppState !== 'undefined' && AppState.appVersion) ? String(AppState.appVersion).trim() : '';
+            let currentVersion = (typeof window !== 'undefined' && window.SaaSVersion && window.SaaSVersion.getServerVersion())
+                ? String(window.SaaSVersion.getServerVersion()).trim()
+                : '';
+            if (!currentVersion) {
+                currentVersion = (typeof AppState !== 'undefined' && AppState.appVersion) ? String(AppState.appVersion).trim() : '';
+            }
             if (!currentVersion) {
                 if (AppState && AppState.debugMode) console.warn('🔔 [UpdateNotif] لا يوجد appVersion');
                 return;
