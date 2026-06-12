@@ -58,7 +58,7 @@ function isSwDev() {
 // Bump cache version to force clients to pick up latest JS/CSS updates (زيادة عند كل نشر لظهور التحديثات)
 // يجب تحديث __SW_REGISTER_QUERY في index.html بنفس اللاحقة عند تغيير الإصدار لتسريع اكتشاف service-worker.js
 // Service Worker Version: 20260501 — isSwDev: مضيفات إضافية + معاينة Vercel
-const CACHE_VERSION = 'hse-app-v1.0.79-20260607';
+const CACHE_VERSION = 'hse-app-v1.0.80-20260612-sw-nav-fix';
 const CACHE_NAME = `hse-cache-${CACHE_VERSION}`;
 
 /** أقصى حجم لعنصر في الكاش (بايت) — يحدّ تخزين ملفات CDN الضخمة */
@@ -206,6 +206,12 @@ self.addEventListener('fetch', (event) => {
         // تجاهل الطلبات التي تحتوي على headers خاصة بالمصادقة
         // للتأكد من عدم التداخل مع بيانات الجلسة
         if (request.headers.get('X-Skip-Service-Worker') === 'true') {
+            return;
+        }
+
+        // لا تعترض تحميل صفحات HTML (navigate/document).
+        // Vercel cleanUrls يحوّل /index.html → 308 → / والـ SW يكسر التنقل إن اعترض الطلب.
+        if (request.mode === 'navigate' || request.destination === 'document') {
             return;
         }
         

@@ -41,7 +41,7 @@
     const T = k => SaaSI18n.t(k);
     const msg = (t, cls) => { $('msg').className = 'saas-msg ' + (cls || ''); $('msg').textContent = t; };
     document.addEventListener('DOMContentLoaded', () => SaaSI18n.init());
-    (async () => { const s = await SaaS.getSession(); if (s) location.href = 'index.html'; })();
+    (async () => { const s = await SaaS.getSession(); if (s) location.replace('/'); })();
     async function doLogin() {
       const email = $('email').value.trim(), pwd = $('pwd').value;
       if (!email || !pwd) { msg(T('err_fill_both'), 'err'); return; }
@@ -49,7 +49,7 @@
       const r = await SaaS.signIn(email, pwd);
       if (r.error) { msg(r.error.message || T('err_login_failed'), 'err'); $('go').disabled = false; return; }
       msg(T('login_ok'), 'ok');
-      setTimeout(() => location.href = 'index.html', 500);
+      setTimeout(() => location.replace('/'), 500);
     }
   </script>
 </body>

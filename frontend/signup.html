@@ -63,7 +63,7 @@
         const { error } = await SaaS.client().rpc('api_provision_tenant', { p_name: org });
         if (error) throw new Error(error.message);
         msg(T('su_ok'), 'ok');
-        setTimeout(() => location.href = 'index.html', 800);
+        setTimeout(() => location.replace('/'), 800);
       } catch (e) { msg(e.message || T('su_failed'), 'err'); $('go').disabled = false; }
     }
   </script>

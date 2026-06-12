@@ -2,26 +2,6 @@
 <html lang="ar" dir="rtl">
     <head>
         <meta charset="UTF-8" />
-        <!-- SaaS: توجيه فوري لصفحة الدخول إن لا توجد جلسة Supabase -->
-        <script src="js/saas/saas-config.js"></script>
-        <script>
-            (function () {
-                try {
-                    var cfg = window.SAAS_CONFIG;
-                    if (!cfg || !cfg.useSupabaseBackend) return;
-                    if (/login|signup/i.test(String(location.pathname || ""))) return;
-                    var has = false;
-                    for (var i = 0; i < localStorage.length; i++) {
-                        var k = localStorage.key(i);
-                        if (k && k.indexOf("sb-") === 0 && k.indexOf("-auth-token") !== -1 && localStorage.getItem(k)) {
-                            has = true;
-                            break;
-                        }
-                    }
-                    if (!has) location.replace("login.html");
-                } catch (e) { /* ignore */ }
-            })();
-        </script>
         <!-- تعطيل قمع console: أضف ?debug=1 للرابط أو localStorage.setItem('HSE_DEBUG_CONSOLE','1') -->
         <script>
             (function () {
@@ -12995,7 +12975,7 @@
                     }
 
                     // مطابقة CACHE_VERSION في service-worker.js — تسريع جلب سكربت SW بعد النشر (تجاوز كاش الشبكة/الوسيط)
-                    const __SW_REGISTER_QUERY = "v=hse-app-v1.0.79-20260607";
+                    const __SW_REGISTER_QUERY = "v=hse-app-v1.0.80-20260612-sw-nav-fix";
                     const swUrl =
                         swPath +
                         (swPath.includes("?") ? "&" : "?") +
