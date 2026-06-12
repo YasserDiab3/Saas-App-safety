@@ -33,3 +33,6 @@ Thumbs.db
 # Temp
 tmp/
 *.tmp
+
+# Local QA credentials (production_launch / create_smoke_tenant)
+supabase/scripts/.smoke-credentials.json
