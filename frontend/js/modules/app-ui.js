@@ -3559,7 +3559,10 @@ window.UI = {
         this.updateCompanyBranding();
 
         if (header) {
-            if (AppState.companyLogo) {
+            const headerLogo = (AppState.companyLogo && AppState.companyLogo.trim())
+                ? AppState.companyLogo.trim()
+                : this.getDefaultPlatformLogoUrl();
+            if (headerLogo) {
                 header.style.display = 'flex';
                 header.style.justifyContent = 'space-between';
                 header.style.alignItems = 'center';
@@ -3589,7 +3592,7 @@ window.UI = {
                         logoImg.style.display = 'block';
                     };
                     
-                    logoImg.src = AppState.companyLogo;
+                    logoImg.src = headerLogo;
                     logoImg.style.display = 'block';
                     logoImg.style.maxHeight = '50px';
                     logoImg.style.maxWidth = '150px';
@@ -3715,6 +3718,19 @@ window.UI = {
     },
 
     /**
+     * شعار المنصّة الافتراضي (QHSSE) — قبل شعار المؤسسة المخصّص
+     */
+    getDefaultPlatformLogoUrl() {
+        if (typeof window.SaaSBrand !== 'undefined' && typeof window.SaaSBrand.getDefaultLogoUrl === 'function') {
+            return window.SaaSBrand.getDefaultLogoUrl();
+        }
+        if (window.SAAS_CONFIG && window.SAAS_CONFIG.defaultLogoUrl) {
+            return window.SAAS_CONFIG.defaultLogoUrl;
+        }
+        return 'assets/brand/logo.png';
+    },
+
+    /**
      * تحديث شعار الشركة في شاشة تسجيل الدخول
      */
     updateLoginLogo() {
@@ -3754,6 +3770,13 @@ window.UI = {
             }
         }
 
+        // المصدر 4: شعار المنصّة الافتراضي
+        if (!logoUrl) {
+            logoUrl = this.getDefaultPlatformLogoUrl();
+        }
+
+        const defaultPlatformLogo = this.getDefaultPlatformLogoUrl();
+
         // إذا وجد شعار، نعرضه ونخفي الأيقونة الافتراضية
         if (logoUrl && logoUrl.trim() !== '') {
             // إعداد معالجات الأحداث قبل تعيين src
@@ -3763,9 +3786,12 @@ window.UI = {
                 if (!hasError) {
                     hasError = true;
                     Utils.safeWarn('⚠️ فشل تحميل شعار الشركة من:', logoUrl);
+                    if (defaultPlatformLogo && logoUrl !== defaultPlatformLogo) {
+                        loginLogoImg.src = defaultPlatformLogo;
+                        return;
+                    }
                     loginLogoImg.style.display = 'none';
                     defaultLogoIcon.style.display = 'inline-block';
-                    // إزالة src التالف لمنع محاولات متكررة
                     loginLogoImg.src = '';
                 }
             };

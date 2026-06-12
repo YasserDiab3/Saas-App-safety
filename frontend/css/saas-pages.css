@@ -37,10 +37,13 @@ body{
   color:#fff; padding:26px 28px; text-align:center; position:relative;
 }
 .saas-logo{
-  width:52px;height:52px;margin:0 auto 10px;border-radius:14px;
-  background:rgba(255,255,255,.15); display:grid;place-items:center;font-size:1.7rem;
-  border:1px solid rgba(255,255,255,.25);
+  width:72px;height:72px;margin:0 auto 10px;border-radius:14px;
+  background:rgba(255,255,255,.92); display:grid;place-items:center;font-size:1.7rem;
+  border:1px solid rgba(255,255,255,.35); overflow:hidden; padding:4px;
 }
+.saas-logo-img{width:100%;height:100%;object-fit:contain;display:block}
+.saas-page-brand{text-align:center;margin-bottom:14px}
+.saas-page-brand img{max-height:64px;max-width:220px;object-fit:contain;filter:drop-shadow(0 2px 8px rgba(0,0,0,.15))}
 .saas-head h1{margin:0;font-size:1.3rem;font-weight:800;letter-spacing:.2px}
 .saas-head p{margin:7px 0 0;font-size:.82rem;opacity:.9}
 .saas-body{padding:26px 28px}

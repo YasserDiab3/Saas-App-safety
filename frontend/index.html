@@ -7358,79 +7358,79 @@
             rel="icon"
             type="image/png"
             sizes="16x16"
-            href="./icons/icon-16x16.png"
+            href="./assets/brand/favicon.png"
             id="favicon-16"
         />
         <link
             rel="icon"
             type="image/png"
             sizes="32x32"
-            href="./icons/icon-32x32.png"
+            href="./assets/brand/favicon.png"
             id="favicon-32"
         />
         <link
             rel="icon"
             type="image/png"
             sizes="48x48"
-            href="./icons/icon-48x48.png"
+            href="./assets/brand/favicon.png"
         />
         <link
             rel="icon"
             type="image/png"
             sizes="72x72"
-            href="./icons/icon-72x72.png"
+            href="./assets/brand/favicon.png"
         />
         <link
             rel="icon"
             type="image/png"
             sizes="96x96"
-            href="./icons/icon-96x96.png"
+            href="./assets/brand/favicon.png"
         />
         <link
             rel="icon"
             type="image/png"
             sizes="128x128"
-            href="./icons/icon-128x128.png"
+            href="./assets/brand/favicon.png"
         />
         <link
             rel="icon"
             type="image/png"
             sizes="144x144"
-            href="./icons/icon-144x144.png"
+            href="./assets/brand/favicon.png"
         />
         <link
             rel="icon"
             type="image/png"
             sizes="152x152"
-            href="./icons/icon-152x152.png"
+            href="./assets/brand/favicon.png"
         />
         <link
             rel="icon"
             type="image/png"
             sizes="192x192"
-            href="./icons/icon-192x192.png"
+            href="./assets/brand/favicon.png"
         />
         <link
             rel="icon"
             type="image/png"
             sizes="384x384"
-            href="./icons/icon-384x384.png"
+            href="./assets/brand/favicon.png"
         />
         <link
             rel="icon"
             type="image/png"
             sizes="512x512"
-            href="./icons/icon-512x512.png"
+            href="./assets/brand/favicon.png"
         />
         <link
             rel="shortcut icon"
-            href="./icons/icon-32x32.png"
+            href="./assets/brand/favicon.png"
             id="favicon-shortcut"
         />
         <link
             rel="apple-touch-icon"
             sizes="180x180"
-            href="./icons/icon-180x180.png"
+            href="./assets/brand/favicon.png"
             id="favicon-apple"
         />
         <!-- Script to update favicon dynamically from company logo -->
@@ -7838,6 +7838,10 @@
                 const savedLogo = localStorage.getItem("company_logo");
                 if (savedLogo) {
                     updateFaviconFromCompanyLogo(savedLogo);
+                } else if (window.SAAS_CONFIG && window.SAAS_CONFIG.defaultFaviconUrl) {
+                    updateFaviconFromCompanyLogo(window.SAAS_CONFIG.defaultFaviconUrl);
+                } else {
+                    updateFaviconFromCompanyLogo("assets/brand/favicon.png");
                 }
             });
 
@@ -12783,6 +12787,7 @@
              Backend.sendRequest delegates). Controlled by
              SAAS_CONFIG.useSupabaseBackend in saas-config.js. -->
         <script src="js/saas/saas-config.js" defer></script>
+        <script src="js/saas/saas-brand.js" defer></script>
         <script src="js/saas/supabase-bootstrap.js" defer></script>
         <script src="js/saas/saas-adapter.js" defer></script>
         <script src="js/saas/saas-tenant-cache.js" defer></script>

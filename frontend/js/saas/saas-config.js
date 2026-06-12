@@ -11,5 +11,10 @@ window.SAAS_CONFIG = {
 
     // عند true: الواجهة تستخدم Supabase بدل Apps Script.
     // الهجرات مطبَّقة والاتصال مُختبَر E2E → مُفعّل لاختبار SaaS على Vercel.
-    useSupabaseBackend: true
+    useSupabaseBackend: true,
+
+    // شعار المنصّة الافتراضي (يظهر قبل رفع شعار المؤسسة)
+    appName: 'QHSSE Consultant',
+    defaultLogoUrl: 'assets/brand/logo.png',
+    defaultFaviconUrl: 'assets/brand/favicon.png'
 };
