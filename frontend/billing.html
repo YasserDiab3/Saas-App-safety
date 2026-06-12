@@ -53,6 +53,7 @@
       const lim = data.limits || {};
       let html =
         `<b data-x>${T('lbl_org')}:</b> ${t.name || '-'} &nbsp;|&nbsp; ` +
+        (t.org_code ? `<b>${T('lbl_org_code')}:</b> <code>${t.org_code}</code> &nbsp;|&nbsp; ` : '') +
         `<b>${T('lbl_plan')}:</b> <span class="badge ok">${t.plan_id || 'free'}</span> &nbsp;|&nbsp; ` +
         `<b>${T('lbl_status')}:</b> ${statusBadge(t.status)}`;
       if (t.trial_ends_at) html += ` &nbsp;|&nbsp; <b>${T('lbl_trial')}:</b> ${new Date(t.trial_ends_at).toLocaleDateString(locale)}`;

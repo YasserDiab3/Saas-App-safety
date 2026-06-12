@@ -56,6 +56,25 @@ body{
   font-size:.94rem;color:var(--ink);outline:none;transition:.15s;background:#fbfdff;font-family:inherit;
 }
 .saas-input:focus{border-color:var(--brand-600);box-shadow:0 0 0 4px rgba(37,99,235,.12);background:#fff}
+.saas-phone-row{display:flex;gap:8px;align-items:stretch}
+.saas-phone-row select.saas-input{width:38%;min-width:108px;flex-shrink:0;padding-inline:8px}
+.saas-phone-row input.saas-input{flex:1;min-width:0}
+.saas-step{display:none}
+.saas-step.active{display:block}
+.saas-otp-hint{font-size:.85rem;color:var(--ink-2);margin-bottom:14px;line-height:1.5;text-align:center}
+.saas-otp-hint strong{color:var(--ink);word-break:break-all}
+.saas-org-code{
+  margin:16px 0;padding:14px 16px;border-radius:11px;text-align:center;
+  background:var(--brand-050);border:1.5px dashed var(--brand-500);
+}
+.saas-org-code .code{font-size:1.35rem;font-weight:800;letter-spacing:.12em;color:var(--brand-700);font-family:ui-monospace,monospace}
+.saas-org-code .lbl{font-size:.78rem;color:var(--ink-3);margin-bottom:6px}
+.saas-link-btn{
+  display:block;width:100%;margin-top:10px;background:none;border:none;
+  color:var(--brand-600);font-weight:700;font-size:.85rem;cursor:pointer;font-family:inherit;
+}
+.saas-link-btn:hover{text-decoration:underline}
+.saas-link-btn:disabled{opacity:.5;cursor:not-allowed;text-decoration:none}
 
 /* ---- buttons ---- */
 .saas-btn{

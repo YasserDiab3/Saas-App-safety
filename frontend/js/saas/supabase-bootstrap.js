@@ -62,6 +62,18 @@
                 options: { data: { full_name: fullName || '' } }
             });
         },
+        async verifySignupOtp(email, token) {
+            await ready;
+            return _client.auth.verifyOtp({
+                email,
+                token: String(token || '').trim(),
+                type: 'signup'
+            });
+        },
+        async resendSignupOtp(email) {
+            await ready;
+            return _client.auth.resend({ type: 'signup', email });
+        },
         async signOut() {
             await ready;
             return _client.auth.signOut();

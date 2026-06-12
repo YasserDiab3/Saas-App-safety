@@ -12,29 +12,64 @@
     <div class="saas-card">
       <div class="saas-head">
         <div class="saas-logo"><img src="assets/brand/logo.png" alt="QHSSE Consultant" class="saas-logo-img"></div>
-        <h1 data-i18n="signup_title">إنشاء مؤسسة جديدة</h1>
+        <h1 id="head-title" data-i18n="signup_title">إنشاء مؤسسة جديدة</h1>
         <p data-i18n="brand_sub">منصّة إدارة السلامة المهنية (HSE)</p>
       </div>
       <div class="saas-body">
-        <div class="saas-field">
-          <label data-i18n="f_org">اسم المؤسسة</label>
-          <input id="org" class="saas-input" data-i18n-ph="ph_org">
+        <!-- Step 1: registration form -->
+        <div id="step-form" class="saas-step active">
+          <div class="saas-field">
+            <label data-i18n="f_org">اسم المؤسسة</label>
+            <input id="org" class="saas-input" data-i18n-ph="ph_org">
+          </div>
+          <div class="saas-field">
+            <label data-i18n="f_name">الاسم الكامل</label>
+            <input id="name" class="saas-input" data-i18n-ph="ph_name" autocomplete="name">
+          </div>
+          <div class="saas-field">
+            <label data-i18n="f_email">البريد الإلكتروني</label>
+            <input id="email" class="saas-input" type="email" data-i18n-ph="ph_email" autocomplete="username">
+          </div>
+          <div class="saas-field">
+            <label data-i18n="f_phone">رقم الجوال</label>
+            <div class="saas-phone-row">
+              <select id="phone-cc" class="saas-input" aria-label="country code"></select>
+              <input id="phone" class="saas-input" type="tel" inputmode="numeric" data-i18n-ph="ph_phone" autocomplete="tel-national">
+            </div>
+          </div>
+          <div class="saas-field">
+            <label data-i18n="f_password">كلمة المرور</label>
+            <input id="pwd" class="saas-input" type="password" data-i18n-ph="ph_pwd8" autocomplete="new-password">
+          </div>
+          <button id="go" class="saas-btn" data-i18n="btn_signup" onclick="doSignup()">إنشاء الحساب والمؤسسة</button>
         </div>
-        <div class="saas-field">
-          <label data-i18n="f_name">الاسم الكامل</label>
-          <input id="name" class="saas-input" data-i18n-ph="ph_name" autocomplete="name">
+
+        <!-- Step 2: email OTP -->
+        <div id="step-otp" class="saas-step">
+          <p class="saas-otp-hint">
+            <span data-i18n="su_otp_hint">أرسلنا رمزاً مكوّناً من 6 أرقام إلى</span><br>
+            <strong id="otp-email"></strong>
+          </p>
+          <div class="saas-field">
+            <label data-i18n="f_otp">رمز التفعيل</label>
+            <input id="otp" class="saas-input" type="text" inputmode="numeric" maxlength="6" data-i18n-ph="ph_otp" autocomplete="one-time-code">
+          </div>
+          <button id="verify" class="saas-btn" data-i18n="btn_verify_otp" onclick="doVerifyOtp()">تأكيد الرمز ومتابعة</button>
+          <button id="resend" type="button" class="saas-link-btn" data-i18n="btn_resend_otp" onclick="doResendOtp()">إعادة إرسال الرمز</button>
         </div>
-        <div class="saas-field">
-          <label data-i18n="f_email">البريد الإلكتروني</label>
-          <input id="email" class="saas-input" type="email" data-i18n-ph="ph_email" autocomplete="username">
+
+        <!-- Step 3: org code success -->
+        <div id="step-done" class="saas-step">
+          <div class="saas-org-code">
+            <div class="lbl" data-i18n="su_org_code_label">كود المؤسسة</div>
+            <div class="code" id="org-code">—</div>
+          </div>
+          <p class="saas-otp-hint" data-i18n="su_org_code_hint">احفظ هذا الكود — ستحتاجه للدعم والتعريف</p>
+          <button class="saas-btn" data-i18n="btn_continue_app" onclick="location.replace('/')">الدخول للتطبيق</button>
         </div>
-        <div class="saas-field">
-          <label data-i18n="f_password">كلمة المرور</label>
-          <input id="pwd" class="saas-input" type="password" data-i18n-ph="ph_pwd8" autocomplete="new-password">
-        </div>
-        <button id="go" class="saas-btn" data-i18n="btn_signup" onclick="doSignup()">إنشاء الحساب والمؤسسة</button>
+
         <div class="saas-msg" id="msg"></div>
-        <div class="saas-foot">
+        <div class="saas-foot" id="foot-links">
           <span data-i18n="have_account">لديك حساب؟</span>
           <a href="login.html" data-i18n="login_link">تسجيل الدخول</a>
         </div>
@@ -45,28 +80,112 @@
   <script src="js/saas/saas-config.js"></script>
   <script src="js/saas/saas-brand.js"></script>
   <script src="js/saas/supabase-bootstrap.js"></script>
+  <script src="js/saas/country-codes.js"></script>
   <script src="js/saas/saas-i18n.js"></script>
   <script>
     const $ = id => document.getElementById(id);
     const T = k => SaaSI18n.t(k);
     const msg = (t, cls) => { $('msg').className = 'saas-msg ' + (cls || ''); $('msg').textContent = t; };
-    document.addEventListener('DOMContentLoaded', () => SaaSI18n.init());
+
+    let pending = { org: '', name: '', email: '', pwd: '', phoneCc: '+966', phone: '' };
+
+    function showStep(id) {
+      document.querySelectorAll('.saas-step').forEach(el => el.classList.remove('active'));
+      $(id).classList.add('active');
+      $('foot-links').style.display = id === 'step-form' ? '' : 'none';
+      if (id === 'step-otp') {
+        $('head-title').textContent = T('su_otp_title');
+        $('head-title').removeAttribute('data-i18n');
+      }
+    }
+
+    function digitsOnly(s) { return String(s || '').replace(/\D/g, ''); }
+
+    function validateForm() {
+      const org = $('org').value.trim(), name = $('name').value.trim();
+      const email = $('email').value.trim(), pwd = $('pwd').value;
+      const phoneCc = $('phone-cc').value, phone = digitsOnly($('phone').value);
+      if (!org || !name || !email || !pwd || !phone) { msg(T('su_fill_all'), 'err'); return null; }
+      if (pwd.length < 8) { msg(T('su_pwd_short'), 'err'); return null; }
+      if (!phoneCc) { msg(T('su_phone_required'), 'err'); return null; }
+      if (phone.length < 7 || phone.length > 15) { msg(T('su_phone_invalid'), 'err'); return null; }
+      return { org, name, email, pwd, phoneCc, phone };
+    }
+
+    async function provisionTenant() {
+      msg(T('su_provisioning'));
+      const { data, error } = await SaaS.client().rpc('api_provision_tenant', {
+        p_name: pending.org,
+        p_phone_country: pending.phoneCc,
+        p_phone_number: pending.phone
+      });
+      if (error) throw new Error(error.message);
+      const orgCode = (data && data.org_code) || (typeof data === 'string' ? JSON.parse(data).org_code : null);
+      if (!orgCode) throw new Error(T('su_failed'));
+      $('org-code').textContent = orgCode;
+      showStep('step-done');
+      msg(T('su_ok'), 'ok');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      SaaSI18n.init();
+      SaaSCountryCodes.fillSelect($('phone-cc'), '+966');
+    });
+
     async function doSignup() {
-      const org = $('org').value.trim(), name = $('name').value.trim(), email = $('email').value.trim(), pwd = $('pwd').value;
-      if (!org || !name || !email || !pwd) { msg(T('su_fill_all'), 'err'); return; }
-      if (pwd.length < 8) { msg(T('su_pwd_short'), 'err'); return; }
-      $('go').disabled = true; msg(T('su_creating'));
+      const form = validateForm();
+      if (!form) return;
+      pending = { org: form.org, name: form.name, email: form.email, pwd: form.pwd, phoneCc: form.phoneCc, phone: form.phone };
+      $('go').disabled = true;
+      msg(T('su_creating'));
       try {
-        const su = await SaaS.signUp(email, pwd, name);
+        const su = await SaaS.signUp(form.email, form.pwd, form.name);
         if (su.error) throw new Error(su.error.message);
-        const si = await SaaS.signIn(email, pwd);
-        if (si.error) throw new Error(T('su_confirm_email'));
-        msg(T('su_provisioning'));
-        const { error } = await SaaS.client().rpc('api_provision_tenant', { p_name: org });
-        if (error) throw new Error(error.message);
-        msg(T('su_ok'), 'ok');
-        setTimeout(() => location.replace('/'), 800);
-      } catch (e) { msg(e.message || T('su_failed'), 'err'); $('go').disabled = false; }
+        if (su.data?.session) {
+          await provisionTenant();
+        } else {
+          $('otp-email').textContent = form.email;
+          $('otp').value = '';
+          showStep('step-otp');
+          msg('');
+        }
+      } catch (e) {
+        msg(e.message || T('su_failed'), 'err');
+      } finally {
+        $('go').disabled = false;
+      }
+    }
+
+    async function doVerifyOtp() {
+      const token = $('otp').value.trim();
+      if (token.length < 6) { msg(T('su_otp_invalid'), 'err'); return; }
+      $('verify').disabled = true;
+      msg(T('su_creating'));
+      try {
+        const vr = await SaaS.verifySignupOtp(pending.email, token);
+        if (vr.error) throw new Error(vr.error.message || T('su_otp_invalid'));
+        if (!vr.data?.session) {
+          const si = await SaaS.signIn(pending.email, pending.pwd);
+          if (si.error) throw new Error(si.error.message);
+        }
+        await provisionTenant();
+      } catch (e) {
+        msg(e.message || T('su_otp_invalid'), 'err');
+        $('verify').disabled = false;
+      }
+    }
+
+    async function doResendOtp() {
+      $('resend').disabled = true;
+      try {
+        const r = await SaaS.resendSignupOtp(pending.email);
+        if (r.error) throw new Error(r.error.message);
+        msg(T('su_otp_sent'), 'ok');
+      } catch (e) {
+        msg(e.message || T('su_failed'), 'err');
+      } finally {
+        setTimeout(() => { $('resend').disabled = false; }, 30000);
+      }
     }
   </script>
 </body>
