@@ -528,6 +528,154 @@ body.hse-update-banner-visible #company-logo-header {
     top: 52px;
 }
 
+/* SaaS trial countdown & upgrade prompts */
+#saas-trial-top-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 99997;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 14px;
+    background: linear-gradient(135deg, #0f766e, #14b8a6);
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(20, 184, 166, 0.35);
+    font-size: 0.88rem;
+    line-height: 1.4;
+}
+
+.saas-trial-top-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 10px 12px;
+    width: 100%;
+    max-width: 1100px;
+}
+
+.saas-trial-top-icon {
+    display: inline-flex;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.18);
+    flex-shrink: 0;
+}
+
+.saas-trial-top-text {
+    flex: 1 1 200px;
+    text-align: center;
+    font-weight: 600;
+}
+
+.saas-trial-top-cta {
+    border-radius: 9999px;
+    padding: 6px 14px;
+    font-weight: 700;
+    text-decoration: none;
+    color: #0f766e;
+    background: #fff;
+    flex-shrink: 0;
+}
+
+.saas-trial-top-cta:hover {
+    filter: brightness(0.97);
+}
+
+.saas-trial-top-dismiss {
+    border: none;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1.35rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 4px;
+    flex-shrink: 0;
+}
+
+.saas-trial-dashboard-banner {
+    margin: 0 0 1.25rem;
+    border-radius: 14px;
+    padding: 1rem 1.25rem;
+    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 55%, #ccfbf1 100%);
+    border: 1px solid #5eead4;
+    box-shadow: 0 4px 14px rgba(13, 148, 136, 0.12);
+}
+
+.saas-trial-dash-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem 1.25rem;
+}
+
+.saas-trial-dash-copy {
+    flex: 1 1 220px;
+}
+
+.saas-trial-dash-copy strong {
+    display: block;
+    font-size: 1.05rem;
+    color: #0f766e;
+    margin-bottom: 0.25rem;
+}
+
+.saas-trial-dash-copy p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #115e59;
+}
+
+.saas-trial-dash-countdown {
+    text-align: center;
+    min-width: 140px;
+    padding: 0.5rem 0.75rem;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.75);
+    border: 1px dashed #14b8a6;
+}
+
+.saas-trial-dash-countdown-label {
+    display: block;
+    font-size: 0.72rem;
+    color: #0f766e;
+    margin-bottom: 0.2rem;
+}
+
+.saas-trial-dash-countdown-value {
+    font-family: ui-monospace, monospace;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #134e4a;
+    letter-spacing: 0.04em;
+}
+
+.saas-trial-dash-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.55rem 1rem;
+    border-radius: 10px;
+    background: #0f766e;
+    color: #fff;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.saas-trial-dash-cta:hover {
+    background: #115e59;
+}
+
+body.saas-trial-banner-visible #company-logo-header {
+    transition: top 0.15s ease;
+}
+
 [data-theme="dark"] .login-footer-version-badge {
     background: rgba(37, 99, 235, 0.2);
     color: var(--primary-light);
