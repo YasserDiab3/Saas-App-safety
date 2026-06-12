@@ -10367,6 +10367,7 @@ window.UI = {
                 'nav.aiAssistant': 'مساعد الذكاء الاصطناعي',
                 'nav.appTester': 'اختبار التطبيق',
                 'nav.settings': 'الإعدادات',
+                'nav.pricing': 'عروض الأسعار',
                 'nav.logout': 'تسجيل الخروج'
             },
             en: {
@@ -10460,6 +10461,7 @@ window.UI = {
                 'nav.aiAssistant': 'AI Assistant',
                 'nav.appTester': 'Application Testing',
                 'nav.settings': 'Settings',
+                'nav.pricing': 'Pricing & Plans',
                 'nav.logout': 'Logout'
             }
         };

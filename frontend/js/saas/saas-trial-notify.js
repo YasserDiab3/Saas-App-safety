@@ -148,10 +148,11 @@
             const scope = tenantScopeKey();
             let last = 0;
             try { last = parseInt(localStorage.getItem(TOAST_KEY + '_' + scope) || '0', 10) || 0; } catch (_e) { /* ignore */ }
-            if (Date.now() - last < WEEK_MS) return;
+            const days = daysLeft(state().trialEndsAt);
+            const interval = (days !== null && days <= 3) ? (24 * 60 * 60 * 1000) : WEEK_MS;
+            if (Date.now() - last < interval) return;
 
             const isEn = getLang() === 'en';
-            const days = daysLeft(state().trialEndsAt);
             global.Notification.info(
                 isEn
                     ? `Trial: ${days} day(s) left. Upgrade to Pro or Enterprise for the full HSE platform.`

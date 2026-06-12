@@ -778,6 +778,9 @@
                 if (window.SaaSGating && typeof window.SaaSGating.load === 'function') {
                     window.SaaSGating.load().then(() => {
                         window.SaaSGating.applyToNav();
+                        if (typeof window.SaaSGating.showPricingNav === 'function') {
+                            window.SaaSGating.showPricingNav();
+                        }
                         if (window.SaaSTrialNotify && typeof window.SaaSTrialNotify.apply === 'function') {
                             window.SaaSTrialNotify.apply();
                         } else if (typeof window.SaaSGating.showPaymentBanner === 'function') {

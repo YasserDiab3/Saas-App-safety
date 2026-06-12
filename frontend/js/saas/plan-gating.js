@@ -56,6 +56,17 @@
             el.appendChild(link);
             document.body.prepend(el);
         },
+        /** SaaS: show pricing / billing link in sidebar for owners & admins */
+        showPricingNav() {
+            const el = document.getElementById('nav-pricing-offers');
+            if (!el) return;
+            const saas = global.SAAS_CONFIG && global.SAAS_CONFIG.useSupabaseBackend;
+            if (!saas) { el.style.display = 'none'; return; }
+            const u = global.AppState && global.AppState.currentUser;
+            const isAdmin = u && (u.role === 'admin' || u.permissions?.admin);
+            el.style.display = isAdmin ? '' : 'none';
+        },
+
         /** hide nav buttons whose data-section maps to a disallowed module */
         applyToNav() {
             if (!this._state || !this._state.allowed) return;

@@ -59,7 +59,7 @@
       users_suffix: 'مستخدم', checkout_failed: 'تعذّر بدء الدفع', err_prefix: 'خطأ: ',
       st_trialing: 'تجريبي', st_active: 'فعّال', st_past_due: 'متأخر السداد',
       st_frozen: 'مجمّد', st_canceled: 'ملغى',
-      payment_required_banner: 'انتهت التجربة المجانية (7 أيام) — أضف بيانات الدفع للمتابعة:',
+      payment_required_banner: 'انتهت التجربة المجانية (3 أيام) — أضف بيانات الدفع للمتابعة:',
       lbl_trial: 'نهاية التجربة', lbl_seats: 'المقاعد', lbl_storage: 'التخزين',
 
       team_title: 'فريق المؤسسة', team_invite: 'دعوة عضو جديد', team_role: 'الدور',
@@ -126,7 +126,7 @@
       users_suffix: 'users', checkout_failed: 'Could not start checkout', err_prefix: 'Error: ',
       st_trialing: 'Trial', st_active: 'Active', st_past_due: 'Past due',
       st_frozen: 'Frozen', st_canceled: 'Canceled',
-      payment_required_banner: 'Free trial ended (7 days) — add payment to continue:',
+      payment_required_banner: 'Free trial ended (3 days) — add payment to continue:',
       lbl_trial: 'Trial ends', lbl_seats: 'Seats', lbl_storage: 'Storage',
 
       team_title: 'Team', team_invite: 'Invite member', team_role: 'Role',

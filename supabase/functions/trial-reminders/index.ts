@@ -17,7 +17,7 @@ type Row = {
   tenant_name: string;
   owner_email: string;
   owner_name: string;
-  reminder_type: 'd3' | 'd1' | 'd0';
+  reminder_type: 'd2' | 'd1' | 'd0';
   trial_ends_at: string;
   days_left: number;
 };
@@ -29,14 +29,14 @@ function emailContent(row: Row) {
   const billing = `${APP_URL}/billing`;
   const signup = `${APP_URL}/`;
 
-  if (row.reminder_type === 'd3') {
+  if (row.reminder_type === 'd2') {
     return {
-      subject: `QHSSE Consultant — تبقى 3 أيام على انتهاء التجربة | ${row.tenant_name}`,
+      subject: `QHSSE Consultant — تبقى يومان على انتهاء التجربة | ${row.tenant_name}`,
       html: `<div dir="rtl" style="font-family:Segoe UI,Tahoma,sans-serif;line-height:1.6">
         <p>مرحباً ${row.owner_name}،</p>
-        <p>تنتهي التجربة المجانية لمؤسسة <strong>${row.tenant_name}</strong> خلال <strong>3 أيام</strong> (${end}).</p>
+        <p>تنتهي التجربة المجانية (3 أيام) لمؤسسة <strong>${row.tenant_name}</strong> خلال <strong>يومين</strong> (${end}).</p>
         <p>اشترك في <strong>Pro</strong> أو <strong>Enterprise</strong> للاستفادة بالمنصّة الكاملة:</p>
-        <p><a href="${billing}">عرض الخطط والاشتراك</a></p>
+        <p><a href="${billing}">عرض عروض الأسعار والاشتراك</a></p>
         <p><a href="${signup}">الدخول للنظام</a></p>
         <p style="color:#64748b;font-size:12px">QHSSE Consultant — HSE SaaS</p>
       </div>`
