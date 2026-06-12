@@ -67,5 +67,17 @@ select 'api_admin_list_plans', exists(
   where n.nspname = 'public' and p.proname = 'api_admin_list_plans'
 );
 
--- 6) Migration history (CLI tracking)
+-- 6) Storage bucket (0012)
+select 'storage_bucket' as check_name, exists(
+  select 1 from storage.buckets where id = 'tenant-attachments'
+) as ok
+union all
+select 'storage_policies', (
+  select count(*) >= 4 from pg_policies
+  where schemaname = 'storage' and tablename = 'objects'
+    and policyname like 'tenant_attachments_%'
+);
+
+-- 7) Migration history (CLI tracking) — expect 12 rows
 select version, name from supabase_migrations.schema_migrations order by version;
+select 'migration_count' as check_name, (select count(*) = 12 from supabase_migrations.schema_migrations) as ok;
