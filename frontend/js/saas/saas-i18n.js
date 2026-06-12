@@ -61,6 +61,9 @@
       st_frozen: 'مجمّد', st_canceled: 'ملغى',
       payment_required_banner: 'انتهت التجربة المجانية (3 أيام) — أضف بيانات الدفع للمتابعة:',
       lbl_trial: 'نهاية التجربة', lbl_seats: 'المقاعد', lbl_storage: 'التخزين',
+      module_locked_trial: 'هذا المديول غير متاح في التجربة المجانية — رقِّ من «عروض الأسعار»',
+      trial_modules_banner: 'التجربة المجانية: مديولات محدودة فقط',
+      nav_pricing_short: 'عروض الأسعار',
 
       team_title: 'فريق المؤسسة', team_invite: 'دعوة عضو جديد', team_role: 'الدور',
       team_send: 'إرسال الدعوة', team_pending: 'دعوات معلّقة', team_seats: 'المقاعد المستخدمة',
@@ -128,6 +131,9 @@
       st_frozen: 'Frozen', st_canceled: 'Canceled',
       payment_required_banner: 'Free trial ended (3 days) — add payment to continue:',
       lbl_trial: 'Trial ends', lbl_seats: 'Seats', lbl_storage: 'Storage',
+      module_locked_trial: 'This module is not included in the free trial — upgrade via Pricing & Plans',
+      trial_modules_banner: 'Free trial: limited modules only',
+      nav_pricing_short: 'Pricing & Plans',
 
       team_title: 'Team', team_invite: 'Invite member', team_role: 'Role',
       team_send: 'Send invite', team_pending: 'Pending invites', team_seats: 'Seats used',

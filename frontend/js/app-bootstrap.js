@@ -781,6 +781,9 @@
                         if (typeof window.SaaSGating.showPricingNav === 'function') {
                             window.SaaSGating.showPricingNav();
                         }
+                        if (typeof window.SaaSGating.showTrialModulesBanner === 'function') {
+                            window.SaaSGating.showTrialModulesBanner();
+                        }
                         if (window.SaaSTrialNotify && typeof window.SaaSTrialNotify.apply === 'function') {
                             window.SaaSTrialNotify.apply();
                         } else if (typeof window.SaaSGating.showPaymentBanner === 'function') {

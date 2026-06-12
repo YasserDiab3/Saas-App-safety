@@ -4,44 +4,78 @@
  * for modules not allowed on the current plan. Reuses the existing
  * ModuleManagement concept (module_key per sheet in app.sheets).
  *
- * Plan.modules = [] means "all modules". Otherwise it's an allow-list of
- * module_key values. Frozen/past_due tenants → read-only hint.
+ * Free / trial: explicit allow-list (never [] = all).
+ * Pro / Enterprise: modules [] means "all modules".
  */
 (function (global) {
+    const DEFAULT_TRIAL_MODULES = [
+        'clinic',
+        'incidents',
+        'nearmiss',
+        'daily-observations',
+        'user-tasks',
+        'ptw',
+        'training'
+    ];
+
     const Gating = {
         _state: null,
+
         async load() {
             await global.SaaS.ready;
             const client = global.SaaS.client();
-            // api_billing_status now returns the active plan's `modules` allow-list
-            // directly (the old client.from('plans') path hit a non-exposed schema
-            // and silently failed → gating never applied).
             const { data: billing } = await client.rpc('api_billing_status');
             const mods = billing && billing.modules;
+            const planId = billing?.tenant?.plan_id || 'free';
+            const isTrialLimited = planId === 'free' || billing?.module_gating?.mode === 'trial_limited';
+
+            let allowed = null;
+            if (Array.isArray(mods) && mods.length) {
+                allowed = mods;
+            } else if (isTrialLimited) {
+                allowed = DEFAULT_TRIAL_MODULES.slice();
+            }
+
             this._state = {
-                planId: billing?.tenant?.plan_id || 'free',
+                planId,
                 status: billing?.tenant?.status || 'active',
-                allowed: (Array.isArray(mods) && mods.length) ? mods : null,
+                allowed,
+                isTrialLimited,
                 paymentRequired: !!billing?.payment_required,
                 writable: billing?.writable !== false,
                 trialEndsAt: billing?.tenant?.trial_ends_at || null
             };
             return this._state;
         },
-        // Always-available modules — never gated by plan (app would break /
-        // user would be locked out without them).
+
         CORE: ['dashboard', 'profile', 'settings', 'users', 'apptester'],
+
         isModuleAllowed(moduleKey) {
-            if (this.CORE.includes(moduleKey)) return true;       // core always on
-            if (!this._state || !this._state.allowed) return true; // [] / null = all
+            if (!moduleKey) return true;
+            if (this.CORE.includes(moduleKey)) return true;
+            if (!this._state || !this._state.allowed) return true;
             return this._state.allowed.includes(moduleKey);
         },
+
+        checkSectionAccess(sectionName) {
+            const key = String(sectionName || '').trim();
+            if (!key || this.isModuleAllowed(key)) return { ok: true };
+            const isEn = (global.SaaSI18n && global.SaaSI18n.lang === 'en')
+                || (document.documentElement.lang === 'en');
+            const msg = (global.SaaSI18n && global.SaaSI18n.t('module_locked_trial'))
+                || (isEn
+                    ? 'This module is not included in the free trial. Upgrade from Pricing & Plans.'
+                    : 'هذا المديول غير متاح في التجربة المجانية. رقِّ من «عروض الأسعار».');
+            return { ok: false, message: msg };
+        },
+
         isReadOnly() {
             if (!this._state) return false;
             if (this._state.paymentRequired) return true;
             if (this._state.writable === false) return true;
             return this._state.status === 'frozen' || this._state.status === 'past_due';
         },
+
         showPaymentBanner() {
             if (!this._state || !this._state.paymentRequired) return;
             const el = document.createElement('div');
@@ -56,7 +90,24 @@
             el.appendChild(link);
             document.body.prepend(el);
         },
-        /** SaaS: show pricing / billing link in sidebar for owners & admins */
+
+        showTrialModulesBanner() {
+            if (!this._state || !this._state.isTrialLimited || this._state.paymentRequired) return;
+            if (document.getElementById('saas-trial-modules-banner')) return;
+            const allowed = this._state.allowed || DEFAULT_TRIAL_MODULES;
+            const isEn = (global.SaaSI18n && global.SaaSI18n.lang === 'en')
+                || (document.documentElement.lang === 'en');
+            const el = document.createElement('div');
+            el.id = 'saas-trial-modules-banner';
+            el.style.cssText = 'background:#eff6ff;color:#1e40af;padding:8px 14px;text-align:center;font-size:13px;border-bottom:1px solid #bfdbfe';
+            el.innerHTML = (global.SaaSI18n && global.SaaSI18n.t('trial_modules_banner'))
+                ? `${global.SaaSI18n.t('trial_modules_banner')} (${allowed.length}). <a href="billing.html" style="font-weight:700;color:#1d4ed8">${global.SaaSI18n.t('nav_pricing_short')}</a>`
+                : (isEn
+                    ? `Free trial: ${allowed.length} HSE modules enabled. <a href="billing.html" style="font-weight:700;color:#1d4ed8">See pricing</a> for full access.`
+                    : `التجربة المجانية: ${allowed.length} مديولات HSE متاحة فقط. <a href="billing.html" style="font-weight:700;color:#1d4ed8">عروض الأسعار</a> للوصول الكامل.`);
+            document.body.prepend(el);
+        },
+
         showPricingNav() {
             const el = document.getElementById('nav-pricing-offers');
             if (!el) return;
@@ -67,14 +118,21 @@
             el.style.display = isAdmin ? '' : 'none';
         },
 
-        /** hide nav buttons whose data-section maps to a disallowed module */
         applyToNav() {
-            if (!this._state || !this._state.allowed) return;
+            if (!this._state) return;
             document.querySelectorAll('[data-section]').forEach(el => {
                 const key = el.getAttribute('data-module') || el.getAttribute('data-section');
-                if (key && !this.isModuleAllowed(key)) el.style.display = 'none';
+                if (!key) return;
+                if (this.isModuleAllowed(key)) {
+                    el.style.display = '';
+                    el.removeAttribute('data-plan-locked');
+                } else {
+                    el.style.display = 'none';
+                    el.setAttribute('data-plan-locked', '1');
+                }
             });
         }
     };
+
     global.SaaSGating = Gating;
 })(window);

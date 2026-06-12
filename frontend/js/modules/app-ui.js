@@ -5912,6 +5912,19 @@ window.UI = {
             typeof Permissions.checkBeforeShow === 'function' &&
             typeof Permissions.hasAccess === 'function');
 
+        if (window.SaaSGating && typeof window.SaaSGating.checkSectionAccess === 'function') {
+            const gate = window.SaaSGating.checkSectionAccess(sectionName);
+            if (!gate.ok) {
+                if (!suppressMessage && typeof Notification !== 'undefined' && Notification.warning) {
+                    Notification.warning(gate.message, { duration: 8000 });
+                }
+                if (sectionName !== 'dashboard') {
+                    this.showSection('dashboard');
+                }
+                return;
+            }
+        }
+
         if (canCheckPermissions && !Permissions.checkBeforeShow(sectionName, suppressMessage)) {
             // إذا لم يكن لديه صلاحية، نعرض Dashboard بدلاً منه
             if (sectionName !== 'dashboard' && Permissions.hasAccess('dashboard')) {
