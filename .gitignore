@@ -37,3 +37,4 @@ tmp/
 # Local QA credentials (production_launch / create_smoke_tenant)
 supabase/scripts/.smoke-credentials.json
 supabase/scripts/.platform-admin-credentials.json
+sbp_*.txt

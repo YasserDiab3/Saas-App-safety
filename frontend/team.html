@@ -46,9 +46,11 @@
   <script src="js/saas/saas-config.js"></script>
   <script src="js/saas/saas-brand.js"></script>
   <script src="js/saas/supabase-bootstrap.js"></script>
+  <script src="js/saas/saas-escape.js"></script>
   <script src="js/saas/saas-i18n.js"></script>
   <script>
     const T = k => SaaSI18n.t(k);
+    const esc = s => SaaSEscape.html(s);
     const $ = id => document.getElementById(id);
     const msg = (t, cls) => { $('msg').className = 'saas-msg ' + (cls || ''); $('msg').textContent = t; };
 
@@ -65,21 +67,41 @@
       const { data, error } = await SaaS.client().rpc('api_billing_status');
       if (error) { $('status').textContent = error.message; return; }
       const lim = data.limits || {};
-      $('status').innerHTML = `<b>${T('lbl_org')}:</b> ${data.tenant?.name || '-'} | <b>${T('lbl_plan')}:</b> ${data.tenant?.plan_id}`;
+      $('status').textContent = `${T('lbl_org')}: ${data.tenant?.name || '-'} | ${T('lbl_plan')}: ${data.tenant?.plan_id}`;
       $('limits').textContent = `${T('team_seats')}: ${lim.user_count || 0} + ${lim.pending_invites || 0} ${T('team_pending_short')} / ${lim.max_users || '-'}`;
       renderInvites(await SaaS.client().rpc('api_list_invitations'));
     }
 
     function renderInvites(res) {
       const rows = res.data || [];
-      if (!rows.length) { $('list').innerHTML = `<p class="muted-s">${T('team_none')}</p>`; return; }
-      $('list').innerHTML = rows.map(i => {
-        const pending = !i.accepted_at;
-        return `<div style="padding:8px 0;border-bottom:1px solid var(--line)">
-          <b>${i.email}</b> — ${i.role}
-          ${pending ? `<button class="saas-btn ghost" style="margin-inline-start:8px" onclick="revoke('${i.id}')">${T('team_revoke')}</button>` : ' ✓'}
-        </div>`;
-      }).join('');
+      const list = $('list');
+      list.innerHTML = '';
+      if (!rows.length) {
+        const p = document.createElement('p');
+        p.className = 'muted-s';
+        p.textContent = T('team_none');
+        list.appendChild(p);
+        return;
+      }
+      rows.forEach(i => {
+        const row = document.createElement('div');
+        row.style.cssText = 'padding:8px 0;border-bottom:1px solid var(--line)';
+        const b = document.createElement('b');
+        b.textContent = i.email || '';
+        row.appendChild(b);
+        row.appendChild(document.createTextNode(' — ' + (i.role || '')));
+        if (!i.accepted_at) {
+          const btn = document.createElement('button');
+          btn.className = 'saas-btn ghost';
+          btn.style.marginInlineStart = '8px';
+          btn.textContent = T('team_revoke');
+          btn.addEventListener('click', () => revoke(i.id));
+          row.appendChild(btn);
+        } else {
+          row.appendChild(document.createTextNode(' ✓'));
+        }
+        list.appendChild(row);
+      });
     }
 
     async function invite() {
@@ -104,7 +126,6 @@
       await SaaS.client().rpc('api_revoke_invitation', { p_invitation_id: id });
       load();
     }
-    window.revoke = revoke;
     $('inviteBtn').onclick = invite;
     document.addEventListener('DOMContentLoaded', () => SaaSI18n.init(load));
   </script>

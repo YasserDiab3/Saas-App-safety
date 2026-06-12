@@ -9,25 +9,35 @@ import Stripe from 'https://esm.sh/stripe@14?target=deno';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, { apiVersion: '2024-06-20' });
-const APP_URL = Deno.env.get('APP_URL') ?? 'http://localhost:3000';
+const APP_URL = (Deno.env.get('APP_URL') ?? 'http://localhost:3000').replace(/\/$/, '');
+const ALLOWED_ORIGINS = new Set([
+  APP_URL,
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  'https://saas-app-safety.vercel.app'
+]);
 
 const PRICE: Record<string, string | undefined> = {
   pro: Deno.env.get('STRIPE_PRICE_PRO'),
   enterprise: Deno.env.get('STRIPE_PRICE_ENTERPRISE')
 };
 
-// CORS — the browser calls this cross-origin from the Vercel site.
-const CORS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS'
-};
-const json = (obj: unknown, status = 200) =>
-  new Response(JSON.stringify(obj), { status, headers: { 'Content-Type': 'application/json', ...CORS } });
+function corsHeaders(req: Request): Record<string, string> {
+  const origin = req.headers.get('Origin') ?? '';
+  const allow = ALLOWED_ORIGINS.has(origin) ? origin : APP_URL;
+  return {
+    'Access-Control-Allow-Origin': allow,
+    'Access-Control-Allow-Headers': 'authorization, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Vary': 'Origin'
+  };
+}
+const json = (req: Request, obj: unknown, status = 200) =>
+  new Response(JSON.stringify(obj), { status, headers: { 'Content-Type': 'application/json', ...corsHeaders(req) } });
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
-  if (req.method !== 'POST') return json({ error: 'method not allowed' }, 405);
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) });
+  if (req.method !== 'POST') return json(req, { error: 'method not allowed' }, 405);
   try {
     const authHeader = req.headers.get('Authorization') ?? '';
     const jwt = authHeader.replace('Bearer ', '');
@@ -37,11 +47,17 @@ Deno.serve(async (req) => {
     });
     const { data: userData } = await supa.auth.getUser();
     const user = userData?.user;
-    if (!user) return json({ error: 'unauthorized' }, 401);
+    if (!user) return json(req, { error: 'unauthorized' }, 401);
+
+    const { data: me, error: meErr } = await supa.rpc('api_me');
+    const role = String(me?.role || '').toLowerCase();
+    if (meErr || !['owner', 'admin'].includes(role)) {
+      return json(req, { error: 'forbidden: owner or admin required' }, 403);
+    }
 
     const { plan } = await req.json();
     const priceId = PRICE[plan];
-    if (!priceId) return json({ error: 'unknown plan' }, 400);
+    if (!priceId) return json(req, { error: 'unknown plan' }, 400);
 
     // ensure a Stripe customer for this tenant
     const { data: billing } = await supa.rpc('api_billing_status');
@@ -64,9 +80,9 @@ Deno.serve(async (req) => {
       allow_promotion_codes: true
     });
 
-    return json({ url: session.url });
+    return json(req, { url: session.url });
   } catch (e) {
     console.error(e);
-    return json({ error: (e as Error).message }, 500);
+    return json(req, { error: (e as Error).message }, 500);
   }
 });

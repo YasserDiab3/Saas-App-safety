@@ -21,9 +21,11 @@
   <script src="js/saas/saas-config.js"></script>
   <script src="js/saas/saas-brand.js"></script>
   <script src="js/saas/supabase-bootstrap.js"></script>
+  <script src="js/saas/saas-escape.js"></script>
   <script src="js/saas/saas-i18n.js"></script>
   <script>
     const T = k => SaaSI18n.t(k);
+    const esc = s => SaaSEscape.html(s);
     let _data = null;
     const limKey = { free: 'lim_free', pro: 'lim_pro', enterprise: 'lim_enterprise' };
 
@@ -44,7 +46,7 @@
     }
     function statusBadge(st) {
       const cls = (st === 'active' || st === 'trialing') ? 'ok' : (st === 'past_due' ? 'warn' : 'err');
-      return `<span class="badge ${cls}">${statusLabel(st)}</span>`;
+      return `<span class="badge ${cls}">${esc(statusLabel(st))}</span>`;
     }
 
     function render(data) {
@@ -52,32 +54,50 @@
       const locale = SaaSI18n.lang === 'ar' ? 'ar-EG' : 'en-US';
       const lim = data.limits || {};
       let html =
-        `<b data-x>${T('lbl_org')}:</b> ${t.name || '-'} &nbsp;|&nbsp; ` +
-        (t.org_code ? `<b>${T('lbl_org_code')}:</b> <code>${t.org_code}</code> &nbsp;|&nbsp; ` : '') +
-        `<b>${T('lbl_plan')}:</b> <span class="badge ok">${t.plan_id || 'free'}</span> &nbsp;|&nbsp; ` +
+        `<b data-x>${T('lbl_org')}:</b> ${esc(t.name || '-')} &nbsp;|&nbsp; ` +
+        (t.org_code ? `<b>${T('lbl_org_code')}:</b> <code>${esc(t.org_code)}</code> &nbsp;|&nbsp; ` : '') +
+        `<b>${T('lbl_plan')}:</b> <span class="badge ok">${esc(t.plan_id || 'free')}</span> &nbsp;|&nbsp; ` +
         `<b>${T('lbl_status')}:</b> ${statusBadge(t.status)}`;
-      if (t.trial_ends_at) html += ` &nbsp;|&nbsp; <b>${T('lbl_trial')}:</b> ${new Date(t.trial_ends_at).toLocaleDateString(locale)}`;
-      if (lim.max_users) html += ` &nbsp;|&nbsp; <b>${T('lbl_seats')}:</b> ${lim.user_count || 0}/${lim.max_users}`;
-      if (lim.storage_mb) html += ` &nbsp;|&nbsp; <b>${T('lbl_storage')}:</b> ${lim.storage_used_mb || 0}/${lim.storage_mb} MB`;
-      if (sub.current_period_end) html += ` &nbsp;|&nbsp; <b>${T('lbl_renewal')}:</b> ${new Date(sub.current_period_end).toLocaleDateString(locale)}`;
-      if (data.payment_required) html += `<div class="saas-msg warn" style="margin-top:12px">${T('payment_required_banner')} <a href="billing.html">${T('subscribe')}</a></div>`;
+      if (t.trial_ends_at) html += ` &nbsp;|&nbsp; <b>${T('lbl_trial')}:</b> ${esc(new Date(t.trial_ends_at).toLocaleDateString(locale))}`;
+      if (lim.max_users) html += ` &nbsp;|&nbsp; <b>${T('lbl_seats')}:</b> ${esc(lim.user_count || 0)}/${esc(lim.max_users)}`;
+      if (lim.storage_mb) html += ` &nbsp;|&nbsp; <b>${T('lbl_storage')}:</b> ${esc(lim.storage_used_mb || 0)}/${esc(lim.storage_mb)} MB`;
+      if (sub.current_period_end) html += ` &nbsp;|&nbsp; <b>${T('lbl_renewal')}:</b> ${esc(new Date(sub.current_period_end).toLocaleDateString(locale))}`;
+      if (data.payment_required) html += `<div class="saas-msg warn" style="margin-top:12px">${esc(T('payment_required_banner'))} <a href="billing.html">${esc(T('subscribe'))}</a></div>`;
       else if (t.plan_id === 'free' && Array.isArray(data.modules) && data.modules.length) {
-        html += `<div class="saas-msg ok" style="margin-top:12px">${T('trial_modules_banner')}: ${data.modules.length} — ${data.modules.join(', ')}</div>`;
+        html += `<div class="saas-msg ok" style="margin-top:12px">${esc(T('trial_modules_banner'))}: ${esc(data.modules.length)} — ${esc(data.modules.join(', '))}</div>`;
       }
-      html += ` &nbsp;|&nbsp; <a class="saas-link" href="team.html">${T('team_title')}</a>`;
+      html += ` &nbsp;|&nbsp; <a class="saas-link" href="team.html">${esc(T('team_title'))}</a>`;
       document.getElementById('status').innerHTML = html;
 
-      const plans = data.plans || [];
-      document.getElementById('plans').innerHTML = plans.map(p => {
+      const plansEl = document.getElementById('plans');
+      plansEl.innerHTML = '';
+      (data.plans || []).forEach(p => {
         const cur = (t.plan_id === p.id);
         const price = limKey[p.id] ? T(limKey[p.id]) : (p.max_users + ' ' + T('users_suffix'));
-        const btn = cur
-          ? `<button class="saas-btn" disabled>${T('current_plan')}</button>`
-          : (p.id === 'free'
-              ? `<button class="saas-btn ghost" disabled>${T('default_plan')}</button>`
-              : `<button class="saas-btn" onclick="checkout('${p.id}')">${T('subscribe')}</button>`);
-        return `<div class="plan ${cur ? 'cur' : ''}"><h2>${p.name}</h2><div class="price">${price}</div>${btn}</div>`;
-      }).join('');
+        const div = document.createElement('div');
+        div.className = 'plan' + (cur ? ' cur' : '');
+        const h2 = document.createElement('h2');
+        h2.textContent = p.name || p.id;
+        const priceEl = document.createElement('div');
+        priceEl.className = 'price';
+        priceEl.textContent = price;
+        const btn = document.createElement('button');
+        btn.className = 'saas-btn' + (p.id === 'free' && !cur ? ' ghost' : '');
+        if (cur) {
+          btn.disabled = true;
+          btn.textContent = T('current_plan');
+        } else if (p.id === 'free') {
+          btn.disabled = true;
+          btn.textContent = T('default_plan');
+        } else {
+          btn.textContent = T('subscribe');
+          btn.addEventListener('click', () => checkout(p.id));
+        }
+        div.appendChild(h2);
+        div.appendChild(priceEl);
+        div.appendChild(btn);
+        plansEl.appendChild(div);
+      });
     }
 
     async function checkout(plan) {

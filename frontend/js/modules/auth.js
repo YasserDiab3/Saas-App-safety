@@ -437,6 +437,11 @@ window.Auth = {
 
         // 🏠 محاولة تسجيل الدخول محلياً (Fallback / Offline)
         if (!user) {
+            if (window.SAAS_CONFIG && window.SAAS_CONFIG.useSupabaseBackend) {
+                const saasOnlyMsg = 'تسجيل الدخول متاح عبر Supabase فقط. استخدم login.html أو تحقق من الاتصال.';
+                Notification.error(saasOnlyMsg);
+                return { success: false, message: saasOnlyMsg };
+            }
             Utils.safeLog('🏠 محاولة التحقق من الحساب محلياً...');
             let users = AppState.appData.users || [];
             // إعادة تعيين isOnline في الكاش المحلي قبل الفحص لتجنب الحجب بسبب جلسة سابقة منتهية
@@ -457,15 +462,19 @@ window.Auth = {
             // Bootstrap Admin يعمل حتى لو فيه مستخدمون آخرون في الـ cache
             // (لأن admin@hse.local هو حساب طوارئ وليس حساباً عادياً)
             if (!foundUser && bootstrapAllowed && this.isBootstrapEmail(email)) {
-                foundUser = {
-                    id: 'BOOTSTRAP_ADMIN',
-                    name: 'مدير النظام',
-                    email: this.bootstrap.email,
-                    role: 'admin',
-                    passwordHash: this.bootstrap.passwordHash,
-                    active: true,
-                    permissions: {}
-                };
+                if (window.SAAS_CONFIG && window.SAAS_CONFIG.useSupabaseBackend) {
+                    foundUser = null;
+                } else {
+                    foundUser = {
+                        id: 'BOOTSTRAP_ADMIN',
+                        name: 'مدير النظام',
+                        email: this.bootstrap.email,
+                        role: 'admin',
+                        passwordHash: this.bootstrap.passwordHash,
+                        active: true,
+                        permissions: {}
+                    };
+                }
             }
 
             if (!foundUser) {

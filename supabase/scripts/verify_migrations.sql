@@ -78,6 +78,6 @@ select 'storage_policies', (
     and policyname like 'tenant_attachments_%'
 );
 
--- 7) Migration history (CLI tracking) — expect 12 rows
+-- 7) Migration history (CLI tracking) — expect 19 rows after 0019
 select version, name from supabase_migrations.schema_migrations order by version;
-select 'migration_count' as check_name, (select count(*) = 12 from supabase_migrations.schema_migrations) as ok;
+select 'migration_count' as check_name, (select count(*) = 19 from supabase_migrations.schema_migrations) as ok;

@@ -11,7 +11,14 @@
         'hse_cache_timestamps',
         'hse_company_logo',
         'company_logo',
-        'hse_company_settings'
+        'hse_company_settings',
+        'hse_incidents_registry',
+        'hse_ptw_registry',
+        'hse_kpi_targets',
+        'hse_cached_users',
+        'hse_read_notifications',
+        'hse_backend_config',
+        'hse_cloud_storage_config'
     ];
 
     function isSaas() {
