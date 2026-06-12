@@ -41,6 +41,10 @@
             <label data-i18n="f_password">كلمة المرور</label>
             <input id="pwd" class="saas-input" type="password" data-i18n-ph="ph_pwd8" autocomplete="new-password">
           </div>
+          <div class="saas-field">
+            <label data-i18n="f_password_confirm">تأكيد كلمة المرور</label>
+            <input id="pwd2" class="saas-input" type="password" data-i18n-ph="ph_pwd_confirm" autocomplete="new-password">
+          </div>
           <button id="go" class="saas-btn" data-i18n="btn_signup" onclick="doSignup()">إنشاء الحساب والمؤسسة</button>
         </div>
 
@@ -103,10 +107,11 @@
 
     function validateForm() {
       const org = $('org').value.trim(), name = $('name').value.trim();
-      const email = $('email').value.trim(), pwd = $('pwd').value;
+      const email = $('email').value.trim(), pwd = $('pwd').value, pwd2 = $('pwd2').value;
       const phoneCc = $('phone-cc').value, phone = digitsOnly($('phone').value);
-      if (!org || !name || !email || !pwd || !phone) { msg(T('su_fill_all'), 'err'); return null; }
+      if (!org || !name || !email || !pwd || !pwd2 || !phone) { msg(T('su_fill_all'), 'err'); return null; }
       if (pwd.length < 8) { msg(T('su_pwd_short'), 'err'); return null; }
+      if (pwd !== pwd2) { msg(T('su_pwd_mismatch'), 'err'); return null; }
       if (!phoneCc) { msg(T('su_phone_required'), 'err'); return null; }
       if (phone.length < 7 || phone.length > 15) { msg(T('su_phone_invalid'), 'err'); return null; }
       return { org, name, email, pwd, phoneCc, phone };
@@ -128,7 +133,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      SaaSI18n.init();
+      SaaSI18n.init(() => SaaSCountryCodes.refreshLabels($('phone-cc')));
       SaaSCountryCodes.fillSelect($('phone-cc'), '+966');
     });
 

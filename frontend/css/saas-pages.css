@@ -57,7 +57,7 @@ body{
 }
 .saas-input:focus{border-color:var(--brand-600);box-shadow:0 0 0 4px rgba(37,99,235,.12);background:#fff}
 .saas-phone-row{display:flex;gap:8px;align-items:stretch}
-.saas-phone-row select.saas-input{width:38%;min-width:108px;flex-shrink:0;padding-inline:8px}
+.saas-phone-row select.saas-input{width:44%;min-width:140px;flex-shrink:0;padding-inline:8px;font-size:.88rem}
 .saas-phone-row input.saas-input{flex:1;min-width:0}
 .saas-step{display:none}
 .saas-step.active{display:block}

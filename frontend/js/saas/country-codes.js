@@ -2,39 +2,57 @@
  * country-codes.js — dial codes for signup phone field
  */
 (function (global) {
-    global.SaaSCountryCodes = [
-        { code: '+966', label: '🇸🇦 +966', country: 'SA' },
-        { code: '+971', label: '🇦🇪 +971', country: 'AE' },
-        { code: '+965', label: '🇰🇼 +965', country: 'KW' },
-        { code: '+973', label: '🇧🇭 +973', country: 'BH' },
-        { code: '+974', label: '🇶🇦 +974', country: 'QA' },
-        { code: '+968', label: '🇴🇲 +968', country: 'OM' },
-        { code: '+962', label: '🇯🇴 +962', country: 'JO' },
-        { code: '+961', label: '🇱🇧 +961', country: 'LB' },
-        { code: '+20', label: '🇪🇬 +20', country: 'EG' },
-        { code: '+212', label: '🇲🇦 +212', country: 'MA' },
-        { code: '+216', label: '🇹🇳 +216', country: 'TN' },
-        { code: '+213', label: '🇩🇿 +213', country: 'DZ' },
-        { code: '+964', label: '🇮🇶 +964', country: 'IQ' },
-        { code: '+967', label: '🇾🇪 +967', country: 'YE' },
-        { code: '+90', label: '🇹🇷 +90', country: 'TR' },
-        { code: '+44', label: '🇬🇧 +44', country: 'GB' },
-        { code: '+1', label: '🇺🇸 +1', country: 'US' },
-        { code: '+33', label: '🇫🇷 +33', country: 'FR' },
-        { code: '+49', label: '🇩🇪 +49', country: 'DE' },
-        { code: '+91', label: '🇮🇳 +91', country: 'IN' },
-        { code: '+92', label: '🇵🇰 +92', country: 'PK' }
+    const CODES = [
+        { code: '+966', labelAr: 'السعودية', labelEn: 'Saudi Arabia', country: 'SA' },
+        { code: '+20', labelAr: 'مصر', labelEn: 'Egypt', country: 'EG' },
+        { code: '+971', labelAr: 'الإمارات', labelEn: 'UAE', country: 'AE' },
+        { code: '+965', labelAr: 'الكويت', labelEn: 'Kuwait', country: 'KW' },
+        { code: '+973', labelAr: 'البحرين', labelEn: 'Bahrain', country: 'BH' },
+        { code: '+974', labelAr: 'قطر', labelEn: 'Qatar', country: 'QA' },
+        { code: '+968', labelAr: 'عُمان', labelEn: 'Oman', country: 'OM' },
+        { code: '+962', labelAr: 'الأردن', labelEn: 'Jordan', country: 'JO' },
+        { code: '+961', labelAr: 'لبنان', labelEn: 'Lebanon', country: 'LB' },
+        { code: '+964', labelAr: 'العراق', labelEn: 'Iraq', country: 'IQ' },
+        { code: '+967', labelAr: 'اليمن', labelEn: 'Yemen', country: 'YE' },
+        { code: '+963', labelAr: 'سوريا', labelEn: 'Syria', country: 'SY' },
+        { code: '+970', labelAr: 'فلسطين', labelEn: 'Palestine', country: 'PS' },
+        { code: '+218', labelAr: 'ليبيا', labelEn: 'Libya', country: 'LY' },
+        { code: '+249', labelAr: 'السودان', labelEn: 'Sudan', country: 'SD' },
+        { code: '+212', labelAr: 'المغرب', labelEn: 'Morocco', country: 'MA' },
+        { code: '+216', labelAr: 'تونس', labelEn: 'Tunisia', country: 'TN' },
+        { code: '+213', labelAr: 'الجزائر', labelEn: 'Algeria', country: 'DZ' },
+        { code: '+90', labelAr: 'تركيا', labelEn: 'Turkey', country: 'TR' },
+        { code: '+44', labelAr: 'بريطانيا', labelEn: 'UK', country: 'GB' },
+        { code: '+1', labelAr: 'الولايات المتحدة', labelEn: 'USA', country: 'US' },
+        { code: '+33', labelAr: 'فرنسا', labelEn: 'France', country: 'FR' },
+        { code: '+49', labelAr: 'ألمانيا', labelEn: 'Germany', country: 'DE' },
+        { code: '+91', labelAr: 'الهند', labelEn: 'India', country: 'IN' },
+        { code: '+92', labelAr: 'باكستان', labelEn: 'Pakistan', country: 'PK' }
     ];
+
+    function formatLabel(entry) {
+        const lang = (global.SaaSI18n && global.SaaSI18n.lang) || document.documentElement.lang || 'ar';
+        const name = lang === 'en' ? entry.labelEn : entry.labelAr;
+        return `${name} (${entry.code})`;
+    }
+
+    global.SaaSCountryCodes = CODES;
 
     global.SaaSCountryCodes.fillSelect = function (selectEl, defaultCode) {
         if (!selectEl) return;
         selectEl.innerHTML = '';
-        (global.SaaSCountryCodes || []).forEach((c) => {
+        CODES.forEach((c) => {
             const opt = document.createElement('option');
             opt.value = c.code;
-            opt.textContent = c.label;
+            opt.textContent = formatLabel(c);
             selectEl.appendChild(opt);
         });
         if (defaultCode) selectEl.value = defaultCode;
+    };
+
+    global.SaaSCountryCodes.refreshLabels = function (selectEl) {
+        if (!selectEl) return;
+        const current = selectEl.value;
+        global.SaaSCountryCodes.fillSelect(selectEl, current);
     };
 })(window);
