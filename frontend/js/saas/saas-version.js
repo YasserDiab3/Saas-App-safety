@@ -40,6 +40,27 @@
         return el.style.display !== 'none' && !el.classList.contains('hidden');
     }
 
+    function isMainAppVisible() {
+        if (document.body && document.body.classList.contains('app-active')) return true;
+        const el = document.getElementById('main-app');
+        if (!el) return false;
+        return el.style.display !== 'none';
+    }
+
+    function isBannerDismissed(version) {
+        try {
+            return sessionStorage.getItem('hse_update_banner_dismissed') === version;
+        } catch (_e) {
+            return false;
+        }
+    }
+
+    function setBannerDismissed(version) {
+        try {
+            sessionStorage.setItem('hse_update_banner_dismissed', version);
+        } catch (_e) { /* ignore */ }
+    }
+
     async function fetchManifest() {
         const base = (global.location && global.location.origin) ? global.location.origin : '';
         if (!base || base === 'null' || global.location.protocol === 'file:') return null;
@@ -111,6 +132,89 @@
             global.location.reload();
         },
 
+        hideInAppBanner() {
+            const banner = document.getElementById('hse-app-update-banner');
+            if (banner) banner.style.display = 'none';
+            if (document.body) document.body.classList.remove('hse-update-banner-visible');
+        },
+
+        showInAppBanner(lang) {
+            const l = lang || getLang();
+            const isEn = l === 'en';
+            const v = this._server;
+            if (!v || isBannerDismissed(v)) {
+                this.hideInAppBanner();
+                return;
+            }
+
+            let banner = document.getElementById('hse-app-update-banner');
+            if (!banner) {
+                banner = document.createElement('div');
+                banner.id = 'hse-app-update-banner';
+                banner.setAttribute('role', 'alert');
+                banner.setAttribute('aria-live', 'polite');
+                banner.innerHTML =
+                    '<div class="hse-update-banner-inner">' +
+                    '<span class="hse-update-banner-icon" aria-hidden="true"><i class="fas fa-sync-alt"></i></span>' +
+                    '<span class="hse-update-banner-text"></span>' +
+                    '<button type="button" class="hse-update-banner-btn-reload"></button>' +
+                    '<button type="button" class="hse-update-banner-btn-dismiss" aria-label="Close">×</button>' +
+                    '</div>';
+                document.body.appendChild(banner);
+
+                banner.querySelector('.hse-update-banner-btn-reload').addEventListener('click', () => {
+                    Version.reloadForUpdate();
+                });
+                banner.querySelector('.hse-update-banner-btn-dismiss').addEventListener('click', () => {
+                    setBannerDismissed(Version._server || '');
+                    Version.hideInAppBanner();
+                });
+            }
+
+            const textEl = banner.querySelector('.hse-update-banner-text');
+            const reloadBtn = banner.querySelector('.hse-update-banner-btn-reload');
+            const msg = this._message;
+            const verLabel = formatDisplay(v);
+            if (textEl) {
+                textEl.textContent = isEn
+                    ? ('New version ' + verLabel + ' is available.' + (msg ? ' ' + msg : ''))
+                    : ('يتوفر تحديث جديد ' + verLabel + '.' + (msg ? ' ' + msg : ''));
+            }
+            if (reloadBtn) {
+                reloadBtn.textContent = isEn ? 'Update now' : 'تحديث الآن';
+            }
+            banner.style.display = 'flex';
+            banner.setAttribute('dir', isEn ? 'ltr' : 'rtl');
+            if (document.body) document.body.classList.add('hse-update-banner-visible');
+
+            const offline = document.getElementById('hse-offline-banner');
+            const offlineVisible = offline && offline.style.display !== 'none';
+            banner.style.top = offlineVisible ? (offline.offsetHeight || 40) + 'px' : '0';
+        },
+
+        _maybeToast(lang) {
+            if (this._toastShownFor === this._server) return;
+            if (!global.Notification || typeof global.Notification.info !== 'function') return;
+            const isEn = (lang || getLang()) === 'en';
+            const verLabel = formatDisplay(this._server);
+            global.Notification.info(
+                isEn
+                    ? ('Update available: ' + verLabel)
+                    : ('يتوفر تحديث جديد: ' + verLabel),
+                { duration: 8000 }
+            );
+            this._toastShownFor = this._server;
+        },
+
+        _maybeModal() {
+            if (!global.UI || typeof global.UI._showUpdateModal !== 'function') return;
+            const sessionKey = 'hse_update_modal_shown_version';
+            try {
+                if (sessionStorage.getItem(sessionKey) === this._server) return;
+            } catch (_e) { /* ignore */ }
+            global.UI._showUpdateModal(this._server);
+        },
+
         async refresh() {
             const data = await fetchManifest();
             if (!data) return null;
@@ -133,16 +237,26 @@
             const hasUpdate = this.isUpdateAvailable();
             this.updateLoginFooter(lang);
 
-            if (!hasUpdate) return false;
+            if (!hasUpdate) {
+                this.hideInAppBanner();
+                return false;
+            }
 
             if (isLoginScreenVisible()) {
                 return true;
             }
 
-            if (global.UI && typeof global.UI._showUpdateModal === 'function') {
-                global.UI._showUpdateModal(this._server);
+            if (isMainAppVisible() || document.body.classList.contains('app-active')) {
+                this.showInAppBanner(lang);
+                this._maybeToast(lang);
+                this._maybeModal();
             }
             return true;
+        },
+
+        /** استدعاء بعد showMainApp — فحص فوري داخل النظام */
+        checkInApp(lang) {
+            return this.notifyIfUpdate(lang);
         },
 
         async initLoginScreen(lang) {
@@ -169,12 +283,16 @@
         startPolling() {
             if (this._pollTimer) return;
             const tick = () => {
-                if (!isLoginScreenVisible()) return;
+                if (document.visibilityState !== 'visible') return;
                 this.notifyIfUpdate(getLang());
             };
+            setTimeout(tick, 2500);
             this._pollTimer = setInterval(tick, 5 * 60 * 1000);
             document.addEventListener('visibilitychange', () => {
                 if (document.visibilityState === 'visible') tick();
+            });
+            document.addEventListener('loginSuccess', () => {
+                setTimeout(() => tick(), 1500);
             });
         }
     };

@@ -448,6 +448,86 @@ body.app-active {
     50% { opacity: 0.82; }
 }
 
+/* In-app update notification banner */
+#hse-app-update-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 99998;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 14px;
+    background: linear-gradient(135deg, #1e40af, #2563eb);
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35);
+    font-size: 0.88rem;
+    line-height: 1.4;
+}
+
+.hse-update-banner-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 10px 12px;
+    width: 100%;
+    max-width: 1100px;
+}
+
+.hse-update-banner-icon {
+    display: inline-flex;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.18);
+    flex-shrink: 0;
+}
+
+.hse-update-banner-text {
+    flex: 1 1 200px;
+    text-align: center;
+    font-weight: 600;
+}
+
+.hse-update-banner-btn-reload {
+    border: none;
+    border-radius: 9999px;
+    padding: 6px 14px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    color: #1e40af;
+    background: #fff;
+    flex-shrink: 0;
+}
+
+.hse-update-banner-btn-reload:hover {
+    filter: brightness(0.97);
+}
+
+.hse-update-banner-btn-dismiss {
+    border: none;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1.35rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 4px;
+    flex-shrink: 0;
+}
+
+body.hse-update-banner-visible {
+    padding-top: 52px;
+}
+
+body.hse-update-banner-visible #company-logo-header {
+    top: 52px;
+}
+
 [data-theme="dark"] .login-footer-version-badge {
     background: rgba(37, 99, 235, 0.2);
     color: var(--primary-light);

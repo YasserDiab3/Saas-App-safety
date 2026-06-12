@@ -2232,6 +2232,9 @@ window.UI = {
         if (mainApp) mainApp.style.display = 'flex';
         document.body.classList.add('app-active');
         try { window._hseAppVisible = true; } catch (e) {}
+        if (window.SaaSVersion && typeof window.SaaSVersion.checkInApp === 'function') {
+            window.SaaSVersion.checkInApp().catch(() => {});
+        }
         // بعد تسجيل الدخول مباشرة: أي مزامنة تلقائية يجب أن تبقى بالخلفية بدون نافذة تقدم.
         AppState._suppressSyncProgressOverlayUntil = Date.now() + (2 * 60 * 1000);
 
@@ -2716,7 +2719,6 @@ window.UI = {
             window.location.reload();
         };
         const onLater = () => {
-            try { if (typeof localStorage !== 'undefined') localStorage.setItem(storageKey, v); } catch (e) {}
             if (modal && modal.parentNode) modal.remove();
         };
         const btnReload = modal.querySelector('#hse-update-message-reload');
