@@ -3114,6 +3114,9 @@ const Utils = {
      * هل يوجد مسار مزامنة عبر الخادم السحابي (تفعيل + رابط Web App /exec)
      */
     hasCloudBackendSync() {
+        if (typeof window !== 'undefined' && window.SAAS_CONFIG && window.SAAS_CONFIG.useSupabaseBackend) {
+            return true;
+        }
         const gc = typeof AppState !== 'undefined' ? AppState.backendConfig : null;
         if (!gc || !gc.server) return false;
         const url = String(gc.server.scriptUrl || '').trim();

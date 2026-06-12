@@ -364,7 +364,41 @@ window.Auth = {
         let loginResult = null;
         let loginMethod = 'local';
 
-        if (canSyncUsers && typeof Backend !== 'undefined') {
+        // SaaS: Supabase Auth (لا يعتمد على scriptUrl القديم)
+        if (!user && window.SAAS_CONFIG && window.SAAS_CONFIG.useSupabaseBackend && window.SaaS && typeof window.SaaS.signIn === 'function') {
+            try {
+                await window.SaaS.ready;
+                const saasResult = await window.SaaS.signIn(email, password);
+                if (saasResult.error) {
+                    const errMsg = saasResult.error.message || this._getLoginErrorMessage();
+                    Notification.error(errMsg);
+                    return { success: false, message: errMsg };
+                }
+                const su = (saasResult.data && saasResult.data.user) || {};
+                const role = (window.SaaSSession && typeof window.SaaSSession.resolveRole === 'function')
+                    ? await window.SaaSSession.resolveRole()
+                    : 'user';
+                const isAdmin = (role === 'admin');
+                user = {
+                    id: su.id,
+                    email: su.email,
+                    name: (su.user_metadata && su.user_metadata.full_name) || su.email,
+                    role: role,
+                    department: '',
+                    permissions: isAdmin ? { admin: true, 'manage-modules': true } : {},
+                    active: true,
+                    passwordChanged: true
+                };
+                loginMethod = 'server';
+            } catch (saasErr) {
+                Utils.safeError('⚠️ فشل تسجيل الدخول عبر Supabase:', saasErr);
+                const errMsg = (saasErr && saasErr.message) || 'فشل الاتصال بخادم تسجيل الدخول. تحقق من الإنترنت وحاول مرة أخرى.';
+                Notification.error(errMsg);
+                return { success: false, message: errMsg };
+            }
+        }
+
+        if (!user && canSyncUsers && typeof Backend !== 'undefined') {
             try {
                 Utils.safeLog('🔒 محاولة تسجيل الدخول عبر الخادم...');
                 loginResult = await Backend.sendRequest({
