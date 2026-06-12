@@ -9567,7 +9567,7 @@
                     </form>
 
                     <!-- Login Footer -->
-                    <footer class="login-footer">
+                    <footer class="login-footer" dir="rtl">
                         <div class="login-footer-content">
                             <div class="login-footer-row">
                                 <span id="login-footer-copyright"
@@ -9576,9 +9576,10 @@
                             </div>
                             <div class="login-footer-row">
                                 <span
-                                    id="login-footer-trial"
-                                    class="login-footer-trial-badge"
-                                    >نسخة تجريبية</span
+                                    id="login-footer-version"
+                                    class="login-footer-version-badge"
+                                    dir="ltr"
+                                    >2.2.12</span
                                 >
                                 <span class="login-footer-separator">|</span>
                                 <a
@@ -9618,7 +9619,7 @@
                         helpAria: "مساعدة",
                         footerCopyright:
                             "© QHSSE Global Consultant — كل الحقوق محفوظة 2025",
-                        footerTrial: "نسخة تجريبية",
+                        footerVersion: "2.2.12",
                         footerPrivacy: "سياسة الخصوصية",
                         langToggleAria: "تبديل اللغة",
                         langCurrent: "AR",
@@ -9642,7 +9643,7 @@
                         helpAria: "Help",
                         footerCopyright:
                             "© QHSSE Global Consultant — All rights reserved 2025",
-                        footerTrial: "Trial version",
+                        footerVersion: "2.2.12",
                         footerPrivacy: "Privacy Policy",
                         langToggleAria: "Switch language",
                         langCurrent: "EN",
@@ -9663,6 +9664,10 @@
                     document.documentElement.lang = lang === "ar" ? "ar" : "en";
                     if (document.body)
                         document.body.dir = isRTL ? "rtl" : "ltr";
+
+                    var loginFooter = document.querySelector(".login-footer");
+                    if (loginFooter)
+                        loginFooter.setAttribute("dir", isRTL ? "rtl" : "ltr");
 
                     var loginScreen = document.getElementById("login-screen");
                     if (loginScreen)
@@ -9714,8 +9719,8 @@
                     if (byId("login-footer-copyright"))
                         byId("login-footer-copyright").textContent =
                             t.footerCopyright;
-                    if (byId("login-footer-trial"))
-                        byId("login-footer-trial").textContent = t.footerTrial;
+                    if (byId("login-footer-version"))
+                        byId("login-footer-version").textContent = t.footerVersion;
                     if (byId("login-footer-privacy"))
                         byId("login-footer-privacy").textContent =
                             t.footerPrivacy;

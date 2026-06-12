@@ -343,14 +343,14 @@ body.app-active {
 }
 
 .login-footer-content {
-    text-align: center;
+    text-align: start;
 }
 
 .login-footer-row {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     gap: 0.5rem;
     font-size: 0.75rem;
     color: var(--text-secondary);
@@ -376,16 +376,17 @@ body.app-active {
     color: var(--primary-color);
 }
 
-.login-footer-trial-badge {
+.login-footer-version-badge {
     padding: 0.25rem 0.5rem;
     background: rgba(37, 99, 235, 0.1);
     color: var(--primary-color);
     border-radius: 9999px;
     font-weight: 600;
     font-size: 0.75rem;
+    unicode-bidi: isolate;
 }
 
-[data-theme="dark"] .login-footer-trial-badge {
+[data-theme="dark"] .login-footer-version-badge {
     background: rgba(37, 99, 235, 0.2);
     color: var(--primary-light);
 }
@@ -416,6 +417,7 @@ body.app-active {
     
     .login-footer-row {
         flex-direction: column;
+        align-items: flex-start;
         gap: 0.25rem;
     }
     
