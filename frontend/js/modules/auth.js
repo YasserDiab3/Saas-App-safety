@@ -1037,6 +1037,12 @@ window.Auth = {
             sessionStorage.removeItem('hse_current_session');
             sessionStorage.removeItem('hse_current_section');
             sessionStorage.removeItem('hse_session_id'); // مسح معرف الجلسة
+            if (window.SaaSTenantCache && typeof window.SaaSTenantCache.clearAllTenantData === 'function') {
+                window.SaaSTenantCache.clearAllTenantData();
+            }
+            if (window.SAAS_CONFIG && window.SAAS_CONFIG.useSupabaseBackend && window.SaaS && typeof window.SaaS.signOut === 'function') {
+                window.SaaS.signOut().catch(() => {});
+            }
             Utils.safeLog('✅ تم مسح جميع بيانات الجلسة بما في ذلك معرف الجلسة');
         } catch (e) {
             Utils.safeWarn('⚠️ فشل مسح بعض بيانات الجلسة:', e);

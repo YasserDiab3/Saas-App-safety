@@ -256,8 +256,9 @@
                 }
             }
             
-            // تحميل البيانات من localStorage
-            if (window.DataManager && window.DataManager.load) {
+            // تحميل البيانات من localStorage (SaaS: يُؤجَّل حتى بعد التحقق من المستأجر)
+            const isSaasBackend = !!(window.SAAS_CONFIG && window.SAAS_CONFIG.useSupabaseBackend);
+            if (window.DataManager && window.DataManager.load && !isSaasBackend) {
                 try {
                     // ✅ مهم عند Reload: ننتظر تحميل البيانات المحلية لتجنّب صفحة بيضاء/جداول فارغة ثم ظهور البيانات لاحقاً
                     await window.DataManager.load();
@@ -318,6 +319,8 @@
                         window.EnhancedLoader.addError('خطأ في تحميل البيانات المحلية');
                     }
                 }
+            } else if (isSaasBackend && typeof AppState !== 'undefined' && !AppState.appData) {
+                AppState.appData = {};
             }
             
             this.endPhase(this.phases.SERVICES);
@@ -713,6 +716,7 @@
          */
         _tryFastSessionRestore() {
             if (this._sessionRestored) return;
+            if (window.SAAS_CONFIG && window.SAAS_CONFIG.useSupabaseBackend) return;
 
             const sessionData = sessionStorage.getItem('hse_current_session');
             const rememberData = localStorage.getItem('hse_remember_user');
@@ -744,7 +748,27 @@
                 if (!user) return; // تمت إعادة التوجيه لصفحة الدخول
                 const hasTenant = await window.SaaSSession.requireTenant('signup.html?step=org');
                 if (!hasTenant) return;
+                if (window.SaaSTenantCache && typeof window.SaaSTenantCache.prepareSession === 'function') {
+                    await window.SaaSTenantCache.prepareSession();
+                }
                 await window.SaaSSession.hydrateAppStateUser();
+                if (window.DataManager && typeof window.DataManager.load === 'function') {
+                    await window.DataManager.load();
+                    if (typeof window.DataManager.loadCompanySettings === 'function') {
+                        await window.DataManager.loadCompanySettings();
+                    }
+                }
+                if (typeof Permissions !== 'undefined' && typeof Permissions.getCurrentUserPermissions === 'function') {
+                    try {
+                        const userPermissions = Permissions.getCurrentUserPermissions();
+                        await this.loadDataBasedOnPermissions(userPermissions);
+                    } catch (permErr) {
+                        log('⚠️ SaaS: فشل تحميل البيانات حسب الصلاحيات:', permErr);
+                        await this.loadSharedDataFallback();
+                    }
+                } else {
+                    await this.loadSharedDataFallback();
+                }
                 this._sessionRestored = true;
                 log('✅ جلسة Supabase صالحة — فتح التطبيق');
                 if (typeof window.UI !== 'undefined' && typeof window.UI.showMainApp === 'function') {

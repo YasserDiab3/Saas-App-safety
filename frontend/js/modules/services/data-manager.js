@@ -7,6 +7,46 @@ const DataManager = {
     _pendingSyncQueue: null,
     /** حد آمن لحجم بيانات التطبيق في localStorage (المتصفحات غالباً ~5MB للمجال كاملاً) */
     SAFE_APP_DATA_BYTES: 6 * 1024 * 1024,
+
+    _isSaasTenantMode() {
+        return !!(typeof window !== 'undefined' && window.SAAS_CONFIG && window.SAAS_CONFIG.useSupabaseBackend);
+    },
+
+    _lsKey(base) {
+        if (this._isSaasTenantMode() && window.SaaSTenantCache) {
+            return window.SaaSTenantCache.scopedKey(base);
+        }
+        return base;
+    },
+
+    _lsGet(base) {
+        if (this._isSaasTenantMode() && (!window.SaaSTenantCache || !window.SaaSTenantCache.getTenantId())) {
+            return null;
+        }
+        try {
+            return localStorage.getItem(this._lsKey(base));
+        } catch (_e) {
+            return null;
+        }
+    },
+
+    _lsSet(base, value) {
+        try {
+            localStorage.setItem(this._lsKey(base), value);
+            return true;
+        } catch (_e) {
+            return false;
+        }
+    },
+
+    _lsRemove(base) {
+        try {
+            localStorage.removeItem(this._lsKey(base));
+            return true;
+        } catch (_e) {
+            return false;
+        }
+    },
     /** أقصى عدد عناصر للمصفوفات الكبيرة في النسخة المخففة */
     MAX_ITEMS_PER_ARRAY_IN_LIGHT: 400,
     _lastLightSaveNotification: 0,
@@ -107,7 +147,7 @@ const DataManager = {
      */
     _clearNonEssentialStorage() {
         try {
-            localStorage.removeItem('hse_pending_sync_queue');
+            this._lsRemove('hse_pending_sync_queue');
             if (AppState.debugMode) Utils.safeLog('ℹ️ تم مسح قائمة المزامنة المعلقة لتحرير مساحة');
         } catch (e) {
             Utils.safeWarn('⚠️ فشل مسح عناصر التخزين:', e);
@@ -119,7 +159,7 @@ const DataManager = {
      */
     loadPendingSyncQueue() {
         try {
-            const saved = localStorage.getItem('hse_pending_sync_queue');
+            const saved = this._lsGet('hse_pending_sync_queue');
             if (saved) {
                 const parsed = JSON.parse(saved);
                 const rawQueue = Array.isArray(parsed) ? parsed : [];
@@ -148,9 +188,9 @@ const DataManager = {
     savePendingSyncQueue() {
         try {
             if (this._pendingSyncQueue && this._pendingSyncQueue.length > 0) {
-                localStorage.setItem('hse_pending_sync_queue', Utils.safeStringify(this._pendingSyncQueue));
+                this._lsSet('hse_pending_sync_queue', Utils.safeStringify(this._pendingSyncQueue));
             } else {
-                localStorage.removeItem('hse_pending_sync_queue');
+                this._lsRemove('hse_pending_sync_queue');
             }
         } catch (error) {
             Utils.safeWarn('⚠️ خطأ في حفظ قائمة المزامنة المعلقة:', error);
@@ -303,7 +343,7 @@ const DataManager = {
                 AppState.appData = {};
             }
             
-            const saved = localStorage.getItem('hse_app_data');
+            const saved = this._lsGet('hse_app_data');
             if (saved) {
                 const parsedData = JSON.parse(saved);
                 
@@ -434,7 +474,7 @@ const DataManager = {
             
             // ✅ إضافة: تحميل syncMeta
             try {
-                const syncMetaStr = localStorage.getItem('hse_sync_meta');
+                const syncMetaStr = this._lsGet('hse_sync_meta');
                 if (syncMetaStr) {
                     const savedSyncMeta = JSON.parse(syncMetaStr);
                     // التحقق من أن syncMeta ينتمي للمستخدم الحالي
@@ -544,7 +584,7 @@ const DataManager = {
                 const lightSerialized = Utils.safeStringify(light);
                 if (lightSerialized && lightSerialized.length <= safeLimit) {
                     try {
-                        localStorage.setItem('hse_app_data', lightSerialized);
+                        this._lsSet('hse_app_data', lightSerialized);
                         this._saveSyncMeta();
                         this.saveCompanySettings();
                         // تسجيل في الـ console فقط — لا إشعار مرئي للمستخدم (البيانات الكاملة في الذاكرة وGoogle Sheets)
@@ -561,7 +601,7 @@ const DataManager = {
                 }
                 return false;
             }
-            localStorage.setItem('hse_app_data', serialized);
+            this._lsSet('hse_app_data', serialized);
             this.saveCompanySettings();
             this._saveSyncMeta();
             // ملاحظة: _saveCacheTimestamps لا تُستدعى هنا — تُحدَّث timestamps فقط عبر recordServerFetch()
@@ -597,7 +637,7 @@ const DataManager = {
                     const light = this.buildLightAppData(AppState.appData);
                     const lightSerialized = Utils.safeStringify(light);
                     if (lightSerialized && lightSerialized.length < this.SAFE_APP_DATA_BYTES) {
-                        localStorage.setItem('hse_app_data', lightSerialized);
+                        this._lsSet('hse_app_data', lightSerialized);
                         this._saveSyncMeta();
                         this.saveCompanySettings();
                         Utils.safeLog('ℹ️ [DataManager] تم حفظ نسخة مخففة بعد امتلاء التخزين.');
@@ -621,7 +661,7 @@ const DataManager = {
     _saveSyncMeta() {
         try {
             if (AppState.syncMeta) {
-                localStorage.setItem('hse_sync_meta', Utils.safeStringify(AppState.syncMeta));
+                this._lsSet('hse_sync_meta', Utils.safeStringify(AppState.syncMeta));
             }
         } catch (e) {
             Utils.safeWarn('⚠️ فشل حفظ syncMeta:', e);
@@ -718,7 +758,7 @@ const DataManager = {
             // قراءة الـ timestamps الحالية (للاحتفاظ بقيم الحقول غير المحدَّثة)
             let timestamps = {};
             try {
-                const existing = localStorage.getItem('hse_cache_timestamps');
+                const existing = this._lsGet('hse_cache_timestamps');
                 if (existing) timestamps = JSON.parse(existing);
             } catch (e) { /* ignore */ }
 
@@ -732,7 +772,7 @@ const DataManager = {
             }
             // ملاحظة: بدون updatedKeys لا يحدث أي تحديث — يتم استدعاء الدالة فقط مع مفاتيح
 
-            localStorage.setItem('hse_cache_timestamps', JSON.stringify(timestamps));
+            this._lsSet('hse_cache_timestamps', JSON.stringify(timestamps));
         } catch (e) {
             // فشل صامت - لا يؤثر على الوظائف الأخرى
         }
@@ -757,7 +797,7 @@ const DataManager = {
      */
     isCacheValid(sheetKey, maxAge = 10 * 60 * 1000) {
         try {
-            const timestampsStr = localStorage.getItem('hse_cache_timestamps');
+            const timestampsStr = this._lsGet('hse_cache_timestamps');
             if (!timestampsStr) return false;
             
             const timestamps = JSON.parse(timestampsStr);
@@ -777,8 +817,8 @@ const DataManager = {
             // ✅ إصلاح: التحقق من وجود الشعار في localStorage أولاً (cache)
             // إذا كان موجوداً ولم نطلب إعادة تحميل قسرية، نستخدم localStorage فقط
             if (!forceReload) {
-                const cachedLogo = localStorage.getItem('hse_company_logo') || localStorage.getItem('company_logo');
-                const cachedSettings = localStorage.getItem('hse_company_settings');
+                const cachedLogo = this._lsGet('hse_company_logo') || this._lsGet('company_logo');
+                const cachedSettings = this._lsGet('hse_company_settings');
                 
                 if (cachedLogo && cachedSettings) {
                     try {
@@ -911,12 +951,12 @@ const DataManager = {
                             }
                             AppState.companySettings.logo = logoValue;
                             // ✅ إصلاح: حفظ في localStorage فقط إذا تغير الشعار
-                            const currentLogo = localStorage.getItem('hse_company_logo') || '';
+                            const currentLogo = this._lsGet('hse_company_logo') || '';
                             if (logoValue && logoValue.trim() !== '') {
                                 // إذا تغير الشعار، نحدّث localStorage
                                 if (currentLogo !== logoValue) {
-                                    localStorage.setItem('hse_company_logo', logoValue);
-                                    localStorage.setItem('company_logo', logoValue);
+                                    this._lsSet('hse_company_logo', logoValue);
+                                    this._lsSet('company_logo', logoValue);
                                     Utils.safeLog('✅ تم تحديث الشعار من قاعدة البيانات (الطول: ' + logoValue.length + ' حرف)');
                                 } else {
                                     Utils.safeLog('ℹ️ الشعار لم يتغير - استخدام النسخة المخزنة محلياً');
@@ -924,8 +964,8 @@ const DataManager = {
                             } else {
                                 // إذا تم حذف الشعار من قاعدة البيانات، نمسح localStorage
                                 if (currentLogo) {
-                                    localStorage.removeItem('hse_company_logo');
-                                    localStorage.removeItem('company_logo');
+                                    this._lsRemove('hse_company_logo');
+                                    this._lsRemove('company_logo');
                                     Utils.safeLog('ℹ️ تم حذف الشعار من قاعدة البيانات');
                                 }
                             }
@@ -938,17 +978,17 @@ const DataManager = {
                                     AppState.companySettings = {};
                                 }
                                 AppState.companySettings.logo = '';
-                                localStorage.removeItem('hse_company_logo');
-                                localStorage.removeItem('company_logo');
+                                this._lsRemove('hse_company_logo');
+                                this._lsRemove('company_logo');
                             }
                         }
                         
                         // حفظ في localStorage لاستخدامها لاحقاً
-                        localStorage.setItem('hse_company_settings', JSON.stringify(AppState.companySettings || {}));
+                        this._lsSet('hse_company_settings', JSON.stringify(AppState.companySettings || {}));
                         
                             // ✅ إصلاح: تحديث الشعار في جميع الأماكن المخصصة (حتى لو كان فارغاً)
                         // استخدام setTimeout لضمان تحديث الواجهة بعد تحديث AppState
-                        const shouldUpdateUI = forceReload || !localStorage.getItem('hse_company_logo');
+                        const shouldUpdateUI = forceReload || !this._lsGet('hse_company_logo');
                         if (shouldUpdateUI) {
                             setTimeout(() => {
                                 if (typeof UI !== 'undefined') {
@@ -986,7 +1026,7 @@ const DataManager = {
             }
             
             // إذا فشل التحميل من Google Sheets، تحميل من localStorage
-            const savedSettings = localStorage.getItem('hse_company_settings');
+            const savedSettings = this._lsGet('hse_company_settings');
             if (savedSettings) {
                 const parsedSettings = JSON.parse(savedSettings);
                 AppState.companySettings = Object.assign({}, AppState.companySettings, parsedSettings || {});
@@ -998,7 +1038,7 @@ const DataManager = {
             }
             
             // تحميل الشعار من localStorage إذا كان موجوداً (fallback)
-            const savedLogo = localStorage.getItem('hse_company_logo') || localStorage.getItem('company_logo');
+            const savedLogo = this._lsGet('hse_company_logo') || this._lsGet('company_logo');
             if (savedLogo) {
                 AppState.companyLogo = savedLogo;
                 // تحديث الشعار في AppState.companySettings أيضاً
@@ -1042,7 +1082,7 @@ const DataManager = {
 
     saveCompanySettings() {
         try {
-            localStorage.setItem('hse_company_settings', JSON.stringify(AppState.companySettings || {}));
+            this._lsSet('hse_company_settings', JSON.stringify(AppState.companySettings || {}));
             return true;
         } catch (error) {
             Utils.safeError('❌ خطأ في حفظ إعدادات الشركة:', error);
