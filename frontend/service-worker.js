@@ -57,8 +57,8 @@ function isSwDev() {
 
 // Bump cache version to force clients to pick up latest JS/CSS updates (زيادة عند كل نشر لظهور التحديثات)
 // يجب تحديث __SW_REGISTER_QUERY في index.html بنفس اللاحقة عند تغيير الإصدار لتسريع اكتشاف service-worker.js
-// Service Worker Version: 20260501 — isSwDev: مضيفات إضافية + معاينة Vercel
-const CACHE_VERSION = 'hse-app-v1.0.80-20260612-sw-nav-fix';
+// Service Worker Version: 20260613 — mobile auth: skip SW for guests, network-first saas JS
+const CACHE_VERSION = 'hse-app-v1.0.81-20260613-mobile-auth';
 const CACHE_NAME = `hse-cache-${CACHE_VERSION}`;
 
 /** أقصى حجم لعنصر في الكاش (بايت) — يحدّ تخزين ملفات CDN الضخمة */
@@ -701,6 +701,7 @@ function isShellOrCriticalFile(pathname) {
     if (/\/js\/modules\/i18n-core\.js$/i.test(p)) return true;
     if (/\/js\/modules\/services\/data-manager\.js$/i.test(p)) return true;
     if (/\/js\/modules\/modules\/settings\.js$/i.test(p)) return true;
+    if (/\/js\/saas\//i.test(p)) return true;
     return p.endsWith('/js/app-ui.js') || p.endsWith('/js/app-bootstrap.js') || p.endsWith('/js/app-utils.js');
 }
 

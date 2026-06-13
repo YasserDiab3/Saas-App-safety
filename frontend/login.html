@@ -2,10 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <title>تسجيل الدخول — QHSSE Consultant</title>
 <link rel="icon" type="image/png" href="assets/brand/favicon.png">
 <link rel="stylesheet" href="css/saas-pages.css">
+<link rel="preconnect" href="https://tbkajjarkqhsdiabufjv.supabase.co" crossorigin>
 </head>
 <body data-i18n-title="login_doctitle">
   <div class="saas-shell">
@@ -18,29 +21,30 @@
       <div class="saas-body">
         <div class="saas-field">
           <label data-i18n="f_email">البريد الإلكتروني</label>
-          <input id="email" class="saas-input" type="email" data-i18n-ph="ph_email" autocomplete="username">
+          <input id="email" class="saas-input" type="email" inputmode="email" autocapitalize="none" autocomplete="username">
         </div>
         <div class="saas-field">
           <label data-i18n="f_password">كلمة المرور</label>
-          <input id="pwd" class="saas-input" type="password" data-i18n-ph="ph_pwd" autocomplete="current-password">
+          <input id="pwd" class="saas-input" type="password" autocomplete="current-password">
         </div>
-        <button id="go" class="saas-btn" data-i18n="btn_login" onclick="doLogin()">دخول</button>
+        <button id="go" class="saas-btn" data-i18n="btn_login">دخول</button>
         <div class="saas-msg" id="msg"></div>
         <div class="saas-foot">
           <span data-i18n="no_account">لا تملك حساباً؟</span>
-          <a href="signup.html" data-i18n="signup_link">أنشئ مؤسسة جديدة</a>
+          <a href="/signup" data-i18n="signup_link">أنشئ مؤسسة جديدة</a>
         </div>
       </div>
     </div>
   </div>
 
-  <script src="js/saas/saas-config.js"></script>
-  <script src="js/saas/saas-brand.js"></script>
-  <script src="js/saas/supabase-bootstrap.js"></script>
-  <script src="js/saas/saas-i18n.js"></script>
+  <script src="/js/saas/saas-config.js"></script>
+  <script src="/js/saas/saas-auth-storage.js"></script>
+  <script src="/js/saas/supabase-bootstrap.js"></script>
+  <script src="/js/saas/saas-i18n.js"></script>
+  <script src="/js/saas/saas-brand.js"></script>
   <script>
     const $ = id => document.getElementById(id);
-    const T = k => SaaSI18n.t(k);
+    const T = k => (window.SaaSI18n ? SaaSI18n.t(k) : k);
     const msg = (t, cls) => { $('msg').className = 'saas-msg ' + (cls || ''); $('msg').textContent = t; };
 
     function safeNext(raw) {
@@ -54,12 +58,18 @@
       return safeNext(q.get('next') || q.get('redirect'));
     }
 
-    document.addEventListener('DOMContentLoaded', () => SaaSI18n.init());
+    document.getElementById('go').addEventListener('click', doLogin);
+    document.getElementById('pwd').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.SaaSI18n) SaaSI18n.init();
+    });
 
     (async () => {
+      if (window.SaaSAuthStorage) await SaaSAuthStorage.clearServiceWorkers();
       await SaaS.ready;
       if (!SaaS.client()) {
-        msg('تعذّر تحميل نظام الدخول. تحقق من الاتصال أو جرّب متصفحاً آخر.', 'err');
+        msg('تعذّر تحميل نظام الدخول. تحقق من الاتصال أو حدّث الصفحة.', 'err');
         return;
       }
       const s = await SaaS.getSession();
@@ -68,23 +78,31 @@
 
     async function doLogin() {
       const email = $('email').value.trim(), pwd = $('pwd').value;
-      if (!email || !pwd) { msg(T('err_fill_both'), 'err'); return; }
+      if (!email || !pwd) { msg(T('err_fill_both') || 'أدخل البريد وكلمة المرور', 'err'); return; }
       if (!SaaS.client()) {
         msg('تعذّر الاتصال بخادم الدخول. تحقق من الإنترنت.', 'err');
         return;
       }
-      $('go').disabled = true; msg(T('login_filling'));
+      $('go').disabled = true;
+      msg(T('login_filling') || 'جاري التحقق…');
       const r = await SaaS.signIn(email, pwd);
       if (r.error) {
-        const m = r.error.message || T('err_login_failed');
+        const m = r.error.message || T('err_login_failed') || 'فشل الدخول';
         msg(/storage|localstorage|quota/i.test(m)
-          ? 'المتصفح يمنع حفظ الجلسة. جرّب نافذة عادية أو Safari/Chrome بدون وضع خاص.'
+          ? 'المتصفح يمنع حفظ الجلسة. جرّب Safari/Chrome خارج وضع التصفح الخاص.'
           : m, 'err');
         $('go').disabled = false;
         return;
       }
-      msg(T('login_ok'), 'ok');
-      setTimeout(() => location.replace(nextUrl()), 400);
+      const session = await SaaS.waitForPersistedSession(4000);
+      if (!session) {
+        msg('تعذّر حفظ الجلسة على هذا الجهاز. حدّث الصفحة وحاول مرة أخرى.', 'err');
+        $('go').disabled = false;
+        return;
+      }
+      if (window.SaaSAuthStorage) await SaaSAuthStorage.clearServiceWorkers();
+      msg(T('login_ok') || 'تم الدخول', 'ok');
+      setTimeout(() => location.replace(nextUrl()), 200);
     }
   </script>
 </body>

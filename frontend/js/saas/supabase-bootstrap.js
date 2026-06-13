@@ -1,14 +1,6 @@
 /**
  * supabase-bootstrap.js
- * Loads supabase-js (UMD from CDN), creates the singleton client, and exposes
- * session + tenant helpers. No business logic here — just connectivity/auth.
- *
- * Exposes: window.SaaS = {
- *   client(): SupabaseClient,
- *   ready: Promise<void>,
- *   signIn(email, pwd), signUp(email, pwd, fullName), signOut(),
- *   getSession(), getUser(), getTenantId()
- * }
+ * Loads supabase-js (UMD), creates the singleton client, and exposes session helpers.
  */
 (function (global) {
     const CFG = global.SAAS_CONFIG || {};
@@ -19,30 +11,17 @@
     function loadScript(src) {
         return new Promise((resolve, reject) => {
             const s = document.createElement('script');
-            s.src = src; s.async = true;
+            s.src = src;
+            s.async = true;
+            s.crossOrigin = 'anonymous';
             s.onload = () => resolve();
             s.onerror = () => reject(new Error('failed to load ' + src));
             document.head.appendChild(s);
         });
     }
 
-    /** Safe storage for Safari private mode / blocked localStorage */
-    function createAuthStorage() {
-        const memory = {};
-        return {
-            getItem(key) {
-                try { return localStorage.getItem(key); } catch (_e) { return memory[key] ?? null; }
-            },
-            setItem(key, value) {
-                try { localStorage.setItem(key, value); } catch (_e) { memory[key] = String(value); }
-            },
-            removeItem(key) {
-                try { localStorage.removeItem(key); } catch (_e) { delete memory[key]; }
-            }
-        };
-    }
-
     const SUPABASE_CDN = [
+        '/js/vendor/supabase.min.js',
         'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js',
         'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js'
     ];
@@ -57,6 +36,24 @@
             } catch (e) { lastErr = e; }
         }
         throw lastErr || new Error('could not load supabase-js');
+    }
+
+    function authStorage() {
+        if (global.SaaSAuthStorage && typeof global.SaaSAuthStorage.createAuthStorage === 'function') {
+            return global.SaaSAuthStorage.createAuthStorage(CFG);
+        }
+        const memory = {};
+        return {
+            getItem(k) {
+                try { return localStorage.getItem(k); } catch (_e) { return memory[k] ?? null; }
+            },
+            setItem(k, v) {
+                try { localStorage.setItem(k, v); } catch (_e) { memory[k] = String(v); }
+            },
+            removeItem(k) {
+                try { localStorage.removeItem(k); } catch (_e) { delete memory[k]; }
+            }
+        };
     }
 
     async function init() {
@@ -77,7 +74,7 @@
                 persistSession: true,
                 autoRefreshToken: true,
                 detectSessionInUrl: false,
-                storage: createAuthStorage()
+                storage: authStorage()
             }
         });
         _readyResolve();
@@ -89,6 +86,7 @@
 
         async signIn(email, password) {
             await ready;
+            if (!_client) return { data: null, error: { message: 'Supabase client not ready' } };
             return _client.auth.signInWithPassword({ email, password });
         },
         async signUp(email, password, fullName) {
@@ -116,18 +114,38 @@
         },
         async getSession() {
             await ready;
+            if (!_client) return null;
             const { data } = await _client.auth.getSession();
             return data?.session || null;
         },
         async getUser() {
             await ready;
+            if (!_client) return null;
             const { data } = await _client.auth.getUser();
             return data?.user || null;
         },
-        /** tenant_id is carried in the JWT app_metadata (set server-side at onboarding) */
         async getTenantId() {
             const u = await this.getUser();
             return u?.app_metadata?.tenant_id || null;
+        },
+
+        /** Wait until session is readable in storage (iOS Safari flush). */
+        async waitForPersistedSession(maxMs) {
+            const limit = maxMs || 3000;
+            const start = Date.now();
+            while (Date.now() - start < limit) {
+                const s = await this.getSession();
+                if (s && s.access_token) {
+                    if (global.SaaSAuthStorage) {
+                        const raw = global.SaaSAuthStorage.readRaw(CFG);
+                        if (raw) return s;
+                    } else {
+                        return s;
+                    }
+                }
+                await new Promise(function (r) { setTimeout(r, 80); });
+            }
+            return await this.getSession();
         }
     };
 

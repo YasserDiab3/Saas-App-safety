@@ -78,6 +78,11 @@
             // SaaS: redirect unauthenticated users before loading heavy modules
             if (window.SAAS_CONFIG && window.SAAS_CONFIG.useSupabaseBackend && window.SaaSSession && window.SaaS) {
                 try {
+                    if (window.SaaSAuthStorage && !window.SaaSAuthStorage.hasSession(window.SAAS_CONFIG)) {
+                        const next = encodeURIComponent(location.pathname + location.search + location.hash);
+                        location.replace('/login?next=' + next);
+                        return;
+                    }
                     await window.SaaS.ready;
                     const session = await window.SaaS.getSession();
                     if (!session) {

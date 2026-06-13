@@ -9279,8 +9279,21 @@
                    form-action 'self';"
         />
         <!-- SaaS: redirect guests to /login before loading the full app (mobile / incognito) -->
-        <script src="js/saas/saas-config.js"></script>
-        <script src="js/saas/saas-auth-gate.js"></script>
+        <link rel="preconnect" href="https://tbkajjarkqhsdiabufjv.supabase.co" crossorigin>
+        <script src="/js/saas/saas-config.js"></script>
+        <script src="/js/saas/saas-auth-storage.js"></script>
+        <script>
+            (function () {
+                var C = window.SAAS_CONFIG || {};
+                if (!C.useSupabaseBackend) return;
+                var path = (location.pathname || "/").replace(/\/$/, "") || "/";
+                var pub = ["/login", "/signup", "/accept-invite", "/billing", "/team"];
+                if (pub.some(function (p) { return path === p || path.endsWith(p); })) return;
+                if (window.SaaSAuthStorage && window.SaaSAuthStorage.hasSession(C)) return;
+                location.replace("/login?next=" + encodeURIComponent(location.pathname + location.search + location.hash));
+            })();
+        </script>
+        <script src="/js/saas/saas-auth-gate.js"></script>
     </head>
 
     <body class="font-cairo bg-gray-50" data-theme="light">
@@ -12801,6 +12814,7 @@
              Backend.sendRequest delegates). Controlled by
              SAAS_CONFIG.useSupabaseBackend in saas-config.js. -->
         <script src="js/saas/saas-config.js" defer></script>
+        <script src="js/saas/saas-auth-storage.js" defer></script>
         <script src="js/saas/saas-brand.js" defer></script>
         <script src="js/saas/saas-version.js" defer></script>
         <script src="js/saas/supabase-bootstrap.js" defer></script>
@@ -12983,6 +12997,23 @@
                         }
                     } catch (_) {}
 
+                    // SaaS: لا تسجّل SW للزوار — يمنع كاش قديم على iOS/Android
+                    try {
+                        if (
+                            window.SAAS_CONFIG &&
+                            window.SAAS_CONFIG.useSupabaseBackend &&
+                            window.SaaSAuthStorage &&
+                            !window.SaaSAuthStorage.hasSession(window.SAAS_CONFIG)
+                        ) {
+                            const __guestSwRegs =
+                                await navigator.serviceWorker.getRegistrations();
+                            for (const __gr of __guestSwRegs) {
+                                await __gr.unregister();
+                            }
+                            return;
+                        }
+                    } catch (_) {}
+
                     // تحديد المسار الصحيح لـ Service Worker تلقائياً
                     const currentPath = window.location.pathname;
                     let swPath;
@@ -12997,7 +13028,7 @@
                     }
 
                     // مطابقة CACHE_VERSION في service-worker.js — تسريع جلب سكربت SW بعد النشر (تجاوز كاش الشبكة/الوسيط)
-                    const __SW_REGISTER_QUERY = "v=hse-app-v1.0.80-20260612-sw-nav-fix";
+                    const __SW_REGISTER_QUERY = "v=hse-app-v1.0.81-20260613-mobile-auth";
                     const swUrl =
                         swPath +
                         (swPath.includes("?") ? "&" : "?") +

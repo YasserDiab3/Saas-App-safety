@@ -22,7 +22,7 @@ function walkJsFiles(dir, acc = []) {
     for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
         const p = path.join(dir, ent.name);
         if (ent.isDirectory()) {
-            if (ent.name === 'node_modules' || ent.name === 'dist') continue;
+            if (ent.name === 'node_modules' || ent.name === 'dist' || ent.name === 'vendor') continue;
             walkJsFiles(p, acc);
         } else if (ent.name.endsWith('.js')) {
             acc.push(p);
