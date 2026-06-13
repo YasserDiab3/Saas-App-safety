@@ -26,23 +26,59 @@
         });
     }
 
+    /** Safe storage for Safari private mode / blocked localStorage */
+    function createAuthStorage() {
+        const memory = {};
+        return {
+            getItem(key) {
+                try { return localStorage.getItem(key); } catch (_e) { return memory[key] ?? null; }
+            },
+            setItem(key, value) {
+                try { localStorage.setItem(key, value); } catch (_e) { memory[key] = String(value); }
+            },
+            removeItem(key) {
+                try { localStorage.removeItem(key); } catch (_e) { delete memory[key]; }
+            }
+        };
+    }
+
+    const SUPABASE_CDN = [
+        'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js',
+        'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js'
+    ];
+
+    async function loadSupabaseUmd() {
+        if (typeof global.supabase !== 'undefined') return;
+        let lastErr;
+        for (const src of SUPABASE_CDN) {
+            try {
+                await loadScript(src);
+                if (typeof global.supabase !== 'undefined') return;
+            } catch (e) { lastErr = e; }
+        }
+        throw lastErr || new Error('could not load supabase-js');
+    }
+
     async function init() {
         if (!CFG.supabaseUrl || !CFG.supabaseAnonKey) {
             console.warn('[SaaS] missing supabaseUrl/anonKey in SAAS_CONFIG');
             _readyResolve();
             return;
         }
-        if (typeof global.supabase === 'undefined') {
-            try {
-                await loadScript('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js');
-            } catch (e) {
-                console.error('[SaaS] could not load supabase-js', e);
-                _readyResolve();
-                return;
-            }
+        try {
+            await loadSupabaseUmd();
+        } catch (e) {
+            console.error('[SaaS] could not load supabase-js', e);
+            _readyResolve();
+            return;
         }
         _client = global.supabase.createClient(CFG.supabaseUrl, CFG.supabaseAnonKey, {
-            auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false }
+            auth: {
+                persistSession: true,
+                autoRefreshToken: true,
+                detectSessionInUrl: false,
+                storage: createAuthStorage()
+            }
         });
         _readyResolve();
     }

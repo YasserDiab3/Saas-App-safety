@@ -74,6 +74,23 @@
         async start() {
             log('🚀 بدء تحميل التطبيق...');
             time('⏱️ Total Load Time');
+
+            // SaaS: redirect unauthenticated users before loading heavy modules
+            if (window.SAAS_CONFIG && window.SAAS_CONFIG.useSupabaseBackend && window.SaaSSession && window.SaaS) {
+                try {
+                    await window.SaaS.ready;
+                    const session = await window.SaaS.getSession();
+                    if (!session) {
+                        const next = encodeURIComponent(location.pathname + location.search + location.hash);
+                        location.replace('/login?next=' + next);
+                        return;
+                    }
+                } catch (gateErr) {
+                    log('⚠️ SaaS early gate failed — redirect to login:', gateErr);
+                    location.replace('/login');
+                    return;
+                }
+            }
             
             try {
                 // المرحلة 1: التهيئة
@@ -744,7 +761,7 @@
          */
         async _saasGate() {
             try {
-                const user = await window.SaaSSession.requireSession('login.html');
+                const user = await window.SaaSSession.requireSession('/login');
                 if (!user) return; // تمت إعادة التوجيه لصفحة الدخول
                 const hasTenant = await window.SaaSSession.requireTenant('signup.html?step=org');
                 if (!hasTenant) return;
@@ -793,7 +810,7 @@
                 }
             } catch (e) {
                 log('⚠️ فشل بوابة SaaS — تحويل لصفحة الدخول:', e);
-                location.href = 'login.html';
+                location.replace('/login');
             }
         },
 

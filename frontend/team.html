@@ -57,7 +57,7 @@
     async function load() {
       await SaaS.ready;
       const s = await SaaS.getSession();
-      if (!s) { location.href = 'login.html'; return; }
+      if (!s) { location.replace('/login?next=' + encodeURIComponent(location.pathname + location.search)); return; }
       const me = await SaaS.client().rpc('api_me');
       if (me.error || !['owner','admin'].includes((me.data?.role || '').toLowerCase())) {
         $('status').textContent = T('team_forbidden');

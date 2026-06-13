@@ -8,7 +8,10 @@
         async requireSession(loginUrl) {
             const s = await global.SaaS.getSession();
             if (!s) {
-                location.href = loginUrl || 'login.html';
+                const next = encodeURIComponent(location.pathname + location.search + location.hash);
+                const base = loginUrl || '/login';
+                const sep = base.includes('?') ? '&' : '?';
+                location.href = base + sep + 'next=' + next;
                 return null;
             }
             return s.user || null;
@@ -20,7 +23,7 @@
             const client = global.SaaS.client();
             const { data, error } = await client.rpc('api_me');
             if (error || !data || !data.tenant_id) {
-                location.href = onboardingUrl || 'signup.html?step=org';
+                location.href = onboardingUrl || '/signup?step=org';
                 return false;
             }
             return true;

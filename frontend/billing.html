@@ -34,7 +34,7 @@
     async function load() {
       await SaaS.ready;
       const s = await SaaS.getSession();
-      if (!s) { location.href = 'login.html'; return; }
+      if (!s) { location.replace('/login?next=' + encodeURIComponent(location.pathname + location.search)); return; }
       const { data, error } = await SaaS.client().rpc('api_billing_status');
       if (error) { document.getElementById('status').textContent = T('err_prefix') + error.message; return; }
       _data = data; render(data);

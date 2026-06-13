@@ -9278,6 +9278,9 @@
                    base-uri 'self';
                    form-action 'self';"
         />
+        <!-- SaaS: redirect guests to /login before loading the full app (mobile / incognito) -->
+        <script src="js/saas/saas-config.js"></script>
+        <script src="js/saas/saas-auth-gate.js"></script>
     </head>
 
     <body class="font-cairo bg-gray-50" data-theme="light">

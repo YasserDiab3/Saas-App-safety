@@ -42,7 +42,7 @@
       const s = await SaaS.getSession();
       if (!s) {
         msg(T('invite_login_first'));
-        setTimeout(() => { location.href = 'login.html?redirect=' + encodeURIComponent(location.pathname + location.search); }, 2000);
+        setTimeout(() => { location.href = '/login?next=' + encodeURIComponent(location.pathname + location.search); }, 2000);
         return;
       }
       document.getElementById('go').style.display = 'block';
