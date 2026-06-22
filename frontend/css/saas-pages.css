@@ -34,19 +34,30 @@ body{
 @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 .saas-head{
   background:linear-gradient(135deg,var(--brand-700),var(--brand-600));
-  color:#fff; padding:26px 28px; text-align:center; position:relative;
+  color:#fff; padding:20px 24px 18px; text-align:center; position:relative;
 }
 .saas-logo{
-  width:auto; max-width:240px; min-width:72px; height:auto; min-height:72px;
-  margin:0 auto 10px;border-radius:14px;
-  background:rgba(255,255,255,.92); display:grid;place-items:center;font-size:1.7rem;
-  border:1px solid rgba(255,255,255,.35); overflow:hidden; padding:8px 12px;
+  margin:0 auto 12px;
+  display:flex; justify-content:center; align-items:center;
+  background:none; border:none; padding:0; overflow:visible;
 }
-.saas-logo-img{max-width:220px; max-height:80px; width:auto; height:auto; object-fit:contain;display:block}
+.saas-logo-img{display:block; object-fit:contain}
+/* full wordmark on blue auth header — transparent PNG, no white box */
+.saas-head .saas-logo-img{
+  max-height:148px; max-width:min(100%,280px);
+  width:auto; height:auto;
+  filter:drop-shadow(0 3px 14px rgba(0,0,0,.22));
+}
 .saas-page-brand{text-align:center;margin-bottom:14px}
-.saas-page-brand img{max-height:88px;max-width:280px;object-fit:contain;filter:drop-shadow(0 2px 8px rgba(0,0,0,.15))}
-.saas-head h1{margin:0;font-size:1.3rem;font-weight:800;letter-spacing:.2px}
-.saas-head p{margin:7px 0 0;font-size:.82rem;opacity:.9}
+.saas-page-brand img{
+  max-height:120px; max-width:min(100%,320px);
+  object-fit:contain;
+  filter:drop-shadow(0 2px 8px rgba(0,0,0,.12));
+}
+.saas-head h1{margin:0;font-size:1.15rem;font-weight:700;letter-spacing:.2px}
+/* tagline already inside logo artwork */
+.saas-head p[data-i18n="brand_sub"]{display:none}
+.saas-head p{margin:6px 0 0;font-size:.78rem;opacity:.88;line-height:1.35}
 .saas-body{padding:26px 28px}
 
 /* ---- fields ---- */

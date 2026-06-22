@@ -241,18 +241,18 @@ body.app-active {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 1rem;
-    min-height: 120px;
+    gap: 0.75rem;
+    min-height: auto;
 }
 
 .logo-wrapper img {
-    max-width: 180px;
-    max-height: 120px;
+    max-width: 280px;
+    max-height: 148px;
     width: auto;
     height: auto;
     object-fit: contain;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 0;
+    box-shadow: none;
     transition: var(--transition);
     background: transparent;
 }

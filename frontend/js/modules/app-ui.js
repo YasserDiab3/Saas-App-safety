@@ -3812,8 +3812,8 @@ window.UI = {
                 defaultLogoIcon.style.display = 'none';
 
                 // التأكد من التنسيق المناسب
-                loginLogoImg.style.maxWidth = '180px';
-                loginLogoImg.style.maxHeight = '120px';
+                loginLogoImg.style.maxWidth = '280px';
+                loginLogoImg.style.maxHeight = '148px';
                 loginLogoImg.style.width = 'auto';
                 loginLogoImg.style.height = 'auto';
                 loginLogoImg.style.objectFit = 'contain';
