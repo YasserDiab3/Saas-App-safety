@@ -24,6 +24,23 @@
         return null;
     }
 
+    function tokenExpiresAt(data) {
+        if (!data) return 0;
+        const exp = data.expires_at
+            || (data.currentSession && data.currentSession.expires_at)
+            || 0;
+        return Number(exp) || 0;
+    }
+
+    function isValidToken(data) {
+        if (!data) return false;
+        const token = data.access_token || (data.currentSession && data.currentSession.access_token);
+        if (!token) return false;
+        const exp = tokenExpiresAt(data);
+        if (exp && exp < Math.floor(Date.now() / 1000) - 30) return false;
+        return true;
+    }
+
     function readKey(key) {
         if (!key) return null;
         try {
@@ -42,7 +59,20 @@
         },
 
         hasSession(cfg) {
-            return !!readKey(authKey(cfg));
+            const key = authKey(cfg);
+            const data = readKey(key);
+            if (!isValidToken(data)) {
+                if (data) this.clearSession(cfg);
+                return false;
+            }
+            return true;
+        },
+
+        clearSession(cfg) {
+            const key = authKey(cfg);
+            if (!key) return;
+            try { localStorage.removeItem(key); } catch (_e) { /* ignore */ }
+            try { sessionStorage.removeItem(key); } catch (_e) { /* ignore */ }
         },
 
         readRaw(cfg) {

@@ -86,6 +86,7 @@
                     await window.SaaS.ready;
                     const session = await window.SaaS.getSession();
                     if (!session) {
+                        if (window.SaaSAuthStorage) window.SaaSAuthStorage.clearSession(window.SAAS_CONFIG);
                         const next = encodeURIComponent(location.pathname + location.search + location.hash);
                         location.replace('/login?next=' + next);
                         return;

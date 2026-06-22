@@ -18,17 +18,7 @@
 
     function hasStoredSession() {
         if (global.SaaSAuthStorage && global.SaaSAuthStorage.hasSession(CFG)) return true;
-        const ref = String(CFG.supabaseUrl || '').match(/https:\/\/([^.]+)\.supabase\.co/i);
-        if (!ref) return false;
-        const key = 'sb-' + ref[1] + '-auth-token';
-        try {
-            const raw = localStorage.getItem(key) || sessionStorage.getItem(key);
-            if (!raw) return false;
-            const data = JSON.parse(raw);
-            return !!(data && (data.access_token || (data.currentSession && data.currentSession.access_token)));
-        } catch (_e) {
-            return false;
-        }
+        return false;
     }
 
     if (isPublicSaasPage()) return;

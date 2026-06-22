@@ -9290,7 +9290,26 @@
                 var pub = ["/login", "/signup", "/accept-invite", "/billing", "/team"];
                 if (pub.some(function (p) { return path === p || path.endsWith(p); })) return;
                 if (window.SaaSAuthStorage && window.SaaSAuthStorage.hasSession(C)) return;
-                location.replace("/login?next=" + encodeURIComponent(location.pathname + location.search + location.hash));
+
+                var next = encodeURIComponent(location.pathname + location.search + location.hash);
+                var dest = "/login?next=" + next;
+
+                if (window.SaaSAuthStorage && window.SaaSAuthStorage.clearServiceWorkers) {
+                    window.SaaSAuthStorage.clearServiceWorkers();
+                }
+
+                try { location.replace(dest); } catch (_e) { /* ignore */ }
+
+                // Stop parsing ~700KB index.html — prevents iOS Safari / WhatsApp in-app crash
+                document.write(
+                    '<!DOCTYPE html><html><head><meta charset="utf-8">' +
+                    '<meta http-equiv="refresh" content="0;url=' + dest + '">' +
+                    '<meta name="viewport" content="width=device-width,initial-scale=1">' +
+                    '<title>Redirect</title></head><body>' +
+                    '<p style="font-family:sans-serif;text-align:center;margin-top:2rem">' +
+                    '<a href="' + dest + '">تسجيل الدخول</a></p></body></html>'
+                );
+                document.close();
             })();
         </script>
         <script src="/js/saas/saas-auth-gate.js"></script>

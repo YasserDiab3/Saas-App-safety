@@ -73,7 +73,15 @@
         return;
       }
       const s = await SaaS.getSession();
-      if (s) location.replace(nextUrl());
+      if (s) {
+        const exp = s.expires_at || 0;
+        if (exp && exp < Math.floor(Date.now() / 1000) - 30) {
+          await SaaS.signOut();
+          if (window.SaaSAuthStorage) SaaSAuthStorage.clearSession(window.SAAS_CONFIG);
+          return;
+        }
+        location.replace(nextUrl());
+      }
     })();
 
     async function doLogin() {
