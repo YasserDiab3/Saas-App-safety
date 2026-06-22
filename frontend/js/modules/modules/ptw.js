@@ -10290,7 +10290,7 @@ const PTW = {
 
     renderPermitSystemHeader() {
         const settings = AppState?.companySettings || {};
-        const companyName = settings.companyName || settings.name || settings.organizationName || 'HSE System';
+        const companyName = settings.companyName || settings.name || settings.organizationName || 'HSEHub 360';
         const logoUrl = settings.logoUrl || settings.companyLogo || settings.logo || '';
         const formTitle = 'نموذج تصريح العمل';
         const subTitle = 'Permit To Work';

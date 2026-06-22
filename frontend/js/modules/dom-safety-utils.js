@@ -6,7 +6,7 @@
  * لمنع أخطاء "Cannot read properties of null/undefined"
  * 
  * @version 1.0.0
- * @author HSE System
+ * @author HSEHub 360
  */
 
 (function() {

@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>إنشاء حساب — HSEHub 360</title>
+<meta name="description" content="HSEHub 360 — منصّة السلامة والصحة والبيئة. One Platform. Total Protection.">
+<meta property="og:site_name" content="HSEHub 360">
+<meta property="og:title" content="HSEHub 360 — Safety • Health • Environment">
+<meta property="og:description" content="HSEHub 360 — منصّة السلامة والصحة والبيئة. One Platform. Total Protection.">
+<meta property="og:image" content="https://saas-app-safety.vercel.app/assets/brand/logo.png">
+<meta name="application-name" content="HSEHub 360">
 <link rel="icon" type="image/png" href="assets/brand/favicon.png">
 <link rel="stylesheet" href="css/saas-pages.css">
 </head>
@@ -13,7 +19,7 @@
       <div class="saas-head">
         <div class="saas-logo"><img src="assets/brand/logo.png" alt="HSEHub 360" class="saas-logo-img"></div>
         <h1 id="head-title" data-i18n="signup_title">إنشاء مؤسسة جديدة</h1>
-        <p data-i18n="brand_sub">منصّة إدارة السلامة المهنية (HSE)</p>
+        <p data-i18n="brand_sub">HSEHub 360 — السلامة • الصحة • البيئة</p>
       </div>
       <div class="saas-body">
         <!-- Step 1: registration form -->
@@ -133,7 +139,10 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      SaaSI18n.init(() => SaaSCountryCodes.refreshLabels($('phone-cc')));
+      SaaSI18n.init(() => {
+        SaaSCountryCodes.refreshLabels($('phone-cc'));
+        if (window.SaaSBrand && SaaSBrand.applySocialMeta) SaaSBrand.applySocialMeta({ title: document.title });
+      });
       SaaSCountryCodes.fillSelect($('phone-cc'), '+966');
     });
 

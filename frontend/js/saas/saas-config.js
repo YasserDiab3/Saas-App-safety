@@ -15,8 +15,12 @@ window.SAAS_CONFIG = {
 
     // شعار المنصّة الافتراضي (يظهر قبل رفع شعار المؤسسة)
     appName: 'HSEHub 360',
-    appTaglineAr: 'منصّة واحدة. حماية شاملة.',
+    appTaglineAr: 'منصّة السلامة والصحة والبيئة.',
     appTaglineEn: 'One Platform. Total Protection.',
+    metaDescription: 'HSEHub 360 — منصّة السلامة والصحة والبيئة. One Platform. Total Protection.',
+    metaTitle: 'HSEHub 360 — Safety • Health • Environment',
+    publicSiteUrl: 'https://saas-app-safety.vercel.app/',
+    ogImageUrl: 'assets/brand/logo.png',
     defaultLogoUrl: 'assets/brand/logo.png',
     defaultFaviconUrl: 'assets/brand/favicon.png'
 };

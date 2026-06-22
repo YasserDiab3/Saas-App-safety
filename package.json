@@ -1,7 +1,7 @@
 {
   "name": "hse-saas",
   "private": true,
-  "description": "HSE SaaS — Vercel build entry (delegates to frontend/)",
+  "description": "HSEHub 360 — Vercel build entry (delegates to frontend/)",
   "scripts": {
     "build": "cd frontend && npm ci && npm run build"
   },

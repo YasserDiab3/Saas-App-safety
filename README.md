@@ -1,6 +1,6 @@
-# HSE SaaS — Multi-Tenant Safety Management Platform
+# HSEHub 360 — Multi-Tenant Safety Management Platform
 
-نسخة **SaaS مستقلة** من نظام إدارة السلامة (HSE)، معزولة تماماً عن نسخة الإنتاج
+نسخة **SaaS مستقلة** من منصّة HSEHub 360 لإدارة السلامة والصحة والبيئة، معزولة تماماً عن نسخة الإنتاج
 (`clinic-repo`). تُبنى على **Supabase (Postgres + Auth + RLS + Storage)** مع فوترة
 **Stripe**، وتُعيد استخدام واجهة المستخدم الحالية (SPA عربي RTL، 38 مديول).
 

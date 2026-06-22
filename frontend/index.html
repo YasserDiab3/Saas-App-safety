@@ -1198,6 +1198,7 @@
 
         <!-- Open Graph / Facebook -->
         <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="HSEHub 360" />
         <meta
             property="og:title"
             content="HSEHub 360 — Safety • Health • Environment"
@@ -1206,6 +1207,18 @@
             property="og:description"
             content="HSEHub 360 — منصّة السلامة والصحة والبيئة. One Platform. Total Protection."
         />
+        <meta property="og:url" content="https://saas-app-safety.vercel.app/" />
+        <meta property="og:image" content="https://saas-app-safety.vercel.app/assets/brand/logo.png" />
+        <meta property="og:image:alt" content="HSEHub 360 — Safety • Health • Environment" />
+        <meta property="og:locale" content="ar_AR" />
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content="HSEHub 360 — Safety • Health • Environment" />
+        <meta name="twitter:description" content="HSEHub 360 — منصّة السلامة والصحة والبيئة. One Platform. Total Protection." />
+        <meta name="twitter:image" content="https://saas-app-safety.vercel.app/assets/brand/logo.png" />
+        <meta name="application-name" content="HSEHub 360" />
+        <meta name="apple-mobile-web-app-title" content="HSEHub 360" />
+        <link rel="canonical" href="https://saas-app-safety.vercel.app/" />
+        <link rel="manifest" href="manifest.json" />
 
         <title>HSEHub 360 — Safety • Health • Environment</title>
 
@@ -11235,6 +11248,34 @@
                                 </div>
                             </div>
 
+                            <div class="kpi-card kpi-info" role="article" data-dash-scope="employees,incidents">
+                                <div class="kpi-icon" aria-hidden="true">
+                                    <i class="fas fa-shield-alt"></i>
+                                </div>
+                                <div class="kpi-content">
+                                    <h3
+                                        class="kpi-label"
+                                        data-i18n="dash.safeWorkHours"
+                                    >
+                                        ساعات العمل الآمنة
+                                    </h3>
+                                    <p
+                                        class="kpi-value"
+                                        id="safe-work-hours"
+                                        aria-live="polite"
+                                    >
+                                        0
+                                    </p>
+                                    <p
+                                        class="kpi-description"
+                                        id="safe-work-hours-subtitle"
+                                        data-i18n="dash.safeWorkHoursSubtitle"
+                                    >
+                                        تراكمي YTD منذ آخر إصابة LTI
+                                    </p>
+                                </div>
+                            </div>
+
                             <div class="kpi-card kpi-success" role="article" data-dash-scope="incidents">
                                 <div class="kpi-icon" aria-hidden="true">
                                     <i class="fas fa-calendar-times"></i>
@@ -12979,7 +13020,7 @@
                     }
 
                     // مطابقة CACHE_VERSION في service-worker.js — تسريع جلب سكربت SW بعد النشر (تجاوز كاش الشبكة/الوسيط)
-                    const __SW_REGISTER_QUERY = "v=hse-app-v1.0.81-20260613-mobile-auth";
+                    const __SW_REGISTER_QUERY = "v=hse-app-v1.0.82-20260612-hsehub360-brand";
                     const swUrl =
                         swPath +
                         (swPath.includes("?") ? "&" : "?") +

@@ -3001,6 +3001,88 @@ const Dashboard = {
         return this._computeEstimatedAnnualWorkHoursTotal(employees, contractors);
     },
 
+    _isLostTimeRecord(record = {}) {
+        const spk = (typeof SafetyPerformanceKPIs !== 'undefined' && SafetyPerformanceKPIs) ? SafetyPerformanceKPIs : null;
+        if (spk && typeof spk.isLostTimeIncident === 'function') {
+            return spk.isLostTimeIncident(record);
+        }
+        const lostDays = parseFloat(
+            record.lostDays || record.daysLost || record.lostTimeDays || record.timeOffWork || record.totalLeaveDays || 0
+        ) || 0;
+        return lostDays > 0 || record.lostTime === true ||
+            record.severity === 'عالية' || record.severity === 'حرجة' ||
+            record.severity === 'high' || record.severity === 'critical';
+    },
+
+    _getLastLtiDate(appData) {
+        const data = appData && typeof appData === 'object' ? appData : {};
+        const registry = Array.isArray(data.incidentsRegistry) ? data.incidentsRegistry : [];
+        const incidents = Array.isArray(data.incidents) ? data.incidents : [];
+        const ltiRecords = registry.length > 0
+            ? registry.filter((r) => r && this._isLostTimeRecord(r))
+            : incidents.filter((i) => i && this._isLostTimeRecord(i));
+
+        if (!ltiRecords.length) return null;
+
+        const sorted = ltiRecords
+            .map((r) => new Date(r.incidentDate || r.date || r.createdAt))
+            .filter((d) => !isNaN(d.getTime()))
+            .sort((a, b) => b - a);
+
+        return sorted.length ? sorted[0] : null;
+    },
+
+    /**
+     * ساعات العمل الآمنة YTD: تراكم ساعات ModMetrics من الشهر التالي لآخر LTI حتى الشهر الحالي.
+     * إن لم يُسجَّل LTI في العام = إجمالي ساعات YTD.
+     */
+    getSafeWorkHours(appData) {
+        const year = new Date().getFullYear();
+        const spk = (typeof SafetyPerformanceKPIs !== 'undefined' && SafetyPerformanceKPIs)
+            ? SafetyPerformanceKPIs
+            : null;
+
+        if (spk && typeof spk.buildScorecardData === 'function' && typeof spk.sumYtd === 'function') {
+            const model = spk.buildScorecardData(year);
+            const limit = model.ytdLimit;
+            const hours = model.rows.hoursWorked;
+            const lti = model.rows.lti;
+
+            let lastLtiMonth = -1;
+            for (let m = limit; m >= 0; m -= 1) {
+                if ((parseFloat(lti[m]) || 0) > 0) {
+                    lastLtiMonth = m;
+                    break;
+                }
+            }
+
+            if (lastLtiMonth < 0) {
+                return spk.sumYtd(hours, limit);
+            }
+
+            let safeHours = 0;
+            for (let m = lastLtiMonth + 1; m <= limit; m += 1) {
+                safeHours += parseFloat(hours[m] || 0) || 0;
+            }
+            return safeHours;
+        }
+
+        const totalHours = this.getDashboardTotalWorkHours(appData);
+        const lastLtiDate = this._getLastLtiDate(appData);
+        if (!lastLtiDate) return totalHours;
+
+        const yearStart = new Date(year, 0, 1);
+        yearStart.setHours(0, 0, 0, 0);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        lastLtiDate.setHours(0, 0, 0, 0);
+
+        const daysElapsedYtd = Math.max(1, Math.floor((today - yearStart) / 86400000) + 1);
+        const start = lastLtiDate > yearStart ? lastLtiDate : yearStart;
+        const daysSinceLti = Math.max(0, Math.floor((today - start) / 86400000));
+        return Math.round(totalHours * Math.min(1, daysSinceLti / daysElapsedYtd));
+    },
+
     _parseNumWorkHours(v) {
         if (v === undefined || v === null || v === '') return NaN;
         const x = parseFloat(String(v).replace(/,/g, ''));
@@ -3288,6 +3370,17 @@ const Dashboard = {
                         if (totalWorkHoursEl) {
                             totalWorkHoursEl.textContent = self.formatNumber(actualTotalHours);
                             self.applyEnglishNumberFormat(totalWorkHoursEl);
+                        }
+                        const safeWorkHoursEl = document.getElementById('safe-work-hours');
+                        if (safeWorkHoursEl && (self.dashboardCan('incidents') || self.dashboardCan('employees'))) {
+                            const safeHours = self.getSafeWorkHours(data);
+                            safeWorkHoursEl.textContent = self.formatNumber(safeHours);
+                            self.applyEnglishNumberFormat(safeWorkHoursEl);
+                        }
+                        const safeWorkHoursSub = document.getElementById('safe-work-hours-subtitle');
+                        if (safeWorkHoursSub) {
+                            const subText = self.t('dash.safeWorkHoursSubtitle', 'تراكمي YTD منذ آخر إصابة LTI');
+                            if (safeWorkHoursSub.textContent !== subText) safeWorkHoursSub.textContent = subText;
                         }
                         const empCountDashEl = document.getElementById('dash-kpi-employees-active-count');
                         if (empCountDashEl) {

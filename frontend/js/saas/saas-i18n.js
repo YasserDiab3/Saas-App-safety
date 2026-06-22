@@ -24,14 +24,14 @@
       back_app: '← العودة للتطبيق',
 
       // login
-      login_doctitle: 'تسجيل الدخول — HSE SaaS',
+      login_doctitle: 'تسجيل الدخول — HSEHub 360',
       login_title: 'تسجيل الدخول', btn_login: 'دخول',
       no_account: 'لا تملك حساباً؟', signup_link: 'أنشئ مؤسسة جديدة',
       login_filling: 'جاري الدخول...', login_ok: 'تم! جارٍ فتح التطبيق...',
       err_fill_both: 'أدخل البريد وكلمة المرور', err_login_failed: 'فشل الدخول',
 
       // signup
-      signup_doctitle: 'إنشاء حساب — HSE SaaS',
+      signup_doctitle: 'إنشاء حساب — HSEHub 360',
       signup_title: 'إنشاء مؤسسة جديدة', btn_signup: 'إنشاء الحساب والمؤسسة',
       have_account: 'لديك حساب؟', login_link: 'تسجيل الدخول',
       su_fill_all: 'يرجى استكمال جميع الحقول', su_pwd_short: 'كلمة المرور 8 أحرف على الأقل',
@@ -50,7 +50,7 @@
       btn_continue_app: 'الدخول للتطبيق',
 
       // billing
-      billing_doctitle: 'الاشتراك والفوترة — HSE SaaS',
+      billing_doctitle: 'الاشتراك والفوترة — HSEHub 360',
       billing_title: 'الاشتراك والفوترة', loading: 'جاري التحميل…',
       lbl_org: 'المؤسسة', lbl_org_code: 'كود المؤسسة',
       lbl_plan: 'الخطة', lbl_status: 'الحالة', lbl_renewal: 'التجديد',
@@ -75,7 +75,7 @@
       invite_ready: 'اضغط لقبول الدعوة والانضمام للمؤسسة', invite_done: 'تم الانضمام — جاري التحويل…',
 
       // platform console
-      pf_doctitle: 'إدارة الخطط — لوحة مدير المنصّة',
+      pf_doctitle: 'إدارة الخطط — HSEHub 360',
       pf_login_title: 'دخول مدير المنصّة', pf_title: 'إدارة مديولات الخطط',
       pf_who: 'مدير المنصّة',
       pf_forbidden: '⛔ هذا الحساب ليس مدير منصّة.',
@@ -96,13 +96,13 @@
       ph_pwd8: 'At least 8 characters', ph_pwd_confirm: 'Re-enter your password',
       back_app: 'Back to app →',
 
-      login_doctitle: 'Sign in — HSE SaaS',
+      login_doctitle: 'Sign in — HSEHub 360',
       login_title: 'Sign in', btn_login: 'Sign in',
       no_account: "Don't have an account?", signup_link: 'Create a new organization',
       login_filling: 'Signing in...', login_ok: 'Done! Opening the app...',
       err_fill_both: 'Enter email and password', err_login_failed: 'Sign-in failed',
 
-      signup_doctitle: 'Create account — HSE SaaS',
+      signup_doctitle: 'Create account — HSEHub 360',
       signup_title: 'Create a new organization', btn_signup: 'Create account & organization',
       have_account: 'Already have an account?', login_link: 'Sign in',
       su_fill_all: 'Please complete all fields', su_pwd_short: 'Password must be at least 8 characters',
@@ -120,7 +120,7 @@
       su_org_code_label: 'Organization code', su_org_code_hint: 'Save this code for support and identification',
       btn_continue_app: 'Enter application',
 
-      billing_doctitle: 'Subscription & Billing — HSE SaaS',
+      billing_doctitle: 'Subscription & Billing — HSEHub 360',
       billing_title: 'Subscription & Billing', loading: 'Loading…',
       lbl_org: 'Organization', lbl_org_code: 'Organization code',
       lbl_plan: 'Plan', lbl_status: 'Status', lbl_renewal: 'Renews',
@@ -144,7 +144,7 @@
       invite_no_token: 'Invalid invite link', invite_login_first: 'Sign in first…',
       invite_ready: 'Click to accept and join the organization', invite_done: 'Joined — redirecting…',
 
-      pf_doctitle: 'Plans — Platform Admin Console',
+      pf_doctitle: 'Plans — HSEHub 360',
       pf_login_title: 'Platform Admin Login', pf_title: 'Plan Modules Management',
       pf_who: 'Platform Admin',
       pf_forbidden: '⛔ This account is not a platform admin.',
