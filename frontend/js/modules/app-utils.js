@@ -1,5 +1,5 @@
 ﻿/* ========================================
-   نظام السلامة المهنية - أمريكانا HSE
+   HSEHub 360 — Safety • Health • Environment
    app-utils.js - الدوال المساعدة والثوابت
    ======================================== */
 
@@ -6047,7 +6047,7 @@ const PDFTemplates = {
                 .replace(/'/g, '&#39;');
         };
 
-        const fallbackCompanyName = typeof DEFAULT_COMPANY_NAME !== 'undefined' ? DEFAULT_COMPANY_NAME : 'Americana HSE Management System';
+        const fallbackCompanyName = typeof DEFAULT_COMPANY_NAME !== 'undefined' ? DEFAULT_COMPANY_NAME : 'HSEHub 360';
         const companyNameRaw = AppState?.companySettings?.name || fallbackCompanyName;
         const companySecondaryNameRaw = AppState?.companySettings?.secondaryName || '';
         const companySecondaryNameTrimmed = companySecondaryNameRaw ? String(companySecondaryNameRaw).trim() : '';

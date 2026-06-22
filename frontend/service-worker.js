@@ -1,5 +1,5 @@
 /**
- * Service Worker for HSE Management System
+ * Service Worker for HSEHub 360
  * يدير التخزين المؤقت للملفات لتحسين الأداء
  */
 

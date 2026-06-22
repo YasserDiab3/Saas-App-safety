@@ -1,11 +1,11 @@
 {
-  "name": "QHSSE Consultant — HSE Platform",
-  "short_name": "QHSSE",
-  "description": "منصّة إدارة السلامة والصحة المهنية — QHSSE Consultant",
+  "name": "HSEHub 360 — Safety • Health • Environment",
+  "short_name": "HSEHub 360",
+  "description": "HSEHub 360 — منصّة السلامة والصحة والبيئة. One Platform. Total Protection.",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#2563eb",
+  "theme_color": "#13315c",
   "orientation": "portrait-primary",
   "scope": "./",
   "icons": [

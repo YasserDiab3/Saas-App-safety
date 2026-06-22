@@ -31,20 +31,20 @@ function emailContent(row: Row) {
 
   if (row.reminder_type === 'd2') {
     return {
-      subject: `QHSSE Consultant — تبقى يومان على انتهاء التجربة | ${row.tenant_name}`,
+      subject: `HSEHub 360 — تبقى يومان على انتهاء التجربة | ${row.tenant_name}`,
       html: `<div dir="rtl" style="font-family:Segoe UI,Tahoma,sans-serif;line-height:1.6">
         <p>مرحباً ${row.owner_name}،</p>
         <p>تنتهي التجربة المجانية (3 أيام) لمؤسسة <strong>${row.tenant_name}</strong> خلال <strong>يومين</strong> (${end}).</p>
         <p>اشترك في <strong>Pro</strong> أو <strong>Enterprise</strong> للاستفادة بالمنصّة الكاملة:</p>
         <p><a href="${billing}">عرض عروض الأسعار والاشتراك</a></p>
         <p><a href="${signup}">الدخول للنظام</a></p>
-        <p style="color:#64748b;font-size:12px">QHSSE Consultant — HSE SaaS</p>
+        <p style="color:#64748b;font-size:12px">HSEHub 360 — Safety • Health • Environment</p>
       </div>`
     };
   }
   if (row.reminder_type === 'd1') {
     return {
-      subject: `QHSSE Consultant — غداً انتهاء التجربة | ${row.tenant_name}`,
+      subject: `HSEHub 360 — غداً انتهاء التجربة | ${row.tenant_name}`,
       html: `<div dir="rtl" style="font-family:Segoe UI,Tahoma,sans-serif;line-height:1.6">
         <p>مرحباً ${row.owner_name}،</p>
         <p>تنتهي تجربتك المجانية <strong>غداً</strong> (${end}) لمؤسسة <strong>${row.tenant_name}</strong>.</p>
@@ -54,7 +54,7 @@ function emailContent(row: Row) {
     };
   }
   return {
-    subject: `QHSSE Consultant — انتهت التجربة اليوم | ${row.tenant_name}`,
+    subject: `HSEHub 360 — انتهت التجربة اليوم | ${row.tenant_name}`,
     html: `<div dir="rtl" style="font-family:Segoe UI,Tahoma,sans-serif;line-height:1.6">
       <p>مرحباً ${row.owner_name}،</p>
       <p>انتهت اليوم التجربة المجانية لمؤسسة <strong>${row.tenant_name}</strong>.</p>
@@ -69,7 +69,7 @@ async function sendSmtp(to: string, subject: string, html: string) {
   const user = Deno.env.get('SMTP_USER');
   const pass = Deno.env.get('SMTP_PASS');
   const port = Number(Deno.env.get('SMTP_PORT') || '587');
-  const fromName = Deno.env.get('SMTP_SENDER_NAME') || 'QHSSE Consultant';
+  const fromName = Deno.env.get('SMTP_SENDER_NAME') || 'HSEHub 360';
   if (!host || !user || !pass) throw new Error('SMTP not configured');
 
   const client = new SMTPClient({

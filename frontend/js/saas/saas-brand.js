@@ -1,5 +1,5 @@
 /**
- * saas-brand.js — default platform logo & favicon (QHSSE Consultant).
+ * saas-brand.js — default platform logo & favicon (HSEHub 360).
  * Load after saas-config.js on any page.
  */
 (function (global) {
@@ -30,10 +30,15 @@
         applyFavicon(faviconUrl);
     }
 
+    function getAppName() {
+        return cfg.appName || 'HSEHub 360';
+    }
+
     global.SaaSBrand = {
         logoUrl,
         faviconUrl,
         getDefaultLogoUrl,
+        getAppName,
         applyFavicon,
         applyDefaultFavicon
     };

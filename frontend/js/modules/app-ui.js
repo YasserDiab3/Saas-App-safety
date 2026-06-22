@@ -3721,13 +3721,13 @@ window.UI = {
 
         const mobileCompanyName = document.getElementById('mobile-company-name');
         if (mobileCompanyName) {
-            mobileCompanyName.textContent = resolvedName || 'نظام السلامة المهنية';
+            mobileCompanyName.textContent = resolvedName || 'HSEHub 360';
             mobileCompanyName.style.fontSize = `${nameFontSize}px`;
         }
     },
 
     /**
-     * شعار المنصّة الافتراضي (QHSSE) — قبل شعار المؤسسة المخصّص
+     * شعار المنصّة الافتراضي (HSEHub 360) — قبل شعار المؤسسة المخصّص
      */
     getDefaultPlatformLogoUrl() {
         if (typeof window.SaaSBrand !== 'undefined' && typeof window.SaaSBrand.getDefaultLogoUrl === 'function') {

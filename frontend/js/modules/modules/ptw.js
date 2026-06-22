@@ -15110,7 +15110,7 @@ const PTW = {
                 pdf.setFontSize(13); pdf.setFont(undefined, 'bold');
                 pdf.text('Work Permits Analytics Report', margin, 9, { align: 'left' });
                 pdf.setFontSize(8); pdf.setFont(undefined, 'normal');
-                pdf.text('HSE Management System — Permit to Work Analysis Dashboard', margin, 15, { align: 'left' });
+                pdf.text('HSEHub 360 — Permit to Work Analysis Dashboard', margin, 15, { align: 'left' });
                 pdf.setFontSize(8.5);
                 pdf.text(`${enDate}  ${enTime}`, pdfW - margin, 9, { align: 'right' });
                 pdf.setFontSize(9); pdf.setFont(undefined, 'bold');
@@ -15129,7 +15129,7 @@ const PTW = {
                 pdf.setFillColor(239, 246, 255);
                 pdf.rect(0, footerY, pdfW, footerH, 'F');
                 pdf.setFontSize(7.5); pdf.setTextColor(29, 78, 216); pdf.setFont(undefined, 'bold');
-                pdf.text('HSE Management System', margin, footerY + 5, { align: 'left' });
+                pdf.text('HSEHub 360', margin, footerY + 5, { align: 'left' });
                 pdf.setFont(undefined, 'normal'); pdf.setFontSize(6.5); pdf.setTextColor(100, 116, 139);
                 pdf.text('Work Permits Analysis Report — Confidential', margin, footerY + 10, { align: 'left' });
                 pdf.setFontSize(8); pdf.setTextColor(29, 78, 216); pdf.setFont(undefined, 'bold');

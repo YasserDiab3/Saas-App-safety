@@ -41,7 +41,7 @@ const APP_URL = (process.env.APP_URL || 'https://saas-app-safety.vercel.app').re
 
 const ADMIN_EMAIL = process.env.PLATFORM_ADMIN_EMAIL || 'Yasser@qhsseconsultant.onmicrosoft.com';
 const ADMIN_PASSWORD = process.env.PLATFORM_ADMIN_PASSWORD || 'QhsseAdmin2026!Aa9';
-const ORG_NAME = process.env.PLATFORM_ORG_NAME || 'QHSSE Consultant';
+const ORG_NAME = process.env.PLATFORM_ORG_NAME || 'HSEHub 360';
 
 function serviceRoleKey() {
   if (process.env.SUPABASE_SERVICE_ROLE_KEY) return process.env.SUPABASE_SERVICE_ROLE_KEY;

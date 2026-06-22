@@ -2,7 +2,7 @@
  * ISO Module
  * ØªÙ… Ø§Ø³ØªØ®Ø±Ø§Ø¬Ù‡ Ù…Ù† app-modules.js
  */
-// ===== HSE Management System Module (نظام إدارة السلامة والصحة المهنية والبيئة) =====
+// ===== HSEHub 360 — HSE Management Module (نظام إدارة السلامة والصحة المهنية والبيئة) =====
 const ISO = {
     currentTab: 'overview',
 
@@ -27,7 +27,7 @@ const ISO = {
                             <i class="fas fa-shield-alt ml-3"></i>
                             نظام إدارة السلامة والصحة المهنية والبيئة
                         </h1>
-                        <p class="section-subtitle">HSE Management System - متوافق مع ISO 45001 & ISO 14001</p>
+                        <p class="section-subtitle">HSEHub 360 - متوافق مع ISO 45001 & ISO 14001</p>
                     </div>
                     <button id="export-compliance-report-btn" class="btn-success">
                         <i class="fas fa-file-pdf ml-2"></i>تقرير الامتثال PDF

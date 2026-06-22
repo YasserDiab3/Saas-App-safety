@@ -13,7 +13,7 @@
 (function (global) {
   const DICT = {
     ar: {
-      brand_sub: 'منصّة إدارة السلامة المهنية (HSE)',
+      brand_sub: 'HSEHub 360 — السلامة • الصحة • البيئة',
       f_email: 'البريد الإلكتروني', f_password: 'كلمة المرور', f_password_confirm: 'تأكيد كلمة المرور',
       f_org: 'اسم المؤسسة', f_name: 'الاسم الكامل', f_phone: 'رقم الجوال',
       f_otp: 'رمز التفعيل',
@@ -86,7 +86,7 @@
       pf_all_modules: '(كل المديولات متاحة)'
     },
     en: {
-      brand_sub: 'Occupational Safety Management Platform (HSE)',
+      brand_sub: 'HSEHub 360 — Safety • Health • Environment',
       f_email: 'Email', f_password: 'Password', f_password_confirm: 'Confirm password',
       f_org: 'Organization name', f_name: 'Full name', f_phone: 'Mobile number',
       f_otp: 'Verification code',

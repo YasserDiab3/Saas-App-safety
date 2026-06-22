@@ -4319,7 +4319,7 @@ SafetyPerformanceKPIs.setupEventListeners = function () {
 };
 
 SafetyPerformanceKPIs.getScorecardExportHeaderInfo = function (reportTitle, exportDate = new Date()) {
-    const companyName = String(AppState?.companySettings?.name || AppState?.companyName || 'Americana HSE Management System').trim();
+    const companyName = String(AppState?.companySettings?.name || AppState?.companyName || 'HSEHub 360').trim();
     const secondaryName = String(AppState?.companySettings?.secondaryName || 'إدارة السلامة والصحة المهنية والبيئة').trim();
     const exportDateTime = (typeof Utils !== 'undefined' && typeof Utils.formatDateTime === 'function')
         ? Utils.formatDateTime(exportDate)
@@ -5328,7 +5328,7 @@ SafetyPerformanceKPIs.exportAnnualPlanToPDF = async function() {
                 </table>
                 <div class="footer">
                     <p>Generated on: ${new Date().toLocaleDateString('en-US')}</p>
-                    <p>HSE Management System - Safety Performance KPIs</p>
+                    <p>HSEHub 360 - Safety Performance KPIs</p>
                 </div>
             </body>
             </html>
@@ -5507,7 +5507,7 @@ SafetyPerformanceKPIs.exportMonitoringPlanToPDF = async function() {
         htmlContent += `
                 <div class="footer">
                     <p>Generated on: ${new Date().toLocaleDateString('en-US')}</p>
-                    <p>HSE Management System - Monitoring Plan</p>
+                    <p>HSEHub 360 - Monitoring Plan</p>
                 </div>
             </body>
             </html>

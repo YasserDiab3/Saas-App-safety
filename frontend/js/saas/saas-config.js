@@ -14,7 +14,9 @@ window.SAAS_CONFIG = {
     useSupabaseBackend: true,
 
     // شعار المنصّة الافتراضي (يظهر قبل رفع شعار المؤسسة)
-    appName: 'QHSSE Consultant',
+    appName: 'HSEHub 360',
+    appTaglineAr: 'منصّة واحدة. حماية شاملة.',
+    appTaglineEn: 'One Platform. Total Protection.',
     defaultLogoUrl: 'assets/brand/logo.png',
     defaultFaviconUrl: 'assets/brand/favicon.png'
 };
