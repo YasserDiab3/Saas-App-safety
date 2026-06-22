@@ -2,6 +2,27 @@
 <html lang="ar" dir="rtl">
     <head>
         <meta charset="UTF-8" />
+        <!-- SEO / Social preview — must stay at top of head for link crawlers (WhatsApp, Facebook) -->
+        <title>HSEHub 360 — Safety • Health • Environment</title>
+        <meta name="description" content="HSEHub 360 — منصّة السلامة والصحة والبيئة. One Platform. Total Protection." />
+        <meta name="author" content="HSEHub 360" />
+        <meta name="application-name" content="HSEHub 360" />
+        <meta name="apple-mobile-web-app-title" content="HSEHub 360" />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="HSEHub 360" />
+        <meta property="og:title" content="HSEHub 360 — Safety • Health • Environment" />
+        <meta property="og:description" content="HSEHub 360 — منصّة السلامة والصحة والبيئة. One Platform. Total Protection." />
+        <meta property="og:url" content="https://saas-app-safety.vercel.app/" />
+        <meta property="og:image" content="https://saas-app-safety.vercel.app/assets/brand/logo.png" />
+        <meta property="og:image:alt" content="HSEHub 360 — Safety • Health • Environment" />
+        <meta property="og:locale" content="ar_AR" />
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content="HSEHub 360 — Safety • Health • Environment" />
+        <meta name="twitter:description" content="HSEHub 360 — منصّة السلامة والصحة والبيئة. One Platform. Total Protection." />
+        <meta name="twitter:image" content="https://saas-app-safety.vercel.app/assets/brand/logo.png" />
+        <link rel="canonical" href="https://saas-app-safety.vercel.app/" />
+        <link rel="manifest" href="manifest.json" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
         <!-- تعطيل قمع console: أضف ?debug=1 للرابط أو localStorage.setItem('HSE_DEBUG_CONSOLE','1') -->
         <script>
             (function () {
@@ -1177,50 +1198,15 @@
         </script>
         <script src="js/modules/uploadmanager-suppressor.js"></script>
         <meta
-            name="viewport"
-            content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover"
-        />
-        <meta
-            name="description"
-            content="HSEHub 360 — منصّة السلامة والصحة والبيئة. One Platform. Total Protection."
-        />
-        <meta
             name="keywords"
-            content="السلامة المهنية, HSE, الصناعات الغذائية, حوادث العمل, تصاريح العمل"
+            content="HSEHub 360, السلامة المهنية, HSE, الصحة المهنية, البيئة, حوادث العمل, تصاريح العمل"
         />
-        <meta name="author" content="HSEHub 360" />
 
         <!-- Permissions Policy - Allow camera access for QR scanning -->
         <meta
             http-equiv="Permissions-Policy"
             content="camera=self, microphone=self, geolocation=self"
         />
-
-        <!-- Open Graph / Facebook -->
-        <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="HSEHub 360" />
-        <meta
-            property="og:title"
-            content="HSEHub 360 — Safety • Health • Environment"
-        />
-        <meta
-            property="og:description"
-            content="HSEHub 360 — منصّة السلامة والصحة والبيئة. One Platform. Total Protection."
-        />
-        <meta property="og:url" content="https://saas-app-safety.vercel.app/" />
-        <meta property="og:image" content="https://saas-app-safety.vercel.app/assets/brand/logo.png" />
-        <meta property="og:image:alt" content="HSEHub 360 — Safety • Health • Environment" />
-        <meta property="og:locale" content="ar_AR" />
-        <meta name="twitter:card" content="summary" />
-        <meta name="twitter:title" content="HSEHub 360 — Safety • Health • Environment" />
-        <meta name="twitter:description" content="HSEHub 360 — منصّة السلامة والصحة والبيئة. One Platform. Total Protection." />
-        <meta name="twitter:image" content="https://saas-app-safety.vercel.app/assets/brand/logo.png" />
-        <meta name="application-name" content="HSEHub 360" />
-        <meta name="apple-mobile-web-app-title" content="HSEHub 360" />
-        <link rel="canonical" href="https://saas-app-safety.vercel.app/" />
-        <link rel="manifest" href="manifest.json" />
-
-        <title>HSEHub 360 — Safety • Health • Environment</title>
 
         <!-- ========================================
          ✅ قمع ULTRA-AGGRESSIVE لأخطاء uploadmanager.js:518
@@ -13020,7 +13006,7 @@
                     }
 
                     // مطابقة CACHE_VERSION في service-worker.js — تسريع جلب سكربت SW بعد النشر (تجاوز كاش الشبكة/الوسيط)
-                    const __SW_REGISTER_QUERY = "v=hse-app-v1.0.82-20260612-hsehub360-brand";
+                    const __SW_REGISTER_QUERY = "v=hse-app-v1.0.83-20260612-share-preview";
                     const swUrl =
                         swPath +
                         (swPath.includes("?") ? "&" : "?") +
