@@ -29,6 +29,19 @@ function isLinkPreviewBot(userAgent) {
 
 const SESSION_COOKIE = 'hse_has_session';
 
+function hasSessionCookie(request) {
+    const raw = request.headers.get('cookie') || '';
+    const prefix = SESSION_COOKIE + '=';
+    for (const part of raw.split(';')) {
+        const p = part.trim();
+        if (p === SESSION_COOKIE + '=1' || p.startsWith(prefix)) {
+            const val = p.slice(prefix.length);
+            if (val === '1') return true;
+        }
+    }
+    return false;
+}
+
 export default function middleware(request) {
     const url = new URL(request.url);
     if (url.pathname !== '/') return;
@@ -38,16 +51,15 @@ export default function middleware(request) {
     if (isLinkPreviewBot(ua)) {
         const target = new URL('/share-preview', request.url);
         target.searchParams.set('v', 'hsehub360');
-        return Response.redirect(target, 307);
+        return Response.redirect(target.href, 307);
     }
 
     // Guests: skip ~700KB index.html on mobile — send straight to lightweight /login
-    const hasSession = request.cookies.get(SESSION_COOKIE)?.value === '1';
-    if (!hasSession) {
+    if (!hasSessionCookie(request)) {
         const login = new URL('/login', request.url);
         const next = url.pathname + url.search;
         if (next && next !== '/') login.searchParams.set('next', next);
-        return Response.redirect(login, 302);
+        return Response.redirect(login.href, 302);
     }
 }
 
