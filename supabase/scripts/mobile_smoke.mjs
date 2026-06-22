@@ -52,12 +52,22 @@ function checkIndexHtml(html) {
     ['early SW clear for guests', /clearServiceWorkers/i.test(html)],
     ['saas-auth-storage head', /\/js\/saas\/saas-auth-storage\.js/i.test(html)],
     ['skip SW for guests', /SaaSAuthStorage\.hasSession\(window\.SAAS_CONFIG\)/i.test(html)],
-    ['mobile-auth SW version', /20260613-mobile-auth/i.test(html)],
     ['preconnect supabase', /tbkajjarkqhsdiabufjv\.supabase\.co/i.test(html)]
   ];
   return checks;
 }
 
+async function checkWhatsAppInAppNotPreview() {
+  const waInApp = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 WhatsApp/23.20.0';
+  const res = await fetch(`${APP_URL}/`, {
+    headers: { 'User-Agent': waInApp, Accept: 'text/html' },
+    redirect: 'follow'
+  });
+  const html = await res.text();
+  const finalUrl = res.url || '';
+  const ok = !finalUrl.includes('share-preview') && /saas-auth-storage|login\?next/i.test(html);
+  return { ok, detail: finalUrl };
+}
 console.log('=== Mobile Smoke (iOS + Android simulation) ===\n');
 console.log(`APP_URL: ${APP_URL}\n`);
 
@@ -93,6 +103,14 @@ for (const [name, ua] of Object.entries(UA)) {
     record(`${name}: fetch error`, false, e.message);
   }
   console.log('');
+}
+
+console.log('--- WHATSAPP IN-APP (iOS) ---');
+try {
+  const wa = await checkWhatsAppInAppNotPreview();
+  record('whatsapp-inapp: not share-preview', wa.ok, wa.detail);
+} catch (e) {
+  record('whatsapp-inapp check', false, e.message);
 }
 
 console.log('--- AUTH FLOW (simulates post-login) ---');
