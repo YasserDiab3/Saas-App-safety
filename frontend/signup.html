@@ -78,7 +78,7 @@
           </p>
           <div class="saas-field">
             <label data-i18n="f_otp">رمز التفعيل</label>
-            <input id="otp" class="saas-input" type="text" inputmode="numeric" maxlength="6" data-i18n-ph="ph_otp" autocomplete="one-time-code">
+            <input id="otp" class="saas-input" type="text" inputmode="numeric" maxlength="8" data-i18n-ph="ph_otp" autocomplete="one-time-code">
           </div>
           <button id="verify" class="saas-btn" data-i18n="btn_verify_otp" onclick="doVerifyOtp()">تأكيد الرمز ومتابعة</button>
           <button id="resend" type="button" class="saas-link-btn" data-i18n="btn_resend_otp" onclick="doResendOtp()">إعادة إرسال الرمز</button>
@@ -127,11 +127,14 @@
   <script src="/js/saas/supabase-bootstrap.js"></script>
   <script src="/js/saas/country-codes.js"></script>
   <script src="/js/saas/saas-i18n.js"></script>
+  <script src="/js/saas/saas-auth-storage.js"></script>
   <script src="/js/saas/saas-auth-fields.js"></script>
+  <script src="/js/saas/saas-signup-errors.js"></script>
   <script src="/js/saas/saas-terms-modal.js"></script>
   <script>
     const $ = id => document.getElementById(id);
     const T = k => SaaSI18n.t(k);
+    const errMsg = e => (window.SaaSSignupErrors ? SaaSSignupErrors.format(e) : (e?.message || T('su_failed')));
     const msg = (t, cls) => { $('msg').className = 'saas-msg ' + (cls || ''); $('msg').textContent = t; };
 
     let pending = { org: '', name: '', email: '', pwd: '', phoneCc: '+966', phone: '', termsVersion: '' };
@@ -187,7 +190,7 @@
         p_phone_number: pending.phone,
         p_terms_version: pending.termsVersion || T('su_terms_version')
       });
-      if (error) throw new Error(error.message);
+      if (error) throw new Error(errMsg(error));
       const orgCode = (data && data.org_code) || (typeof data === 'string' ? JSON.parse(data).org_code : null);
       if (!orgCode) throw new Error(T('su_failed'));
       $('org-code').textContent = orgCode;
@@ -212,6 +215,14 @@
       syncSignupButton();
     });
 
+    async function afterAuthSession() {
+      if (window.SaaSAuthStorage) {
+        await SaaS.waitForPersistedSession(5000);
+        SaaSAuthStorage.markSessionActive();
+        await SaaSAuthStorage.clearServiceWorkers();
+      }
+    }
+
     async function doSignup() {
       const form = validateForm();
       if (!form) return;
@@ -222,18 +233,24 @@
       $('go').disabled = true;
       msg(T('su_creating'));
       try {
+        await SaaS.ready;
+        if (!SaaS.client()) {
+          msg('تعذّر تحميل نظام التسجيل. حدّث الصفحة.', 'err');
+          return;
+        }
         const su = await SaaS.signUp(form.email, form.pwd, form.name);
-        if (su.error) throw new Error(su.error.message);
+        if (su.error) throw su.error;
         if (su.data?.session) {
+          await afterAuthSession();
           await provisionTenant();
         } else {
           $('otp-email').textContent = form.email;
           $('otp').value = '';
           showStep('step-otp');
-          msg('');
+          msg(T('su_otp_sent') || 'أدخل رمز التفعيل من بريدك');
         }
       } catch (e) {
-        msg(e.message || T('su_failed'), 'err');
+        msg(errMsg(e), 'err');
       } finally {
         syncSignupButton();
       }
@@ -245,15 +262,17 @@
       $('verify').disabled = true;
       msg(T('su_creating'));
       try {
+        await SaaS.ready;
         const vr = await SaaS.verifySignupOtp(pending.email, token);
-        if (vr.error) throw new Error(vr.error.message || T('su_otp_invalid'));
+        if (vr.error) throw vr.error;
         if (!vr.data?.session) {
           const si = await SaaS.signIn(pending.email, pending.pwd);
-          if (si.error) throw new Error(si.error.message);
+          if (si.error) throw si.error;
         }
+        await afterAuthSession();
         await provisionTenant();
       } catch (e) {
-        msg(e.message || T('su_otp_invalid'), 'err');
+        msg(errMsg(e), 'err');
         $('verify').disabled = false;
       }
     }
@@ -261,11 +280,12 @@
     async function doResendOtp() {
       $('resend').disabled = true;
       try {
+        await SaaS.ready;
         const r = await SaaS.resendSignupOtp(pending.email);
-        if (r.error) throw new Error(r.error.message);
+        if (r.error) throw r.error;
         msg(T('su_otp_sent'), 'ok');
       } catch (e) {
-        msg(e.message || T('su_failed'), 'err');
+        msg(errMsg(e), 'err');
       } finally {
         setTimeout(() => { $('resend').disabled = false; }, 30000);
       }

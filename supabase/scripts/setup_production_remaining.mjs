@@ -207,7 +207,7 @@ async function configureAuthUrlsAndSmtp() {
   const payload = {
     site_url: APP_URL,
     uri_allow_list: `${APP_URL}/**,${APP_URL}/login,${APP_URL}/signup,http://localhost:3000/**`,
-    mailer_autoconfirm: false,
+    mailer_autoconfirm: true,
     external_email_enabled: true
   };
 

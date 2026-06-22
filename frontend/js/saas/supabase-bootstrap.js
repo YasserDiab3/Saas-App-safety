@@ -91,6 +91,7 @@
         },
         async signUp(email, password, fullName) {
             await ready;
+            if (!_client) return { data: null, error: { message: 'Supabase client not ready' } };
             return _client.auth.signUp({
                 email, password,
                 options: { data: { full_name: fullName || '' } }
