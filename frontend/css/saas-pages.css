@@ -68,10 +68,38 @@ body{
 .saas-field{margin-bottom:14px}
 .saas-field label{display:block;font-size:.8rem;font-weight:700;color:var(--ink-2);margin-bottom:6px}
 .saas-input{
-  width:100%;height:46px;padding:0 14px;border:1.5px solid var(--line);border-radius:11px;
+  width:100%;height:48px;padding:0 14px;border:1.5px solid var(--line);border-radius:11px;
   font-size:.94rem;color:var(--ink);outline:none;transition:.15s;background:#fbfdff;font-family:inherit;
 }
 .saas-input:focus{border-color:var(--brand-600);box-shadow:0 0 0 4px rgba(37,99,235,.12);background:#fff}
+.saas-input-wrap{
+  position:relative;display:flex;align-items:center;
+  border:1.5px solid var(--line);border-radius:11px;background:#fbfdff;
+  transition:border-color .15s, box-shadow .15s, background .15s;
+}
+.saas-input-wrap:focus-within{
+  border-color:var(--brand-600);box-shadow:0 0 0 4px rgba(37,99,235,.12);background:#fff;
+}
+.saas-input-wrap .saas-input{
+  border:none;box-shadow:none;background:transparent;height:48px;
+}
+.saas-input-wrap .saas-input:focus{border:none;box-shadow:none;background:transparent}
+.saas-input-icon{
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  width:42px;color:var(--ink-3);pointer-events:none;
+}
+.saas-input-icon svg{display:block}
+.saas-input-wrap .saas-input--icon{padding-inline-start:0;padding-inline-end:12px}
+.saas-input-wrap .saas-input--pwd{padding-inline-end:44px}
+.saas-pwd-toggle{
+  position:absolute;inset-inline-end:4px;top:50%;transform:translateY(-50%);
+  width:40px;height:40px;border:none;border-radius:9px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--ink-3);background:transparent;transition:color .15s, background .15s;
+}
+.saas-pwd-toggle:hover{color:var(--brand-600);background:rgba(37,99,235,.08)}
+.saas-pwd-toggle.is-visible{color:var(--brand-600)}
+.saas-pwd-toggle:focus-visible{outline:2px solid var(--brand-500);outline-offset:1px}
 .saas-phone-row{display:flex;gap:8px;align-items:stretch}
 .saas-phone-row select.saas-input{width:44%;min-width:140px;flex-shrink:0;padding-inline:8px;font-size:.88rem}
 .saas-phone-row input.saas-input{flex:1;min-width:0}

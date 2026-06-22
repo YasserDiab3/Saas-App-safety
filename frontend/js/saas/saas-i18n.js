@@ -29,6 +29,7 @@
       no_account: 'لا تملك حساباً؟', signup_link: 'أنشئ مؤسسة جديدة',
       login_filling: 'جاري الدخول...', login_ok: 'تم! جارٍ فتح التطبيق...',
       err_fill_both: 'أدخل البريد وكلمة المرور', err_login_failed: 'فشل الدخول',
+      pwd_show: 'إظهار كلمة المرور', pwd_hide: 'إخفاء كلمة المرور',
 
       // signup
       signup_doctitle: 'إنشاء حساب — HSEHub 360',
@@ -108,6 +109,7 @@
       no_account: "Don't have an account?", signup_link: 'Create a new organization',
       login_filling: 'Signing in...', login_ok: 'Done! Opening the app...',
       err_fill_both: 'Enter email and password', err_login_failed: 'Sign-in failed',
+      pwd_show: 'Show password', pwd_hide: 'Hide password',
 
       signup_doctitle: 'Create account — HSEHub 360',
       signup_title: 'Create a new organization', btn_signup: 'Create account & organization',
@@ -184,6 +186,9 @@
       const tk = document.body && document.body.getAttribute('data-i18n-title');
       if (tk) document.title = this.t(tk);
       if (this._btn) this._btn.textContent = (this.lang === 'ar') ? 'EN' : 'ع';
+      if (global.SaaSAuthFields && typeof global.SaaSAuthFields.refreshLabels === 'function') {
+        try { global.SaaSAuthFields.refreshLabels(); } catch (_e) { /* ignore */ }
+      }
       if (typeof this.onChange === 'function') { try { this.onChange(this.lang); } catch (e) {} }
     },
     toggle() { this.lang = (this.lang === 'ar') ? 'en' : 'ar'; localStorage.setItem(KEY, this.lang); this.apply(); },

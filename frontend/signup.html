@@ -34,7 +34,10 @@
           </div>
           <div class="saas-field">
             <label data-i18n="f_email">البريد الإلكتروني</label>
-            <input id="email" class="saas-input" type="email" data-i18n-ph="ph_email" autocomplete="username">
+            <div class="saas-input-wrap">
+              <span class="saas-input-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span>
+              <input id="email" class="saas-input saas-input--icon" type="email" inputmode="email" autocapitalize="none" data-i18n-ph="ph_email" autocomplete="username">
+            </div>
           </div>
           <div class="saas-field">
             <label data-i18n="f_phone">رقم الجوال</label>
@@ -45,11 +48,19 @@
           </div>
           <div class="saas-field">
             <label data-i18n="f_password">كلمة المرور</label>
-            <input id="pwd" class="saas-input" type="password" data-i18n-ph="ph_pwd8" autocomplete="new-password">
+            <div class="saas-input-wrap">
+              <span class="saas-input-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+              <input id="pwd" class="saas-input saas-input--icon saas-input--pwd" type="password" data-i18n-ph="ph_pwd8" autocomplete="new-password">
+              <button type="button" class="saas-pwd-toggle" aria-controls="pwd"></button>
+            </div>
           </div>
           <div class="saas-field">
             <label data-i18n="f_password_confirm">تأكيد كلمة المرور</label>
-            <input id="pwd2" class="saas-input" type="password" data-i18n-ph="ph_pwd_confirm" autocomplete="new-password">
+            <div class="saas-input-wrap">
+              <span class="saas-input-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+              <input id="pwd2" class="saas-input saas-input--icon saas-input--pwd" type="password" data-i18n-ph="ph_pwd_confirm" autocomplete="new-password">
+              <button type="button" class="saas-pwd-toggle" aria-controls="pwd2"></button>
+            </div>
           </div>
           <div class="saas-terms">
             <div class="saas-terms-hd" data-i18n="su_terms_title">إقرار المسؤولية وشروط الاستخدام</div>
@@ -100,6 +111,7 @@
   <script src="/js/saas/supabase-bootstrap.js"></script>
   <script src="/js/saas/country-codes.js"></script>
   <script src="/js/saas/saas-i18n.js"></script>
+  <script src="/js/saas/saas-auth-fields.js"></script>
   <script>
     const $ = id => document.getElementById(id);
     const T = k => SaaSI18n.t(k);
@@ -157,6 +169,10 @@
       SaaSI18n.init(() => {
         SaaSCountryCodes.refreshLabels($('phone-cc'));
         if (window.SaaSBrand && SaaSBrand.applySocialMeta) SaaSBrand.applySocialMeta({ title: document.title });
+        if (window.SaaSAuthFields) {
+          SaaSAuthFields.init();
+          SaaSAuthFields.refreshLabels();
+        }
       });
       SaaSCountryCodes.fillSelect($('phone-cc'), '+966');
       $('terms-accept').addEventListener('change', syncSignupButton);
