@@ -62,13 +62,10 @@
               <button type="button" class="saas-pwd-toggle" aria-controls="pwd2"></button>
             </div>
           </div>
-          <div class="saas-terms">
-            <div class="saas-terms-hd" data-i18n="su_terms_title">إقرار المسؤولية وشروط الاستخدام</div>
-            <div id="terms-body" class="saas-terms-box" tabindex="0" data-i18n-html="su_terms_body"></div>
-            <label class="saas-terms-check">
-              <input type="checkbox" id="terms-accept" autocomplete="off">
-              <span data-i18n="su_terms_accept_label">أقرّ بأنني مُخوَّل بتمثيل المؤسسة، وقرأت شروط استخدام HSEHub 360 (v2026.1) وأوافق عليها.</span>
-            </label>
+          <div class="saas-terms-inline">
+            <button type="button" id="terms-open-btn" class="saas-btn ghost sm" data-i18n="su_terms_open">قراءة إقرار المسؤولية والموافقة</button>
+            <span id="terms-status-accepted" class="saas-terms-status-msg" hidden data-i18n="su_terms_accepted">تمت الموافقة على الإقرار (v2026.1)</span>
+            <input type="checkbox" id="terms-accept" hidden autocomplete="off">
           </div>
           <button id="go" class="saas-btn" data-i18n="btn_signup" disabled onclick="doSignup()">إنشاء الحساب والمؤسسة</button>
         </div>
@@ -106,12 +103,32 @@
     </div>
   </div>
 
+  <div id="terms-modal" class="saas-modal" aria-hidden="true" role="dialog" aria-labelledby="terms-modal-title">
+    <div class="saas-modal-backdrop" data-terms-close></div>
+    <div class="saas-modal-panel">
+      <div class="saas-modal-hd">
+        <h2 id="terms-modal-title" data-i18n="su_terms_title">إقرار المسؤولية وشروط الاستخدام</h2>
+        <button type="button" class="saas-modal-close" data-terms-close aria-label="Close">&times;</button>
+      </div>
+      <div id="terms-modal-body" class="saas-terms-box saas-modal-scroll" tabindex="0" data-i18n-html="su_terms_body"></div>
+      <p id="terms-scroll-hint" class="saas-terms-scroll-hint" data-i18n="su_terms_scroll_hint">مرّر للأسفل حتى نهاية الإقرار لتفعيل خانة الموافقة</p>
+      <div class="saas-modal-ft">
+        <label class="saas-terms-check">
+          <input type="checkbox" id="terms-modal-accept" disabled autocomplete="off">
+          <span data-i18n="su_terms_accept_label">أقرّ بأنني مُخوَّل بتمثيل المؤسسة، وقرأت شروط استخدام HSEHub 360 (v2026.1) وأوافق عليها.</span>
+        </label>
+        <button type="button" id="terms-modal-confirm" class="saas-btn" disabled data-i18n="su_terms_accept_btn">أوافق على الإقرار</button>
+      </div>
+    </div>
+  </div>
+
   <script src="/js/saas/saas-config.js"></script>
   <script src="/js/saas/saas-brand.js"></script>
   <script src="/js/saas/supabase-bootstrap.js"></script>
   <script src="/js/saas/country-codes.js"></script>
   <script src="/js/saas/saas-i18n.js"></script>
   <script src="/js/saas/saas-auth-fields.js"></script>
+  <script src="/js/saas/saas-terms-modal.js"></script>
   <script>
     const $ = id => document.getElementById(id);
     const T = k => SaaSI18n.t(k);
@@ -120,8 +137,17 @@
     let pending = { org: '', name: '', email: '', pwd: '', phoneCc: '+966', phone: '', termsVersion: '' };
 
     function syncSignupButton() {
-      const accepted = $('terms-accept') && $('terms-accept').checked;
+      const accepted = (window.SaaSTermsModal && SaaSTermsModal.isAccepted()) ||
+        ($('terms-accept') && $('terms-accept').checked);
       $('go').disabled = !accepted;
+    }
+
+    function openTermsIfNeeded() {
+      if (window.SaaSTermsModal && !SaaSTermsModal.isAccepted()) {
+        SaaSTermsModal.open();
+        return true;
+      }
+      return false;
     }
 
     function showStep(id) {
@@ -145,7 +171,11 @@
       if (pwd !== pwd2) { msg(T('su_pwd_mismatch'), 'err'); return null; }
       if (!phoneCc) { msg(T('su_phone_required'), 'err'); return null; }
       if (phone.length < 7 || phone.length > 15) { msg(T('su_phone_invalid'), 'err'); return null; }
-      if (!$('terms-accept').checked) { msg(T('su_terms_required'), 'err'); return null; }
+      if (!$('terms-accept').checked) {
+        msg(T('su_terms_required'), 'err');
+        openTermsIfNeeded();
+        return null;
+      }
       return { org, name, email, pwd, phoneCc, phone, termsVersion: T('su_terms_version') };
     }
 
@@ -173,9 +203,12 @@
           SaaSAuthFields.init();
           SaaSAuthFields.refreshLabels();
         }
+        if (window.SaaSTermsModal) {
+          SaaSTermsModal.bind({ onAccept: syncSignupButton });
+          if (!SaaSTermsModal.isAccepted()) SaaSTermsModal.open();
+        }
       });
       SaaSCountryCodes.fillSelect($('phone-cc'), '+966');
-      $('terms-accept').addEventListener('change', syncSignupButton);
       syncSignupButton();
     });
 
