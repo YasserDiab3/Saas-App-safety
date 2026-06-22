@@ -33,20 +33,24 @@ body{
 }
 @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 .saas-head{
-  background:linear-gradient(135deg,var(--brand-700),var(--brand-600));
-  color:#fff; padding:20px 24px 18px; text-align:center; position:relative;
+  background:#fff;
+  color:var(--ink);
+  padding:24px 24px 18px;
+  text-align:center;
+  position:relative;
+  border-bottom:1px solid var(--line);
 }
 .saas-logo{
-  margin:0 auto 12px;
+  margin:0 auto 10px;
   display:flex; justify-content:center; align-items:center;
   background:none; border:none; padding:0; overflow:visible;
 }
 .saas-logo-img{display:block; object-fit:contain}
-/* full wordmark on blue auth header — transparent PNG, no white box */
+/* wordmark on light header — dark logo colors stay readable */
 .saas-head .saas-logo-img{
   max-height:148px; max-width:min(100%,280px);
   width:auto; height:auto;
-  filter:drop-shadow(0 3px 14px rgba(0,0,0,.22));
+  filter:none;
 }
 .saas-page-brand{text-align:center;margin-bottom:14px}
 .saas-page-brand img{
@@ -54,7 +58,7 @@ body{
   object-fit:contain;
   filter:drop-shadow(0 2px 8px rgba(0,0,0,.12));
 }
-.saas-head h1{margin:0;font-size:1.15rem;font-weight:700;letter-spacing:.2px}
+.saas-head h1{margin:0;font-size:1.15rem;font-weight:700;letter-spacing:.2px;color:var(--brand-900)}
 /* tagline already inside logo artwork */
 .saas-head p[data-i18n="brand_sub"]{display:none}
 .saas-head p{margin:6px 0 0;font-size:.78rem;opacity:.88;line-height:1.35}
