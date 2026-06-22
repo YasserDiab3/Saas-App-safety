@@ -156,7 +156,12 @@ async function ensurePlatformAdminUser(sr) {
         Authorization: `Bearer ${tok.access_token}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ p_name: ORG_NAME })
+      body: JSON.stringify({
+        p_name: ORG_NAME,
+        p_phone_country: '+966',
+        p_phone_number: '500000000',
+        p_terms_version: 'v2026.1'
+      })
     });
     const provBody = await prov.text();
     console.log('Provision tenant:', prov.status, provBody);

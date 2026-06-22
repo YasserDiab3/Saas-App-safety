@@ -10,14 +10,14 @@
 <meta property="og:description" content="HSEHub 360 — منصّة السلامة والصحة والبيئة. One Platform. Total Protection.">
 <meta property="og:image" content="https://saas-app-safety.vercel.app/assets/brand/logo.png">
 <meta name="application-name" content="HSEHub 360">
-<link rel="icon" type="image/png" href="assets/brand/favicon.png">
-<link rel="stylesheet" href="css/saas-pages.css">
+<link rel="icon" type="image/png" href="/assets/brand/favicon.png">
+<link rel="stylesheet" href="/css/saas-pages.css">
 </head>
 <body data-i18n-title="signup_doctitle">
   <div class="saas-shell">
-    <div class="saas-card">
+    <div class="saas-card saas-signup-card">
       <div class="saas-head">
-        <div class="saas-logo"><img src="assets/brand/logo.png" alt="HSEHub 360" class="saas-logo-img"></div>
+        <div class="saas-logo"><img src="/assets/brand/logo.png" alt="HSEHub 360" class="saas-logo-img"></div>
         <h1 id="head-title" data-i18n="signup_title">إنشاء مؤسسة جديدة</h1>
         <p data-i18n="brand_sub">HSEHub 360 — السلامة • الصحة • البيئة</p>
       </div>
@@ -51,7 +51,15 @@
             <label data-i18n="f_password_confirm">تأكيد كلمة المرور</label>
             <input id="pwd2" class="saas-input" type="password" data-i18n-ph="ph_pwd_confirm" autocomplete="new-password">
           </div>
-          <button id="go" class="saas-btn" data-i18n="btn_signup" onclick="doSignup()">إنشاء الحساب والمؤسسة</button>
+          <div class="saas-terms">
+            <div class="saas-terms-hd" data-i18n="su_terms_title">إقرار المسؤولية وشروط الاستخدام</div>
+            <div id="terms-body" class="saas-terms-box" tabindex="0" data-i18n-html="su_terms_body"></div>
+            <label class="saas-terms-check">
+              <input type="checkbox" id="terms-accept" autocomplete="off">
+              <span data-i18n="su_terms_accept_label">أقرّ بأنني مُخوَّل بتمثيل المؤسسة، وقرأت شروط استخدام HSEHub 360 (v2026.1) وأوافق عليها.</span>
+            </label>
+          </div>
+          <button id="go" class="saas-btn" data-i18n="btn_signup" disabled onclick="doSignup()">إنشاء الحساب والمؤسسة</button>
         </div>
 
         <!-- Step 2: email OTP -->
@@ -81,23 +89,28 @@
         <div class="saas-msg" id="msg"></div>
         <div class="saas-foot" id="foot-links">
           <span data-i18n="have_account">لديك حساب؟</span>
-          <a href="login.html" data-i18n="login_link">تسجيل الدخول</a>
+          <a href="/login" data-i18n="login_link">تسجيل الدخول</a>
         </div>
       </div>
     </div>
   </div>
 
-  <script src="js/saas/saas-config.js"></script>
-  <script src="js/saas/saas-brand.js"></script>
-  <script src="js/saas/supabase-bootstrap.js"></script>
-  <script src="js/saas/country-codes.js"></script>
-  <script src="js/saas/saas-i18n.js"></script>
+  <script src="/js/saas/saas-config.js"></script>
+  <script src="/js/saas/saas-brand.js"></script>
+  <script src="/js/saas/supabase-bootstrap.js"></script>
+  <script src="/js/saas/country-codes.js"></script>
+  <script src="/js/saas/saas-i18n.js"></script>
   <script>
     const $ = id => document.getElementById(id);
     const T = k => SaaSI18n.t(k);
     const msg = (t, cls) => { $('msg').className = 'saas-msg ' + (cls || ''); $('msg').textContent = t; };
 
-    let pending = { org: '', name: '', email: '', pwd: '', phoneCc: '+966', phone: '' };
+    let pending = { org: '', name: '', email: '', pwd: '', phoneCc: '+966', phone: '', termsVersion: '' };
+
+    function syncSignupButton() {
+      const accepted = $('terms-accept') && $('terms-accept').checked;
+      $('go').disabled = !accepted;
+    }
 
     function showStep(id) {
       document.querySelectorAll('.saas-step').forEach(el => el.classList.remove('active'));
@@ -120,7 +133,8 @@
       if (pwd !== pwd2) { msg(T('su_pwd_mismatch'), 'err'); return null; }
       if (!phoneCc) { msg(T('su_phone_required'), 'err'); return null; }
       if (phone.length < 7 || phone.length > 15) { msg(T('su_phone_invalid'), 'err'); return null; }
-      return { org, name, email, pwd, phoneCc, phone };
+      if (!$('terms-accept').checked) { msg(T('su_terms_required'), 'err'); return null; }
+      return { org, name, email, pwd, phoneCc, phone, termsVersion: T('su_terms_version') };
     }
 
     async function provisionTenant() {
@@ -128,7 +142,8 @@
       const { data, error } = await SaaS.client().rpc('api_provision_tenant', {
         p_name: pending.org,
         p_phone_country: pending.phoneCc,
-        p_phone_number: pending.phone
+        p_phone_number: pending.phone,
+        p_terms_version: pending.termsVersion || T('su_terms_version')
       });
       if (error) throw new Error(error.message);
       const orgCode = (data && data.org_code) || (typeof data === 'string' ? JSON.parse(data).org_code : null);
@@ -144,12 +159,17 @@
         if (window.SaaSBrand && SaaSBrand.applySocialMeta) SaaSBrand.applySocialMeta({ title: document.title });
       });
       SaaSCountryCodes.fillSelect($('phone-cc'), '+966');
+      $('terms-accept').addEventListener('change', syncSignupButton);
+      syncSignupButton();
     });
 
     async function doSignup() {
       const form = validateForm();
       if (!form) return;
-      pending = { org: form.org, name: form.name, email: form.email, pwd: form.pwd, phoneCc: form.phoneCc, phone: form.phone };
+      pending = {
+        org: form.org, name: form.name, email: form.email, pwd: form.pwd,
+        phoneCc: form.phoneCc, phone: form.phone, termsVersion: form.termsVersion
+      };
       $('go').disabled = true;
       msg(T('su_creating'));
       try {
@@ -166,7 +186,7 @@
       } catch (e) {
         msg(e.message || T('su_failed'), 'err');
       } finally {
-        $('go').disabled = false;
+        syncSignupButton();
       }
     }
 

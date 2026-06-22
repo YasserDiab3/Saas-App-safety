@@ -63,7 +63,12 @@ try {
   const token = tok.access_token;
   console.log('Signin: OK');
 
-  const prov = await rpc(token, 'api_provision_tenant', { p_name: orgName });
+  const prov = await rpc(token, 'api_provision_tenant', {
+    p_name: orgName,
+    p_phone_country: '+966',
+    p_phone_number: '500000000',
+    p_terms_version: 'v2026.1'
+  });
   console.log('Provision:', prov);
 
   const credPath = path.join(__dirname, '.smoke-credentials.json');
