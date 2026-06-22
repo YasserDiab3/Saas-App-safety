@@ -91,6 +91,9 @@
                         location.replace('/login?next=' + next);
                         return;
                     }
+                    if (window.SaaSAuthStorage && window.SaaSAuthStorage.markSessionActive) {
+                        window.SaaSAuthStorage.markSessionActive();
+                    }
                 } catch (gateErr) {
                     log('⚠️ SaaS early gate failed — redirect to login:', gateErr);
                     location.replace('/login');

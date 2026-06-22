@@ -110,6 +110,8 @@
         },
         async signOut() {
             await ready;
+            if (global.SaaSAuthStorage) global.SaaSAuthStorage.clearSession(CFG);
+            if (!_client) return { error: null };
             return _client.auth.signOut();
         },
         async getSession() {

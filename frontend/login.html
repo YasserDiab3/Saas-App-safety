@@ -12,15 +12,15 @@
 <meta property="og:description" content="HSEHub 360 — منصّة السلامة والصحة والبيئة. One Platform. Total Protection.">
 <meta property="og:image" content="https://saas-app-safety.vercel.app/assets/brand/logo.png">
 <meta name="application-name" content="HSEHub 360">
-<link rel="icon" type="image/png" href="assets/brand/favicon.png">
-<link rel="stylesheet" href="css/saas-pages.css">
+<link rel="icon" type="image/png" href="/assets/brand/favicon.png">
+<link rel="stylesheet" href="/css/saas-pages.css">
 <link rel="preconnect" href="https://tbkajjarkqhsdiabufjv.supabase.co" crossorigin>
 </head>
 <body data-i18n-title="login_doctitle">
   <div class="saas-shell">
     <div class="saas-card">
       <div class="saas-head">
-        <div class="saas-logo"><img src="assets/brand/logo.png" alt="HSEHub 360" class="saas-logo-img"></div>
+        <div class="saas-logo"><img src="/assets/brand/logo.png" alt="HSEHub 360" class="saas-logo-img"></div>
         <h1 data-i18n="login_title">تسجيل الدخول</h1>
         <p data-i18n="brand_sub">HSEHub 360 — السلامة • الصحة • البيئة</p>
       </div>
@@ -91,6 +91,7 @@
           if (window.SaaSAuthStorage) SaaSAuthStorage.clearSession(window.SAAS_CONFIG);
           return;
         }
+        if (window.SaaSAuthStorage) SaaSAuthStorage.markSessionActive();
         location.replace(nextUrl());
       }
     })();
@@ -128,7 +129,10 @@
           $('go').disabled = false;
           return;
         }
-        if (window.SaaSAuthStorage) await SaaSAuthStorage.clearServiceWorkers();
+        if (window.SaaSAuthStorage) {
+          SaaSAuthStorage.markSessionActive();
+          await SaaSAuthStorage.clearServiceWorkers();
+        }
         msg(T('login_ok') || 'تم الدخول', 'ok');
         setTimeout(() => location.replace(nextUrl()), 200);
       } catch (e) {

@@ -9288,7 +9288,10 @@
                 var path = (location.pathname || "/").replace(/\/$/, "") || "/";
                 var pub = ["/login", "/signup", "/accept-invite", "/billing", "/team"];
                 if (pub.some(function (p) { return path === p || path.endsWith(p); })) return;
-                if (window.SaaSAuthStorage && window.SaaSAuthStorage.hasSession(C)) return;
+                if (window.SaaSAuthStorage && window.SaaSAuthStorage.hasSession(C)) {
+                    if (window.SaaSAuthStorage.markSessionActive) window.SaaSAuthStorage.markSessionActive();
+                    return;
+                }
 
                 var next = encodeURIComponent(location.pathname + location.search + location.hash);
                 var dest = "/login?next=" + next;
@@ -9298,17 +9301,6 @@
                 }
 
                 try { location.replace(dest); } catch (_e) { /* ignore */ }
-
-                // Stop parsing ~700KB index.html — prevents iOS Safari / WhatsApp in-app crash
-                document.write(
-                    '<!DOCTYPE html><html><head><meta charset="utf-8">' +
-                    '<meta http-equiv="refresh" content="0;url=' + dest + '">' +
-                    '<meta name="viewport" content="width=device-width,initial-scale=1">' +
-                    '<title>Redirect</title></head><body>' +
-                    '<p style="font-family:sans-serif;text-align:center;margin-top:2rem">' +
-                    '<a href="' + dest + '">تسجيل الدخول</a></p></body></html>'
-                );
-                document.close();
             })();
         </script>
         <script src="/js/saas/saas-auth-gate.js"></script>
@@ -13006,7 +12998,7 @@
                     }
 
                     // مطابقة CACHE_VERSION في service-worker.js — تسريع جلب سكربت SW بعد النشر (تجاوز كاش الشبكة/الوسيط)
-                    const __SW_REGISTER_QUERY = "v=hse-app-v1.0.85-20260612-wa-inapp-fix";
+                    const __SW_REGISTER_QUERY = "v=hse-app-v1.0.86-20260622-edge-login";
                     const swUrl =
                         swPath +
                         (swPath.includes("?") ? "&" : "?") +

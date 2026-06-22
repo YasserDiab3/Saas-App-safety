@@ -27,15 +27,28 @@ function isLinkPreviewBot(userAgent) {
     return false;
 }
 
+const SESSION_COOKIE = 'hse_has_session';
+
 export default function middleware(request) {
     const url = new URL(request.url);
     if (url.pathname !== '/') return;
 
-    if (!isLinkPreviewBot(request.headers.get('user-agent'))) return;
+    const ua = request.headers.get('user-agent') || '';
 
-    const target = new URL('/share-preview', request.url);
-    target.searchParams.set('v', 'hsehub360');
-    return Response.redirect(target, 307);
+    if (isLinkPreviewBot(ua)) {
+        const target = new URL('/share-preview', request.url);
+        target.searchParams.set('v', 'hsehub360');
+        return Response.redirect(target, 307);
+    }
+
+    // Guests: skip ~700KB index.html on mobile — send straight to lightweight /login
+    const hasSession = request.cookies.get(SESSION_COOKIE)?.value === '1';
+    if (!hasSession) {
+        const login = new URL('/login', request.url);
+        const next = url.pathname + url.search;
+        if (next && next !== '/') login.searchParams.set('next', next);
+        return Response.redirect(login, 302);
+    }
 }
 
 export const config = {
