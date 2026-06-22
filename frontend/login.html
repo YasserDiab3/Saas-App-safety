@@ -84,6 +84,14 @@
       }
     })();
 
+    function authErrorMessage(raw) {
+      const m = String(raw || '');
+      if (/failed to fetch|networkerror|network error|load failed|521|503|enotfound/i.test(m)) {
+        return 'تعذّر الاتصال بخادم HSEHub 360. تحقق من الإنترنت — أو أن مشروع Supabase غير موقوف (Inactive).';
+      }
+      return m;
+    }
+
     async function doLogin() {
       const email = $('email').value.trim(), pwd = $('pwd').value;
       if (!email || !pwd) { msg(T('err_fill_both') || 'أدخل البريد وكلمة المرور', 'err'); return; }
@@ -93,24 +101,29 @@
       }
       $('go').disabled = true;
       msg(T('login_filling') || 'جاري التحقق…');
-      const r = await SaaS.signIn(email, pwd);
-      if (r.error) {
-        const m = r.error.message || T('err_login_failed') || 'فشل الدخول';
-        msg(/storage|localstorage|quota/i.test(m)
-          ? 'المتصفح يمنع حفظ الجلسة. جرّب Safari/Chrome خارج وضع التصفح الخاص.'
-          : m, 'err');
+      try {
+        const r = await SaaS.signIn(email, pwd);
+        if (r.error) {
+          const m = authErrorMessage(r.error.message) || T('err_login_failed') || 'فشل الدخول';
+          msg(/storage|localstorage|quota/i.test(m)
+            ? 'المتصفح يمنع حفظ الجلسة. جرّب Safari/Chrome خارج وضع التصفح الخاص.'
+            : m, 'err');
+          $('go').disabled = false;
+          return;
+        }
+        const session = await SaaS.waitForPersistedSession(4000);
+        if (!session) {
+          msg('تعذّر حفظ الجلسة على هذا الجهاز. حدّث الصفحة وحاول مرة أخرى.', 'err');
+          $('go').disabled = false;
+          return;
+        }
+        if (window.SaaSAuthStorage) await SaaSAuthStorage.clearServiceWorkers();
+        msg(T('login_ok') || 'تم الدخول', 'ok');
+        setTimeout(() => location.replace(nextUrl()), 200);
+      } catch (e) {
+        msg(authErrorMessage(e.message) || 'فشل الدخول', 'err');
         $('go').disabled = false;
-        return;
       }
-      const session = await SaaS.waitForPersistedSession(4000);
-      if (!session) {
-        msg('تعذّر حفظ الجلسة على هذا الجهاز. حدّث الصفحة وحاول مرة أخرى.', 'err');
-        $('go').disabled = false;
-        return;
-      }
-      if (window.SaaSAuthStorage) await SaaSAuthStorage.clearServiceWorkers();
-      msg(T('login_ok') || 'تم الدخول', 'ok');
-      setTimeout(() => location.replace(nextUrl()), 200);
     }
   </script>
 </body>
