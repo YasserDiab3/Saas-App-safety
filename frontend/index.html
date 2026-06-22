@@ -11275,159 +11275,92 @@
                             </div>
                             <div class="card-body">
                                 <div class="metrics-grid-container">
-                                    <!-- TRIR - Total Recordable Injury Rate -->
-                                    <div class="metric-card-frame kpi-purple">
+                                                                        <div class="metric-card-frame kpi-purple">
                                         <div>
-                                            <div
-                                                class="flex items-center justify-between mb-2 w-full"
-                                            >
-                                                <div
-                                                    class="text-purple-600 text-2xl"
-                                                >
-                                                    <i
-                                                        class="fas fa-clipboard-check"
-                                                    ></i>
-                                                </div>
-                                                <span
-                                                    class="metric-short-code text-purple-700 bg-purple-200 rounded"
-                                                    >TRIR</span>
+                                            <div class="flex items-center justify-between mb-2 w-full">
+                                                <div class="text-purple-600 text-2xl"><i class="fas fa-chart-line"></i></div>
+                                                <span class="metric-short-code text-purple-700 bg-purple-200 rounded">FR</span>
                                             </div>
-                                            <h3
-                                                class="text-sm font-semibold text-gray-700 mb-1"
-                                                data-i18n="dash.trirTitle"
-                                            >
-                                                معدل الإصابات القابلة للتسجيل
-                                            </h3>
-                                            <p
-                                                class="text-2xl font-bold text-purple-600"
-                                                id="trir-value"
-                                                dir="ltr"
-                                            >
-                                                0
-                                            </p>
-                                            <p
-                                                class="text-xs text-gray-600 mt-1"
-                                                data-i18n="dash.trirSubtitle"
-                                            >
-                                                لكل 200 ألف ساعة عمل
-                                            </p>
+                                            <h3 class="text-sm font-semibold text-gray-700 mb-1" data-i18n="dash.frTitle">معدل تكرار الإصابات</h3>
+                                            <p class="text-2xl font-bold text-purple-600" id="fr-value" dir="ltr">0</p>
+                                            <p class="text-xs text-gray-600 mt-1" data-i18n="dash.perMillionHours">لكل مليون ساعة عمل</p>
                                         </div>
                                     </div>
-
-                                    <!-- FA - Frequency Rate -->
-                                    <div class="metric-card-frame kpi-info">
-                                        <div>
-                                            <div
-                                                class="flex items-center justify-between mb-2 w-full"
-                                            >
-                                                <div
-                                                    class="text-blue-600 text-2xl"
-                                                >
-                                                    <i
-                                                        class="fas fa-sync-alt"
-                                                    ></i>
-                                                </div>
-                                                <span
-                                                    class="metric-short-code text-blue-700 bg-blue-200 rounded"
-                                                    >FA</span>
-                                            </div>
-                                            <h3
-                                                class="text-sm font-semibold text-gray-700 mb-1"
-                                                data-i18n="dash.faTitle"
-                                            >
-                                                معدل التكرار
-                                            </h3>
-                                            <p
-                                                class="text-2xl font-bold text-blue-600"
-                                                id="fa-value"
-                                                dir="ltr"
-                                            >
-                                                0
-                                            </p>
-                                            <p
-                                                class="text-xs text-gray-600 mt-1"
-                                                data-i18n="dash.frequencyRateSubtitle"
-                                            >
-                                                لكل مليون ساعة عمل
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <!-- TIR - Total Injury Rate -->
                                     <div class="metric-card-frame kpi-warning">
                                         <div>
-                                            <div
-                                                class="flex items-center justify-between mb-2 w-full"
-                                            >
-                                                <div
-                                                    class="text-orange-600 text-2xl"
-                                                >
-                                                    <i
-                                                        class="fas fa-chart-bar"
-                                                    ></i>
-                                                </div>
-                                                <span
-                                                    class="metric-short-code text-orange-700 bg-orange-200 rounded"
-                                                    >TIR</span>
+                                            <div class="flex items-center justify-between mb-2 w-full">
+                                                <div class="text-orange-600 text-2xl"><i class="fas fa-skull-crossbones"></i></div>
+                                                <span class="metric-short-code text-orange-700 bg-orange-200 rounded">FAR</span>
                                             </div>
-                                            <h3
-                                                class="text-sm font-semibold text-gray-700 mb-1"
-                                                data-i18n="dash.tirTitle"
-                                            >
-                                                نسبة الإصابات الإجمالية
-                                            </h3>
-                                            <p
-                                                class="text-2xl font-bold text-orange-600"
-                                                id="tir-value"
-                                                dir="ltr"
-                                            >
-                                                0
-                                            </p>
-                                            <p
-                                                class="text-xs text-gray-600 mt-1"
-                                                data-i18n="dash.totalInjuryRateSubtitle"
-                                            >
-                                                لكل 100 عامل
-                                            </p>
+                                            <h3 class="text-sm font-semibold text-gray-700 mb-1" data-i18n="dash.farTitle">معدل وفيات الحوادث</h3>
+                                            <p class="text-2xl font-bold text-orange-600" id="far-value" dir="ltr">0</p>
+                                            <p class="text-xs text-gray-600 mt-1" data-i18n="dash.per100MillionHours">لكل 100 مليون ساعة عمل</p>
                                         </div>
                                     </div>
-
-                                    <!-- LTI - Lost Time Injury -->
+                                    <div class="metric-card-frame kpi-info">
+                                        <div>
+                                            <div class="flex items-center justify-between mb-2 w-full">
+                                                <div class="text-blue-600 text-2xl"><i class="fas fa-sync-alt"></i></div>
+                                                <span class="metric-short-code text-blue-700 bg-blue-200 rounded">AFR</span>
+                                            </div>
+                                            <h3 class="text-sm font-semibold text-gray-700 mb-1" data-i18n="dash.afrTitle">معدل تكرار الحوادث</h3>
+                                            <p class="text-2xl font-bold text-blue-600" id="afr-value" dir="ltr">0</p>
+                                            <p class="text-xs text-gray-600 mt-1" data-i18n="dash.perMillionHours">لكل مليون ساعة عمل</p>
+                                        </div>
+                                    </div>
+                                    <div class="metric-card-frame kpi-indigo">
+                                        <div>
+                                            <div class="flex items-center justify-between mb-2 w-full">
+                                                <div class="text-indigo-600 text-2xl"><i class="fas fa-clipboard-check"></i></div>
+                                                <span class="metric-short-code text-indigo-700 bg-indigo-200 rounded">TRIR</span>
+                                            </div>
+                                            <h3 class="text-sm font-semibold text-gray-700 mb-1" data-i18n="dash.trirTitle">معدل الإصابات القابلة للتسجيل</h3>
+                                            <p class="text-2xl font-bold text-indigo-600" id="trir-value" dir="ltr">0</p>
+                                            <p class="text-xs text-gray-600 mt-1" data-i18n="dash.trirSubtitle">لكل 200 ألف ساعة عمل</p>
+                                        </div>
+                                    </div>
+                                    <div class="metric-card-frame kpi-success">
+                                        <div>
+                                            <div class="flex items-center justify-between mb-2 w-full">
+                                                <div class="text-green-600 text-2xl"><i class="fas fa-calendar-day"></i></div>
+                                                <span class="metric-short-code text-green-700 bg-green-200 rounded">MD</span>
+                                            </div>
+                                            <h3 class="text-sm font-semibold text-gray-700 mb-1" data-i18n="dash.mdTitle">إجمالي أيام العمل</h3>
+                                            <p class="text-2xl font-bold text-green-600" id="md-value" dir="ltr">0</p>
+                                            <p class="text-xs text-gray-600 mt-1" id="md-subtitle" data-i18n="dash.mdSubtitleYtd">تراكمي من بداية العام</p>
+                                        </div>
+                                    </div>
+                                    <div class="metric-card-frame kpi-sky">
+                                        <div>
+                                            <div class="flex items-center justify-between mb-2 w-full">
+                                                <div class="text-sky-600 text-2xl"><i class="fas fa-chart-bar"></i></div>
+                                                <span class="metric-short-code text-sky-700 bg-sky-200 rounded">IR</span>
+                                            </div>
+                                            <h3 class="text-sm font-semibold text-gray-700 mb-1" data-i18n="dash.irTitle">معدل الحوادث</h3>
+                                            <p class="text-2xl font-bold text-sky-600" id="ir-value" dir="ltr">0</p>
+                                            <p class="text-xs text-gray-600 mt-1" data-i18n="dash.irSubtitle">إجمالي الحوادث لكل مليون ساعة عمل</p>
+                                        </div>
+                                    </div>
+                                    <div class="metric-card-frame kpi-gold">
+                                        <div>
+                                            <div class="flex items-center justify-between mb-2 w-full">
+                                                <div class="text-amber-600 text-2xl"><i class="fas fa-user-clock"></i></div>
+                                                <span class="metric-short-code text-amber-700 bg-amber-200 rounded">SR</span>
+                                            </div>
+                                            <h3 class="text-sm font-semibold text-gray-700 mb-1" data-i18n="dash.srTitle">معدل شدة الإصابات</h3>
+                                            <p class="text-2xl font-bold text-amber-600" id="sr-value" dir="ltr">0</p>
+                                            <p class="text-xs text-gray-600 mt-1" data-i18n="dash.srSubtitle">أيام مفقودة لكل مليون ساعة عمل</p>
+                                        </div>
+                                    </div>
                                     <div class="metric-card-frame kpi-danger">
                                         <div>
-                                            <div
-                                                class="flex items-center justify-between mb-2 w-full"
-                                            >
-                                                <div
-                                                    class="text-red-600 text-2xl"
-                                                >
-                                                    <i
-                                                        class="fas fa-user-injured"
-                                                    ></i>
-                                                </div>
-                                                <span
-                                                    class="metric-short-code text-red-700 bg-red-200 rounded"
-                                                    >LTI</span>
+                                            <div class="flex items-center justify-between mb-2 w-full">
+                                                <div class="text-red-600 text-2xl"><i class="fas fa-user-injured"></i></div>
+                                                <span class="metric-short-code text-red-700 bg-red-200 rounded">LTI</span>
                                             </div>
-                                            <h3
-                                                class="text-sm font-semibold text-gray-700 mb-1"
-                                                data-i18n="dash.ltiTitle"
-                                            >
-                                                عدد إصابات فقدان وقت العمل
-                                            </h3>
-                                            <p
-                                                class="text-2xl font-bold text-red-600"
-                                                id="lti-value"
-                                                dir="ltr"
-                                            >
-                                                0
-                                            </p>
-                                            <p
-                                                class="text-xs text-gray-600 mt-1"
-                                                data-i18n="dash.lostTimeInjurySubtitle"
-                                            >
-                                                عدد الحالات المسجّلة
-                                            </p>
+                                            <h3 class="text-sm font-semibold text-gray-700 mb-1" data-i18n="dash.ltiTitle">عدد إصابات فقدان وقت العمل</h3>
+                                            <p class="text-2xl font-bold text-red-600" id="lti-value" dir="ltr">0</p>
+                                            <p class="text-xs text-gray-600 mt-1" data-i18n="dash.lostTimeInjurySubtitle">عدد الحالات المسجّلة</p>
                                         </div>
                                     </div>
                                 </div>
@@ -11439,10 +11372,8 @@
                                             class="fas fa-info-circle ml-1 text-blue-600"
                                             aria-hidden="true"
                                         ></i>
-                                        <span data-i18n="dash.safetyMetricsNote"
-                                            >ملاحظة: يتم حساب المؤشرات بناءً على
-                                            عدد الحوادث المسجلة وإجمالي ساعات
-                                            العمل.</span>
+                                        <span id="safety-metrics-note-text" data-i18n="dash.safetyMetricsNote"
+                                            >ملاحظة: TRIR/LTI/SR/AFR/FAR/IR وأيام العمل تحسب مع ModMetrics للعام الحالي بنفس نطاق المشروع.</span>
                                     </p>
                                 </div>
                             </div>

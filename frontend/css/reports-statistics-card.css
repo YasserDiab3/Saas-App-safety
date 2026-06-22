@@ -263,11 +263,15 @@
 /* ===== لا إخفاء ولا conditional rendering: القيم ظاهرة دائماً، التحديث داخلي فقط (textContent) =====
    منع display:none و visibility toggle؛ الكروت تظهر مرة واحدة وتبقى ثابتة في جميع المتصفحات. */
 
-/* ===== ثبات عرض قيم مؤشرات السلامة: FA ثم TIR ثم LTI ثم TRIR (بدون animation/transition) ===== */
-.safety-metrics-section #fa-value,
-.safety-metrics-section #tir-value,
-.safety-metrics-section #lti-value,
-.safety-metrics-section #trir-value {
+/* ===== ثبات عرض قيم مؤشرات السلامة (8 مؤشرات) ===== */
+.safety-metrics-section #fr-value,
+.safety-metrics-section #far-value,
+.safety-metrics-section #afr-value,
+.safety-metrics-section #trir-value,
+.safety-metrics-section #md-value,
+.safety-metrics-section #ir-value,
+.safety-metrics-section #sr-value,
+.safety-metrics-section #lti-value {
     direction: ltr !important;
     text-align: left !important;
     font-variant-numeric: tabular-nums !important;

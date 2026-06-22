@@ -3376,14 +3376,12 @@ const Dashboard = {
     },
 
     /**
-     * حساب مؤشرات السلامة المهنية
-     * LTI, TIR, FA, TRIR
-     * يستخدم سجل الحوادث للحصول على دقة أعلى في الحسابات
+     * حساب مؤشرات السلامة المهنية (8 مؤشرات)
+     * FR, FAR, AFR, TRIR, MD, IR, SR, LTI — YTD مع ModMetrics (SafetyPerformanceKPIs)
      */
     calculateSafetyMetrics(incidents, employees, registryData = null, appData = null) {
         try {
             if (!this.dashboardCan('incidents')) return;
-            // التحقق من صحة المدخلات
             if (!Array.isArray(incidents)) incidents = [];
             if (!Array.isArray(employees)) employees = [];
             if (!Array.isArray(registryData)) registryData = [];
@@ -3391,46 +3389,102 @@ const Dashboard = {
             const dataBundle = appData && typeof appData === 'object'
                 ? appData
                 : (typeof AppState !== 'undefined' && AppState.appData ? AppState.appData : {});
-            const approvedContractors = Array.isArray(dataBundle.approvedContractors) ? dataBundle.approvedContractors : [];
 
-            const totalEmployees = employees.filter((e) => e && !this._isEmployeeInactive(e)).length;
-            const contractorWorkforce = this.workHoursIncludeContractors() ? this._sumContractorWorkforceHeadcount(approvedContractors, dataBundle) : 0;
-            const workforceForTir = totalEmployees + contractorWorkforce;
-            const actualTotalHours = this.getDashboardTotalWorkHours(dataBundle);
+            const year = new Date().getFullYear();
+            const spk = (typeof SafetyPerformanceKPIs !== 'undefined' && SafetyPerformanceKPIs)
+                ? SafetyPerformanceKPIs
+                : null;
 
-            if (!Number.isFinite(actualTotalHours) || actualTotalHours < 0) {
-                Utils.safeWarn('⚠️ إجمالي ساعات العمل غير صحيح:', actualTotalHours);
+            let ytdHours = 0;
+            let ltiCount = 0;
+            let nltiCount = 0;
+            let firstAidCount = 0;
+            let recordableCount = 0;
+            let fatalitiesCount = 0;
+            let lostDaysTotal = 0;
+            let usingModMetrics = false;
+
+            if (spk && typeof spk.buildScorecardData === 'function' && typeof spk.sumYtd === 'function') {
+                usingModMetrics = true;
+                const model = spk.buildScorecardData(year);
+                const limit = model.ytdLimit;
+                const rows = model.rows;
+                ytdHours = spk.sumYtd(rows.hoursWorked, limit);
+                ltiCount = spk.sumYtd(rows.lti, limit);
+                nltiCount = spk.sumYtd(rows.nlti, limit);
+                firstAidCount = spk.sumYtd(rows.firstAid, limit);
+                recordableCount = spk.sumYtd(rows.recordable, limit);
+
+                (dataBundle.incidents || []).forEach((record) => {
+                    const monthIndex = spk.getMonthIndexForYear(
+                        record?.date || record?.incidentDate || record?.createdAt,
+                        year
+                    );
+                    if (monthIndex < 0 || monthIndex > limit) return;
+                    const bag = spk.getTextBag ? spk.getTextBag(record) : '';
+                    const types = Array.isArray(record?.investigation?.incidentTypes)
+                        ? record.investigation.incidentTypes
+                        : [];
+                    if (types.includes('fatality') || bag.includes('fatality') || bag.includes('وفاة')) {
+                        fatalitiesCount += 1;
+                    }
+                    lostDaysTotal += parseFloat(
+                        record.lostDays || record.daysLost || record.lostTimeDays || record.timeOffWork || 0
+                    ) || 0;
+                });
+            } else {
+                ytdHours = this.getDashboardTotalWorkHours(dataBundle);
+                const inYear = (entry) => {
+                    const raw = entry?.date || entry?.incidentDate || entry?.createdAt;
+                    if (!raw) return true;
+                    const d = new Date(raw);
+                    return !isNaN(d.getTime()) && d.getFullYear() === year;
+                };
+                const yearIncidents = incidents.filter((i) => i && inYear(i));
+                const yearRegistry = registryData.filter((e) => e && inYear(e));
+
+                if (yearRegistry.length > 0) {
+                    ltiCount = yearRegistry.filter((entry) =>
+                        entry && entry.totalLeaveDays && parseFloat(entry.totalLeaveDays) > 0
+                    ).length;
+                    recordableCount = yearRegistry.length;
+                    nltiCount = Math.max(0, recordableCount - ltiCount);
+                } else {
+                    ltiCount = yearIncidents.filter((i) =>
+                        i.severity === 'عالية' || i.severity === 'حرجة' ||
+                        i.severity === 'high' || i.severity === 'critical' ||
+                        i.lostTime === true || (parseFloat(i.lostTimeDays || i.lostDays || 0) > 0)
+                    ).length;
+                    recordableCount = yearIncidents.length;
+                    nltiCount = Math.max(0, recordableCount - ltiCount);
+                }
+
+                yearIncidents.forEach((record) => {
+                    const bag = `${record?.type || ''} ${record?.description || ''} ${record?.severity || ''}`.toLowerCase();
+                    if (bag.includes('fatality') || bag.includes('وفاة')) fatalitiesCount += 1;
+                    if (bag.includes('first aid') || bag.includes('إسعاف') || bag.includes('اسعاف')) firstAidCount += 1;
+                    lostDaysTotal += parseFloat(
+                        record.lostDays || record.daysLost || record.lostTimeDays || record.timeOffWork || 0
+                    ) || 0;
+                });
+            }
+
+            if (!Number.isFinite(ytdHours) || ytdHours < 0) {
+                Utils.safeWarn('⚠️ إجمالي ساعات العمل غير صحيح:', ytdHours);
                 return;
             }
 
-            // حساب LTI (Lost Time Injury) - الحوادث التي تسببت في فقدان وقت العمل
-            let ltiIncidents = 0;
-            if (registryData && registryData.length > 0) {
-                ltiIncidents = registryData.filter(entry =>
-                    entry && entry.totalLeaveDays && parseFloat(entry.totalLeaveDays) > 0
-                ).length;
-            } else {
-                ltiIncidents = incidents.filter(i => i && (
-                    i.severity === 'عالية' || i.severity === 'حرجة' ||
-                    i.severity === 'high' || i.severity === 'critical' ||
-                    i.lostTime === true || i.lostTimeDays > 0
-                )).length;
-            }
+            const hours = ytdHours > 0 ? ytdHours : 0;
+            const accidentsCount = ltiCount + nltiCount;
+            const totalIncidentsCount = accidentsCount + firstAidCount;
 
-            // حساب TIR, FA, TRIR
-            const totalIncidentsCount = (registryData && registryData.length > 0)
-                ? registryData.length
-                : incidents.length;
-            const tir = workforceForTir > 0 ? ((totalIncidentsCount / workforceForTir) * 100).toFixed(2) : '0.00';
-            const hoursForRates = actualTotalHours > 0 ? actualTotalHours : 0;
-            const fa = hoursForRates > 0 ? ((totalIncidentsCount * 1000000) / hoursForRates).toFixed(2) : '0.00';
-            const trir = hoursForRates > 0 ? ((totalIncidentsCount * 200000) / hoursForRates).toFixed(2) : '0.00';
-
-            // تحديث القيم بنفس الطريقة لكل الكروت: تحديث النص فقط عند التغيّر، دون تغيير البنية (مطابقة FA و TRIR لـ TIR و LTI لمنع الوميض)
-            const faFormatted = this.formatNumber(parseFloat(fa));
-            const trirFormatted = this.formatNumber(parseFloat(trir));
-            const tirFormatted = this.formatNumber(parseFloat(tir));
-            const ltiFormatted = this.formatNumber(ltiIncidents);
+            const fr = hours > 0 ? (ltiCount * 1000000) / hours : 0;
+            const far = hours > 0 ? (fatalitiesCount * 100000000) / hours : 0;
+            const afr = hours > 0 ? (accidentsCount * 1000000) / hours : 0;
+            const trir = hours > 0 ? (recordableCount * 200000) / hours : 0;
+            const md = hours / 8;
+            const ir = hours > 0 ? (totalIncidentsCount * 1000000) / hours : 0;
+            const sr = hours > 0 ? (lostDaysTotal * 1000000) / hours : 0;
 
             const updateOneSafetyValue = (elementId, formattedValue) => {
                 const el = document.getElementById(elementId);
@@ -3439,24 +3493,44 @@ const Dashboard = {
                     this.applyEnglishNumberFormat(el);
                 }
             };
-            // ترتيب التحديث مطابق لترتيب الكروت في DOM: TRIR → FA → TIR → LTI (الكارتان الأوليان لا تومضان)
-            updateOneSafetyValue('trir-value', trirFormatted);
-            updateOneSafetyValue('fa-value', faFormatted);
-            updateOneSafetyValue('tir-value', tirFormatted);
-            updateOneSafetyValue('lti-value', ltiFormatted);
+
+            updateOneSafetyValue('fr-value', this.formatNumber(fr, 2));
+            updateOneSafetyValue('far-value', this.formatNumber(far, 4));
+            updateOneSafetyValue('afr-value', this.formatNumber(afr, 2));
+            updateOneSafetyValue('trir-value', this.formatNumber(trir, 2));
+            updateOneSafetyValue('md-value', this.formatNumber(Math.round(md), 0));
+            updateOneSafetyValue('ir-value', this.formatNumber(ir, 2));
+            updateOneSafetyValue('sr-value', this.formatNumber(sr, 2));
+            updateOneSafetyValue('lti-value', this.formatNumber(ltiCount, 0));
+
+            const mdSub = document.getElementById('md-subtitle');
+            if (mdSub) {
+                const mdText = this.t('dash.mdSubtitleYtd', 'تراكمي من بداية العام ({year})').replace(/\{year\}/g, String(year));
+                if (mdSub.textContent !== mdText) mdSub.textContent = mdText;
+            }
+
+            const noteEl = document.getElementById('safety-metrics-note-text');
+            if (noteEl) {
+                const noteText = this.t(
+                    'dash.safetyMetricsNote',
+                    'ملاحظة: TRIR/LTI/SR/AFR/FAR/IR وأيام العمل تحسب مع ModMetrics للعام الحالي {year} بنفس نطاق المشروع.'
+                ).replace(/\{year\}/g, String(year));
+                if (noteEl.textContent !== noteText) noteEl.textContent = noteText;
+            }
 
             if (typeof Utils !== 'undefined' && Utils.safeLog) {
                 Utils.safeLog('📊 مؤشرات السلامة:', {
-                    LTI: ltiIncidents,
-                    TIR: tir,
-                    FA: fa,
+                    year,
+                    FR: fr,
+                    FAR: far,
+                    AFR: afr,
                     TRIR: trir,
-                    totalWorkHours: actualTotalHours,
-                    totalEmployees,
-                    contractorWorkforceForHours: contractorWorkforce,
-                    workforceForTir,
-                    totalIncidents: totalIncidentsCount,
-                    usingRegistry: (registryData && registryData.length > 0)
+                    MD: md,
+                    IR: ir,
+                    SR: sr,
+                    LTI: ltiCount,
+                    totalWorkHours: hours,
+                    usingModMetrics
                 });
             }
         } catch (error) {
@@ -4215,36 +4289,39 @@ const Dashboard = {
     /**
      * تنسيق الأرقام بالإنجليزية مع دعم الفواصل
      */
-    formatNumber(number) {
+    formatNumber(number, fractionDigits = 0) {
         // التحقق من القيم الفارغة أو غير الصالحة
         if (number === null || number === undefined) {
-            return '0';
+            return fractionDigits > 0 ? Number(0).toFixed(fractionDigits) : '0';
         }
         
         // التحقق من أن القيمة رقمية
         const numValue = Number(number);
         if (isNaN(numValue) || !isFinite(numValue)) {
-            return '0';
+            return fractionDigits > 0 ? Number(0).toFixed(fractionDigits) : '0';
         }
         
-        // استخدام تنسيق الأرقام الإنجليزية مع الفواصل
-        // استخدام options لضمان التنسيق الصحيح
+        const digits = Number.isFinite(fractionDigits) && fractionDigits >= 0 ? fractionDigits : 0;
         return numValue.toLocaleString('en-US', {
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0,
+            minimumFractionDigits: digits,
+            maximumFractionDigits: digits,
             useGrouping: true
         });
     },
 
     /**
      * تطبيق تنسيق الأرقام الإنجليزية على عنصر DOM
-     * عناصر مؤشرات السلامة (trir/fa/tir/lti-value) منسقة بالكامل في CSS فلا نغيّر class/style لتفادي وميض.
+     * عناصر مؤشرات السلامة (fr/far/afr/trir/md/ir/sr/lti-value) منسقة بالكامل في CSS فلا نغيّر class/style لتفادي وميض.
      */
     applyEnglishNumberFormat(element) {
         if (!element) return;
         if (element.dataset.numberFormatted === 'true') return;
         const id = element.id || '';
-        const isSafetyMetricValue = (id === 'trir-value' || id === 'fa-value' || id === 'tir-value' || id === 'lti-value');
+        const isSafetyMetricValue = (
+            id === 'fr-value' || id === 'far-value' || id === 'afr-value' ||
+            id === 'trir-value' || id === 'md-value' || id === 'ir-value' ||
+            id === 'sr-value' || id === 'lti-value'
+        );
         try {
             if (isSafetyMetricValue) {
                 element.dataset.numberFormatted = 'true';
