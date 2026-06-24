@@ -46,6 +46,8 @@
       <button type="button" class="pf-tab" data-tab="users" data-i18n="pf_tab_users">المستخدمون</button>
       <button type="button" class="pf-tab" data-tab="billing" data-i18n="pf_tab_billing">الفوترة</button>
       <button type="button" class="pf-tab" data-tab="plans" data-i18n="pf_tab_plans">الخطط</button>
+      <button type="button" class="pf-tab" data-tab="messages" data-i18n="pf_tab_messages">الرسائل</button>
+      <button type="button" class="pf-tab" data-tab="quotes" data-i18n="pf_tab_quotes">عروض الأسعار</button>
     </nav>
 
     <div id="pane-overview" class="pf-pane active">
@@ -98,6 +100,7 @@
             <option value="frozen">frozen</option>
             <option value="canceled">canceled</option>
           </select>
+          </div>
         </div>
         <div class="pf-table-wrap" id="billing-table"></div>
         <div class="pf-pager" id="billing-pager"></div>
@@ -105,8 +108,80 @@
     </div>
 
     <div id="pane-plans" class="pf-pane">
-      <div id="plans"></div>
-      <p class="muted-s" data-i18n="pf_note" style="color:#cbd5e1"></p>
+      <div class="pf-content-card">
+        <div class="pf-section-hd"><h2 data-i18n="pf_tab_plans">الخطط</h2></div>
+        <div class="pf-plans-wrap" id="plans"></div>
+        <p class="pf-plans-note muted-s" data-i18n="pf_note"></p>
+      </div>
+    </div>
+
+    <div id="pane-messages" class="pf-pane">
+      <div class="pf-grid-2">
+        <div class="pf-content-card">
+          <div class="pf-section-hd"><h2 data-i18n="pf_msg_compose">إرسال رسالة</h2></div>
+          <div class="pf-form">
+            <label class="pf-field"><span data-i18n="pf_msg_tenant">المؤسسة</span>
+              <select id="msg-tenant" class="pf-select"></select></label>
+            <label class="pf-field"><span data-i18n="pf_msg_recipient">المستلم</span>
+              <select id="msg-user" class="pf-select"><option value="" data-i18n="pf_msg_all_members">كل الأعضاء النشطين</option></select></label>
+            <label class="pf-field"><span data-i18n="pf_msg_channel">القناة</span>
+              <select id="msg-channel" class="pf-select">
+                <option value="email" data-i18n="pf_msg_ch_email">بريد إلكتروني</option>
+                <option value="in_app" data-i18n="pf_msg_ch_inapp">إشعار داخل التطبيق</option>
+                <option value="both" data-i18n="pf_msg_ch_both">بريد + إشعار</option>
+              </select></label>
+            <label class="pf-field"><span data-i18n="pf_msg_subject">الموضوع</span>
+              <input id="msg-subject" class="pf-input" type="text"></label>
+            <label class="pf-field"><span data-i18n="pf_msg_body">النص</span>
+              <textarea id="msg-body" class="pf-textarea" rows="5"></textarea></label>
+            <button type="button" class="saas-btn sm pf-search-btn" id="msg-send" data-i18n="pf_msg_send">إرسال</button>
+            <div class="pf-msg" id="msg-status"></div>
+          </div>
+        </div>
+        <div class="pf-content-card">
+          <div class="pf-section-hd"><h2 data-i18n="pf_msg_history">سجل الرسائل</h2></div>
+          <div class="pf-table-wrap" id="msg-history"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="pane-quotes" class="pf-pane">
+      <div class="pf-grid-2">
+        <div class="pf-content-card">
+          <div class="pf-section-hd"><h2 data-i18n="pf_quote_new">عرض سعر جديد</h2></div>
+          <div class="pf-form">
+            <label class="pf-field"><span data-i18n="pf_msg_tenant">المؤسسة</span>
+              <select id="quote-tenant" class="pf-select"></select></label>
+            <label class="pf-field"><span data-i18n="pf_col_plan">الخطة</span>
+              <select id="quote-plan" class="pf-select"></select></label>
+            <label class="pf-field"><span data-i18n="pf_quote_title">عنوان العرض</span>
+              <input id="quote-title" class="pf-input" type="text"></label>
+            <div class="pf-form-row">
+              <label class="pf-field"><span data-i18n="pf_quote_amount">السعر (سنت)</span>
+                <input id="quote-amount" class="pf-input" type="number" min="0" placeholder="9900"></label>
+              <label class="pf-field"><span data-i18n="pf_quote_discount">خصم %</span>
+                <input id="quote-discount" class="pf-input" type="number" min="0" max="100" value="0"></label>
+            </div>
+            <div class="pf-form-row">
+              <label class="pf-field"><span data-i18n="pf_quote_trial_extra">أيام تجربة إضافية</span>
+                <input id="quote-trial" class="pf-input" type="number" min="0" max="365" value="0"></label>
+              <label class="pf-field"><span data-i18n="pf_quote_valid">صلاحية (يوم)</span>
+                <input id="quote-valid" class="pf-input" type="number" min="1" max="365" value="30"></label>
+            </div>
+            <label class="pf-field"><span data-i18n="pf_quote_notes">ملاحظات</span>
+              <textarea id="quote-notes" class="pf-textarea" rows="3"></textarea></label>
+            <div class="row">
+              <button type="button" class="saas-btn sm pf-search-btn" id="quote-create" data-i18n="pf_quote_save">حفظ العرض</button>
+              <button type="button" class="saas-btn sm ghost pf-search-btn" id="quote-create-send" data-i18n="pf_quote_save_send">حفظ وإرسال</button>
+            </div>
+            <div class="pf-msg" id="quote-status"></div>
+          </div>
+        </div>
+        <div class="pf-content-card">
+          <div class="pf-section-hd"><h2 data-i18n="pf_tab_quotes">عروض الأسعار</h2></div>
+          <div class="pf-table-wrap" id="quotes-table"></div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -190,6 +265,10 @@
       $('user-search-btn').onclick = () => { _state.users.offset = 0; _state.users.search = $('user-search').value.trim(); loadUsers(); };
       $('user-search').onkeydown = e => { if (e.key === 'Enter') $('user-search-btn').click(); };
       $('billing-filter').onchange = () => { _state.billing.offset = 0; _state.billing.status = $('billing-filter').value; loadBilling(); };
+      $('msg-tenant').onchange = onMsgTenantChange;
+      $('msg-send').onclick = sendMessage;
+      $('quote-create').onclick = () => createQuote(false);
+      $('quote-create-send').onclick = () => createQuote(true);
     });
 
     (async () => {
@@ -216,6 +295,7 @@
       $('who').textContent = T('pf_who');
       _plans = data || [];
       renderPlans(_plans);
+      await loadTenantOptions();
       loadTab('overview');
     }
 
@@ -224,6 +304,174 @@
       else if (tab === 'tenants') loadTenants();
       else if (tab === 'users') loadUsers();
       else if (tab === 'billing') loadBilling();
+      else if (tab === 'plans') renderPlans(_plans || []);
+      else if (tab === 'messages') loadMessagesPane();
+      else if (tab === 'quotes') loadQuotesPane();
+    }
+
+    let _tenantOptions = [];
+
+    async function loadTenantOptions() {
+      const { data, error } = await SaaS.client().rpc('api_admin_tenant_options');
+      if (error) return;
+      _tenantOptions = Array.isArray(data) ? data : [];
+      fillTenantSelects();
+    }
+
+    function fillTenantSelects() {
+      ['msg-tenant', 'quote-tenant'].forEach(id => {
+        const el = $(id);
+        if (!el) return;
+        const cur = el.value;
+        el.innerHTML = `<option value="">${esc(T('pf_msg_pick_tenant'))}</option>` +
+          _tenantOptions.map(t =>
+            `<option value="${esc(t.id)}">${esc(t.name)} (${esc(t.org_code)})</option>`
+          ).join('');
+        if (cur) el.value = cur;
+      });
+      const qp = $('quote-plan');
+      if (qp && _plans) {
+        qp.innerHTML = (_plans || []).map(p =>
+          `<option value="${esc(p.id)}">${esc(p.name || p.id)}</option>`
+        ).join('');
+      }
+    }
+
+    async function onMsgTenantChange() {
+      const tid = $('msg-tenant').value;
+      const sel = $('msg-user');
+      sel.innerHTML = `<option value="">${esc(T('pf_msg_all_members'))}</option>`;
+      if (!tid) return;
+      const { data } = await SaaS.client().rpc('api_admin_get_tenant_contacts', { p_tenant_id: tid });
+      (data?.contacts || []).forEach(c => {
+        const o = document.createElement('option');
+        o.value = c.user_id;
+        o.textContent = `${c.email || '—'} (${c.role})`;
+        sel.appendChild(o);
+      });
+    }
+
+    async function callAdminNotify(payload) {
+      const s = await SaaS.getSession();
+      if (!s?.access_token) throw new Error('not signed in');
+      const url = SAAS_CONFIG.supabaseUrl.replace(/\/$/, '') + '/functions/v1/admin-notify';
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + s.access_token,
+          apikey: SAAS_CONFIG.supabaseAnonKey
+        },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || res.statusText || 'send failed');
+      return data;
+    }
+
+    async function loadMessagesPane() {
+      await loadTenantOptions();
+      const hist = $('msg-history');
+      hist.innerHTML = `<p class="muted-s">${esc(T('pf_loading'))}</p>`;
+      const { data, error } = await SaaS.client().rpc('api_admin_list_notifications', { p_limit: 20, p_offset: 0 });
+      if (error) { hist.innerHTML = `<p class="err">${esc(error.message)}</p>`; return; }
+      const items = data?.items || [];
+      hist.innerHTML = items.length ? `<table class="pf-table"><thead><tr>
+        <th>${esc(T('pf_col_created'))}</th><th>${esc(T('pf_msg_tenant'))}</th>
+        <th>${esc(T('pf_msg_subject'))}</th><th>${esc(T('pf_col_status'))}</th></tr></thead><tbody>${
+        items.map(n => `<tr>
+          <td>${esc(fmtDate(n.created_at))}</td>
+          <td>${esc(n.tenant_name || '—')}</td>
+          <td>${esc(n.subject)}</td>
+          <td>${esc(n.status)} · ${esc(n.channel)}</td></tr>`).join('')
+      }</tbody></table>` : `<p class="muted-s">${esc(T('pf_no_rows'))}</p>`;
+    }
+
+    async function sendMessage() {
+      const st = $('msg-status');
+      st.textContent = T('pf_saving'); st.className = 'pf-msg';
+      try {
+        const tenantId = $('msg-tenant').value;
+        if (!tenantId) throw new Error(T('pf_msg_pick_tenant'));
+        const r = await callAdminNotify({
+          action: 'notify',
+          tenant_id: tenantId,
+          user_id: $('msg-user').value || null,
+          channel: $('msg-channel').value,
+          subject: $('msg-subject').value.trim(),
+          body: $('msg-body').value.trim()
+        });
+        st.textContent = T('pf_msg_sent') + ' (' + (r.sent || 0) + ')';
+        st.className = 'pf-msg ok';
+        loadMessagesPane();
+      } catch (e) { st.textContent = e.message; st.className = 'pf-msg err'; }
+    }
+
+    async function loadQuotesPane() {
+      await loadTenantOptions();
+      const box = $('quotes-table');
+      box.innerHTML = `<p class="muted-s">${esc(T('pf_loading'))}</p>`;
+      const { data, error } = await SaaS.client().rpc('api_admin_list_quotes', { p_limit: 30, p_offset: 0 });
+      if (error) { box.innerHTML = `<p class="err">${esc(error.message)}</p>`; return; }
+      const items = data?.items || [];
+      box.innerHTML = items.length ? `<table class="pf-table"><thead><tr>
+        <th>${esc(T('pf_col_name'))}</th><th>${esc(T('pf_quote_title'))}</th>
+        <th>${esc(T('pf_col_plan'))}</th><th>${esc(T('pf_col_status'))}</th>
+        <th>${esc(T('pf_quote_valid'))}</th><th></th></tr></thead><tbody>${
+        items.map(q => `<tr>
+          <td>${esc(q.tenant_name)}</td>
+          <td>${esc(q.title)}</td>
+          <td>${planBadge(q.plan_id)}</td>
+          <td>${esc(q.status)}</td>
+          <td>${esc(fmtDate(q.valid_until))}</td>
+          <td>${q.status === 'draft' ? `<button type="button" class="pf-btn-act pf-btn-act--primary" onclick="sendQuote('${esc(q.id)}')">${esc(T('pf_quote_send'))}</button>` : '—'}</td>
+        </tr>`).join('')
+      }</tbody></table>` : `<p class="muted-s">${esc(T('pf_no_rows'))}</p>`;
+    }
+
+    async function createQuote(andSend) {
+      const st = $('quote-status');
+      st.textContent = T('pf_saving'); st.className = 'pf-msg';
+      try {
+        const tenantId = $('quote-tenant').value;
+        if (!tenantId) throw new Error(T('pf_msg_pick_tenant'));
+        const title = $('quote-title').value.trim();
+        if (!title) throw new Error(T('pf_quote_title_required'));
+        const { data, error } = await SaaS.client().rpc('api_admin_create_quote', {
+          p_tenant_id: tenantId,
+          p_plan_id: $('quote-plan').value || 'pro',
+          p_title: title,
+          p_amount_cents: parseInt($('quote-amount').value, 10) || null,
+          p_discount_percent: parseInt($('quote-discount').value, 10) || 0,
+          p_extra_trial_days: parseInt($('quote-trial').value, 10) || 0,
+          p_notes: $('quote-notes').value.trim() || null,
+          p_valid_days: parseInt($('quote-valid').value, 10) || 30
+        });
+        if (error) throw new Error(error.message);
+        if (andSend && data?.id) await sendQuote(data.id, false);
+        st.textContent = T('pf_saved_ok'); st.className = 'pf-msg ok';
+        loadQuotesPane();
+      } catch (e) { st.textContent = e.message; st.className = 'pf-msg err'; }
+    }
+
+    async function sendQuote(quoteId, reload) {
+      if (reload !== false) {
+        const st = $('quote-status');
+        if (st) { st.textContent = T('pf_saving'); st.className = 'pf-msg'; }
+      }
+      try {
+        const r = await callAdminNotify({ action: 'quote', quote_id: quoteId });
+        if (reload !== false) {
+          $('quote-status').textContent = T('pf_quote_sent_ok') + ' (' + (r.sent || 0) + ')';
+          $('quote-status').className = 'pf-msg ok';
+          loadQuotesPane();
+        }
+      } catch (e) {
+        if (reload !== false) {
+          $('quote-status').textContent = e.message;
+          $('quote-status').className = 'pf-msg err';
+        } else throw e;
+      }
     }
 
     async function loadOverview() {
@@ -343,7 +591,7 @@
             <td><code class="pf-code">${esc(r.org_code)}</code></td>
             <td>${planBadge(r.plan_id)}</td>
             <td>${badge(r.tenant_status)}</td>
-            <td>${badge(r.sub_status)}</td>
+            <td>${badge(r.sub_status || '')}</td>
             <td>${esc(fmtDate(r.current_period_end))}</td>
             <td dir="ltr" style="font-size:.75rem">${esc(r.stripe_customer_id || '—')}</td></tr>`).join('')
         }</tbody></table>`
@@ -514,7 +762,13 @@
     }
 
     function renderPlans(plans) {
-      $('plans').innerHTML = '';
+      const el = $('plans');
+      if (!el) return;
+      el.innerHTML = '';
+      if (!plans || !plans.length) {
+        el.innerHTML = `<p class="muted-s">${esc(T('pf_loading'))}</p>`;
+        return;
+      }
       (plans || []).forEach(p => {
         const allowed = Array.isArray(p.modules) ? p.modules : [];
         const allMode = allowed.length === 0;
@@ -540,6 +794,7 @@
            </div>`;
         $('plans').appendChild(card);
       });
+      fillTenantSelects();
     }
 
     function setAll(btn, val) {

@@ -114,6 +114,6 @@ select 'api_admin_set_member', exists(
   where n.nspname = 'public' and p.proname = 'api_admin_set_member'
 );
 
--- 8) Migration history (CLI tracking) — expect 24 rows after 0024
+-- 8) Migration history (CLI tracking) — expect 25 rows after 0025
 select version, name from supabase_migrations.schema_migrations order by version;
-select 'migration_count' as check_name, (select count(*) = 24 from supabase_migrations.schema_migrations) as ok;
+select 'migration_count' as check_name, (select count(*) = 25 from supabase_migrations.schema_migrations) as ok;

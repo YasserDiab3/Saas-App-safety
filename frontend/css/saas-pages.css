@@ -428,7 +428,27 @@ label.mod input{width:16px;height:16px;accent-color:var(--brand-600)}
 .pf-console-page #pane-plans .plan-card{
   border:1px solid var(--line);box-shadow:0 8px 24px rgba(8,20,45,.1);
 }
-.pf-console-page #pane-plans .muted-s{color:rgba(255,255,255,.75)!important;padding:0 4px}
+.pf-console-page #pane-plans .pf-plans-note{
+  padding:0 20px 18px;color:var(--ink-3)!important;margin:0;font-size:.8rem;
+}
+.pf-plans-wrap{padding:12px 16px 8px;display:flex;flex-direction:column;gap:12px}
+.pf-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+.pf-form{padding:16px 20px 20px;display:flex;flex-direction:column;gap:12px}
+.pf-form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pf-field{display:flex;flex-direction:column;gap:5px;font-size:.78rem;font-weight:700;color:var(--ink-3)}
+.pf-input,.pf-select,.pf-textarea{
+  height:40px;border:1.5px solid var(--line);border-radius:10px;padding:0 12px;
+  font-family:inherit;font-size:.88rem;color:var(--ink);background:#fff;
+}
+.pf-textarea{height:auto;padding:10px 12px;resize:vertical;min-height:88px}
+.pf-input:focus,.pf-select:focus,.pf-textarea:focus{
+  outline:none;border-color:var(--brand-500);box-shadow:0 0 0 3px rgba(59,130,246,.12);
+}
+
+@media (max-width:960px){
+  .pf-grid-2{grid-template-columns:1fr}
+  .pf-form-row{grid-template-columns:1fr}
+}
 
 @media (max-width:768px){
   .pf-topbar-brand{width:100%}

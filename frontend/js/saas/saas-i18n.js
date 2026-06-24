@@ -117,7 +117,21 @@
       pf_extend_7: '+7 أيام تجربة', pf_extend_30: '+30 يوم تجربة',
       pf_freeze: 'تجميد', pf_activate: 'تفعيل',
       pf_member_save: 'حفظ', pf_saved_ok: 'تم الحفظ',
-      pf_role: 'الدور', pf_manage: 'إدارة'
+      pf_role: 'الدور', pf_manage: 'إدارة',
+      pf_tab_messages: 'الرسائل', pf_tab_quotes: 'عروض الأسعار',
+      pf_msg_compose: 'إرسال رسالة', pf_msg_tenant: 'المؤسسة',
+      pf_msg_recipient: 'المستلم', pf_msg_all_members: 'كل الأعضاء النشطين',
+      pf_msg_channel: 'القناة', pf_msg_ch_email: 'بريد إلكتروني',
+      pf_msg_ch_inapp: 'إشعار داخل التطبيق', pf_msg_ch_both: 'بريد + إشعار',
+      pf_msg_subject: 'الموضوع', pf_msg_body: 'النص', pf_msg_send: 'إرسال',
+      pf_msg_history: 'سجل الرسائل', pf_msg_sent: 'تم الإرسال',
+      pf_msg_pick_tenant: 'اختر مؤسسة',
+      pf_quote_new: 'عرض سعر جديد', pf_quote_title: 'عنوان العرض',
+      pf_quote_amount: 'السعر (سنت USD)', pf_quote_discount: 'خصم %',
+      pf_quote_trial_extra: 'أيام تجربة إضافية', pf_quote_valid: 'صلاحية',
+      pf_quote_notes: 'ملاحظات', pf_quote_save: 'حفظ العرض',
+      pf_quote_save_send: 'حفظ وإرسال', pf_quote_send: 'إرسال',
+      pf_quote_sent_ok: 'تم إرسال العرض', pf_quote_title_required: 'أدخل عنوان العرض'
     },
     en: {
       brand_sub: 'HSEHub 360 — Safety • Health • Environment',
@@ -220,7 +234,21 @@
       pf_extend_7: '+7 day trial', pf_extend_30: '+30 day trial',
       pf_freeze: 'Freeze', pf_activate: 'Activate',
       pf_member_save: 'Save', pf_saved_ok: 'Saved',
-      pf_role: 'Role', pf_manage: 'Manage'
+      pf_role: 'Role', pf_manage: 'Manage',
+      pf_tab_messages: 'Messages', pf_tab_quotes: 'Price quotes',
+      pf_msg_compose: 'Send message', pf_msg_tenant: 'Organization',
+      pf_msg_recipient: 'Recipient', pf_msg_all_members: 'All active members',
+      pf_msg_channel: 'Channel', pf_msg_ch_email: 'Email',
+      pf_msg_ch_inapp: 'In-app notification', pf_msg_ch_both: 'Email + notification',
+      pf_msg_subject: 'Subject', pf_msg_body: 'Message', pf_msg_send: 'Send',
+      pf_msg_history: 'Message log', pf_msg_sent: 'Sent',
+      pf_msg_pick_tenant: 'Select an organization',
+      pf_quote_new: 'New price quote', pf_quote_title: 'Quote title',
+      pf_quote_amount: 'Amount (USD cents)', pf_quote_discount: 'Discount %',
+      pf_quote_trial_extra: 'Extra trial days', pf_quote_valid: 'Valid until',
+      pf_quote_notes: 'Notes', pf_quote_save: 'Save quote',
+      pf_quote_save_send: 'Save & send', pf_quote_send: 'Send',
+      pf_quote_sent_ok: 'Quote sent', pf_quote_title_required: 'Enter quote title'
     }
   };
 
