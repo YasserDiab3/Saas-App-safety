@@ -36,8 +36,8 @@
           <button type="button" id="reset" class="saas-btn saas-btn--ghost" data-i18n="mfa_reset_btn">إعادة الإعداد (رمز QR جديد)</button>
         </div>
         <div id="step-done" hidden>
-          <p class="saas-msg ok" data-i18n="mfa_done">تم تفعيل المصادقة الثنائية بنجاح.</p>
-          <a href="/" class="saas-btn saas-btn--ghost" data-i18n="mfa_back_app">العودة للتطبيق</a>
+          <p class="saas-msg ok" id="done-msg" data-i18n="mfa_done">تم تفعيل المصادقة الثنائية بنجاح.</p>
+          <a href="/" id="back-app" class="saas-btn saas-btn--ghost" data-i18n="mfa_back_app">العودة للتطبيق</a>
         </div>
         <div class="saas-msg" id="msg"></div>
       </div>
@@ -70,6 +70,14 @@
       msg('', '');
     }
 
+    function showDoneAndRedirect() {
+      $('step-enroll').hidden = true;
+      $('step-done').hidden = false;
+      $('done-msg').textContent = T('mfa_done_redirect') || 'تم التفعيل! جارٍ فتح التطبيق…';
+      if (window.SaaSAuthStorage) SaaSAuthStorage.markSessionActive();
+      setTimeout(() => location.replace('/'), 1800);
+    }
+
     async function loadEnrollment(forceReset) {
       const client = SaaS.client();
       const user = await SaaS.getUser();
@@ -83,8 +91,7 @@
         : await SaaSMfa.beginTotpEnrollment(client, { email: userEmail });
 
       if (state.status === 'verified') {
-        $('step-enroll').hidden = true;
-        $('step-done').hidden = false;
+        showDoneAndRedirect();
         return;
       }
       showEnroll(state);
@@ -151,9 +158,7 @@
       $('confirm').disabled = true;
       try {
         await SaaSMfa.confirmEnrollment(SaaS.client(), factorId, code);
-        $('step-enroll').hidden = true;
-        $('step-done').hidden = false;
-        msg('', '');
+        showDoneAndRedirect();
       } catch (e) {
         msg(SaaSMfa.mapMfaError(e), 'err');
         $('confirm').disabled = false;
