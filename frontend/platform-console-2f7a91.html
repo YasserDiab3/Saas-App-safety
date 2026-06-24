@@ -3,14 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>إدارة الخطط — HSEHub 360</title>
+<title>لوحة تشغيل المنصّة — HSEHub 360</title>
 <meta name="description" content="HSEHub 360 — منصّة السلامة والصحة والبيئة. One Platform. Total Protection.">
 <meta name="application-name" content="HSEHub 360">
 <link rel="icon" type="image/png" href="assets/brand/favicon.png">
 <link rel="stylesheet" href="css/saas-pages.css">
 </head>
 <body data-i18n-title="pf_doctitle">
-  <!-- login gate -->
   <div id="login" class="saas-shell" style="display:none">
     <div class="saas-card">
       <div class="saas-head">
@@ -29,24 +28,87 @@
     </div>
   </div>
 
-  <!-- panel -->
   <div id="panel" class="saas-page" style="display:none">
     <div class="saas-page-hd">
-      <h1>⚙️ <span data-i18n="pf_title">إدارة مديولات الخطط</span></h1>
+      <h1>⚙️ <span data-i18n="pf_console_title">لوحة تشغيل المنصّة</span></h1>
       <span class="saas-pill" id="who"></span>
     </div>
-    <div id="plans"></div>
-    <p class="muted-s" data-i18n="pf_note" style="color:#cbd5e1"></p>
+
+    <nav class="pf-tabs" id="tabs">
+      <button type="button" class="pf-tab active" data-tab="overview" data-i18n="pf_tab_overview">نظرة عامة</button>
+      <button type="button" class="pf-tab" data-tab="tenants" data-i18n="pf_tab_tenants">المؤسسات</button>
+      <button type="button" class="pf-tab" data-tab="users" data-i18n="pf_tab_users">المستخدمون</button>
+      <button type="button" class="pf-tab" data-tab="billing" data-i18n="pf_tab_billing">الفوترة</button>
+      <button type="button" class="pf-tab" data-tab="plans" data-i18n="pf_tab_plans">الخطط</button>
+    </nav>
+
+    <div id="pane-overview" class="pf-pane active">
+      <div class="pf-kpis" id="kpis"></div>
+      <div class="saas-panel">
+        <h2 style="margin:0 0 12px;font-size:1rem" data-i18n="pf_recent_tenants">آخر المؤسسات المسجّلة</h2>
+        <div class="pf-table-wrap" id="recent-tenants"></div>
+      </div>
+    </div>
+
+    <div id="pane-tenants" class="pf-pane">
+      <div class="saas-panel">
+        <div class="pf-toolbar">
+          <input type="search" id="tenant-search" data-i18n-ph="pf_search" placeholder="بحث…">
+          <button type="button" class="saas-btn sm" id="tenant-search-btn" data-i18n="pf_search_btn">بحث</button>
+        </div>
+        <div class="pf-table-wrap" id="tenants-table"></div>
+        <div class="pf-pager" id="tenants-pager"></div>
+      </div>
+    </div>
+
+    <div id="pane-users" class="pf-pane">
+      <div class="saas-panel">
+        <div class="pf-toolbar">
+          <input type="search" id="user-search" data-i18n-ph="pf_search" placeholder="بحث…">
+          <button type="button" class="saas-btn sm" id="user-search-btn" data-i18n="pf_search_btn">بحث</button>
+        </div>
+        <div class="pf-table-wrap" id="users-table"></div>
+        <div class="pf-pager" id="users-pager"></div>
+      </div>
+    </div>
+
+    <div id="pane-billing" class="pf-pane">
+      <div class="saas-panel">
+        <div class="pf-toolbar">
+          <label class="muted-s" data-i18n="pf_filter_status">تصفية بالحالة</label>
+          <select id="billing-filter">
+            <option value="" data-i18n="pf_filter_all">الكل</option>
+            <option value="active">active</option>
+            <option value="trialing">trialing</option>
+            <option value="past_due">past_due</option>
+            <option value="frozen">frozen</option>
+            <option value="canceled">canceled</option>
+          </select>
+        </div>
+        <div class="pf-table-wrap" id="billing-table"></div>
+        <div class="pf-pager" id="billing-pager"></div>
+      </div>
+    </div>
+
+    <div id="pane-plans" class="pf-pane">
+      <div id="plans"></div>
+      <p class="muted-s" data-i18n="pf_note" style="color:#cbd5e1"></p>
+    </div>
   </div>
+
+  <div id="modal-root" style="display:none"></div>
 
   <script src="js/saas/saas-config.js"></script>
   <script src="js/saas/saas-brand.js"></script>
   <script src="js/saas/supabase-bootstrap.js"></script>
+  <script src="js/saas/saas-escape.js"></script>
   <script src="js/saas/saas-i18n.js"></script>
   <script>
     const $ = id => document.getElementById(id);
     const T = k => SaaSI18n.t(k);
-    // [key, ar, en]
+    const esc = s => SaaSEscape.html(s);
+    const PAGE_SIZE = 50;
+
     const MODULES = [
       ['clinic','العيادة','Clinic'],['incidents','الحوادث','Incidents'],
       ['nearmiss','الحوادث الوشيكة','Near-miss'],['daily-observations','الملاحظات اليومية','Daily Observations'],
@@ -64,59 +126,283 @@
       ['issuing-authorities','جهات الإصدار','Issuing Authorities'],['ai-assistant','المساعد الذكي','AI Assistant']
     ];
     const modLabel = m => SaaSI18n.lang === 'ar' ? m[1] : m[2];
-    let _plans = null;
 
-    document.addEventListener('DOMContentLoaded', () => SaaSI18n.init(() => { if (_plans) renderPlans(_plans); }));
+    let _plans = null;
+    let _state = {
+      tenants: { offset: 0, search: '' },
+      users: { offset: 0, search: '' },
+      billing: { offset: 0, status: '' }
+    };
+
+    const locale = () => SaaSI18n.lang === 'ar' ? 'ar-EG' : 'en-US';
+    const fmtDate = v => v ? new Date(v).toLocaleDateString(locale()) : '—';
+    const badge = st => {
+      const cls = (st === 'active' || st === 'trialing') ? 'ok' : (st === 'past_due' ? 'warn' : 'err');
+      return `<span class="badge ${cls}">${esc(st || '—')}</span>`;
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      SaaSI18n.init(() => {
+        if (_plans) renderPlans(_plans);
+        const active = document.querySelector('.pf-tab.active');
+        if (active) loadTab(active.getAttribute('data-tab'));
+      });
+      $('tabs').addEventListener('click', e => {
+        const btn = e.target.closest('.pf-tab');
+        if (!btn) return;
+        document.querySelectorAll('.pf-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.pf-pane').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        $('pane-' + btn.getAttribute('data-tab')).classList.add('active');
+        loadTab(btn.getAttribute('data-tab'));
+      });
+      $('tenant-search-btn').onclick = () => { _state.tenants.offset = 0; _state.tenants.search = $('tenant-search').value.trim(); loadTenants(); };
+      $('user-search-btn').onclick = () => { _state.users.offset = 0; _state.users.search = $('user-search').value.trim(); loadUsers(); };
+      $('billing-filter').onchange = () => { _state.billing.offset = 0; _state.billing.status = $('billing-filter').value; loadBilling(); };
+    });
 
     (async () => {
       const s = await SaaS.getSession();
       if (!s) { $('login').style.display = 'flex'; return; }
-      await loadPlans();
+      await initPanel();
     })();
 
     async function doLogin() {
       const r = await SaaS.signIn($('email').value.trim(), $('pwd').value);
       if (r.error) { $('lmsg').textContent = r.error.message || T('err_login_failed'); return; }
       $('login').style.display = 'none';
-      await loadPlans();
+      await initPanel();
     }
 
-    async function loadPlans() {
+    async function initPanel() {
       const client = SaaS.client();
       const { data, error } = await client.rpc('api_admin_list_plans');
       if (error) {
-        document.body.innerHTML = '<div class="saas-page"><div class="saas-panel" style="color:#b91c1c">' + T('pf_forbidden') + '</div></div>';
+        document.body.innerHTML = '<div class="saas-page"><div class="saas-panel" style="color:#b91c1c">' + esc(T('pf_forbidden')) + '</div></div>';
         return;
       }
       $('panel').style.display = 'block';
       $('who').textContent = T('pf_who');
-      _plans = data || []; renderPlans(_plans);
+      _plans = data || [];
+      renderPlans(_plans);
+      loadTab('overview');
+    }
+
+    function loadTab(tab) {
+      if (tab === 'overview') loadOverview();
+      else if (tab === 'tenants') loadTenants();
+      else if (tab === 'users') loadUsers();
+      else if (tab === 'billing') loadBilling();
+    }
+
+    async function loadOverview() {
+      $('kpis').innerHTML = `<p class="muted-s">${esc(T('pf_loading'))}</p>`;
+      $('recent-tenants').innerHTML = '';
+      const { data, error } = await SaaS.client().rpc('api_admin_overview');
+      if (error) { $('kpis').innerHTML = `<p class="err">${esc(error.message)}</p>`; return; }
+      const kpis = [
+        ['pf_kpi_tenants', data.tenants_total],
+        ['pf_kpi_users', data.users_total],
+        ['pf_kpi_active_subs', data.active_subscriptions],
+        ['pf_kpi_trialing', data.trialing],
+        ['pf_kpi_past_due', data.past_due],
+        ['pf_kpi_frozen', data.frozen]
+      ];
+      $('kpis').innerHTML = kpis.map(([k, n]) =>
+        `<div class="pf-kpi"><div class="n">${esc(String(n ?? 0))}</div><div class="l">${esc(T(k))}</div></div>`
+      ).join('');
+      const rows = data.recent_tenants || [];
+      $('recent-tenants').innerHTML = rows.length
+        ? `<table class="pf-table"><thead><tr>
+            <th>${esc(T('pf_col_name'))}</th><th>${esc(T('pf_col_org_code'))}</th>
+            <th>${esc(T('pf_col_plan'))}</th><th>${esc(T('pf_col_status'))}</th>
+            <th>${esc(T('pf_col_created'))}</th></tr></thead><tbody>${
+          rows.map(r => `<tr>
+            <td class="clickable" onclick="showTenant('${esc(r.id)}')">${esc(r.name)}</td>
+            <td><code>${esc(r.org_code)}</code></td>
+            <td>${esc(r.plan_id)}</td><td>${badge(r.status)}</td>
+            <td>${esc(fmtDate(r.created_at))}</td></tr>`).join('')
+        }</tbody></table>`
+        : `<p class="muted-s">${esc(T('pf_no_rows'))}</p>`;
+    }
+
+    async function loadTenants() {
+      $('tenants-table').innerHTML = `<p class="muted-s">${esc(T('pf_loading'))}</p>`;
+      const st = _state.tenants;
+      const { data, error } = await SaaS.client().rpc('api_admin_list_tenants', {
+        p_limit: PAGE_SIZE, p_offset: st.offset,
+        p_search: st.search || null
+      });
+      if (error) { $('tenants-table').innerHTML = `<p class="err">${esc(error.message)}</p>`; return; }
+      const items = data.items || [];
+      $('tenants-table').innerHTML = items.length
+        ? `<table class="pf-table"><thead><tr>
+            <th>${esc(T('pf_col_name'))}</th><th>${esc(T('pf_col_org_code'))}</th>
+            <th>${esc(T('pf_col_plan'))}</th><th>${esc(T('pf_col_status'))}</th>
+            <th>${esc(T('pf_col_members'))}</th><th>${esc(T('lbl_trial'))}</th>
+            <th>${esc(T('pf_col_created'))}</th></tr></thead><tbody>${
+          items.map(r => `<tr>
+            <td class="clickable" onclick="showTenant('${esc(r.id)}')">${esc(r.name)}</td>
+            <td><code>${esc(r.org_code)}</code></td>
+            <td>${esc(r.plan_id)}</td><td>${badge(r.status)}</td>
+            <td>${esc(String(r.member_count ?? 0))}</td>
+            <td>${esc(fmtDate(r.trial_ends_at))}</td>
+            <td>${esc(fmtDate(r.created_at))}</td></tr>`).join('')
+        }</tbody></table>`
+        : `<p class="muted-s">${esc(T('pf_no_rows'))}</p>`;
+      renderPager('tenants-pager', data.total, st.offset, dir => {
+        st.offset = Math.max(0, st.offset + dir * PAGE_SIZE);
+        loadTenants();
+      });
+    }
+
+    async function loadUsers() {
+      $('users-table').innerHTML = `<p class="muted-s">${esc(T('pf_loading'))}</p>`;
+      const st = _state.users;
+      const { data, error } = await SaaS.client().rpc('api_admin_list_users', {
+        p_limit: PAGE_SIZE, p_offset: st.offset,
+        p_search: st.search || null
+      });
+      if (error) { $('users-table').innerHTML = `<p class="err">${esc(error.message)}</p>`; return; }
+      const items = data.items || [];
+      $('users-table').innerHTML = items.length
+        ? `<table class="pf-table"><thead><tr>
+            <th>${esc(T('pf_col_email'))}</th><th>${esc(T('pf_col_name'))}</th>
+            <th>${esc(T('pf_col_confirmed'))}</th><th>${esc(T('pf_col_memberships'))}</th>
+            <th>${esc(T('pf_col_created'))}</th></tr></thead><tbody>${
+          items.map(r => {
+            const mems = (r.memberships || []).map(m =>
+              `${esc(m.tenant_name)} (${esc(m.role)})`
+            ).join(' · ') || '—';
+            return `<tr>
+              <td>${esc(r.email)}</td>
+              <td>${esc(r.full_name || '—')}${r.is_platform_admin ? ' 🛡' : ''}</td>
+              <td>${esc(r.email_confirmed ? T('pf_yes') : T('pf_no'))}</td>
+              <td style="white-space:normal;min-width:200px">${mems}</td>
+              <td>${esc(fmtDate(r.created_at))}</td></tr>`;
+          }).join('')
+        }</tbody></table>`
+        : `<p class="muted-s">${esc(T('pf_no_rows'))}</p>`;
+      renderPager('users-pager', data.total, st.offset, dir => {
+        st.offset = Math.max(0, st.offset + dir * PAGE_SIZE);
+        loadUsers();
+      });
+    }
+
+    async function loadBilling() {
+      $('billing-table').innerHTML = `<p class="muted-s">${esc(T('pf_loading'))}</p>`;
+      const st = _state.billing;
+      const { data, error } = await SaaS.client().rpc('api_admin_list_billing', {
+        p_limit: PAGE_SIZE, p_offset: st.offset,
+        p_status: st.status || null
+      });
+      if (error) { $('billing-table').innerHTML = `<p class="err">${esc(error.message)}</p>`; return; }
+      const items = data.items || [];
+      $('billing-table').innerHTML = items.length
+        ? `<table class="pf-table"><thead><tr>
+            <th>${esc(T('pf_col_name'))}</th><th>${esc(T('pf_col_org_code'))}</th>
+            <th>${esc(T('pf_col_plan'))}</th><th>${esc(T('pf_col_status'))}</th>
+            <th>Sub</th><th>${esc(T('pf_col_renewal'))}</th>
+            <th>${esc(T('pf_col_stripe'))}</th></tr></thead><tbody>${
+          items.map(r => `<tr>
+            <td class="clickable" onclick="showTenant('${esc(r.tenant_id)}')">${esc(r.tenant_name)}</td>
+            <td><code>${esc(r.org_code)}</code></td>
+            <td>${esc(r.plan_id)}</td>
+            <td>${badge(r.tenant_status)}</td>
+            <td>${badge(r.sub_status)}</td>
+            <td>${esc(fmtDate(r.current_period_end))}</td>
+            <td dir="ltr" style="font-size:.75rem">${esc(r.stripe_customer_id || '—')}</td></tr>`).join('')
+        }</tbody></table>`
+        : `<p class="muted-s">${esc(T('pf_no_rows'))}</p>`;
+      renderPager('billing-pager', data.total, st.offset, dir => {
+        st.offset = Math.max(0, st.offset + dir * PAGE_SIZE);
+        loadBilling();
+      });
+    }
+
+    function renderPager(elId, total, offset, onNav) {
+      const el = $(elId);
+      const page = Math.floor(offset / PAGE_SIZE) + 1;
+      const pages = Math.max(1, Math.ceil((total || 0) / PAGE_SIZE));
+      el.innerHTML = `
+        <span>${esc(T('pf_page'))} ${page} / ${pages} (${total || 0})</span>
+        <button type="button" class="saas-btn sm ghost" ${offset <= 0 ? 'disabled' : ''} data-dir="-1">${esc(T('pf_prev'))}</button>
+        <button type="button" class="saas-btn sm ghost" ${offset + PAGE_SIZE >= total ? 'disabled' : ''} data-dir="1">${esc(T('pf_next'))}</button>`;
+      el.querySelectorAll('button[data-dir]').forEach(b => {
+        b.onclick = () => onNav(parseInt(b.getAttribute('data-dir'), 10));
+      });
+    }
+
+    async function showTenant(id) {
+      const root = $('modal-root');
+      root.style.display = 'flex';
+      root.className = 'pf-modal-backdrop';
+      root.innerHTML = `<div class="pf-modal"><p>${esc(T('pf_loading'))}</p></div>`;
+      root.onclick = e => { if (e.target === root) closeModal(); };
+      const { data, error } = await SaaS.client().rpc('api_admin_get_tenant', { p_tenant_id: id });
+      if (error) {
+        root.innerHTML = `<div class="pf-modal"><p class="err">${esc(error.message)}</p>
+          <button type="button" class="saas-btn sm" onclick="closeModal()">${esc(T('pf_close'))}</button></div>`;
+        return;
+      }
+      const t = data.tenant || {};
+      const lim = data.limits || {};
+      const sub = data.subscription || {};
+      const members = (data.members || []).map(m =>
+        `<tr><td>${esc(m.email)}</td><td>${esc(m.full_name || '—')}</td>
+         <td>${esc(m.role)}</td><td>${esc(m.status)}</td></tr>`
+      ).join('');
+      root.innerHTML = `<div class="pf-modal" onclick="event.stopPropagation()">
+        <h2>${esc(T('pf_detail_title'))}: ${esc(t.name)}</h2>
+        <dl class="pf-modal-dl">
+          <dt>${esc(T('pf_col_org_code'))}</dt><dd><code>${esc(t.org_code)}</code></dd>
+          <dt>${esc(T('pf_col_plan'))}</dt><dd>${esc(t.plan_id)} ${badge(t.status)}</dd>
+          <dt>${esc(T('lbl_trial'))}</dt><dd>${esc(fmtDate(t.trial_ends_at))}</dd>
+          <dt>${esc(T('lbl_seats'))}</dt><dd>${esc(String(lim.user_count ?? 0))} + ${esc(String(lim.pending_invites ?? 0))} / ${esc(String(lim.max_users ?? '—'))}</dd>
+          <dt>${esc(T('lbl_storage'))}</dt><dd>${esc(String(lim.storage_used_mb ?? 0))} / ${esc(String(lim.storage_mb ?? '—'))} MB</dd>
+          <dt>Sub</dt><dd>${badge(sub.status)} ${esc(fmtDate(sub.current_period_end))}</dd>
+          <dt>${esc(T('pf_col_stripe'))}</dt><dd dir="ltr">${esc(t.stripe_customer_id || '—')}</dd>
+        </dl>
+        <h3 style="margin:16px 0 8px;font-size:.95rem">${esc(T('pf_col_members'))}</h3>
+        <div class="pf-table-wrap"><table class="pf-table"><thead><tr>
+          <th>${esc(T('pf_col_email'))}</th><th>${esc(T('pf_col_name'))}</th>
+          <th>Role</th><th>${esc(T('pf_col_status'))}</th></tr></thead>
+          <tbody>${members || `<tr><td colspan="4">${esc(T('pf_no_rows'))}</td></tr>`}</tbody></table></div>
+        <button type="button" class="saas-btn sm" style="margin-top:14px" onclick="closeModal()">${esc(T('pf_close'))}</button>
+      </div>`;
+    }
+
+    function closeModal() {
+      const root = $('modal-root');
+      root.style.display = 'none';
+      root.innerHTML = '';
+      root.className = '';
     }
 
     function renderPlans(plans) {
       $('plans').innerHTML = '';
-      plans.forEach(p => {
+      (plans || []).forEach(p => {
         const allowed = Array.isArray(p.modules) ? p.modules : [];
         const allMode = allowed.length === 0;
         const card = document.createElement('div');
         card.className = 'plan-card';
         card.innerHTML =
-          `<div class="ph"><b>${p.name} (${p.id})</b>
-             <span class="muted-s">${allMode ? T('pf_all_modules') : ''}</span></div>
+          `<div class="ph"><b>${esc(p.name)} (${esc(p.id)})</b>
+             <span class="muted-s">${allMode ? esc(T('pf_all_modules')) : ''}</span></div>
            <div class="row" style="margin:0 0 12px">
-             <label class="muted-s">${T('pf_max_users')}
-               <input type="number" min="1" id="u-${p.id}" value="${p.max_users}" class="lim-input"></label>
-             <label class="muted-s">${T('pf_storage')}
-               <input type="number" min="1" id="s-${p.id}" value="${p.storage_mb}" class="lim-input"></label>
+             <label class="muted-s">${esc(T('pf_max_users'))}
+               <input type="number" min="1" id="u-${esc(p.id)}" value="${esc(String(p.max_users))}" class="lim-input"></label>
+             <label class="muted-s">${esc(T('pf_storage'))}
+               <input type="number" min="1" id="s-${esc(p.id)}" value="${esc(String(p.storage_mb))}" class="lim-input"></label>
            </div>
            <div class="mod-grid">${MODULES.map(m =>
-             `<label class="mod"><input type="checkbox" data-k="${m[0]}" ${(allMode || allowed.includes(m[0])) ? 'checked' : ''}> ${modLabel(m)}</label>`
+             `<label class="mod"><input type="checkbox" data-k="${esc(m[0])}" ${(allMode || allowed.includes(m[0])) ? 'checked' : ''}> ${esc(modLabel(m))}</label>`
            ).join('')}</div>
            <div class="row">
-             <button class="saas-btn sm ghost" onclick="setAll(this,true)">${T('pf_select_all')}</button>
-             <button class="saas-btn sm ghost" onclick="setAll(this,false)">${T('pf_clear_all')}</button>
-             <button class="saas-btn sm" data-plan="${p.id}" onclick="savePlan(this)">${T('pf_save')} · ${p.name}</button>
-             <span class="msg-inline" id="m-${p.id}"></span>
+             <button type="button" class="saas-btn sm ghost" onclick="setAll(this,true)">${esc(T('pf_select_all'))}</button>
+             <button type="button" class="saas-btn sm ghost" onclick="setAll(this,false)">${esc(T('pf_clear_all'))}</button>
+             <button type="button" class="saas-btn sm" data-plan="${esc(p.id)}" onclick="savePlan(this)">${esc(T('pf_save'))} · ${esc(p.name)}</button>
+             <span class="msg-inline" id="m-${esc(p.id)}"></span>
            </div>`;
         $('plans').appendChild(card);
       });

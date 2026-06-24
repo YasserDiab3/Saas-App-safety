@@ -24,10 +24,14 @@ const RPCS = [
   { name: 'api_billing_status', body: {} },
   { name: 'api_me', body: {} },
   { name: 'api_admin_list_plans', body: {} },
+  { name: 'api_admin_overview', body: {} },
+  { name: 'api_admin_list_tenants', body: { p_limit: 1, p_offset: 0 } },
+  { name: 'api_admin_list_users', body: { p_limit: 1, p_offset: 0 } },
+  { name: 'api_admin_list_billing', body: { p_limit: 1, p_offset: 0 } },
   { name: 'api_provision_tenant', body: { p_name: '__probe__' } }
 ];
 
-const EXPECTED_MIGRATIONS = ['0001','0002','0003','0004','0005','0006','0007','0008','0009','0010','0011','0012'];
+const EXPECTED_MIGRATIONS = ['0001','0002','0003','0004','0005','0006','0007','0008','0009','0010','0011','0012','0013','0014','0015','0016','0017','0018','0019','0020','0021'];
 
 async function probeRpc(name, body, token = ANON) {
   const res = await fetch(`${BASE}/rest/v1/rpc/${name}`, {
@@ -40,16 +44,32 @@ async function probeRpc(name, body, token = ANON) {
 
 async function getSmokeToken() {
   const credPath = path.join(__dirname, '.smoke-credentials.json');
-  if (!existsSync(credPath)) return null;
-  const { email, password } = JSON.parse(readFileSync(credPath, 'utf8'));
-  const res = await fetch(`${BASE}/auth/v1/token?grant_type=password`, {
-    method: 'POST',
-    headers: { apikey: ANON, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password })
-  });
-  if (!res.ok) return null;
-  const data = await res.json();
-  return data.access_token;
+  if (existsSync(credPath)) {
+    const { email, password } = JSON.parse(readFileSync(credPath, 'utf8'));
+    const res = await fetch(`${BASE}/auth/v1/token?grant_type=password`, {
+      method: 'POST',
+      headers: { apikey: ANON, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      return data.access_token;
+    }
+  }
+  const adminPath = path.join(__dirname, '.platform-admin-credentials.json');
+  if (existsSync(adminPath)) {
+    const { email, password } = JSON.parse(readFileSync(adminPath, 'utf8'));
+    const res = await fetch(`${BASE}/auth/v1/token?grant_type=password`, {
+      method: 'POST',
+      headers: { apikey: ANON, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      return data.access_token;
+    }
+  }
+  return null;
 }
 
 function checkMigrationList() {
@@ -104,6 +124,31 @@ if (!token) {
   report('api_read_sheet (auth)', read.ok && read.status !== 401, `HTTP ${read.status}`);
   const me = await probeRpc('api_me', {}, token);
   report('api_me (auth)', me.ok && me.status === 200, `HTTP ${me.status}`);
+  const overview = await probeRpc('api_admin_overview', {}, token);
+  const overviewAdmin = overview.status === 200;
+  report('api_admin_overview (auth)', overviewAdmin || overview.status === 400,
+    overviewAdmin ? 'HTTP 200' : `HTTP ${overview.status} (expected if not platform admin)`);
+
+  const adminPath = path.join(__dirname, '.platform-admin-credentials.json');
+  if (existsSync(adminPath)) {
+    const { email, password } = JSON.parse(readFileSync(adminPath, 'utf8'));
+    const res = await fetch(`${BASE}/auth/v1/token?grant_type=password`, {
+      method: 'POST',
+      headers: { apikey: ANON, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    if (res.ok) {
+      const adminTok = (await res.json()).access_token;
+      const ov = await probeRpc('api_admin_overview', {}, adminTok);
+      report('api_admin_overview (platform admin)', ov.status === 200, `HTTP ${ov.status}`);
+      const tenants = await probeRpc('api_admin_list_tenants', { p_limit: 1, p_offset: 0 }, adminTok);
+      report('api_admin_list_tenants (platform admin)', tenants.status === 200, `HTTP ${tenants.status}`);
+    } else {
+      report('platform admin session', false, 'sign-in failed');
+    }
+  } else {
+    report('platform admin session', false, 'run setup_production_remaining.mjs first');
+  }
 }
 
 console.log('\n5) db push status:');
@@ -121,4 +166,4 @@ if (failed) {
   console.error(`FAILED: ${failed} check(s). See supabase/scripts/verify_migrations.sql for SQL Editor fallback.`);
   process.exit(1);
 }
-console.log('All migration checks passed (12/12).');
+console.log('All migration checks passed (' + EXPECTED_MIGRATIONS.length + '/' + EXPECTED_MIGRATIONS.length + ').');

@@ -75,6 +75,7 @@ Vercel → Domains → `app.yourcompany.com`
 | `/signup` | مؤسسة جديدة |
 | `/` | التطبيق |
 | `/billing` | الاشتراك |
+| `/platform-console-2f7a91.html` | لوحة مدير المنصّة (مؤسسات، مستخدمون، فوترة، خطط) |
 | `/health` | فحص صحة النشر |
 | `/saas-test` | اختبار Supabase معزول |
 

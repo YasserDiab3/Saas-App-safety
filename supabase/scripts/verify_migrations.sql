@@ -78,6 +78,32 @@ select 'storage_policies', (
     and policyname like 'tenant_attachments_%'
 );
 
--- 7) Migration history (CLI tracking) — expect 19 rows after 0019
+-- 7) Platform ops dashboard (0021)
+select 'api_admin_overview' as fn, exists(
+  select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+  where n.nspname = 'public' and p.proname = 'api_admin_overview'
+) as ok
+union all
+select 'api_admin_list_tenants', exists(
+  select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+  where n.nspname = 'public' and p.proname = 'api_admin_list_tenants'
+)
+union all
+select 'api_admin_get_tenant', exists(
+  select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+  where n.nspname = 'public' and p.proname = 'api_admin_get_tenant'
+)
+union all
+select 'api_admin_list_users', exists(
+  select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+  where n.nspname = 'public' and p.proname = 'api_admin_list_users'
+)
+union all
+select 'api_admin_list_billing', exists(
+  select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+  where n.nspname = 'public' and p.proname = 'api_admin_list_billing'
+);
+
+-- 8) Migration history (CLI tracking) — expect 21 rows after 0021
 select version, name from supabase_migrations.schema_migrations order by version;
-select 'migration_count' as check_name, (select count(*) = 19 from supabase_migrations.schema_migrations) as ok;
+select 'migration_count' as check_name, (select count(*) = 21 from supabase_migrations.schema_migrations) as ok;

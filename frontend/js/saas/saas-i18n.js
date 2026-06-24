@@ -88,7 +88,7 @@
       invite_ready: 'اضغط لقبول الدعوة والانضمام للمؤسسة', invite_done: 'تم الانضمام — جاري التحويل…',
 
       // platform console
-      pf_doctitle: 'إدارة الخطط — HSEHub 360',
+      pf_doctitle: 'لوحة تشغيل المنصّة — HSEHub 360',
       pf_login_title: 'دخول مدير المنصّة', pf_title: 'إدارة مديولات الخطط',
       pf_who: 'مدير المنصّة',
       pf_forbidden: '⛔ هذا الحساب ليس مدير منصّة.',
@@ -96,7 +96,23 @@
       pf_max_users: 'حدّ المستخدمين', pf_storage: 'التخزين (MB)',
       pf_select_all: 'تحديد الكل', pf_clear_all: 'إلغاء الكل', pf_save: 'حفظ',
       pf_saving: 'جارٍ الحفظ...', pf_saved: '✅ تم حفظ المديولات والحدود',
-      pf_all_modules: '(كل المديولات متاحة)'
+      pf_all_modules: '(كل المديولات متاحة)',
+      pf_console_title: 'لوحة تشغيل المنصّة',
+      pf_tab_overview: 'نظرة عامة', pf_tab_tenants: 'المؤسسات',
+      pf_tab_users: 'المستخدمون', pf_tab_billing: 'الفوترة', pf_tab_plans: 'الخطط',
+      pf_kpi_tenants: 'المؤسسات', pf_kpi_users: 'المستخدمون',
+      pf_kpi_active_subs: 'اشتراكات فعّالة', pf_kpi_trialing: 'تجريبي',
+      pf_kpi_past_due: 'متأخر السداد', pf_kpi_frozen: 'مجمّد/ملغى',
+      pf_recent_tenants: 'آخر المؤسسات المسجّلة',
+      pf_search: 'بحث…', pf_search_btn: 'بحث', pf_prev: 'السابق', pf_next: 'التالي',
+      pf_col_name: 'الاسم', pf_col_org_code: 'الكود', pf_col_plan: 'الخطة',
+      pf_col_status: 'الحالة', pf_col_members: 'الأعضاء', pf_col_created: 'تاريخ التسجيل',
+      pf_col_email: 'البريد', pf_col_confirmed: 'البريد مفعّل',
+      pf_col_memberships: 'العضويات', pf_col_renewal: 'التجديد',
+      pf_col_stripe: 'Stripe', pf_yes: 'نعم', pf_no: 'لا',
+      pf_detail_title: 'تفاصيل المؤسسة', pf_close: 'إغلاق',
+      pf_loading: 'جاري التحميل…', pf_no_rows: 'لا توجد بيانات',
+      pf_page: 'صفحة', pf_filter_status: 'تصفية بالحالة', pf_filter_all: 'الكل'
     },
     en: {
       brand_sub: 'HSEHub 360 — Safety • Health • Environment',
@@ -170,7 +186,7 @@
       invite_no_token: 'Invalid invite link', invite_login_first: 'Sign in first…',
       invite_ready: 'Click to accept and join the organization', invite_done: 'Joined — redirecting…',
 
-      pf_doctitle: 'Plans — HSEHub 360',
+      pf_doctitle: 'Platform Console — HSEHub 360',
       pf_login_title: 'Platform Admin Login', pf_title: 'Plan Modules Management',
       pf_who: 'Platform Admin',
       pf_forbidden: '⛔ This account is not a platform admin.',
@@ -178,7 +194,23 @@
       pf_max_users: 'Max users', pf_storage: 'Storage (MB)',
       pf_select_all: 'Select all', pf_clear_all: 'Clear all', pf_save: 'Save',
       pf_saving: 'Saving...', pf_saved: '✅ Modules & limits saved',
-      pf_all_modules: '(all modules available)'
+      pf_all_modules: '(all modules available)',
+      pf_console_title: 'Platform Operations Console',
+      pf_tab_overview: 'Overview', pf_tab_tenants: 'Organizations',
+      pf_tab_users: 'Users', pf_tab_billing: 'Billing', pf_tab_plans: 'Plans',
+      pf_kpi_tenants: 'Organizations', pf_kpi_users: 'Users',
+      pf_kpi_active_subs: 'Active subs', pf_kpi_trialing: 'Trialing',
+      pf_kpi_past_due: 'Past due', pf_kpi_frozen: 'Frozen/canceled',
+      pf_recent_tenants: 'Recently registered organizations',
+      pf_search: 'Search…', pf_search_btn: 'Search', pf_prev: 'Previous', pf_next: 'Next',
+      pf_col_name: 'Name', pf_col_org_code: 'Code', pf_col_plan: 'Plan',
+      pf_col_status: 'Status', pf_col_members: 'Members', pf_col_created: 'Registered',
+      pf_col_email: 'Email', pf_col_confirmed: 'Email confirmed',
+      pf_col_memberships: 'Memberships', pf_col_renewal: 'Renewal',
+      pf_col_stripe: 'Stripe', pf_yes: 'Yes', pf_no: 'No',
+      pf_detail_title: 'Organization details', pf_close: 'Close',
+      pf_loading: 'Loading…', pf_no_rows: 'No data',
+      pf_page: 'Page', pf_filter_status: 'Filter by status', pf_filter_all: 'All'
     }
   };
 
