@@ -443,6 +443,13 @@
       try {
         const pack = await getExportData(tab);
         pack.rtl = SaaSI18n.lang === 'ar';
+        pack.generatedAt = new Date().toLocaleString(SaaSI18n.lang === 'ar' ? 'ar-EG' : 'en-US');
+        pack.brand = {
+          logoUrl: new URL('assets/brand/logo.png', location.href).href,
+          company: 'HSEHub 360',
+          tagline: T('brand_sub'),
+          portal: T('pf_console_title')
+        };
         if (format === 'excel') await SaaSPlatformExport.toExcel(pack);
         else await SaaSPlatformExport.toPdf(pack);
         if (msgEl) { msgEl.textContent = T('pf_export_done'); msgEl.className = 'pf-msg ok'; }
