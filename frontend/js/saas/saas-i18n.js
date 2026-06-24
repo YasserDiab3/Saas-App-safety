@@ -140,7 +140,12 @@
       pf_dev_coords: 'الإحداثيات', pf_dev_type: 'النوع',
       pf_dev_last_seen: 'آخر ظهور',
       pf_dev_search_ph: 'بحث بالبريد، IP، مدينة، جهاز…',
-      pf_dev_note: 'المتصفح لا يكشف عنوان MAC لأسباب أمنية — يُستخدم معرّف جهاز مستقر. الموقع التقريبي من IP؛ الإحداثيات الدقيقة تظهر فقط إذا سمح المستخدم مسبقاً بالموقع.'
+      pf_dev_note: 'المتصفح لا يكشف عنوان MAC لأسباب أمنية — يُستخدم معرّف جهاز مستقر. الموقع التقريبي من IP؛ الإحداثيات الدقيقة تظهر فقط إذا سمح المستخدم مسبقاً بالموقع.',
+      pf_export_excel: 'Excel', pf_export_pdf: 'PDF',
+      pf_exporting: 'جاري التصدير…', pf_export_done: 'تم التصدير',
+      pf_export_fail: 'فشل التصدير', pf_export_empty: 'لا توجد بيانات للتصدير',
+      pf_export_metric: 'المؤشر', pf_export_value: 'القيمة',
+      pf_modules: 'المديولات'
     },
     en: {
       brand_sub: 'HSEHub 360 — Safety • Health • Environment',
@@ -266,7 +271,12 @@
       pf_dev_coords: 'Coordinates', pf_dev_type: 'Type',
       pf_dev_last_seen: 'Last seen',
       pf_dev_search_ph: 'Search email, IP, city, device…',
-      pf_dev_note: 'Browsers cannot expose MAC addresses — a stable device ID is used instead. Location is approximate from IP; precise GPS appears only if the user already granted location permission.'
+      pf_dev_note: 'Browsers cannot expose MAC addresses — a stable device ID is used instead. Location is approximate from IP; precise GPS appears only if the user already granted location permission.',
+      pf_export_excel: 'Excel', pf_export_pdf: 'PDF',
+      pf_exporting: 'Exporting…', pf_export_done: 'Export complete',
+      pf_export_fail: 'Export failed', pf_export_empty: 'No data to export',
+      pf_export_metric: 'Metric', pf_export_value: 'Value',
+      pf_modules: 'Modules'
     }
   };
 

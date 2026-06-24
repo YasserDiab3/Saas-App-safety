@@ -55,6 +55,11 @@
     </nav>
 
     <div id="pane-overview" class="pf-pane active">
+      <div class="pf-export-strip">
+        <button type="button" class="saas-btn sm ghost pf-export-btn" onclick="exportTab('overview','excel')" data-i18n="pf_export_excel">Excel</button>
+        <button type="button" class="saas-btn sm ghost pf-export-btn" onclick="exportTab('overview','pdf')" data-i18n="pf_export_pdf">PDF</button>
+        <span class="pf-msg" id="export-msg-overview"></span>
+      </div>
       <div class="pf-kpis" id="kpis"></div>
       <div class="pf-content-card">
         <h2 class="pf-section-title" data-i18n="pf_recent_tenants">آخر المؤسسات المسجّلة</h2>
@@ -69,6 +74,9 @@
           <div class="pf-toolbar pf-toolbar-search">
             <input type="search" id="tenant-search" class="pf-search-input" data-i18n-ph="pf_search" placeholder="بحث…">
             <button type="button" class="saas-btn sm pf-search-btn" id="tenant-search-btn" data-i18n="pf_search_btn">بحث</button>
+            <button type="button" class="saas-btn sm ghost pf-export-btn" onclick="exportTab('tenants','excel')" data-i18n="pf_export_excel">Excel</button>
+            <button type="button" class="saas-btn sm ghost pf-export-btn" onclick="exportTab('tenants','pdf')" data-i18n="pf_export_pdf">PDF</button>
+            <span class="pf-msg" id="export-msg-tenants"></span>
           </div>
         </div>
         <div class="pf-table-wrap" id="tenants-table"></div>
@@ -83,6 +91,9 @@
           <div class="pf-toolbar pf-toolbar-search">
             <input type="search" id="user-search" class="pf-search-input" data-i18n-ph="pf_search" placeholder="بحث…">
             <button type="button" class="saas-btn sm pf-search-btn" id="user-search-btn" data-i18n="pf_search_btn">بحث</button>
+            <button type="button" class="saas-btn sm ghost pf-export-btn" onclick="exportTab('users','excel')" data-i18n="pf_export_excel">Excel</button>
+            <button type="button" class="saas-btn sm ghost pf-export-btn" onclick="exportTab('users','pdf')" data-i18n="pf_export_pdf">PDF</button>
+            <span class="pf-msg" id="export-msg-users"></span>
           </div>
         </div>
         <div class="pf-table-wrap" id="users-table"></div>
@@ -104,6 +115,9 @@
             <option value="frozen">frozen</option>
             <option value="canceled">canceled</option>
           </select>
+            <button type="button" class="saas-btn sm ghost pf-export-btn" onclick="exportTab('billing','excel')" data-i18n="pf_export_excel">Excel</button>
+            <button type="button" class="saas-btn sm ghost pf-export-btn" onclick="exportTab('billing','pdf')" data-i18n="pf_export_pdf">PDF</button>
+            <span class="pf-msg" id="export-msg-billing"></span>
           </div>
         </div>
         <div class="pf-table-wrap" id="billing-table"></div>
@@ -113,7 +127,14 @@
 
     <div id="pane-plans" class="pf-pane">
       <div class="pf-content-card">
-        <div class="pf-section-hd"><h2 data-i18n="pf_tab_plans">الخطط</h2></div>
+        <div class="pf-section-hd">
+          <h2 data-i18n="pf_tab_plans">الخطط</h2>
+          <div class="pf-toolbar">
+            <button type="button" class="saas-btn sm ghost pf-export-btn" onclick="exportTab('plans','excel')" data-i18n="pf_export_excel">Excel</button>
+            <button type="button" class="saas-btn sm ghost pf-export-btn" onclick="exportTab('plans','pdf')" data-i18n="pf_export_pdf">PDF</button>
+            <span class="pf-msg" id="export-msg-plans"></span>
+          </div>
+        </div>
         <div class="pf-plans-wrap" id="plans"></div>
         <p class="pf-plans-note muted-s" data-i18n="pf_note"></p>
       </div>
@@ -143,7 +164,14 @@
           </div>
         </div>
         <div class="pf-content-card">
-          <div class="pf-section-hd"><h2 data-i18n="pf_msg_history">سجل الرسائل</h2></div>
+          <div class="pf-section-hd">
+            <h2 data-i18n="pf_msg_history">سجل الرسائل</h2>
+            <div class="pf-toolbar">
+              <button type="button" class="saas-btn sm ghost pf-export-btn" onclick="exportTab('messages','excel')" data-i18n="pf_export_excel">Excel</button>
+              <button type="button" class="saas-btn sm ghost pf-export-btn" onclick="exportTab('messages','pdf')" data-i18n="pf_export_pdf">PDF</button>
+              <span class="pf-msg" id="export-msg-messages"></span>
+            </div>
+          </div>
           <div class="pf-table-wrap" id="msg-history"></div>
         </div>
       </div>
@@ -182,7 +210,14 @@
           </div>
         </div>
         <div class="pf-content-card">
-          <div class="pf-section-hd"><h2 data-i18n="pf_tab_quotes">عروض الأسعار</h2></div>
+          <div class="pf-section-hd">
+            <h2 data-i18n="pf_tab_quotes">عروض الأسعار</h2>
+            <div class="pf-toolbar">
+              <button type="button" class="saas-btn sm ghost pf-export-btn" onclick="exportTab('quotes','excel')" data-i18n="pf_export_excel">Excel</button>
+              <button type="button" class="saas-btn sm ghost pf-export-btn" onclick="exportTab('quotes','pdf')" data-i18n="pf_export_pdf">PDF</button>
+              <span class="pf-msg" id="export-msg-quotes"></span>
+            </div>
+          </div>
           <div class="pf-table-wrap" id="quotes-table"></div>
         </div>
       </div>
@@ -195,6 +230,9 @@
           <div class="pf-toolbar pf-toolbar-search">
             <input type="search" id="device-search" class="pf-search-input" data-i18n-ph="pf_dev_search_ph" placeholder="بحث…">
             <button type="button" class="saas-btn sm pf-search-btn" id="device-search-btn" data-i18n="pf_search_btn">بحث</button>
+            <button type="button" class="saas-btn sm ghost pf-export-btn" onclick="exportTab('devices','excel')" data-i18n="pf_export_excel">Excel</button>
+            <button type="button" class="saas-btn sm ghost pf-export-btn" onclick="exportTab('devices','pdf')" data-i18n="pf_export_pdf">PDF</button>
+            <span class="pf-msg" id="export-msg-devices"></span>
           </div>
         </div>
         <p class="pf-plans-note muted-s" data-i18n="pf_dev_note"></p>
@@ -211,6 +249,7 @@
   <script src="js/saas/supabase-bootstrap.js"></script>
   <script src="js/saas/saas-escape.js"></script>
   <script src="js/saas/saas-i18n.js"></script>
+  <script src="js/saas/saas-platform-export.js"></script>
   <script>
     const $ = id => document.getElementById(id);
     const T = k => SaaSI18n.t(k);
@@ -245,6 +284,175 @@
 
     const locale = () => SaaSI18n.lang === 'ar' ? 'ar-EG' : 'en-US';
     const fmtDate = v => v ? new Date(v).toLocaleDateString(locale()) : '—';
+    const fmtExp = v => {
+      if (!v) return '';
+      try { return new Date(v).toLocaleString(locale()); } catch (_e) { return String(v); }
+    };
+    const plainStatus = st => {
+      const map = { trialing: 'st_trialing', active: 'st_active', past_due: 'st_past_due', frozen: 'st_frozen', canceled: 'st_canceled' };
+      return map[st] ? T(map[st]) : (st || '');
+    };
+    const EXPORT_LIMIT = 200;
+
+    async function fetchAllItems(rpc, params) {
+      const limit = rpc === 'api_admin_list_notifications' || rpc === 'api_admin_list_quotes' ? 100 : EXPORT_LIMIT;
+      let offset = 0;
+      const all = [];
+      while (true) {
+        const { data, error } = await SaaS.client().rpc(rpc, { ...params, p_limit: limit, p_offset: offset });
+        if (error) throw new Error(error.message);
+        const items = data?.items || [];
+        all.push(...items);
+        const total = data?.total ?? all.length;
+        offset += limit;
+        if (!items.length || offset >= total) break;
+      }
+      return all;
+    }
+
+    async function getExportData(tab) {
+      const client = SaaS.client();
+      const empty = T('pf_export_empty');
+      const subtitle = T('pf_console_title') + ' · HSEHub 360';
+
+      if (tab === 'overview') {
+        const { data, error } = await client.rpc('api_admin_overview');
+        if (error) throw new Error(error.message);
+        const kpiHeaders = [T('pf_export_metric'), T('pf_export_value')];
+        const kpiRows = [
+          [T('pf_kpi_tenants'), String(data.tenants_total ?? 0)],
+          [T('pf_kpi_users'), String(data.users_total ?? 0)],
+          [T('pf_kpi_active_subs'), String(data.active_subscriptions ?? 0)],
+          [T('pf_kpi_trialing'), String(data.trialing ?? 0)],
+          [T('pf_kpi_past_due'), String(data.past_due ?? 0)],
+          [T('pf_kpi_frozen'), String(data.frozen ?? 0)]
+        ];
+        const tenantHeaders = [T('pf_col_name'), T('pf_col_org_code'), T('pf_col_plan'), T('pf_col_status'), T('pf_col_created')];
+        const tenantRows = (data.recent_tenants || []).map(r => [
+          r.name || '', r.org_code || '', r.plan_id || '', plainStatus(r.status), fmtExp(r.created_at)
+        ]);
+        return {
+          title: T('pf_tab_overview'), filename: 'platform-overview', subtitle, emptyMessage: empty,
+          sheets: [
+            { name: T('pf_tab_overview'), headers: kpiHeaders, rows: kpiRows },
+            { name: T('pf_recent_tenants'), headers: tenantHeaders, rows: tenantRows }
+          ]
+        };
+      }
+
+      if (tab === 'tenants') {
+        const items = await fetchAllItems('api_admin_list_tenants', { p_search: _state.tenants.search || null });
+        return {
+          title: T('pf_tab_tenants'), filename: 'platform-tenants', subtitle, emptyMessage: empty,
+          headers: [T('pf_col_name'), T('pf_col_org_code'), T('pf_col_plan'), T('pf_col_status'), T('pf_col_members'), T('lbl_trial'), T('pf_col_created')],
+          rows: items.map(r => [
+            r.name || '', r.org_code || '', r.plan_id || '', plainStatus(r.status),
+            String(r.member_count ?? 0), fmtExp(r.trial_ends_at), fmtExp(r.created_at)
+          ])
+        };
+      }
+
+      if (tab === 'users') {
+        const items = await fetchAllItems('api_admin_list_users', { p_search: _state.users.search || null });
+        return {
+          title: T('pf_tab_users'), filename: 'platform-users', subtitle, emptyMessage: empty,
+          headers: [T('pf_col_email'), T('pf_col_name'), T('pf_col_confirmed'), T('pf_col_memberships'), T('pf_col_created')],
+          rows: items.map(r => [
+            r.email || '',
+            (r.full_name || '') + (r.is_platform_admin ? ' [admin]' : ''),
+            r.email_confirmed ? T('pf_yes') : T('pf_no'),
+            (r.memberships || []).map(m => `${m.tenant_name} (${m.role})`).join('; ') || '',
+            fmtExp(r.created_at)
+          ])
+        };
+      }
+
+      if (tab === 'billing') {
+        const items = await fetchAllItems('api_admin_list_billing', { p_status: _state.billing.status || null });
+        return {
+          title: T('pf_tab_billing'), filename: 'platform-billing', subtitle, emptyMessage: empty,
+          headers: [T('pf_col_name'), T('pf_col_org_code'), T('pf_col_plan'), T('pf_col_status'), 'Sub', T('pf_col_renewal'), T('pf_col_stripe')],
+          rows: items.map(r => [
+            r.tenant_name || '', r.org_code || '', r.plan_id || '', plainStatus(r.tenant_status),
+            r.sub_status || '', fmtExp(r.current_period_end), r.stripe_customer_id || ''
+          ])
+        };
+      }
+
+      if (tab === 'plans') {
+        const plans = _plans || [];
+        return {
+          title: T('pf_tab_plans'), filename: 'platform-plans', subtitle, emptyMessage: empty,
+          headers: ['ID', T('pf_col_name'), T('pf_max_users'), T('pf_storage'), T('pf_modules')],
+          rows: plans.map(p => [
+            p.id || '', p.name || p.id || '', String(p.max_users ?? ''), String(p.storage_mb ?? ''),
+            (Array.isArray(p.modules) && p.modules.length) ? p.modules.join(', ') : T('pf_all_modules')
+          ])
+        };
+      }
+
+      if (tab === 'messages') {
+        const items = await fetchAllItems('api_admin_list_notifications', {});
+        return {
+          title: T('pf_msg_history'), filename: 'platform-messages', subtitle, emptyMessage: empty,
+          headers: [T('pf_col_created'), T('pf_msg_tenant'), T('pf_msg_subject'), T('pf_col_status'), T('pf_msg_channel')],
+          rows: items.map(n => [
+            fmtExp(n.created_at), n.tenant_name || '', n.subject || '',
+            n.status || '', n.channel || ''
+          ])
+        };
+      }
+
+      if (tab === 'quotes') {
+        const items = await fetchAllItems('api_admin_list_quotes', {});
+        return {
+          title: T('pf_tab_quotes'), filename: 'platform-quotes', subtitle, emptyMessage: empty,
+          headers: [T('pf_col_name'), T('pf_col_org_code'), T('pf_quote_title'), T('pf_col_plan'), T('pf_quote_amount'), T('pf_quote_discount'), T('pf_col_status'), T('pf_quote_valid'), T('pf_col_created')],
+          rows: items.map(q => [
+            q.tenant_name || '', q.org_code || '', q.title || '', q.plan_id || '',
+            q.amount_cents != null ? String(q.amount_cents) : '',
+            String(q.discount_percent ?? 0), q.status || '', fmtExp(q.valid_until), fmtExp(q.created_at)
+          ])
+        };
+      }
+
+      if (tab === 'devices') {
+        const items = await fetchAllItems('api_admin_list_device_sessions', { p_search: _state.devices.search || null });
+        return {
+          title: T('pf_tab_devices'), filename: 'platform-devices', subtitle, emptyMessage: empty,
+          headers: [T('pf_col_email'), T('pf_col_name'), T('pf_msg_tenant'), T('pf_col_org_code'), T('pf_dev_label'), T('pf_dev_id'), T('pf_dev_ip'), T('pf_dev_region'), T('pf_dev_coords'), T('pf_dev_type'), T('pf_dev_last_seen')],
+          rows: items.map(r => {
+            const region = [r.city, r.region, r.country].filter(Boolean).join(' · ');
+            const coords = (r.latitude != null && r.longitude != null) ? `${r.latitude}, ${r.longitude} (${r.geo_source || ''})` : '';
+            return [
+              r.email || '', r.full_name || '', r.tenant_name || '', r.org_code || '',
+              r.device_label || '', r.device_id || '', r.ip_address || '', region, coords,
+              (r.device_type || '') + (r.screen_size ? ' · ' + r.screen_size : ''), fmtExp(r.last_seen_at)
+            ];
+          })
+        };
+      }
+
+      throw new Error('unknown tab: ' + tab);
+    }
+
+    async function exportTab(tab, format) {
+      const msgEl = $('export-msg-' + tab);
+      if (msgEl) { msgEl.textContent = T('pf_exporting'); msgEl.className = 'pf-msg'; }
+      document.querySelectorAll('.pf-export-btn').forEach(b => { b.disabled = true; });
+      try {
+        const pack = await getExportData(tab);
+        pack.rtl = SaaSI18n.lang === 'ar';
+        if (format === 'excel') await SaaSPlatformExport.toExcel(pack);
+        else await SaaSPlatformExport.toPdf(pack);
+        if (msgEl) { msgEl.textContent = T('pf_export_done'); msgEl.className = 'pf-msg ok'; }
+      } catch (e) {
+        if (msgEl) { msgEl.textContent = e.message || T('pf_export_fail'); msgEl.className = 'pf-msg err'; }
+      } finally {
+        document.querySelectorAll('.pf-export-btn').forEach(b => { b.disabled = false; });
+      }
+    }
+
     const statusLabel = st => {
       const map = { trialing: 'st_trialing', active: 'st_active', past_due: 'st_past_due', frozen: 'st_frozen', canceled: 'st_canceled' };
       return map[st] ? T(map[st]) : (st || '—');
