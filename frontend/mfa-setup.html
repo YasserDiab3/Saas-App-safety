@@ -124,7 +124,11 @@
         await loadEnrollment(true);
         msg(T('mfa_reset_ok') || 'تم إنشاء رمز QR جديد — امسحه من جديد في التطبيق', 'ok');
       } catch (e) {
-        msg(SaaSMfa.mapMfaError(e), 'err');
+        if (e.code === 'MFA_VERIFIED_STUCK') {
+          msg(T('mfa_verified_stuck') || SaaSMfa.mapMfaError(e), 'err');
+        } else {
+          msg(SaaSMfa.mapMfaError(e), 'err');
+        }
       }
       $('reset').disabled = false;
       $('confirm').disabled = false;

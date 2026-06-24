@@ -50,6 +50,7 @@
       mfa_secret_copied: 'تم نسخ الرمز السري',
       mfa_reset_btn: 'إعادة الإعداد (رمز QR جديد)',
       mfa_reset_ok: 'تم إنشاء رمز QR جديد — امسحه من جديد في التطبيق',
+      mfa_verified_stuck: 'MFA مفعّل على الخادم لكن الرمز لا يعمل. اطلب من مسؤول المنصّة إعادة تعيين MFA، أو شغّل: node supabase/scripts/admin_reset_user_mfa.mjs',
 
       // signup
       signup_doctitle: 'إنشاء حساب — HSEHub 360',

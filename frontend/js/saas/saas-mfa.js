@@ -9,13 +9,24 @@
     return String(code || '').replace(/\s+/g, '').replace(/\D/g, '');
   }
 
+  function uniqueFriendlyName(email) {
+    const base = email ? email.split('@')[0].replace(/[^a-zA-Z0-9._-]/g, '') : 'user';
+    return ('HSEHub360-' + base + '-' + Date.now().toString(36)).slice(0, 64);
+  }
+
   function mapMfaError(err) {
     const msg = String(err?.message || err || '');
     if (/invalid totp|invalid code|verification failed/i.test(msg)) {
       return 'رمز غير صحيح. تأكد من مزامنة وقت الجهاز، أو اضغط «إعادة الإعداد» وامسح رمز QR جديداً.';
     }
+    if (/already exists|friendly name/i.test(msg)) {
+      return 'يوجد إعداد MFA عالق. اضغط «إعادة الإعداد» لحذفه وإنشاء رمز QR جديد.';
+    }
     if (/session missing|not authenticated/i.test(msg)) {
       return 'انتهت الجلسة. سجّل الدخول ثم أعد محاولة تفعيل MFA.';
+    }
+    if (/aal2|assurance/i.test(msg)) {
+      return 'لا يمكن إزالة MFA المفعّل بدون رمز صحيح. اطلب من مسؤول المنصّة إعادة تعيين MFA لحسابك.';
     }
     return msg || 'تعذّر التحقق من الرمز';
   }
@@ -65,7 +76,11 @@
     async listTotpFactors(client) {
       const { data, error } = await client.auth.mfa.listFactors();
       if (error) throw error;
-      return data?.totp || [];
+      const fromTotp = data?.totp || [];
+      const fromAll = (data?.all || []).filter(f => f.factor_type === 'totp' || f.type === 'totp');
+      const map = new Map();
+      for (const f of [...fromTotp, ...fromAll]) map.set(f.id, f);
+      return [...map.values()];
     },
 
     async verifiedTotpFactor(client) {
@@ -73,12 +88,26 @@
       return factors.find(f => f.status === 'verified') || null;
     },
 
-    async cleanupUnverifiedTotp(client) {
-      const factors = await this.listTotpFactors(client);
-      for (const f of factors.filter(x => x.status === 'unverified')) {
-        const { error } = await client.auth.mfa.unenroll({ factorId: f.id });
-        if (error && !/not found|already/i.test(error.message || '')) throw error;
+    async unenrollFactor(client, factorId) {
+      const { error } = await client.auth.mfa.unenroll({ factorId });
+      if (error && !/not found|already|does not exist/i.test(error.message || '')) {
+        throw error;
       }
+    },
+
+    async cleanupTotpFactors(client, opts) {
+      const includeVerified = Boolean(opts?.includeVerified);
+      const factors = await this.listTotpFactors(client);
+      const targets = factors.filter(f => includeVerified || f.status === 'unverified');
+      const errors = [];
+      for (const f of targets) {
+        try {
+          await this.unenrollFactor(client, f.id);
+        } catch (e) {
+          errors.push(e);
+        }
+      }
+      return { removed: targets.length - errors.length, errors, remaining: await this.listTotpFactors(client) };
     },
 
     async challengeAndVerify(client, factorId, code) {
@@ -108,7 +137,9 @@
     async verifyTotpCode(client, code) {
       const factors = await this.listTotpFactors(client);
       const verified = factors.filter(f => f.status === 'verified');
-      if (!verified.length) throw new Error('لا يوجد عامل MFA مفعّل على هذا الحساب');
+      if (!verified.length) {
+        throw new Error('لا يوجد MFA مفعّل. افتح /mfa-setup لإكمال التفعيل.');
+      }
       let lastErr;
       for (const factor of verified) {
         try {
@@ -130,51 +161,78 @@
       };
     },
 
-    /**
-     * Resume pending enroll from sessionStorage, or create a fresh one.
-     * Avoids creating a new secret on every page refresh (root cause of invalid codes).
-     */
+    async enrollNewTotp(client, email) {
+      const friendlyName = uniqueFriendlyName(email);
+      const { data, error } = await client.auth.mfa.enroll({
+        factorType: 'totp',
+        friendlyName,
+        issuer: 'HSEHub360'
+      });
+      if (error) {
+        if (/already exists|friendly name/i.test(error.message || '')) {
+          await this.cleanupTotpFactors(client, { includeVerified: false });
+          const retry = await client.auth.mfa.enroll({
+            factorType: 'totp',
+            friendlyName: uniqueFriendlyName(email),
+            issuer: 'HSEHub360'
+          });
+          if (retry.error) throw retry.error;
+          return this.renderEnrollUi(retry.data);
+        }
+        throw error;
+      }
+      return this.renderEnrollUi(data);
+    },
+
     async beginTotpEnrollment(client, opts) {
       const email = opts?.email || '';
-      const label = email ? ('HSEHub360 ' + email) : 'HSEHub360';
 
       const verified = await this.verifiedTotpFactor(client);
-      if (verified) {
+      if (verified && !opts?.forceNew) {
         clearPendingEnroll();
         return { status: 'verified', factor: verified };
       }
 
       const pending = readPendingEnroll();
-      if (pending) {
+      if (pending && !opts?.forceNew) {
         const factors = await this.listTotpFactors(client);
-        const stillThere = factors.some(f => f.id === pending.factorId && f.status === 'unverified');
-        if (stillThere) {
-          return { status: 'pending', ...pending };
-        }
+        const match = factors.find(f => f.id === pending.factorId && f.status === 'unverified');
+        if (match) return { status: 'pending', ...pending };
         clearPendingEnroll();
       }
 
-      await this.cleanupUnverifiedTotp(client);
+      await this.cleanupTotpFactors(client, { includeVerified: false });
 
-      const { data, error } = await client.auth.mfa.enroll({
-        factorType: 'totp',
-        friendlyName: label.slice(0, 64),
-        issuer: 'HSEHub360'
-      });
-      if (error) throw error;
-
-      const ui = this.renderEnrollUi(data);
+      const ui = await this.enrollNewTotp(client, email);
+      if (!ui.secret) {
+        throw new Error('تعذّر إنشاء رمز QR. اضغط «إعادة الإعداد».');
+      }
       savePendingEnroll(ui);
       return { status: 'pending', ...ui };
     },
 
     async resetTotpEnrollment(client, opts) {
       clearPendingEnroll();
-      await this.cleanupUnverifiedTotp(client);
-      return this.beginTotpEnrollment(client, opts);
+      const cleanup = await this.cleanupTotpFactors(client, { includeVerified: false });
+      const stillVerified = cleanup.remaining.some(f => f.status === 'verified');
+      if (stillVerified) {
+        const err = new Error('MFA verified factor requires AAL2 to remove');
+        err.code = 'MFA_VERIFIED_STUCK';
+        throw err;
+      }
+      return this.beginTotpEnrollment(client, { ...opts, forceNew: true });
     },
 
     async confirmEnrollment(client, factorId, code) {
+      const factors = await this.listTotpFactors(client);
+      const target = factors.find(f => f.id === factorId);
+      if (!target) {
+        throw new Error('انتهت صلاحية إعداد MFA. اضغط «إعادة الإعداد».');
+      }
+      if (target.status === 'verified') {
+        clearPendingEnroll();
+        return true;
+      }
       await this.challengeAndVerify(client, factorId, code);
       clearPendingEnroll();
       return true;
