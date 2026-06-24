@@ -28,13 +28,19 @@
     </div>
   </div>
 
-  <div id="panel" class="saas-page" style="display:none">
-    <div class="saas-page-hd">
-      <h1>⚙️ <span data-i18n="pf_console_title">لوحة تشغيل المنصّة</span></h1>
-      <span class="saas-pill" id="who"></span>
-    </div>
+  <div id="panel" class="saas-page pf-console-page" style="display:none">
+    <header class="pf-topbar">
+      <div class="pf-topbar-brand">
+        <img src="assets/brand/logo.png" alt="HSEHub 360" class="pf-topbar-logo">
+        <div>
+          <h1 data-i18n="pf_console_title">لوحة تشغيل المنصّة</h1>
+          <p class="pf-topbar-sub" data-i18n="brand_sub">HSEHub 360 — السلامة • الصحة • البيئة</p>
+        </div>
+      </div>
+      <span class="saas-pill pf-role-pill" id="who"></span>
+    </header>
 
-    <nav class="pf-tabs" id="tabs">
+    <nav class="pf-tabs pf-tabs-bar" id="tabs">
       <button type="button" class="pf-tab active" data-tab="overview" data-i18n="pf_tab_overview">نظرة عامة</button>
       <button type="button" class="pf-tab" data-tab="tenants" data-i18n="pf_tab_tenants">المؤسسات</button>
       <button type="button" class="pf-tab" data-tab="users" data-i18n="pf_tab_users">المستخدمون</button>
@@ -44,17 +50,20 @@
 
     <div id="pane-overview" class="pf-pane active">
       <div class="pf-kpis" id="kpis"></div>
-      <div class="saas-panel">
-        <h2 style="margin:0 0 12px;font-size:1rem" data-i18n="pf_recent_tenants">آخر المؤسسات المسجّلة</h2>
+      <div class="pf-content-card">
+        <h2 class="pf-section-title" data-i18n="pf_recent_tenants">آخر المؤسسات المسجّلة</h2>
         <div class="pf-table-wrap" id="recent-tenants"></div>
       </div>
     </div>
 
     <div id="pane-tenants" class="pf-pane">
-      <div class="saas-panel">
-        <div class="pf-toolbar">
-          <input type="search" id="tenant-search" data-i18n-ph="pf_search" placeholder="بحث…">
-          <button type="button" class="saas-btn sm" id="tenant-search-btn" data-i18n="pf_search_btn">بحث</button>
+      <div class="pf-content-card">
+        <div class="pf-section-hd">
+          <h2 data-i18n="pf_tab_tenants">المؤسسات</h2>
+          <div class="pf-toolbar pf-toolbar-search">
+            <input type="search" id="tenant-search" class="pf-search-input" data-i18n-ph="pf_search" placeholder="بحث…">
+            <button type="button" class="saas-btn sm pf-search-btn" id="tenant-search-btn" data-i18n="pf_search_btn">بحث</button>
+          </div>
         </div>
         <div class="pf-table-wrap" id="tenants-table"></div>
         <div class="pf-pager" id="tenants-pager"></div>
@@ -62,10 +71,13 @@
     </div>
 
     <div id="pane-users" class="pf-pane">
-      <div class="saas-panel">
-        <div class="pf-toolbar">
-          <input type="search" id="user-search" data-i18n-ph="pf_search" placeholder="بحث…">
-          <button type="button" class="saas-btn sm" id="user-search-btn" data-i18n="pf_search_btn">بحث</button>
+      <div class="pf-content-card">
+        <div class="pf-section-hd">
+          <h2 data-i18n="pf_tab_users">المستخدمون</h2>
+          <div class="pf-toolbar pf-toolbar-search">
+            <input type="search" id="user-search" class="pf-search-input" data-i18n-ph="pf_search" placeholder="بحث…">
+            <button type="button" class="saas-btn sm pf-search-btn" id="user-search-btn" data-i18n="pf_search_btn">بحث</button>
+          </div>
         </div>
         <div class="pf-table-wrap" id="users-table"></div>
         <div class="pf-pager" id="users-pager"></div>
@@ -73,10 +85,12 @@
     </div>
 
     <div id="pane-billing" class="pf-pane">
-      <div class="saas-panel">
-        <div class="pf-toolbar">
-          <label class="muted-s" data-i18n="pf_filter_status">تصفية بالحالة</label>
-          <select id="billing-filter">
+      <div class="pf-content-card">
+        <div class="pf-section-hd">
+          <h2 data-i18n="pf_tab_billing">الفوترة</h2>
+          <div class="pf-toolbar">
+            <label class="pf-filter-label" data-i18n="pf_filter_status">تصفية بالحالة</label>
+            <select id="billing-filter" class="pf-filter-select">
             <option value="" data-i18n="pf_filter_all">الكل</option>
             <option value="active">active</option>
             <option value="trialing">trialing</option>
@@ -136,10 +150,25 @@
 
     const locale = () => SaaSI18n.lang === 'ar' ? 'ar-EG' : 'en-US';
     const fmtDate = v => v ? new Date(v).toLocaleDateString(locale()) : '—';
+    const statusLabel = st => {
+      const map = { trialing: 'st_trialing', active: 'st_active', past_due: 'st_past_due', frozen: 'st_frozen', canceled: 'st_canceled' };
+      return map[st] ? T(map[st]) : (st || '—');
+    };
     const badge = st => {
       const cls = (st === 'active' || st === 'trialing') ? 'ok' : (st === 'past_due' ? 'warn' : 'err');
-      return `<span class="badge ${cls}">${esc(st || '—')}</span>`;
+      return `<span class="badge ${cls}">${esc(statusLabel(st))}</span>`;
     };
+    const planBadge = id => {
+      const p = String(id || 'free').toLowerCase();
+      const cls = p === 'pro' ? 'pro' : p === 'enterprise' ? 'ent' : 'free';
+      return `<span class="pf-plan pf-plan--${cls}">${esc(p)}</span>`;
+    };
+    const actRow = id => `
+      <div class="pf-act-row">
+        <button type="button" class="pf-btn-act pf-btn-act--ok" title="${esc(T('pf_activate'))}" onclick="quickTenantAction('${esc(id)}','activate')">${esc(T('pf_activate'))}</button>
+        <button type="button" class="pf-btn-act pf-btn-act--warn" title="${esc(T('pf_freeze'))}" onclick="quickTenantAction('${esc(id)}','freeze')">${esc(T('pf_freeze'))}</button>
+        <button type="button" class="pf-btn-act pf-btn-act--primary" onclick="showTenant('${esc(id)}')">${esc(T('pf_manage'))}</button>
+      </div>`;
 
     document.addEventListener('DOMContentLoaded', () => {
       SaaSI18n.init(() => {
@@ -157,7 +186,9 @@
         loadTab(btn.getAttribute('data-tab'));
       });
       $('tenant-search-btn').onclick = () => { _state.tenants.offset = 0; _state.tenants.search = $('tenant-search').value.trim(); loadTenants(); };
+      $('tenant-search').onkeydown = e => { if (e.key === 'Enter') $('tenant-search-btn').click(); };
       $('user-search-btn').onclick = () => { _state.users.offset = 0; _state.users.search = $('user-search').value.trim(); loadUsers(); };
+      $('user-search').onkeydown = e => { if (e.key === 'Enter') $('user-search-btn').click(); };
       $('billing-filter').onchange = () => { _state.billing.offset = 0; _state.billing.status = $('billing-filter').value; loadBilling(); };
     });
 
@@ -219,8 +250,8 @@
             <th>${esc(T('pf_col_created'))}</th></tr></thead><tbody>${
           rows.map(r => `<tr>
             <td class="clickable" onclick="showTenant('${esc(r.id)}')">${esc(r.name)}</td>
-            <td><code>${esc(r.org_code)}</code></td>
-            <td>${esc(r.plan_id)}</td><td>${badge(r.status)}</td>
+            <td><code class="pf-code">${esc(r.org_code)}</code></td>
+            <td>${planBadge(r.plan_id)}</td><td>${badge(r.status)}</td>
             <td>${esc(fmtDate(r.created_at))}</td></tr>`).join('')
         }</tbody></table>`
         : `<p class="muted-s">${esc(T('pf_no_rows'))}</p>`;
@@ -243,16 +274,12 @@
             <th>${esc(T('pf_col_created'))}</th><th>${esc(T('pf_actions'))}</th></tr></thead><tbody>${
           items.map(r => `<tr>
             <td class="clickable" onclick="showTenant('${esc(r.id)}')">${esc(r.name)}</td>
-            <td><code>${esc(r.org_code)}</code></td>
-            <td>${esc(r.plan_id)}</td><td>${badge(r.status)}</td>
+            <td><code class="pf-code">${esc(r.org_code)}</code></td>
+            <td>${planBadge(r.plan_id)}</td><td>${badge(r.status)}</td>
             <td>${esc(String(r.member_count ?? 0))}</td>
             <td>${esc(fmtDate(r.trial_ends_at))}</td>
             <td>${esc(fmtDate(r.created_at))}</td>
-            <td style="white-space:normal">
-              <button type="button" class="saas-btn sm ghost" onclick="quickTenantAction('${esc(r.id)}','activate')">${esc(T('pf_activate'))}</button>
-              <button type="button" class="saas-btn sm ghost" onclick="quickTenantAction('${esc(r.id)}','freeze')">${esc(T('pf_freeze'))}</button>
-              <button type="button" class="saas-btn sm" onclick="showTenant('${esc(r.id)}')">${esc(T('pf_manage'))}</button>
-            </td></tr>`).join('')
+            <td class="pf-td-actions">${actRow(r.id)}</td></tr>`).join('')
         }</tbody></table>`
         : `<p class="muted-s">${esc(T('pf_no_rows'))}</p>`;
       renderPager('tenants-pager', data.total, st.offset, dir => {
@@ -286,7 +313,7 @@
               <td>${esc(r.email_confirmed ? T('pf_yes') : T('pf_no'))}</td>
               <td style="white-space:normal;min-width:200px">${mems}</td>
               <td>${esc(fmtDate(r.created_at))}</td>
-              <td>${firstTenant ? `<button type="button" class="saas-btn sm" onclick="showTenant('${esc(firstTenant.tenant_id)}')">${esc(T('pf_manage'))}</button>` : '—'}</td></tr>`;
+              <td>${firstTenant ? `<button type="button" class="pf-btn-act pf-btn-act--primary" onclick="showTenant('${esc(firstTenant.tenant_id)}')">${esc(T('pf_manage'))}</button>` : '—'}</td></tr>`;
           }).join('')
         }</tbody></table>`
         : `<p class="muted-s">${esc(T('pf_no_rows'))}</p>`;
@@ -313,8 +340,8 @@
             <th>${esc(T('pf_col_stripe'))}</th></tr></thead><tbody>${
           items.map(r => `<tr>
             <td class="clickable" onclick="showTenant('${esc(r.tenant_id)}')">${esc(r.tenant_name)}</td>
-            <td><code>${esc(r.org_code)}</code></td>
-            <td>${esc(r.plan_id)}</td>
+            <td><code class="pf-code">${esc(r.org_code)}</code></td>
+            <td>${planBadge(r.plan_id)}</td>
             <td>${badge(r.tenant_status)}</td>
             <td>${badge(r.sub_status)}</td>
             <td>${esc(fmtDate(r.current_period_end))}</td>
