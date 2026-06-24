@@ -14,6 +14,43 @@
     return ('HSEHub360-' + base + '-' + Date.now().toString(36)).slice(0, 64);
   }
 
+  function formatTotpSecret(secret) {
+    const raw = String(secret || '').replace(/\s+/g, '').toUpperCase();
+    if (!raw) return '';
+    return raw.replace(/(.{4})/g, '$1 ').trim();
+  }
+
+  function renderQrCode(container, qrCode) {
+    if (!container) return;
+    container.innerHTML = '';
+    const raw = String(qrCode || '').trim();
+    if (!raw) {
+      container.hidden = true;
+      return;
+    }
+    container.hidden = false;
+    if (/^data:image\//i.test(raw) || /^https?:\/\//i.test(raw)) {
+      const img = document.createElement('img');
+      img.src = raw;
+      img.alt = 'TOTP QR';
+      img.className = 'saas-mfa-qr-img';
+      img.width = 220;
+      img.height = 220;
+      img.decoding = 'async';
+      container.appendChild(img);
+      return;
+    }
+    if (raw.charAt(0) === '<' || raw.indexOf('<svg') !== -1) {
+      container.innerHTML = raw;
+      return;
+    }
+    const img = document.createElement('img');
+    img.src = raw;
+    img.alt = 'TOTP QR';
+    img.className = 'saas-mfa-qr-img';
+    container.appendChild(img);
+  }
+
   function mapMfaError(err) {
     const msg = String(err?.message || err || '');
     if (/invalid totp|invalid code|verification failed/i.test(msg)) {
@@ -59,6 +96,8 @@
 
   const SaaSMfa = {
     normalizeTotpCode,
+    formatTotpSecret,
+    renderQrCode,
     mapMfaError,
     clearPendingEnroll,
 

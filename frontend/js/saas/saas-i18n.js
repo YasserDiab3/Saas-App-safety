@@ -50,7 +50,9 @@
       mfa_secret_copied: 'تم نسخ الرمز السري',
       mfa_reset_btn: 'إعادة الإعداد (رمز QR جديد)',
       mfa_reset_ok: 'تم إنشاء رمز QR جديد — امسحه من جديد في التطبيق',
-      mfa_verified_stuck: 'MFA مفعّل على الخادم لكن الرمز لا يعمل. اطلب من مسؤول المنصّة إعادة تعيين MFA، أو شغّل: node supabase/scripts/admin_reset_user_mfa.mjs',
+      mfa_secret_note: 'انسخ هذا الرمز وألصقه في التطبيق إذا لم تستطع مسح QR.',
+      mfa_secret_missing: 'الرمز السري غير متوفر — اضغط «إعادة الإعداد»',
+      mfa_verified_stuck: 'MFA مفعّل على الخادم لكن الرمز لا يعمل. اطلب من مسؤول المنصّة إعادة تعيين MFA.',
 
       // signup
       signup_doctitle: 'إنشاء حساب — HSEHub 360',
@@ -204,6 +206,9 @@
       mfa_secret_copied: 'Secret copied',
       mfa_reset_btn: 'Reset setup (new QR code)',
       mfa_reset_ok: 'New QR code created — scan it again in your app',
+      mfa_secret_note: 'Copy this key into your app if you cannot scan the QR code.',
+      mfa_secret_missing: 'Secret not available — tap Reset setup',
+      mfa_verified_stuck: 'MFA is enabled on the server but codes fail. Ask a platform admin to reset MFA.',
 
       signup_doctitle: 'Create account — HSEHub 360',
       signup_title: 'Create a new organization', btn_signup: 'Create account & organization',

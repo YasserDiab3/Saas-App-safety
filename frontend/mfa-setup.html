@@ -22,10 +22,11 @@
           <div id="qr-wrap" class="saas-mfa-qr" hidden></div>
           <div class="saas-field">
             <label data-i18n="mfa_secret_label">الرمز السري (إدخال يدوي)</label>
-            <div class="saas-mfa-secret-row">
-              <input id="secret" class="saas-input" readonly dir="ltr">
+            <div class="saas-mfa-secret-panel">
+              <code id="secret" class="saas-mfa-secret-text" dir="ltr" aria-live="polite"></code>
               <button type="button" id="copy-secret" class="saas-btn saas-btn--ghost saas-btn--sm" data-i18n="mfa_copy_secret">نسخ</button>
             </div>
+            <p class="saas-mfa-secret-note" data-i18n="mfa_secret_note">انسخ هذا الرمز وألصقه في التطبيق إذا لم تستطع مسح QR.</p>
           </div>
           <div class="saas-field">
             <label data-i18n="mfa_code_label">رمز التحقق من التطبيق</label>
@@ -54,14 +55,17 @@
     const msg = (t, cls) => { $('msg').className = 'saas-msg ' + (cls || ''); $('msg').textContent = t; };
     let factorId = null;
     let userEmail = '';
+    let secretRaw = '';
 
     function showEnroll(ui) {
       factorId = ui.factorId;
+      secretRaw = ui.secret || '';
       $('step-enroll').hidden = false;
       $('step-done').hidden = true;
-      $('qr-wrap').hidden = !ui.qrCode;
-      $('qr-wrap').innerHTML = ui.qrCode || '';
-      $('secret').value = ui.secret || '';
+      SaaSMfa.renderQrCode($('qr-wrap'), ui.qrCode);
+      const secretEl = $('secret');
+      secretEl.textContent = SaaSMfa.formatTotpSecret(secretRaw) || '—';
+      secretEl.dataset.empty = secretRaw ? '0' : '1';
       $('code').value = '';
       msg('', '');
     }
@@ -105,13 +109,20 @@
     })();
 
     $('copy-secret').addEventListener('click', async () => {
-      const secret = $('secret').value.replace(/\s+/g, '');
-      if (!secret) return;
+      const secret = secretRaw.replace(/\s+/g, '');
+      if (!secret) {
+        msg(T('mfa_secret_missing') || 'الرمز السري غير متوفر — اضغط «إعادة الإعداد»', 'err');
+        return;
+      }
       try {
         await navigator.clipboard.writeText(secret);
         msg(T('mfa_secret_copied') || 'تم نسخ الرمز السري', 'ok');
       } catch (_e) {
-        $('secret').select();
+        const range = document.createRange();
+        range.selectNodeContents($('secret'));
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
         document.execCommand('copy');
         msg(T('mfa_secret_copied') || 'تم نسخ الرمز السري', 'ok');
       }

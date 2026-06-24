@@ -491,8 +491,23 @@ label.mod input{width:16px;height:16px;accent-color:var(--brand-600)}
 .saas-mfa-step{margin-bottom:12px}
 .saas-mfa-hint{font-size:.85rem;color:var(--ink-3);margin:0 0 12px;line-height:1.5}
 .saas-mfa-acct{font-size:.82rem;color:var(--ink-3);margin-top:6px;direction:ltr;text-align:center}
-.saas-mfa-secret-row{display:flex;gap:8px;align-items:center}
-.saas-mfa-secret-row .saas-input{flex:1;font-family:ui-monospace,Consolas,monospace;letter-spacing:.06em}
-.saas-btn--sm{height:36px;padding:0 12px;font-size:.82rem;flex-shrink:0}
-.saas-mfa-qr{display:flex;justify-content:center;margin:12px 0 16px}
-.saas-mfa-qr svg{max-width:220px;height:auto;border-radius:12px;border:1px solid var(--line);padding:8px;background:#fff}
+.saas-mfa-qr{display:flex;justify-content:center;align-items:center;margin:12px 0 16px;padding:12px;background:#fff;border:1px solid var(--line);border-radius:14px}
+.saas-mfa-qr-img{display:block;width:220px;height:220px;object-fit:contain;border-radius:8px}
+.saas-mfa-qr svg{display:block;width:220px;height:220px;border-radius:8px}
+.saas-mfa-secret-panel{
+  display:flex;flex-direction:column;gap:10px;padding:14px 16px;
+  background:var(--brand-050);border:1.5px solid var(--line);border-radius:12px;
+}
+.saas-mfa-secret-text{
+  display:block;width:100%;margin:0;padding:0;
+  font-family:ui-monospace,Consolas,'Courier New',monospace;
+  font-size:1rem;font-weight:700;letter-spacing:.14em;line-height:1.6;
+  color:var(--brand-800);word-break:break-all;text-align:center;
+  user-select:all;
+}
+.saas-mfa-secret-text[data-empty="1"]{color:var(--ink-3);font-weight:600;letter-spacing:normal;font-size:.9rem}
+.saas-mfa-secret-note{font-size:.78rem;color:var(--ink-3);margin:8px 0 0;line-height:1.45}
+.saas-mfa-secret-panel .saas-btn--sm{width:100%;height:40px;box-shadow:none}
+.saas-btn--ghost,.saas-btn.ghost{background:#eef2f7;color:var(--brand-700);box-shadow:none}
+.saas-btn--ghost:hover:not(:disabled),.saas-btn.ghost:hover:not(:disabled){background:#e2e8f0}
+.saas-btn--sm,.saas-btn.sm{height:38px;width:auto;padding:0 16px;font-size:.85rem;border-radius:9px}
