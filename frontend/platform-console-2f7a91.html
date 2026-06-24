@@ -48,6 +48,7 @@
       <button type="button" class="pf-tab" data-tab="plans" data-i18n="pf_tab_plans">الخطط</button>
       <button type="button" class="pf-tab" data-tab="messages" data-i18n="pf_tab_messages">الرسائل</button>
       <button type="button" class="pf-tab" data-tab="quotes" data-i18n="pf_tab_quotes">عروض الأسعار</button>
+      <button type="button" class="pf-tab" data-tab="devices" data-i18n="pf_tab_devices">الأجهزة</button>
     </nav>
 
     <div id="pane-overview" class="pf-pane active">
@@ -183,6 +184,21 @@
         </div>
       </div>
     </div>
+
+    <div id="pane-devices" class="pf-pane">
+      <div class="pf-content-card">
+        <div class="pf-section-hd">
+          <h2 data-i18n="pf_tab_devices">الأجهزة</h2>
+          <div class="pf-toolbar pf-toolbar-search">
+            <input type="search" id="device-search" class="pf-search-input" data-i18n-ph="pf_dev_search_ph" placeholder="بحث…">
+            <button type="button" class="saas-btn sm pf-search-btn" id="device-search-btn" data-i18n="pf_search_btn">بحث</button>
+          </div>
+        </div>
+        <p class="pf-plans-note muted-s" data-i18n="pf_dev_note"></p>
+        <div class="pf-table-wrap" id="devices-table"></div>
+        <div class="pf-pager" id="devices-pager"></div>
+      </div>
+    </div>
   </div>
 
   <div id="modal-root" style="display:none"></div>
@@ -220,7 +236,8 @@
     let _state = {
       tenants: { offset: 0, search: '' },
       users: { offset: 0, search: '' },
-      billing: { offset: 0, status: '' }
+      billing: { offset: 0, status: '' },
+      devices: { offset: 0, search: '' }
     };
 
     const locale = () => SaaSI18n.lang === 'ar' ? 'ar-EG' : 'en-US';
@@ -264,6 +281,8 @@
       $('tenant-search').onkeydown = e => { if (e.key === 'Enter') $('tenant-search-btn').click(); };
       $('user-search-btn').onclick = () => { _state.users.offset = 0; _state.users.search = $('user-search').value.trim(); loadUsers(); };
       $('user-search').onkeydown = e => { if (e.key === 'Enter') $('user-search-btn').click(); };
+      $('device-search-btn').onclick = () => { _state.devices.offset = 0; _state.devices.search = $('device-search').value.trim(); loadDevices(); };
+      $('device-search').onkeydown = e => { if (e.key === 'Enter') $('device-search-btn').click(); };
       $('billing-filter').onchange = () => { _state.billing.offset = 0; _state.billing.status = $('billing-filter').value; loadBilling(); };
       $('msg-tenant').onchange = onMsgTenantChange;
       $('msg-send').onclick = sendMessage;
@@ -307,6 +326,7 @@
       else if (tab === 'plans') renderPlans(_plans || []);
       else if (tab === 'messages') loadMessagesPane();
       else if (tab === 'quotes') loadQuotesPane();
+      else if (tab === 'devices') loadDevices();
     }
 
     let _tenantOptions = [];
@@ -599,6 +619,57 @@
       renderPager('billing-pager', data.total, st.offset, dir => {
         st.offset = Math.max(0, st.offset + dir * PAGE_SIZE);
         loadBilling();
+      });
+    }
+
+    function geoCell(lat, lng, source) {
+      if (lat == null || lng == null) return '—';
+      const la = Number(lat);
+      const lo = Number(lng);
+      if (!Number.isFinite(la) || !Number.isFinite(lo)) return '—';
+      const href = `https://www.google.com/maps?q=${la},${lo}`;
+      const label = la.toFixed(4) + ', ' + lo.toFixed(4);
+      const src = source ? ` <span class="muted-s">(${esc(source)})</span>` : '';
+      return `<a href="${href}" target="_blank" rel="noopener" class="saas-link" dir="ltr">${esc(label)}</a>${src}`;
+    }
+
+    function regionCell(r) {
+      const parts = [r.city, r.region, r.country].filter(Boolean);
+      return parts.length ? esc(parts.join(' · ')) : '—';
+    }
+
+    async function loadDevices() {
+      $('devices-table').innerHTML = `<p class="muted-s">${esc(T('pf_loading'))}</p>`;
+      const st = _state.devices;
+      const { data, error } = await SaaS.client().rpc('api_admin_list_device_sessions', {
+        p_limit: PAGE_SIZE, p_offset: st.offset,
+        p_search: st.search || null
+      });
+      if (error) { $('devices-table').innerHTML = `<p class="err">${esc(error.message)}</p>`; return; }
+      const items = data.items || [];
+      $('devices-table').innerHTML = items.length
+        ? `<table class="pf-table pf-table--devices"><thead><tr>
+            <th>${esc(T('pf_col_email'))}</th><th>${esc(T('pf_col_name'))}</th>
+            <th>${esc(T('pf_msg_tenant'))}</th><th>${esc(T('pf_dev_label'))}</th>
+            <th>${esc(T('pf_dev_id'))}</th><th>${esc(T('pf_dev_ip'))}</th>
+            <th>${esc(T('pf_dev_region'))}</th><th>${esc(T('pf_dev_coords'))}</th>
+            <th>${esc(T('pf_dev_type'))}</th><th>${esc(T('pf_dev_last_seen'))}</th></tr></thead><tbody>${
+          items.map(r => `<tr>
+            <td>${esc(r.email || '—')}</td>
+            <td>${esc(r.full_name || '—')}</td>
+            <td>${esc(r.tenant_name || '—')}${r.org_code ? ` <code class="pf-code">${esc(r.org_code)}</code>` : ''}</td>
+            <td>${esc(r.device_label || '—')}<br><span class="muted-s" dir="ltr">${esc(r.browser || '')} · ${esc(r.platform || '')}</span></td>
+            <td dir="ltr" style="font-size:.72rem"><code class="pf-code">${esc((r.device_id || '').slice(0, 8))}…</code></td>
+            <td dir="ltr">${esc(r.ip_address || '—')}</td>
+            <td>${regionCell(r)}</td>
+            <td>${geoCell(r.latitude, r.longitude, r.geo_source)}</td>
+            <td>${esc(r.device_type || '—')}${r.screen_size ? `<br><span class="muted-s">${esc(r.screen_size)}</span>` : ''}</td>
+            <td>${esc(fmtDate(r.last_seen_at))}</td></tr>`).join('')
+        }</tbody></table>`
+        : `<p class="muted-s">${esc(T('pf_no_rows'))}</p>`;
+      renderPager('devices-pager', data.total, st.offset, dir => {
+        st.offset = Math.max(0, st.offset + dir * PAGE_SIZE);
+        loadDevices();
       });
     }
 

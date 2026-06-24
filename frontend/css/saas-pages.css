@@ -445,6 +445,9 @@ label.mod input{width:16px;height:16px;accent-color:var(--brand-600)}
   outline:none;border-color:var(--brand-500);box-shadow:0 0 0 3px rgba(59,130,246,.12);
 }
 
+.pf-console-page .pf-table--devices td{font-size:.78rem;vertical-align:top}
+.pf-console-page .pf-table--devices{min-width:1100px}
+
 @media (max-width:960px){
   .pf-grid-2{grid-template-columns:1fr}
   .pf-form-row{grid-template-columns:1fr}

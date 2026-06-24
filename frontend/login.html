@@ -53,6 +53,7 @@
   <script src="/js/saas/saas-config.js"></script>
   <script src="/js/saas/saas-auth-storage.js"></script>
   <script src="/js/saas/supabase-bootstrap.js"></script>
+  <script src="/js/saas/saas-device-track.js"></script>
   <script src="/js/saas/saas-i18n.js"></script>
   <script src="/js/saas/saas-auth-fields.js"></script>
   <script src="/js/saas/saas-brand.js"></script>
@@ -146,6 +147,7 @@
           SaaSAuthStorage.markSessionActive();
           await SaaSAuthStorage.clearServiceWorkers();
         }
+        if (window.SaaSDeviceTrack) SaaSDeviceTrack.report({ force: true });
         msg(T('login_ok') || 'تم الدخول', 'ok');
         setTimeout(() => location.replace(nextUrl()), 200);
       } catch (e) {

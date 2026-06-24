@@ -131,7 +131,14 @@
       pf_quote_trial_extra: 'أيام تجربة إضافية', pf_quote_valid: 'صلاحية',
       pf_quote_notes: 'ملاحظات', pf_quote_save: 'حفظ العرض',
       pf_quote_save_send: 'حفظ وإرسال', pf_quote_send: 'إرسال',
-      pf_quote_sent_ok: 'تم إرسال العرض', pf_quote_title_required: 'أدخل عنوان العرض'
+      pf_quote_sent_ok: 'تم إرسال العرض', pf_quote_title_required: 'أدخل عنوان العرض',
+      pf_tab_devices: 'الأجهزة والجلسات',
+      pf_dev_label: 'الجهاز', pf_dev_id: 'معرّف الجهاز',
+      pf_dev_ip: 'IP', pf_dev_region: 'المنطقة',
+      pf_dev_coords: 'الإحداثيات', pf_dev_type: 'النوع',
+      pf_dev_last_seen: 'آخر ظهور',
+      pf_dev_search_ph: 'بحث بالبريد، IP، مدينة، جهاز…',
+      pf_dev_note: 'المتصفح لا يكشف عنوان MAC لأسباب أمنية — يُستخدم معرّف جهاز مستقر. الموقع التقريبي من IP؛ الإحداثيات الدقيقة تظهر فقط إذا سمح المستخدم مسبقاً بالموقع.'
     },
     en: {
       brand_sub: 'HSEHub 360 — Safety • Health • Environment',
@@ -248,7 +255,14 @@
       pf_quote_trial_extra: 'Extra trial days', pf_quote_valid: 'Valid until',
       pf_quote_notes: 'Notes', pf_quote_save: 'Save quote',
       pf_quote_save_send: 'Save & send', pf_quote_send: 'Send',
-      pf_quote_sent_ok: 'Quote sent', pf_quote_title_required: 'Enter quote title'
+      pf_quote_sent_ok: 'Quote sent', pf_quote_title_required: 'Enter quote title',
+      pf_tab_devices: 'Devices & sessions',
+      pf_dev_label: 'Device', pf_dev_id: 'Device ID',
+      pf_dev_ip: 'IP', pf_dev_region: 'Region',
+      pf_dev_coords: 'Coordinates', pf_dev_type: 'Type',
+      pf_dev_last_seen: 'Last seen',
+      pf_dev_search_ph: 'Search email, IP, city, device…',
+      pf_dev_note: 'Browsers cannot expose MAC addresses — a stable device ID is used instead. Location is approximate from IP; precise GPS appears only if the user already granted location permission.'
     }
   };
 
