@@ -487,3 +487,7 @@ label.mod input{width:16px;height:16px;accent-color:var(--brand-600)}
   .pf-modal{max-height:92vh;padding:18px}
 }
 @media (max-width:520px){ .saas-head{padding:22px} .saas-body{padding:22px} }
+
+.saas-mfa-step{margin-bottom:12px}
+.saas-mfa-qr{display:flex;justify-content:center;margin:12px 0 16px}
+.saas-mfa-qr svg{max-width:200px;height:auto;border-radius:12px;border:1px solid var(--line);padding:8px;background:#fff}

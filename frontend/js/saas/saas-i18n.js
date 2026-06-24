@@ -31,6 +31,21 @@
       err_fill_both: 'أدخل البريد وكلمة المرور', err_login_failed: 'فشل الدخول',
       pwd_show: 'إظهار كلمة المرور', pwd_hide: 'إخفاء كلمة المرور',
 
+      // MFA
+      mfa_setup_doctitle: 'المصادقة الثنائية — HSEHub 360',
+      mfa_setup_title: 'تفعيل المصادقة الثنائية (TOTP)',
+      mfa_setup_sub: 'امسح رمز QR بتطبيق Google Authenticator أو Authy',
+      mfa_secret_label: 'الرمز السري (بديل QR)',
+      mfa_code_label: 'رمز التحقق من التطبيق',
+      mfa_code_ph: '123456',
+      mfa_confirm_btn: 'تأكيد التفعيل',
+      mfa_done: 'تم تفعيل المصادقة الثنائية بنجاح.',
+      mfa_back_app: 'العودة للتطبيق',
+      mfa_prompt: 'أدخل رمز المصادقة الثنائية من تطبيقك',
+      mfa_verify_btn: 'تحقق',
+      mfa_code_required: 'أدخل رمز التحقق',
+      mfa_invalid: 'رمز غير صحيح',
+
       // signup
       signup_doctitle: 'إنشاء حساب — HSEHub 360',
       signup_title: 'إنشاء مؤسسة جديدة', btn_signup: 'إنشاء الحساب والمؤسسة',
@@ -164,6 +179,20 @@
       login_filling: 'Signing in...', login_ok: 'Done! Opening the app...',
       err_fill_both: 'Enter email and password', err_login_failed: 'Sign-in failed',
       pwd_show: 'Show password', pwd_hide: 'Hide password',
+
+      mfa_setup_doctitle: 'Two-factor authentication — HSEHub 360',
+      mfa_setup_title: 'Enable two-factor authentication (TOTP)',
+      mfa_setup_sub: 'Scan the QR code with Google Authenticator or Authy',
+      mfa_secret_label: 'Secret key (if you cannot scan QR)',
+      mfa_code_label: 'Verification code from your app',
+      mfa_code_ph: '123456',
+      mfa_confirm_btn: 'Confirm enrollment',
+      mfa_done: 'Two-factor authentication is now enabled.',
+      mfa_back_app: 'Back to app',
+      mfa_prompt: 'Enter the code from your authenticator app',
+      mfa_verify_btn: 'Verify',
+      mfa_code_required: 'Enter the verification code',
+      mfa_invalid: 'Invalid code',
 
       signup_doctitle: 'Create account — HSEHub 360',
       signup_title: 'Create a new organization', btn_signup: 'Create account & organization',

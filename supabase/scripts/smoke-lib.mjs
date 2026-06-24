@@ -67,6 +67,48 @@ export const TRIAL_P0_SHEETS = [
   { module: 'UserTasks', moduleKey: 'user-tasks', sheet: 'UserTasks', id: 'SMOKE-UT-1' }
 ];
 
+export async function signupIfNeeded(base, anon, email, password, fullName = 'Smoke Tester') {
+  const res = await fetch(`${base}/auth/v1/signup`, {
+    method: 'POST',
+    headers: { apikey: anon, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password, data: { full_name: fullName } })
+  });
+  const data = await res.json();
+  if (!res.ok && !/already|registered|exists/i.test(String(data.error_description || data.msg || ''))) {
+    throw new Error(data.error_description || data.msg || JSON.stringify(data));
+  }
+}
+
+export async function createSmokeTenant(base, anon, opts = {}) {
+  const ts = Date.now();
+  const email = opts.email || `smoke-${ts}@hse-saas.test`;
+  const password = opts.password || `Smoke${ts}!Aa`;
+  const orgName = opts.orgName || `Smoke Org ${ts}`;
+  await signupIfNeeded(base, anon, email, password, opts.fullName || 'Smoke Tester');
+  const token = await auth(base, anon, email, password);
+  const prov = await rpc(base, anon, token, 'api_provision_tenant', {
+    p_name: orgName,
+    p_phone_country: '+966',
+    p_phone_number: String(opts.phoneSuffix || '500000000'),
+    p_terms_version: 'v2026.1'
+  });
+  const me = await rpc(base, anon, token, 'api_me', {});
+  return {
+    email,
+    password,
+    orgName,
+    token,
+    tenant_id: prov?.tenant_id || me?.tenant_id,
+    me
+  };
+}
+
+export function parseSheetRows(rows) {
+  if (Array.isArray(rows)) return rows;
+  if (rows && Array.isArray(rows.data)) return rows.data;
+  return [];
+}
+
 export function rowFor(sheet, id) {
   const ts = new Date().toISOString();
   const base = { id, _smoke: true, createdAt: ts };

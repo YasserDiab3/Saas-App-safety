@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>المصادقة الثنائية — HSEHub 360</title>
+<link rel="icon" type="image/png" href="/assets/brand/favicon.png">
+<link rel="stylesheet" href="/css/saas-pages.css">
+</head>
+<body data-i18n-title="mfa_setup_doctitle">
+  <div class="saas-shell">
+    <div class="saas-card">
+      <div class="saas-head">
+        <div class="saas-logo"><img src="/assets/brand/logo.png" alt="HSEHub 360" class="saas-logo-img"></div>
+        <h1 data-i18n="mfa_setup_title">تفعيل المصادقة الثنائية (TOTP)</h1>
+        <p data-i18n="mfa_setup_sub">امسح رمز QR بتطبيق Google Authenticator أو Authy</p>
+      </div>
+      <div class="saas-body">
+        <div id="step-enroll">
+          <div id="qr-wrap" class="saas-mfa-qr" hidden></div>
+          <div class="saas-field">
+            <label data-i18n="mfa_secret_label">الرمز السري (بديل QR)</label>
+            <input id="secret" class="saas-input" readonly>
+          </div>
+          <div class="saas-field">
+            <label data-i18n="mfa_code_label">رمز التحقق من التطبيق</label>
+            <input id="code" class="saas-input" inputmode="numeric" autocomplete="one-time-code" maxlength="8" data-i18n-ph="mfa_code_ph">
+          </div>
+          <button id="confirm" class="saas-btn" data-i18n="mfa_confirm_btn">تأكيد التفعيل</button>
+        </div>
+        <div id="step-done" hidden>
+          <p class="saas-msg ok" data-i18n="mfa_done">تم تفعيل المصادقة الثنائية بنجاح.</p>
+          <a href="/" class="saas-btn saas-btn--ghost" data-i18n="mfa_back_app">العودة للتطبيق</a>
+        </div>
+        <div class="saas-msg" id="msg"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/saas/saas-config.js"></script>
+  <script src="/js/saas/saas-auth-storage.js"></script>
+  <script src="/js/saas/supabase-bootstrap.js"></script>
+  <script src="/js/saas/saas-mfa.js"></script>
+  <script src="/js/saas/saas-i18n.js"></script>
+  <script>
+    const $ = id => document.getElementById(id);
+    const msg = (t, cls) => { $('msg').className = 'saas-msg ' + (cls || ''); $('msg').textContent = t; };
+    let factorId = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.SaaSI18n) SaaSI18n.init();
+    });
+
+    (async () => {
+      await SaaS.ready;
+      const session = await SaaS.getSession();
+      if (!session) {
+        location.replace('/login?next=' + encodeURIComponent('/mfa-setup.html'));
+        return;
+      }
+      const client = SaaS.client();
+      try {
+        const existing = await SaaSMfa.verifiedTotpFactor(client);
+        if (existing) {
+          $('step-enroll').hidden = true;
+          $('step-done').hidden = false;
+          return;
+        }
+        const data = await SaaSMfa.enrollTotp(client, 'HSEHub 360');
+        factorId = data.id;
+        const qr = data.totp?.qr_code;
+        const secret = data.totp?.secret;
+        if (qr) {
+          $('qr-wrap').hidden = false;
+          $('qr-wrap').innerHTML = qr;
+        }
+        if (secret) $('secret').value = secret;
+      } catch (e) {
+        msg(e.message || 'تعذّر بدء التفعيل', 'err');
+      }
+    })();
+
+    $('confirm').addEventListener('click', async () => {
+      const code = $('code').value.trim();
+      if (!code || !factorId) { msg('أدخل رمز التحقق', 'err'); return; }
+      $('confirm').disabled = true;
+      try {
+        await SaaSMfa.confirmEnrollment(SaaS.client(), factorId, code);
+        $('step-enroll').hidden = true;
+        $('step-done').hidden = false;
+        msg('', '');
+      } catch (e) {
+        msg(e.message || 'رمز غير صحيح', 'err');
+        $('confirm').disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

@@ -40,6 +40,13 @@
             <button type="button" class="saas-pwd-toggle" aria-controls="pwd"></button>
           </div>
         </div>
+        <div id="mfa-step" class="saas-mfa-step" hidden>
+          <div class="saas-field">
+            <label data-i18n="mfa_code_label">رمز المصادقة الثنائية</label>
+            <input id="mfa-code" class="saas-input" inputmode="numeric" autocomplete="one-time-code" maxlength="8" data-i18n-ph="mfa_code_ph">
+          </div>
+          <button id="mfa-go" class="saas-btn" data-i18n="mfa_verify_btn">تحقق</button>
+        </div>
         <button id="go" class="saas-btn" data-i18n="btn_login">دخول</button>
         <div class="saas-msg" id="msg"></div>
         <div class="saas-foot">
@@ -57,6 +64,7 @@
   <script src="/js/saas/saas-i18n.js"></script>
   <script src="/js/saas/saas-auth-fields.js"></script>
   <script src="/js/saas/saas-brand.js"></script>
+  <script src="/js/saas/saas-mfa.js"></script>
   <script>
     const $ = id => document.getElementById(id);
     const T = k => (window.SaaSI18n ? SaaSI18n.t(k) : k);
@@ -75,6 +83,8 @@
 
     document.getElementById('go').addEventListener('click', doLogin);
     document.getElementById('pwd').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+    document.getElementById('mfa-go').addEventListener('click', doMfaVerify);
+    document.getElementById('mfa-code').addEventListener('keydown', e => { if (e.key === 'Enter') doMfaVerify(); });
 
     document.addEventListener('DOMContentLoaded', () => {
       if (window.SaaSI18n) SaaSI18n.init(() => {
@@ -118,6 +128,44 @@
       return m;
     }
 
+    async function finishLogin() {
+      const session = await SaaS.waitForPersistedSession(4000);
+      if (!session) {
+        msg('تعذّر حفظ الجلسة على هذا الجهاز. حدّث الصفحة وحاول مرة أخرى.', 'err');
+        $('go').disabled = false;
+        return;
+      }
+      if (window.SaaSAuthStorage) {
+        SaaSAuthStorage.markSessionActive();
+        await SaaSAuthStorage.clearServiceWorkers();
+      }
+      if (window.SaaSDeviceTrack) SaaSDeviceTrack.report({ force: true });
+      msg(T('login_ok') || 'تم الدخول', 'ok');
+      setTimeout(() => location.replace(nextUrl()), 200);
+    }
+
+    function showMfaStep() {
+      $('mfa-step').hidden = false;
+      $('go').hidden = true;
+      document.querySelector('.saas-field:nth-of-type(1)').style.display = 'none';
+      document.querySelector('.saas-field:nth-of-type(2)').style.display = 'none';
+      msg(T('mfa_prompt') || 'أدخل رمز المصادقة الثنائية من تطبيقك', '');
+      $('mfa-code').focus();
+    }
+
+    async function doMfaVerify() {
+      const code = $('mfa-code').value.trim();
+      if (!code) { msg(T('mfa_code_required') || 'أدخل رمز التحقق', 'err'); return; }
+      $('mfa-go').disabled = true;
+      try {
+        await SaaSMfa.verifyTotpCode(SaaS.client(), code);
+        await finishLogin();
+      } catch (e) {
+        msg(e.message || T('mfa_invalid') || 'رمز غير صحيح', 'err');
+        $('mfa-go').disabled = false;
+      }
+    }
+
     async function doLogin() {
       const email = $('email').value.trim(), pwd = $('pwd').value;
       if (!email || !pwd) { msg(T('err_fill_both') || 'أدخل البريد وكلمة المرور', 'err'); return; }
@@ -137,19 +185,11 @@
           $('go').disabled = false;
           return;
         }
-        const session = await SaaS.waitForPersistedSession(4000);
-        if (!session) {
-          msg('تعذّر حفظ الجلسة على هذا الجهاز. حدّث الصفحة وحاول مرة أخرى.', 'err');
-          $('go').disabled = false;
+        if (window.SaaSMfa && await SaaSMfa.needsVerification(SaaS.client())) {
+          showMfaStep();
           return;
         }
-        if (window.SaaSAuthStorage) {
-          SaaSAuthStorage.markSessionActive();
-          await SaaSAuthStorage.clearServiceWorkers();
-        }
-        if (window.SaaSDeviceTrack) SaaSDeviceTrack.report({ force: true });
-        msg(T('login_ok') || 'تم الدخول', 'ok');
-        setTimeout(() => location.replace(nextUrl()), 200);
+        await finishLogin();
       } catch (e) {
         msg(authErrorMessage(e.message) || 'فشل الدخول', 'err');
         $('go').disabled = false;

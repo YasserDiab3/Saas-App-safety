@@ -9,7 +9,8 @@
         const path = (location.pathname || '/').replace(/\/$/, '') || '/';
         const publicPaths = [
             '/login', '/signup', '/accept-invite', '/billing', '/team',
-            '/login.html', '/signup.html', '/accept-invite.html', '/billing.html', '/team.html'
+            '/login.html', '/signup.html', '/accept-invite.html', '/billing.html', '/team.html',
+            '/mfa-setup.html'
         ];
         return publicPaths.some(function (p) {
             return path === p || path.endsWith(p);

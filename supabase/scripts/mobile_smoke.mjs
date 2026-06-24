@@ -118,7 +118,7 @@ for (const [name, ua] of Object.entries(UA)) {
 
     const storage = await fetch(`${APP_URL}/js/saas/saas-auth-storage.js`, { headers: { 'User-Agent': ua } });
     const storageText = storage.ok ? await storage.text() : '';
-    const storageOk = storage.ok && storageText.includes('markSessionActive') && storageText.includes('isValidToken');
+    const storageOk = storage.ok && storageText.includes('hse_has_session') && storageText.includes('isValidToken');
     record(`${name}: saas-auth-storage.js`, storageOk, `HTTP ${storage.status}`);
 
     const bootstrap = await fetch(`${APP_URL}/js/saas/supabase-bootstrap.js`, { headers: { 'User-Agent': ua } });
