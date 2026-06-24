@@ -102,8 +102,18 @@ union all
 select 'api_admin_list_billing', exists(
   select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
   where n.nspname = 'public' and p.proname = 'api_admin_list_billing'
+)
+union all
+select 'api_admin_update_tenant', exists(
+  select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+  where n.nspname = 'public' and p.proname = 'api_admin_update_tenant'
+)
+union all
+select 'api_admin_set_member', exists(
+  select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+  where n.nspname = 'public' and p.proname = 'api_admin_set_member'
 );
 
--- 8) Migration history (CLI tracking) — expect 21 rows after 0021
+-- 8) Migration history (CLI tracking) — expect 24 rows after 0024
 select version, name from supabase_migrations.schema_migrations order by version;
-select 'migration_count' as check_name, (select count(*) = 21 from supabase_migrations.schema_migrations) as ok;
+select 'migration_count' as check_name, (select count(*) = 24 from supabase_migrations.schema_migrations) as ok;

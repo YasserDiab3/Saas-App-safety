@@ -293,5 +293,13 @@ label.mod input{width:16px;height:16px;accent-color:var(--brand-600)}
 .pf-modal-dl{display:grid;grid-template-columns:minmax(120px,1fr) 2fr;gap:6px 12px;font-size:.86rem}
 .pf-modal-dl dt{color:var(--ink-3);font-weight:600}
 .pf-modal-dl dd{margin:0;color:var(--ink)}
+.pf-actions{margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+.pf-actions h3{margin:0 0 10px;font-size:.95rem;color:var(--brand-700)}
+.pf-actions .row{align-items:flex-end}
+.pf-actions select,.pf-actions input[type=date]{
+  height:36px;border:1.5px solid var(--line);border-radius:9px;padding:0 10px;font-family:inherit;font-size:.85rem;
+}
+.pf-msg{font-size:.84rem;margin-top:8px}
+.pf-msg.ok{color:var(--ok)} .pf-msg.err{color:var(--err)}
 
 @media (max-width:520px){ .saas-head{padding:22px} .saas-body{padding:22px} }

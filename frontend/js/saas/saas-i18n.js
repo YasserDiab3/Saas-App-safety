@@ -112,7 +112,12 @@
       pf_col_stripe: 'Stripe', pf_yes: 'نعم', pf_no: 'لا',
       pf_detail_title: 'تفاصيل المؤسسة', pf_close: 'إغلاق',
       pf_loading: 'جاري التحميل…', pf_no_rows: 'لا توجد بيانات',
-      pf_page: 'صفحة', pf_filter_status: 'تصفية بالحالة', pf_filter_all: 'الكل'
+      pf_page: 'صفحة', pf_filter_status: 'تصفية بالحالة', pf_filter_all: 'الكل',
+      pf_actions: 'إجراءات الإدارة', pf_save_tenant: 'حفظ المؤسسة',
+      pf_extend_7: '+7 أيام تجربة', pf_extend_30: '+30 يوم تجربة',
+      pf_freeze: 'تجميد', pf_activate: 'تفعيل',
+      pf_member_save: 'حفظ', pf_saved_ok: 'تم الحفظ',
+      pf_role: 'الدور', pf_manage: 'إدارة'
     },
     en: {
       brand_sub: 'HSEHub 360 — Safety • Health • Environment',
@@ -210,7 +215,12 @@
       pf_col_stripe: 'Stripe', pf_yes: 'Yes', pf_no: 'No',
       pf_detail_title: 'Organization details', pf_close: 'Close',
       pf_loading: 'Loading…', pf_no_rows: 'No data',
-      pf_page: 'Page', pf_filter_status: 'Filter by status', pf_filter_all: 'All'
+      pf_page: 'Page', pf_filter_status: 'Filter by status', pf_filter_all: 'All',
+      pf_actions: 'Admin actions', pf_save_tenant: 'Save organization',
+      pf_extend_7: '+7 day trial', pf_extend_30: '+30 day trial',
+      pf_freeze: 'Freeze', pf_activate: 'Activate',
+      pf_member_save: 'Save', pf_saved_ok: 'Saved',
+      pf_role: 'Role', pf_manage: 'Manage'
     }
   };
 

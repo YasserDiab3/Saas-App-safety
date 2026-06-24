@@ -240,14 +240,19 @@
             <th>${esc(T('pf_col_name'))}</th><th>${esc(T('pf_col_org_code'))}</th>
             <th>${esc(T('pf_col_plan'))}</th><th>${esc(T('pf_col_status'))}</th>
             <th>${esc(T('pf_col_members'))}</th><th>${esc(T('lbl_trial'))}</th>
-            <th>${esc(T('pf_col_created'))}</th></tr></thead><tbody>${
+            <th>${esc(T('pf_col_created'))}</th><th>${esc(T('pf_actions'))}</th></tr></thead><tbody>${
           items.map(r => `<tr>
             <td class="clickable" onclick="showTenant('${esc(r.id)}')">${esc(r.name)}</td>
             <td><code>${esc(r.org_code)}</code></td>
             <td>${esc(r.plan_id)}</td><td>${badge(r.status)}</td>
             <td>${esc(String(r.member_count ?? 0))}</td>
             <td>${esc(fmtDate(r.trial_ends_at))}</td>
-            <td>${esc(fmtDate(r.created_at))}</td></tr>`).join('')
+            <td>${esc(fmtDate(r.created_at))}</td>
+            <td style="white-space:normal">
+              <button type="button" class="saas-btn sm ghost" onclick="quickTenantAction('${esc(r.id)}','activate')">${esc(T('pf_activate'))}</button>
+              <button type="button" class="saas-btn sm ghost" onclick="quickTenantAction('${esc(r.id)}','freeze')">${esc(T('pf_freeze'))}</button>
+              <button type="button" class="saas-btn sm" onclick="showTenant('${esc(r.id)}')">${esc(T('pf_manage'))}</button>
+            </td></tr>`).join('')
         }</tbody></table>`
         : `<p class="muted-s">${esc(T('pf_no_rows'))}</p>`;
       renderPager('tenants-pager', data.total, st.offset, dir => {
@@ -268,18 +273,20 @@
       $('users-table').innerHTML = items.length
         ? `<table class="pf-table"><thead><tr>
             <th>${esc(T('pf_col_email'))}</th><th>${esc(T('pf_col_name'))}</th>
-            <th>${esc(T('pf_col_confirmed'))}</th><th>${esc(T('pf_col_memberships'))}</th>
-            <th>${esc(T('pf_col_created'))}</th></tr></thead><tbody>${
+            <th>${esc(T('pf_col_confirmed'))}</th>            <th>${esc(T('pf_col_memberships'))}</th>
+            <th>${esc(T('pf_col_created'))}</th><th>${esc(T('pf_actions'))}</th></tr></thead><tbody>${
           items.map(r => {
             const mems = (r.memberships || []).map(m =>
-              `${esc(m.tenant_name)} (${esc(m.role)})`
+              `<a href="#" class="saas-link" style="color:var(--brand-600)" onclick="event.preventDefault();showTenant('${esc(m.tenant_id)}')">${esc(m.tenant_name)} (${esc(m.role)})</a>`
             ).join(' · ') || '—';
+            const firstTenant = (r.memberships || [])[0];
             return `<tr>
               <td>${esc(r.email)}</td>
               <td>${esc(r.full_name || '—')}${r.is_platform_admin ? ' 🛡' : ''}</td>
               <td>${esc(r.email_confirmed ? T('pf_yes') : T('pf_no'))}</td>
               <td style="white-space:normal;min-width:200px">${mems}</td>
-              <td>${esc(fmtDate(r.created_at))}</td></tr>`;
+              <td>${esc(fmtDate(r.created_at))}</td>
+              <td>${firstTenant ? `<button type="button" class="saas-btn sm" onclick="showTenant('${esc(firstTenant.tenant_id)}')">${esc(T('pf_manage'))}</button>` : '—'}</td></tr>`;
           }).join('')
         }</tbody></table>`
         : `<p class="muted-s">${esc(T('pf_no_rows'))}</p>`;
@@ -320,6 +327,79 @@
       });
     }
 
+    const TENANT_STATUSES = ['trialing', 'active', 'past_due', 'frozen', 'canceled'];
+    const MEMBER_ROLES = ['owner', 'admin', 'safety_officer', 'user'];
+    const MEMBER_STATUSES = ['active', 'invited', 'disabled'];
+    let _currentTenantId = null;
+
+    function toDateInput(v) {
+      if (!v) return '';
+      const d = new Date(v);
+      if (Number.isNaN(d.getTime())) return '';
+      return d.toISOString().slice(0, 10);
+    }
+
+    function planOptions(cur) {
+      return (_plans || []).map(p =>
+        `<option value="${esc(p.id)}" ${p.id === cur ? 'selected' : ''}>${esc(p.name || p.id)}</option>`
+      ).join('');
+    }
+
+    function selectOpts(list, cur) {
+      return list.map(v => `<option value="${esc(v)}" ${v === cur ? 'selected' : ''}>${esc(v)}</option>`).join('');
+    }
+
+    async function adminRpc(name, body) {
+      const r = await SaaS.client().rpc(name, body);
+      if (r.error) throw new Error(r.error.message);
+      return r.data;
+    }
+
+    async function quickTenantAction(id, action) {
+      try {
+        if (action === 'freeze') await adminRpc('api_admin_update_tenant', { p_tenant_id: id, p_status: 'frozen' });
+        else if (action === 'activate') await adminRpc('api_admin_update_tenant', { p_tenant_id: id, p_status: 'active' });
+        else if (action === 'extend7') await adminRpc('api_admin_update_tenant', { p_tenant_id: id, p_extend_trial_days: 7, p_status: 'trialing' });
+        else if (action === 'extend30') await adminRpc('api_admin_update_tenant', { p_tenant_id: id, p_extend_trial_days: 30, p_status: 'trialing' });
+        loadTenants();
+        if (_currentTenantId === id) showTenant(id);
+      } catch (e) { alert(e.message); }
+    }
+
+    async function saveTenantAdmin(tenantId) {
+      const msg = $('tenant-admin-msg');
+      msg.textContent = T('pf_saving'); msg.className = 'pf-msg';
+      try {
+        const trialDate = $('adm-trial-date').value;
+        const body = {
+          p_tenant_id: tenantId,
+          p_status: $('adm-status').value,
+          p_plan_id: $('adm-plan').value
+        };
+        if (trialDate) body.p_trial_ends_at = new Date(trialDate + 'T23:59:59').toISOString();
+        await adminRpc('api_admin_update_tenant', body);
+        msg.textContent = T('pf_saved_ok'); msg.className = 'pf-msg ok';
+        loadTenants(); loadBilling();
+        showTenant(tenantId);
+      } catch (e) { msg.textContent = e.message; msg.className = 'pf-msg err'; }
+    }
+
+    async function saveMemberAdmin(tenantId, userId) {
+      const msg = $(`mem-msg-${userId}`);
+      if (msg) { msg.textContent = T('pf_saving'); msg.className = 'pf-msg'; }
+      try {
+        await adminRpc('api_admin_set_member', {
+          p_tenant_id: tenantId,
+          p_user_id: userId,
+          p_role: $(`mem-role-${userId}`).value,
+          p_status: $(`mem-status-${userId}`).value
+        });
+        if (msg) { msg.textContent = T('pf_saved_ok'); msg.className = 'pf-msg ok'; }
+        loadUsers();
+        showTenant(tenantId);
+      } catch (e) { if (msg) { msg.textContent = e.message; msg.className = 'pf-msg err'; } }
+    }
+
     function renderPager(elId, total, offset, onNav) {
       const el = $(elId);
       const page = Math.floor(offset / PAGE_SIZE) + 1;
@@ -334,6 +414,7 @@
     }
 
     async function showTenant(id) {
+      _currentTenantId = id;
       const root = $('modal-root');
       root.style.display = 'flex';
       root.className = 'pf-modal-backdrop';
@@ -348,31 +429,57 @@
       const t = data.tenant || {};
       const lim = data.limits || {};
       const sub = data.subscription || {};
-      const members = (data.members || []).map(m =>
-        `<tr><td>${esc(m.email)}</td><td>${esc(m.full_name || '—')}</td>
-         <td>${esc(m.role)}</td><td>${esc(m.status)}</td></tr>`
-      ).join('');
+      const tid = esc(t.id);
+      const members = (data.members || []).map(m => {
+        const uid = esc(m.user_id);
+        return `<tr>
+          <td>${esc(m.email)}</td><td>${esc(m.full_name || '—')}</td>
+          <td><select id="mem-role-${uid}">${selectOpts(MEMBER_ROLES, m.role)}</select></td>
+          <td><select id="mem-status-${uid}">${selectOpts(MEMBER_STATUSES, m.status)}</select></td>
+          <td>
+            <button type="button" class="saas-btn sm" onclick="saveMemberAdmin('${tid}','${uid}')">${esc(T('pf_member_save'))}</button>
+            <div class="pf-msg" id="mem-msg-${uid}"></div>
+          </td></tr>`;
+      }).join('');
       root.innerHTML = `<div class="pf-modal" onclick="event.stopPropagation()">
         <h2>${esc(T('pf_detail_title'))}: ${esc(t.name)}</h2>
         <dl class="pf-modal-dl">
           <dt>${esc(T('pf_col_org_code'))}</dt><dd><code>${esc(t.org_code)}</code></dd>
-          <dt>${esc(T('pf_col_plan'))}</dt><dd>${esc(t.plan_id)} ${badge(t.status)}</dd>
-          <dt>${esc(T('lbl_trial'))}</dt><dd>${esc(fmtDate(t.trial_ends_at))}</dd>
           <dt>${esc(T('lbl_seats'))}</dt><dd>${esc(String(lim.user_count ?? 0))} + ${esc(String(lim.pending_invites ?? 0))} / ${esc(String(lim.max_users ?? '—'))}</dd>
           <dt>${esc(T('lbl_storage'))}</dt><dd>${esc(String(lim.storage_used_mb ?? 0))} / ${esc(String(lim.storage_mb ?? '—'))} MB</dd>
           <dt>Sub</dt><dd>${badge(sub.status)} ${esc(fmtDate(sub.current_period_end))}</dd>
           <dt>${esc(T('pf_col_stripe'))}</dt><dd dir="ltr">${esc(t.stripe_customer_id || '—')}</dd>
         </dl>
+        <div class="pf-actions">
+          <h3>${esc(T('pf_actions'))}</h3>
+          <div class="row">
+            <label class="muted-s">${esc(T('pf_col_status'))}
+              <select id="adm-status">${selectOpts(TENANT_STATUSES, t.status)}</select></label>
+            <label class="muted-s">${esc(T('pf_col_plan'))}
+              <select id="adm-plan">${planOptions(t.plan_id)}</select></label>
+            <label class="muted-s">${esc(T('lbl_trial'))}
+              <input type="date" id="adm-trial-date" value="${esc(toDateInput(t.trial_ends_at))}"></label>
+          </div>
+          <div class="row" style="margin-top:10px">
+            <button type="button" class="saas-btn sm ghost" onclick="quickTenantAction('${tid}','extend7')">${esc(T('pf_extend_7'))}</button>
+            <button type="button" class="saas-btn sm ghost" onclick="quickTenantAction('${tid}','extend30')">${esc(T('pf_extend_30'))}</button>
+            <button type="button" class="saas-btn sm ghost" onclick="quickTenantAction('${tid}','freeze')">${esc(T('pf_freeze'))}</button>
+            <button type="button" class="saas-btn sm ghost" onclick="quickTenantAction('${tid}','activate')">${esc(T('pf_activate'))}</button>
+            <button type="button" class="saas-btn sm" onclick="saveTenantAdmin('${tid}')">${esc(T('pf_save_tenant'))}</button>
+          </div>
+          <div class="pf-msg" id="tenant-admin-msg"></div>
+        </div>
         <h3 style="margin:16px 0 8px;font-size:.95rem">${esc(T('pf_col_members'))}</h3>
         <div class="pf-table-wrap"><table class="pf-table"><thead><tr>
           <th>${esc(T('pf_col_email'))}</th><th>${esc(T('pf_col_name'))}</th>
-          <th>Role</th><th>${esc(T('pf_col_status'))}</th></tr></thead>
-          <tbody>${members || `<tr><td colspan="4">${esc(T('pf_no_rows'))}</td></tr>`}</tbody></table></div>
+          <th>${esc(T('pf_role'))}</th><th>${esc(T('pf_col_status'))}</th><th></th></tr></thead>
+          <tbody>${members || `<tr><td colspan="5">${esc(T('pf_no_rows'))}</td></tr>`}</tbody></table></div>
         <button type="button" class="saas-btn sm" style="margin-top:14px" onclick="closeModal()">${esc(T('pf_close'))}</button>
       </div>`;
     }
 
     function closeModal() {
+      _currentTenantId = null;
       const root = $('modal-root');
       root.style.display = 'none';
       root.innerHTML = '';

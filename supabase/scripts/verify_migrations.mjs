@@ -28,10 +28,12 @@ const RPCS = [
   { name: 'api_admin_list_tenants', body: { p_limit: 1, p_offset: 0 } },
   { name: 'api_admin_list_users', body: { p_limit: 1, p_offset: 0 } },
   { name: 'api_admin_list_billing', body: { p_limit: 1, p_offset: 0 } },
+  { name: 'api_admin_update_tenant', body: { p_tenant_id: '00000000-0000-0000-0000-000000000000' } },
+  { name: 'api_admin_set_member', body: { p_tenant_id: '00000000-0000-0000-0000-000000000000', p_user_id: '00000000-0000-0000-0000-000000000000', p_role: 'user' } },
   { name: 'api_provision_tenant', body: { p_name: '__probe__' } }
 ];
 
-const EXPECTED_MIGRATIONS = ['0001','0002','0003','0004','0005','0006','0007','0008','0009','0010','0011','0012','0013','0014','0015','0016','0017','0018','0019','0020','0021'];
+const EXPECTED_MIGRATIONS = ['0001','0002','0003','0004','0005','0006','0007','0008','0009','0010','0011','0012','0013','0014','0015','0016','0017','0018','0019','0020','0021','0022','0023','0024'];
 
 async function probeRpc(name, body, token = ANON) {
   const res = await fetch(`${BASE}/rest/v1/rpc/${name}`, {
