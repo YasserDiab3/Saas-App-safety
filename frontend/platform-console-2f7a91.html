@@ -37,7 +37,10 @@
           <p class="pf-topbar-sub" data-i18n="brand_sub">HSEHub 360 — السلامة • الصحة • البيئة</p>
         </div>
       </div>
-      <span class="saas-pill pf-role-pill" id="who"></span>
+      <div class="pf-topbar-actions">
+        <span class="saas-pill pf-role-pill" id="who"></span>
+        <button type="button" class="saas-btn sm ghost pf-logout-btn" id="pf-logout" data-i18n="pf_logout">تسجيل الخروج</button>
+      </div>
     </header>
 
     <nav class="pf-tabs pf-tabs-bar" id="tabs">
@@ -255,12 +258,44 @@
       const cls = p === 'pro' ? 'pro' : p === 'enterprise' ? 'ent' : 'free';
       return `<span class="pf-plan pf-plan--${cls}">${esc(p)}</span>`;
     };
-    const actRow = id => `
-      <div class="pf-act-row">
-        <button type="button" class="pf-btn-act pf-btn-act--ok" title="${esc(T('pf_activate'))}" onclick="quickTenantAction('${esc(id)}','activate')">${esc(T('pf_activate'))}</button>
-        <button type="button" class="pf-btn-act pf-btn-act--warn" title="${esc(T('pf_freeze'))}" onclick="quickTenantAction('${esc(id)}','freeze')">${esc(T('pf_freeze'))}</button>
-        <button type="button" class="pf-btn-act pf-btn-act--primary" onclick="showTenant('${esc(id)}')">${esc(T('pf_manage'))}</button>
+    const actRow = (id, status) => tenantActionButtons(id, status);
+    const tenantActionButtons = (id, status) => {
+      const st = String(status || '').toLowerCase();
+      const frozen = st === 'frozen';
+      const activeLike = st === 'active' || st === 'trialing';
+      const eid = esc(id);
+      return `<div class="pf-act-row">
+        <button type="button" class="pf-btn-act pf-btn-act--ok${activeLike ? ' is-current' : ''}" ${activeLike ? 'disabled' : ''} title="${esc(T('pf_activate'))}" onclick="quickTenantAction('${eid}','activate', this)">${esc(T('pf_activate'))}</button>
+        <button type="button" class="pf-btn-act pf-btn-act--warn${frozen ? ' is-current' : ''}" ${frozen ? 'disabled' : ''} title="${esc(T('pf_freeze'))}" onclick="quickTenantAction('${eid}','freeze', this)">${esc(frozen ? T('pf_frozen') : T('pf_freeze'))}</button>
+        <button type="button" class="pf-btn-act pf-btn-act--primary" onclick="showTenant('${eid}')">${esc(T('pf_manage'))}</button>
       </div>`;
+    };
+    const memberStatusBadge = st => {
+      const map = {
+        active: ['ok', 'pf_mem_active'],
+        invited: ['warn', 'pf_mem_invited'],
+        disabled: ['err', 'pf_mem_disabled']
+      };
+      const pair = map[st] || ['', ''];
+      return `<span class="badge ${pair[0]}">${esc(pair[1] ? T(pair[1]) : (st || '—'))}</span>`;
+    };
+    const memberActionButtons = (tenantId, userId, status) => {
+      const tid = esc(tenantId);
+      const uid = esc(userId);
+      const dis = status === 'disabled';
+      const act = status === 'active';
+      return `<div class="pf-act-row pf-act-row--member">
+        <button type="button" class="pf-btn-act pf-btn-act--warn${dis ? ' is-current' : ''}" ${dis ? 'disabled' : ''} onclick="quickMemberAction('${tid}','${uid}','disabled', this)">${esc(dis ? T('pf_frozen') : T('pf_freeze'))}</button>
+        <button type="button" class="pf-btn-act pf-btn-act--ok${act ? ' is-current' : ''}" ${act ? 'disabled' : ''} onclick="quickMemberAction('${tid}','${uid}','active', this)">${esc(T('pf_activate'))}</button>
+        <button type="button" class="saas-btn sm" onclick="saveMemberRole('${tid}','${uid}')">${esc(T('pf_member_save'))}</button>
+        <div class="pf-msg" id="mem-msg-${uid}"></div>
+      </div>`;
+    };
+    const setBtnLoading = (btn, on) => {
+      if (!btn) return;
+      btn.disabled = !!on;
+      btn.classList.toggle('is-loading', !!on);
+    };
 
     document.addEventListener('DOMContentLoaded', () => {
       SaaSI18n.init(() => {
@@ -288,6 +323,7 @@
       $('msg-send').onclick = sendMessage;
       $('quote-create').onclick = () => createQuote(false);
       $('quote-create-send').onclick = () => createQuote(true);
+      $('pf-logout').onclick = doLogout;
     });
 
     (async () => {
@@ -303,6 +339,16 @@
       await initPanel();
     }
 
+    async function doLogout() {
+      try { await SaaS.signOut(); } catch (_e) { /* ignore */ }
+      $('panel').style.display = 'none';
+      $('login').style.display = 'flex';
+      $('email').value = '';
+      $('pwd').value = '';
+      $('lmsg').textContent = '';
+      closeModal();
+    }
+
     async function initPanel() {
       const client = SaaS.client();
       const { data, error } = await client.rpc('api_admin_list_plans');
@@ -311,7 +357,8 @@
         return;
       }
       $('panel').style.display = 'block';
-      $('who').textContent = T('pf_who');
+      const u = await SaaS.getUser();
+      $('who').textContent = u?.email || T('pf_who');
       _plans = data || [];
       renderPlans(_plans);
       await loadTenantOptions();
@@ -547,7 +594,7 @@
             <td>${esc(String(r.member_count ?? 0))}</td>
             <td>${esc(fmtDate(r.trial_ends_at))}</td>
             <td>${esc(fmtDate(r.created_at))}</td>
-            <td class="pf-td-actions">${actRow(r.id)}</td></tr>`).join('')
+            <td class="pf-td-actions">${actRow(r.id, r.status)}</td></tr>`).join('')
         }</tbody></table>`
         : `<p class="muted-s">${esc(T('pf_no_rows'))}</p>`;
       renderPager('tenants-pager', data.total, st.offset, dir => {
@@ -701,15 +748,24 @@
       return r.data;
     }
 
-    async function quickTenantAction(id, action) {
+    async function quickTenantAction(id, action, btn) {
+      setBtnLoading(btn, true);
       try {
         if (action === 'freeze') await adminRpc('api_admin_update_tenant', { p_tenant_id: id, p_status: 'frozen' });
         else if (action === 'activate') await adminRpc('api_admin_update_tenant', { p_tenant_id: id, p_status: 'active' });
         else if (action === 'extend7') await adminRpc('api_admin_update_tenant', { p_tenant_id: id, p_extend_trial_days: 7, p_status: 'trialing' });
         else if (action === 'extend30') await adminRpc('api_admin_update_tenant', { p_tenant_id: id, p_extend_trial_days: 30, p_status: 'trialing' });
+        const adm = $('adm-status');
+        if (adm && _currentTenantId === id) {
+          if (action === 'freeze') adm.value = 'frozen';
+          else if (action === 'activate') adm.value = 'active';
+          else if (action === 'extend7' || action === 'extend30') adm.value = 'trialing';
+        }
         loadTenants();
+        loadBilling();
         if (_currentTenantId === id) showTenant(id);
       } catch (e) { alert(e.message); }
+      finally { setBtnLoading(btn, false); }
     }
 
     async function saveTenantAdmin(tenantId) {
@@ -730,15 +786,39 @@
       } catch (e) { msg.textContent = e.message; msg.className = 'pf-msg err'; }
     }
 
-    async function saveMemberAdmin(tenantId, userId) {
+    async function quickMemberAction(tenantId, userId, status, btn) {
+      setBtnLoading(btn, true);
       const msg = $(`mem-msg-${userId}`);
       if (msg) { msg.textContent = T('pf_saving'); msg.className = 'pf-msg'; }
       try {
+        const roleEl = $(`mem-role-${userId}`);
+        await adminRpc('api_admin_set_member', {
+          p_tenant_id: tenantId,
+          p_user_id: userId,
+          p_role: roleEl ? roleEl.value : 'user',
+          p_status: status
+        });
+        if (msg) { msg.textContent = T('pf_saved_ok'); msg.className = 'pf-msg ok'; }
+        loadUsers();
+        showTenant(tenantId);
+      } catch (e) {
+        if (msg) { msg.textContent = e.message; msg.className = 'pf-msg err'; }
+      } finally {
+        setBtnLoading(btn, false);
+      }
+    }
+
+    async function saveMemberRole(tenantId, userId) {
+      const msg = $(`mem-msg-${userId}`);
+      if (msg) { msg.textContent = T('pf_saving'); msg.className = 'pf-msg'; }
+      try {
+        const row = document.querySelector(`tr[data-member="${userId}"]`);
+        const status = row?.getAttribute('data-status') || 'active';
         await adminRpc('api_admin_set_member', {
           p_tenant_id: tenantId,
           p_user_id: userId,
           p_role: $(`mem-role-${userId}`).value,
-          p_status: $(`mem-status-${userId}`).value
+          p_status: status
         });
         if (msg) { msg.textContent = T('pf_saved_ok'); msg.className = 'pf-msg ok'; }
         loadUsers();
@@ -776,16 +856,16 @@
       const lim = data.limits || {};
       const sub = data.subscription || {};
       const tid = esc(t.id);
+      const tStatus = String(t.status || '').toLowerCase();
+      const tFrozen = tStatus === 'frozen';
+      const tActiveLike = tStatus === 'active' || tStatus === 'trialing';
       const members = (data.members || []).map(m => {
         const uid = esc(m.user_id);
-        return `<tr>
+        return `<tr data-member="${uid}" data-status="${esc(m.status || '')}">
           <td>${esc(m.email)}</td><td>${esc(m.full_name || '—')}</td>
           <td><select id="mem-role-${uid}">${selectOpts(MEMBER_ROLES, m.role)}</select></td>
-          <td><select id="mem-status-${uid}">${selectOpts(MEMBER_STATUSES, m.status)}</select></td>
-          <td>
-            <button type="button" class="saas-btn sm" onclick="saveMemberAdmin('${tid}','${uid}')">${esc(T('pf_member_save'))}</button>
-            <div class="pf-msg" id="mem-msg-${uid}"></div>
-          </td></tr>`;
+          <td>${memberStatusBadge(m.status)}</td>
+          <td class="pf-td-actions">${memberActionButtons(t.id, m.user_id, m.status)}</td></tr>`;
       }).join('');
       root.innerHTML = `<div class="pf-modal" onclick="event.stopPropagation()">
         <h2>${esc(T('pf_detail_title'))}: ${esc(t.name)}</h2>
@@ -807,10 +887,10 @@
               <input type="date" id="adm-trial-date" value="${esc(toDateInput(t.trial_ends_at))}"></label>
           </div>
           <div class="row" style="margin-top:10px">
-            <button type="button" class="saas-btn sm ghost" onclick="quickTenantAction('${tid}','extend7')">${esc(T('pf_extend_7'))}</button>
-            <button type="button" class="saas-btn sm ghost" onclick="quickTenantAction('${tid}','extend30')">${esc(T('pf_extend_30'))}</button>
-            <button type="button" class="saas-btn sm ghost" onclick="quickTenantAction('${tid}','freeze')">${esc(T('pf_freeze'))}</button>
-            <button type="button" class="saas-btn sm ghost" onclick="quickTenantAction('${tid}','activate')">${esc(T('pf_activate'))}</button>
+            <button type="button" class="saas-btn sm ghost" onclick="quickTenantAction('${tid}','extend7', this)">${esc(T('pf_extend_7'))}</button>
+            <button type="button" class="saas-btn sm ghost" onclick="quickTenantAction('${tid}','extend30', this)">${esc(T('pf_extend_30'))}</button>
+            <button type="button" class="saas-btn sm ghost pf-btn-act--warn${tFrozen ? ' is-current' : ''}" ${tFrozen ? 'disabled' : ''} onclick="quickTenantAction('${tid}','freeze', this)">${esc(tFrozen ? T('pf_frozen') : T('pf_freeze'))}</button>
+            <button type="button" class="saas-btn sm ghost pf-btn-act--ok${tActiveLike ? ' is-current' : ''}" ${tActiveLike ? 'disabled' : ''} onclick="quickTenantAction('${tid}','activate', this)">${esc(T('pf_activate'))}</button>
             <button type="button" class="saas-btn sm" onclick="saveTenantAdmin('${tid}')">${esc(T('pf_save_tenant'))}</button>
           </div>
           <div class="pf-msg" id="tenant-admin-msg"></div>
