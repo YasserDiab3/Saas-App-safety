@@ -13,20 +13,26 @@
       <div class="saas-head">
         <div class="saas-logo"><img src="/assets/brand/logo.png" alt="HSEHub 360" class="saas-logo-img"></div>
         <h1 data-i18n="mfa_setup_title">تفعيل المصادقة الثنائية (TOTP)</h1>
-        <p data-i18n="mfa_setup_sub">امسح رمز QR بتطبيق Google Authenticator أو Authy</p>
+        <p data-i18n="mfa_setup_sub">امسح رمز QR بتطبيق Google Authenticator أو Microsoft Authenticator أو Okta Verify</p>
+        <p id="acct" class="saas-mfa-acct" hidden></p>
       </div>
       <div class="saas-body">
         <div id="step-enroll">
+          <p class="saas-mfa-hint" data-i18n="mfa_setup_hint">بعد المسح، انتظر ظهور رمز جديد (6 أرقام) في التطبيق ثم أدخله هنا.</p>
           <div id="qr-wrap" class="saas-mfa-qr" hidden></div>
           <div class="saas-field">
-            <label data-i18n="mfa_secret_label">الرمز السري (بديل QR)</label>
-            <input id="secret" class="saas-input" readonly>
+            <label data-i18n="mfa_secret_label">الرمز السري (إدخال يدوي)</label>
+            <div class="saas-mfa-secret-row">
+              <input id="secret" class="saas-input" readonly dir="ltr">
+              <button type="button" id="copy-secret" class="saas-btn saas-btn--ghost saas-btn--sm" data-i18n="mfa_copy_secret">نسخ</button>
+            </div>
           </div>
           <div class="saas-field">
             <label data-i18n="mfa_code_label">رمز التحقق من التطبيق</label>
-            <input id="code" class="saas-input" inputmode="numeric" autocomplete="one-time-code" maxlength="8" data-i18n-ph="mfa_code_ph">
+            <input id="code" class="saas-input" inputmode="numeric" autocomplete="one-time-code" maxlength="6" dir="ltr" data-i18n-ph="mfa_code_ph">
           </div>
           <button id="confirm" class="saas-btn" data-i18n="mfa_confirm_btn">تأكيد التفعيل</button>
+          <button type="button" id="reset" class="saas-btn saas-btn--ghost" data-i18n="mfa_reset_btn">إعادة الإعداد (رمز QR جديد)</button>
         </div>
         <div id="step-done" hidden>
           <p class="saas-msg ok" data-i18n="mfa_done">تم تفعيل المصادقة الثنائية بنجاح.</p>
@@ -44,8 +50,41 @@
   <script src="/js/saas/saas-i18n.js"></script>
   <script>
     const $ = id => document.getElementById(id);
+    const T = k => (window.SaaSI18n ? SaaSI18n.t(k) : k);
     const msg = (t, cls) => { $('msg').className = 'saas-msg ' + (cls || ''); $('msg').textContent = t; };
     let factorId = null;
+    let userEmail = '';
+
+    function showEnroll(ui) {
+      factorId = ui.factorId;
+      $('step-enroll').hidden = false;
+      $('step-done').hidden = true;
+      $('qr-wrap').hidden = !ui.qrCode;
+      $('qr-wrap').innerHTML = ui.qrCode || '';
+      $('secret').value = ui.secret || '';
+      $('code').value = '';
+      msg('', '');
+    }
+
+    async function loadEnrollment(forceReset) {
+      const client = SaaS.client();
+      const user = await SaaS.getUser();
+      userEmail = user?.email || '';
+      if (userEmail) {
+        $('acct').hidden = false;
+        $('acct').textContent = userEmail;
+      }
+      const state = forceReset
+        ? await SaaSMfa.resetTotpEnrollment(client, { email: userEmail })
+        : await SaaSMfa.beginTotpEnrollment(client, { email: userEmail });
+
+      if (state.status === 'verified') {
+        $('step-enroll').hidden = true;
+        $('step-done').hidden = false;
+        return;
+      }
+      showEnroll(state);
+    }
 
     document.addEventListener('DOMContentLoaded', () => {
       if (window.SaaSI18n) SaaSI18n.init();
@@ -55,34 +94,45 @@
       await SaaS.ready;
       const session = await SaaS.getSession();
       if (!session) {
-        location.replace('/login?next=' + encodeURIComponent('/mfa-setup.html'));
+        location.replace('/login?next=' + encodeURIComponent('/mfa-setup'));
         return;
       }
-      const client = SaaS.client();
       try {
-        const existing = await SaaSMfa.verifiedTotpFactor(client);
-        if (existing) {
-          $('step-enroll').hidden = true;
-          $('step-done').hidden = false;
-          return;
-        }
-        const data = await SaaSMfa.enrollTotp(client, 'HSEHub 360');
-        factorId = data.id;
-        const qr = data.totp?.qr_code;
-        const secret = data.totp?.secret;
-        if (qr) {
-          $('qr-wrap').hidden = false;
-          $('qr-wrap').innerHTML = qr;
-        }
-        if (secret) $('secret').value = secret;
+        await loadEnrollment(false);
       } catch (e) {
-        msg(e.message || 'تعذّر بدء التفعيل', 'err');
+        msg(SaaSMfa.mapMfaError(e), 'err');
       }
     })();
 
+    $('copy-secret').addEventListener('click', async () => {
+      const secret = $('secret').value.replace(/\s+/g, '');
+      if (!secret) return;
+      try {
+        await navigator.clipboard.writeText(secret);
+        msg(T('mfa_secret_copied') || 'تم نسخ الرمز السري', 'ok');
+      } catch (_e) {
+        $('secret').select();
+        document.execCommand('copy');
+        msg(T('mfa_secret_copied') || 'تم نسخ الرمز السري', 'ok');
+      }
+    });
+
+    $('reset').addEventListener('click', async () => {
+      $('reset').disabled = true;
+      $('confirm').disabled = true;
+      try {
+        await loadEnrollment(true);
+        msg(T('mfa_reset_ok') || 'تم إنشاء رمز QR جديد — امسحه من جديد في التطبيق', 'ok');
+      } catch (e) {
+        msg(SaaSMfa.mapMfaError(e), 'err');
+      }
+      $('reset').disabled = false;
+      $('confirm').disabled = false;
+    });
+
     $('confirm').addEventListener('click', async () => {
-      const code = $('code').value.trim();
-      if (!code || !factorId) { msg('أدخل رمز التحقق', 'err'); return; }
+      const code = SaaSMfa.normalizeTotpCode($('code').value);
+      if (!code || !factorId) { msg(T('mfa_code_required') || 'أدخل رمز التحقق', 'err'); return; }
       $('confirm').disabled = true;
       try {
         await SaaSMfa.confirmEnrollment(SaaS.client(), factorId, code);
@@ -90,7 +140,7 @@
         $('step-done').hidden = false;
         msg('', '');
       } catch (e) {
-        msg(e.message || 'رمز غير صحيح', 'err');
+        msg(SaaSMfa.mapMfaError(e), 'err');
         $('confirm').disabled = false;
       }
     });

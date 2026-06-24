@@ -34,7 +34,7 @@
       // MFA
       mfa_setup_doctitle: 'المصادقة الثنائية — HSEHub 360',
       mfa_setup_title: 'تفعيل المصادقة الثنائية (TOTP)',
-      mfa_setup_sub: 'امسح رمز QR بتطبيق Google Authenticator أو Authy',
+      mfa_setup_sub: 'امسح رمز QR بتطبيق Google Authenticator أو Microsoft Authenticator أو Okta Verify',
       mfa_secret_label: 'الرمز السري (بديل QR)',
       mfa_code_label: 'رمز التحقق من التطبيق',
       mfa_code_ph: '123456',
@@ -45,6 +45,11 @@
       mfa_verify_btn: 'تحقق',
       mfa_code_required: 'أدخل رمز التحقق',
       mfa_invalid: 'رمز غير صحيح',
+      mfa_setup_hint: 'بعد المسح، انتظر ظهور رمز جديد (6 أرقام) في التطبيق ثم أدخله هنا.',
+      mfa_copy_secret: 'نسخ',
+      mfa_secret_copied: 'تم نسخ الرمز السري',
+      mfa_reset_btn: 'إعادة الإعداد (رمز QR جديد)',
+      mfa_reset_ok: 'تم إنشاء رمز QR جديد — امسحه من جديد في التطبيق',
 
       // signup
       signup_doctitle: 'إنشاء حساب — HSEHub 360',
@@ -182,7 +187,7 @@
 
       mfa_setup_doctitle: 'Two-factor authentication — HSEHub 360',
       mfa_setup_title: 'Enable two-factor authentication (TOTP)',
-      mfa_setup_sub: 'Scan the QR code with Google Authenticator or Authy',
+      mfa_setup_sub: 'Scan the QR code with Google Authenticator, Microsoft Authenticator, or Okta Verify',
       mfa_secret_label: 'Secret key (if you cannot scan QR)',
       mfa_code_label: 'Verification code from your app',
       mfa_code_ph: '123456',
@@ -193,6 +198,11 @@
       mfa_verify_btn: 'Verify',
       mfa_code_required: 'Enter the verification code',
       mfa_invalid: 'Invalid code',
+      mfa_setup_hint: 'After scanning, wait for a fresh 6-digit code in your app, then enter it here.',
+      mfa_copy_secret: 'Copy',
+      mfa_secret_copied: 'Secret copied',
+      mfa_reset_btn: 'Reset setup (new QR code)',
+      mfa_reset_ok: 'New QR code created — scan it again in your app',
 
       signup_doctitle: 'Create account — HSEHub 360',
       signup_title: 'Create a new organization', btn_signup: 'Create account & organization',

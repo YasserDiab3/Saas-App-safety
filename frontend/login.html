@@ -43,7 +43,7 @@
         <div id="mfa-step" class="saas-mfa-step" hidden>
           <div class="saas-field">
             <label data-i18n="mfa_code_label">رمز المصادقة الثنائية</label>
-            <input id="mfa-code" class="saas-input" inputmode="numeric" autocomplete="one-time-code" maxlength="8" data-i18n-ph="mfa_code_ph">
+            <input id="mfa-code" class="saas-input" inputmode="numeric" autocomplete="one-time-code" maxlength="6" dir="ltr" data-i18n-ph="mfa_code_ph">
           </div>
           <button id="mfa-go" class="saas-btn" data-i18n="mfa_verify_btn">تحقق</button>
         </div>
@@ -161,7 +161,7 @@
         await SaaSMfa.verifyTotpCode(SaaS.client(), code);
         await finishLogin();
       } catch (e) {
-        msg(e.message || T('mfa_invalid') || 'رمز غير صحيح', 'err');
+        msg(window.SaaSMfa ? SaaSMfa.mapMfaError(e) : (e.message || T('mfa_invalid') || 'رمز غير صحيح'), 'err');
         $('mfa-go').disabled = false;
       }
     }
