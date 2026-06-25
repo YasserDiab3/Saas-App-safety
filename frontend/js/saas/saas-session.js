@@ -55,16 +55,24 @@
             const u = await global.SaaS.getUser();
             if (!u) return null;
             // Role is resolved SERVER-SIDE from tenant_users (never assumed).
-            // The legacy nav/permission engine grants all modules for an admin
-            // role; non-admin members get the limited default UI.
             const role = await this.resolveRole();
             const isAdmin = (role === 'admin');
+            let me = null;
+            try {
+                await global.SaaS.ready;
+                const client = global.SaaS.client();
+                if (client) {
+                    const { data } = await client.rpc('api_me');
+                    me = data || null;
+                }
+            } catch (_e) { /* optional profile fields */ }
             const cu = {
                 id: u.id,
                 email: u.email,
-                name: (u.user_metadata && u.user_metadata.full_name) || u.email,
+                name: (me && me.full_name) || (u.user_metadata && u.user_metadata.full_name) || u.email,
                 role: role,
                 permissions: isAdmin ? { admin: true, 'manage-modules': true } : {},
+                photo: (me && me.photo_url) || '',
                 isBootstrap: false,
                 loginTime: new Date().toISOString()
             };

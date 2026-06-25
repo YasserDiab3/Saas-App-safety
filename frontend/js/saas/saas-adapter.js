@@ -235,6 +235,21 @@
         if (action === 'reportUserVersion') {
             return await rpc('api_report_user_version', { p_payload: data || {} });
         }
+        if (action === 'updateMyProfile') {
+            return await rpc('api_update_my_profile', { p_patch: data.patch || data.updateData || data || {} });
+        }
+        if (action === 'updateUser') {
+            return await rpc('api_patch', {
+                p_sheet: 'Users',
+                p_id: data.userId || data.id,
+                p_patch: data.updateData || data.patch || {}
+            });
+        }
+        if (action === 'addUser') {
+            const payload = data || {};
+            const id = payload.id || cryptoId();
+            return await rpc('api_upsert', { p_sheet: 'Users', p_id: id, p_data: Object.assign({}, payload, { id }) });
+        }
         if (action === 'getAllUserVersions') {
             const latest = (data && data.latestVersion) ? String(data.latestVersion) : '';
             const res = await rpc('api_list_user_versions', { p_latest_version: latest });

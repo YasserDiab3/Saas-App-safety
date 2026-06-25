@@ -4151,6 +4151,51 @@ window.UI = {
         }
     },
 
+    _isSaasBackend() {
+        return !!(typeof window !== 'undefined' && window.SAAS_CONFIG && window.SAAS_CONFIG.useSupabaseBackend);
+    },
+
+    _resolveProfileUserRecord() {
+        const user = AppState.currentUser;
+        if (!user || !user.email) return null;
+
+        const email = String(user.email).toLowerCase().trim();
+        const users = Array.isArray(AppState.appData?.users) ? AppState.appData.users : [];
+        let userRecord = users.find((u) => u && u.email && String(u.email).toLowerCase().trim() === email);
+        if (userRecord && userRecord.id) return userRecord;
+
+        const id = String(user.id || '').trim() || email.replace(/@/g, '_at_');
+        return {
+            id,
+            email,
+            name: user.name || email,
+            role: user.role || 'user',
+            permissions: user.permissions || {},
+            active: user.active !== false,
+            photo: user.photo || ''
+        };
+    },
+
+    _ensureAppDataUserRecord(userRecord) {
+        if (!userRecord || !userRecord.email) return userRecord;
+        if (!AppState.appData || typeof AppState.appData !== 'object') AppState.appData = {};
+        if (!Array.isArray(AppState.appData.users)) AppState.appData.users = [];
+
+        const email = String(userRecord.email).toLowerCase().trim();
+        const idx = AppState.appData.users.findIndex((u) =>
+            u && (
+                (u.id && userRecord.id && String(u.id).trim() === String(userRecord.id).trim()) ||
+                (u.email && String(u.email).toLowerCase().trim() === email)
+            )
+        );
+        if (idx >= 0) {
+            AppState.appData.users[idx] = Object.assign({}, AppState.appData.users[idx], userRecord);
+            return AppState.appData.users[idx];
+        }
+        AppState.appData.users.push(Object.assign({}, userRecord));
+        return userRecord;
+    },
+
     /**
      * معالجة رفع صورة المستخدم من الشريط الجانبي (إضافة/تغيير)
      * @param {File} file - ملف الصورة المختار
@@ -4162,8 +4207,7 @@ window.UI = {
             if (typeof Notification !== 'undefined') Notification.warning('يجب تسجيل الدخول أولاً.');
             return;
         }
-        const users = AppState.appData.users || [];
-        const userRecord = users.find(function(u) { return u && u.email && u.email.toLowerCase().trim() === user.email.toLowerCase().trim(); });
+        const userRecord = this._resolveProfileUserRecord();
         if (!userRecord || !userRecord.id) {
             if (typeof Notification !== 'undefined') Notification.warning('لم يتم العثور على بيانات المستخدم.');
             return;
@@ -4188,6 +4232,45 @@ window.UI = {
                 return;
             }
             const base64Data = dataUrl;
+            const isSaas = self._isSaasBackend();
+            const persistPhoto = function(photoUrl, updateResult) {
+                if (typeof Loading !== 'undefined' && Loading.hide) Loading.hide();
+                const ok = isSaas
+                    ? !!(updateResult && updateResult.success !== false && photoUrl)
+                    : !!(updateResult && updateResult.success && photoUrl);
+                if (ok) {
+                    const storedRecord = self._ensureAppDataUserRecord(userRecord);
+                    if (storedRecord) storedRecord.photo = photoUrl;
+                    if (AppState.currentUser) AppState.currentUser.photo = photoUrl;
+                    if (typeof window.DataManager !== 'undefined' && window.DataManager.save) {
+                        try { window.DataManager.save(); } catch (e) { /* ignore */ }
+                    }
+                    if (typeof Auth !== 'undefined' && Auth.updateUserSession) Auth.updateUserSession();
+                    self.updateUserProfilePhoto();
+                    if (typeof AppState !== 'undefined' && AppState.currentSection === 'profile' && typeof self.renderMyProfileSection === 'function') {
+                        Promise.resolve(self.renderMyProfileSection()).catch(function() { /* ignore */ });
+                    }
+                    if (typeof Notification !== 'undefined') Notification.success('تم حفظ صورة المستخدم بنجاح.');
+                } else {
+                    if (typeof Notification !== 'undefined') Notification.error(updateResult && updateResult.message ? updateResult.message : 'فشل تحديث الصورة.');
+                }
+            };
+
+            if (isSaas) {
+                const uploadPromise = (typeof Backend !== 'undefined' && Backend.sendToAppsScript)
+                    ? Backend.sendToAppsScript('updateMyProfile', { patch: { photo_url: base64Data } })
+                        .then(function(updateResult) { return { updateResult: updateResult, photoUrl: base64Data }; })
+                    : Promise.reject(new Error('Supabase backend غير متاح'));
+                uploadPromise.then(function(data) {
+                    persistPhoto(data && data.photoUrl, data && data.updateResult);
+                }).catch(function(err) {
+                    if (typeof Loading !== 'undefined' && Loading.hide) Loading.hide();
+                    if (typeof Utils !== 'undefined' && Utils.safeError) Utils.safeError('خطأ رفع صورة المستخدم:', err);
+                    if (typeof Notification !== 'undefined') Notification.error('فشل رفع أو حفظ الصورة. ' + (err && err.message ? err.message : ''));
+                });
+                return;
+            }
+
             const ext = (file.name && file.name.lastIndexOf('.') >= 0) ? file.name.substring(file.name.lastIndexOf('.')) : '.jpg';
             const fileName = 'user_photo_' + (userRecord.id || userRecord.email.replace(/@/g, '_')) + '_' + Date.now() + ext;
             const mimeType = file.type || 'image/jpeg';
@@ -4203,24 +4286,7 @@ window.UI = {
                     ? Backend.sendToAppsScript('updateUser', { userId: userRecord.id, updateData: { photo: photoUrl } }).then(function(r) { return { updateResult: r, photoUrl: photoUrl }; })
                     : Promise.reject(new Error('Google Integration غير متاح'));
             }).then(function(data) {
-                const updateResult = data && data.updateResult;
-                const photoUrl = data && data.photoUrl;
-                if (typeof Loading !== 'undefined' && Loading.hide) Loading.hide();
-                if (updateResult && updateResult.success && photoUrl) {
-                    if (userRecord) userRecord.photo = photoUrl;
-                    if (AppState.currentUser) AppState.currentUser.photo = photoUrl;
-                    if (typeof window.DataManager !== 'undefined' && window.DataManager.save) {
-                        try { window.DataManager.save(); } catch (e) { /* ignore */ }
-                    }
-                    if (typeof Auth !== 'undefined' && Auth.updateUserSession) Auth.updateUserSession();
-                    self.updateUserProfilePhoto();
-                    if (typeof AppState !== 'undefined' && AppState.currentSection === 'profile' && typeof self.renderMyProfileSection === 'function') {
-                        Promise.resolve(self.renderMyProfileSection()).catch(function() { /* ignore */ });
-                    }
-                    if (typeof Notification !== 'undefined') Notification.success('تم حفظ صورة المستخدم بنجاح.');
-                } else {
-                    if (typeof Notification !== 'undefined') Notification.error(updateResult && updateResult.message ? updateResult.message : 'فشل تحديث الصورة.');
-                }
+                persistPhoto(data && data.photoUrl, data && data.updateResult);
             }).catch(function(err) {
                 if (typeof Loading !== 'undefined' && Loading.hide) Loading.hide();
                 if (typeof Utils !== 'undefined' && Utils.safeError) Utils.safeError('خطأ رفع صورة المستخدم:', err);
