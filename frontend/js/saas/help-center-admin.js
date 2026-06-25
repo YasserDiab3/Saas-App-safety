@@ -69,11 +69,12 @@
                 return;
             }
             const sorted = items.slice().sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
-            listEl.innerHTML = sorted.map((item) => {
+            listEl.innerHTML = sorted.map((item, sortedIdx) => {
                 const title = this.esc((item.titleAr || item.titleEn || item.id || '').slice(0, 80)) || '(بدون عنوان)';
                 const realIndex = items.indexOf(item);
+                const idx = realIndex >= 0 ? realIndex : sortedIdx;
                 const isFaq = item.category === 'faq';
-                return `<div class="pf-hc-row" data-help-index="${realIndex}">
+                return `<div class="pf-hc-row" data-help-index="${idx}">
                     <div class="pf-hc-row__title">
                         <strong>${title}</strong>
                         ${isFaq ? '<span class="pf-hc-badge">Q&A</span>' : ''}
@@ -81,10 +82,10 @@
                         ${item.active !== false ? '<span class="pf-hc-on">مفعّل</span>' : '<span class="pf-hc-off">معطّل</span>'}
                     </div>
                     <div class="pf-hc-row__actions">
-                        <button type="button" class="saas-btn sm ghost help-center-edit-btn" data-index="${realIndex}">تعديل</button>
-                        <button type="button" class="saas-btn sm ghost help-center-delete-btn" data-index="${realIndex}">حذف</button>
-                        <button type="button" class="saas-btn sm ghost help-center-up-btn" data-index="${realIndex}">↑</button>
-                        <button type="button" class="saas-btn sm ghost help-center-down-btn" data-index="${realIndex}">↓</button>
+                        <button type="button" class="saas-btn sm ghost help-center-edit-btn" data-index="${idx}">تعديل</button>
+                        <button type="button" class="saas-btn sm ghost help-center-delete-btn" data-index="${idx}">حذف</button>
+                        <button type="button" class="saas-btn sm ghost help-center-up-btn" data-index="${idx}">↑</button>
+                        <button type="button" class="saas-btn sm ghost help-center-down-btn" data-index="${idx}">↓</button>
                     </div>
                 </div>`;
             }).join('');
@@ -94,9 +95,9 @@
             const form = document.getElementById('help-center-item-form');
             const titleEl = document.getElementById('help-center-form-title');
             if (!form) return;
-            this.editIndex = index === null || index === undefined ? null : index;
-            const items = this.getSections();
-            const item = this.editIndex !== null ? items[this.editIndex] : null;
+            this.editIndex = index === null || index === undefined ? null : Number(index);
+            const items = this.sections;
+            const item = this.editIndex !== null && !Number.isNaN(this.editIndex) ? items[this.editIndex] : null;
             if (titleEl) {
                 titleEl.textContent = item ? 'تعديل قسم' : (preset === 'faq' ? 'إضافة سؤال شائع' : 'إضافة قسم');
             }
@@ -112,12 +113,19 @@
             setVal('help-center-item-order', item?.order ?? items.length + 1);
             const activeEl = document.getElementById('help-center-item-active');
             if (activeEl) activeEl.checked = item ? item.active !== false : true;
-            form.hidden = false;
+            form.removeAttribute('hidden');
+            form.classList.remove('hidden');
+            requestAnimationFrame(() => {
+                form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            });
         },
 
         hideForm() {
             const form = document.getElementById('help-center-item-form');
-            if (form) form.hidden = true;
+            if (form) {
+                form.setAttribute('hidden', '');
+                form.classList.add('hidden');
+            }
             this.editIndex = null;
         },
 
@@ -125,43 +133,106 @@
             const root = document.getElementById('pane-help-center');
             if (!root || root.dataset.bound === '1') return;
             root.dataset.bound = '1';
+            const admin = this;
 
-            document.getElementById('help-center-add-btn')?.addEventListener('click', () => this.showForm(null));
-            document.getElementById('help-center-add-faq-btn')?.addEventListener('click', () => this.showForm(null, 'faq'));
-            document.getElementById('help-center-item-cancel-btn')?.addEventListener('click', () => this.hideForm());
+            root.addEventListener('click', async (e) => {
+                const editBtn = e.target.closest('.help-center-edit-btn');
+                const deleteBtn = e.target.closest('.help-center-delete-btn');
+                const upBtn = e.target.closest('.help-center-up-btn');
+                const downBtn = e.target.closest('.help-center-down-btn');
+                if (editBtn || deleteBtn || upBtn || downBtn) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+                const items = admin.sections;
+                const idx = parseInt((editBtn || deleteBtn || upBtn || downBtn)?.dataset?.index, 10);
+                if (editBtn && !Number.isNaN(idx)) {
+                    admin.showForm(idx);
+                    return;
+                }
+                if (deleteBtn && !Number.isNaN(idx)) {
+                    if (!confirm('حذف هذا القسم؟')) return;
+                    items.splice(idx, 1);
+                    try {
+                        admin.msg('جاري الحفظ…');
+                        await admin.saveSections(items);
+                        admin.renderList();
+                        admin.msg('تم الحذف', 'ok');
+                    } catch (err) {
+                        admin.msg(err.message || 'فشل', 'err');
+                    }
+                    return;
+                }
+                const swap = (a, b) => {
+                    if (a < 0 || b < 0 || a >= items.length || b >= items.length) return;
+                    const tmp = items[a].order ?? a;
+                    items[a].order = items[b].order ?? b;
+                    items[b].order = tmp;
+                    [items[a], items[b]] = [items[b], items[a]];
+                };
+                if (upBtn && !Number.isNaN(idx)) {
+                    swap(idx, idx - 1);
+                    try {
+                        await admin.saveSections(items);
+                        admin.renderList();
+                    } catch (err) {
+                        admin.msg(err.message || 'فشل', 'err');
+                    }
+                    return;
+                }
+                if (downBtn && !Number.isNaN(idx)) {
+                    swap(idx, idx + 1);
+                    try {
+                        await admin.saveSections(items);
+                        admin.renderList();
+                    } catch (err) {
+                        admin.msg(err.message || 'فشل', 'err');
+                    }
+                }
+            });
+
+            document.getElementById('help-center-add-btn')?.addEventListener('click', (e) => {
+                e.preventDefault();
+                admin.showForm(null);
+            });
+            document.getElementById('help-center-add-faq-btn')?.addEventListener('click', (e) => {
+                e.preventDefault();
+                admin.showForm(null, 'faq');
+            });
+            document.getElementById('help-center-item-cancel-btn')?.addEventListener('click', () => admin.hideForm());
             document.getElementById('help-center-preview-btn')?.addEventListener('click', () => {
                 window.open('/#help', '_blank', 'noopener');
             });
             document.getElementById('help-center-reset-btn')?.addEventListener('click', async () => {
                 if (!confirm('استعادة المحتوى الافتراضي؟')) return;
                 try {
-                    this.msg('جاري الحفظ…');
+                    admin.msg('جاري الحفظ…');
                     const defaults = (global.HelpDefaultContent && global.HelpDefaultContent.getDefaultHelpSections)
                         ? global.HelpDefaultContent.getDefaultHelpSections() : [];
-                    await this.saveSections(defaults);
-                    this.renderList();
-                    this.msg('تم استعادة المحتوى الافتراضي', 'ok');
+                    await admin.saveSections(defaults);
+                    admin.renderList();
+                    admin.msg('تم استعادة المحتوى الافتراضي', 'ok');
                 } catch (e) {
-                    this.msg(e.message || 'فشل', 'err');
+                    admin.msg(e.message || 'فشل', 'err');
                 }
             });
             document.getElementById('help-center-save-all-btn')?.addEventListener('click', async () => {
                 try {
-                    this.msg('جاري الحفظ…');
-                    await this.saveSections(this.getSections());
-                    this.msg('تم الحفظ', 'ok');
+                    admin.msg('جاري الحفظ…');
+                    await admin.saveSections(admin.sections);
+                    admin.msg('تم الحفظ', 'ok');
                 } catch (e) {
-                    this.msg(e.message || 'فشل', 'err');
+                    admin.msg(e.message || 'فشل', 'err');
                 }
             });
             document.getElementById('help-center-item-save-btn')?.addEventListener('click', async () => {
                 const titleAr = document.getElementById('help-center-item-title-ar')?.value?.trim();
                 const titleEn = document.getElementById('help-center-item-title-en')?.value?.trim();
                 if (!titleAr && !titleEn) {
-                    this.msg('أدخل عنواناً بالعربية أو الإنجليزية', 'err');
+                    admin.msg('أدخل عنواناً بالعربية أو الإنجليزية', 'err');
                     return;
                 }
-                const items = this.getSections();
+                const items = admin.sections;
                 const entry = {
                     id: document.getElementById('help-center-item-id')?.value?.trim() || `help-${Date.now()}`,
                     titleAr: titleAr || titleEn,
@@ -174,70 +245,19 @@
                     order: parseInt(document.getElementById('help-center-item-order')?.value, 10) || items.length + 1,
                     active: document.getElementById('help-center-item-active')?.checked !== false
                 };
-                if (this.editIndex !== null && items[this.editIndex]) {
-                    items[this.editIndex] = { ...items[this.editIndex], ...entry };
+                if (admin.editIndex !== null && items[admin.editIndex]) {
+                    items[admin.editIndex] = { ...items[admin.editIndex], ...entry };
                 } else {
                     items.push(entry);
                 }
                 try {
-                    this.msg('جاري الحفظ…');
-                    await this.saveSections(items);
-                    this.hideForm();
-                    this.renderList();
-                    this.msg('تم حفظ القسم', 'ok');
+                    admin.msg('جاري الحفظ…');
+                    await admin.saveSections(items);
+                    admin.hideForm();
+                    admin.renderList();
+                    admin.msg('تم حفظ القسم', 'ok');
                 } catch (e) {
-                    this.msg(e.message || 'فشل', 'err');
-                }
-            });
-
-            document.getElementById('help-center-items-list')?.addEventListener('click', async (e) => {
-                const editBtn = e.target.closest('.help-center-edit-btn');
-                const deleteBtn = e.target.closest('.help-center-delete-btn');
-                const upBtn = e.target.closest('.help-center-up-btn');
-                const downBtn = e.target.closest('.help-center-down-btn');
-                const items = this.getSections();
-                const idx = parseInt((editBtn || deleteBtn || upBtn || downBtn)?.dataset?.index, 10);
-                if (editBtn && !isNaN(idx)) {
-                    this.showForm(idx);
-                    return;
-                }
-                if (deleteBtn && !isNaN(idx)) {
-                    if (!confirm('حذف هذا القسم؟')) return;
-                    items.splice(idx, 1);
-                    try {
-                        this.msg('جاري الحفظ…');
-                        await this.saveSections(items);
-                        this.renderList();
-                        this.msg('تم الحذف', 'ok');
-                    } catch (err) {
-                        this.msg(err.message || 'فشل', 'err');
-                    }
-                    return;
-                }
-                const swap = (a, b) => {
-                    if (a < 0 || b < 0 || a >= items.length || b >= items.length) return;
-                    const tmp = items[a].order ?? a;
-                    items[a].order = items[b].order ?? b;
-                    items[b].order = tmp;
-                    [items[a], items[b]] = [items[b], items[a]];
-                };
-                if (upBtn && !isNaN(idx)) {
-                    swap(idx, idx - 1);
-                    try {
-                        await this.saveSections(items);
-                        this.renderList();
-                    } catch (err) {
-                        this.msg(err.message || 'فشل', 'err');
-                    }
-                }
-                if (downBtn && !isNaN(idx)) {
-                    swap(idx, idx + 1);
-                    try {
-                        await this.saveSections(items);
-                        this.renderList();
-                    } catch (err) {
-                        this.msg(err.message || 'فشل', 'err');
-                    }
+                    admin.msg(e.message || 'فشل', 'err');
                 }
             });
         },

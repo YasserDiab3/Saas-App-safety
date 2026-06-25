@@ -535,6 +535,9 @@ label.mod input{width:16px;height:16px;accent-color:var(--brand-600)}
 .saas-version-update-btn:hover{filter:brightness(1.06)}
 
 /* Platform console — help center admin */
+.pf-hc-body{padding:16px 20px 20px}
+.pf-hc-form[hidden],.pf-hc-form.hidden{display:none!important}
+.pf-hc-form:not([hidden]){display:block}
 .pf-hc-list{display:flex;flex-direction:column;gap:8px;margin:12px 0}
 .pf-hc-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff}
 .pf-hc-row__title{display:flex;flex-wrap:wrap;align-items:center;gap:8px;min-width:0}
