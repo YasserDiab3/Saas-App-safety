@@ -5,7 +5,8 @@
   "scripts": {
     "build": "cd frontend && npm ci && npm run build",
     "setup-hooks": "node scripts/setup-git-hooks.mjs",
-    "bump-version": "cd frontend && npm run bump-version"
+    "bump-version": "cd frontend && npm run bump-version",
+    "verify-version": "cd frontend && npm run verify-version"
   },
   "engines": {
     "node": ">=18"

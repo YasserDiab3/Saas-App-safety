@@ -14,6 +14,7 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const frontendRoot = path.resolve(__dirname, '..');
+const repoRoot = path.resolve(frontendRoot, '..');
 
 function versionJsonInCommit(sha) {
     if (!sha) return false;
@@ -21,7 +22,10 @@ function versionJsonInCommit(sha) {
         cwd: repoRoot,
         encoding: 'utf8',
     });
-    if (r.status !== 0) return false;
+    if (r.status !== 0) {
+        console.warn('versionJsonInCommit: git diff-tree failed — treating as not in commit');
+        return false;
+    }
     return r.stdout.split('\n').some((f) => {
         const n = f.trim().replace(/\\/g, '/');
         return n === 'frontend/version.json' || n.endsWith('/frontend/version.json');
@@ -58,7 +62,6 @@ function runAutoVersionBump() {
 
 runAutoVersionBump();
 const distRoot = path.join(frontendRoot, 'dist');
-const repoRoot = path.resolve(frontendRoot, '..');
 const rootDist = path.join(repoRoot, 'dist');
 
 function walkJsFiles(dir, acc = []) {
