@@ -73,23 +73,29 @@ const SafetyCalendar = {
         if (!Array.isArray(AppState.appData.safetyCalendarEvents)) {
             AppState.appData.safetyCalendarEvents = [];
         }
-        if (AppState.appData.safetyCalendarEvents.length === 0 && typeof Backend !== 'undefined' && Backend.readFromSheet) {
+        // عرض فوري: بذور محلية قبل انتظار الشبكة
+        if (this.events().length === 0 && typeof window.SafetyCalendarSeeds !== 'undefined') {
+            await this.seedDefaults(false, { persist: false });
+        }
+        if (typeof Backend !== 'undefined' && Backend.readFromSheet) {
             try {
                 const rows = await Backend.readFromSheet('SafetyCalendarEvents');
-                if (Array.isArray(rows)) AppState.appData.safetyCalendarEvents = rows;
-            } catch (_e) { /* ignore */ }
-        }
-        if (AppState.appData.safetyCalendarEvents.length === 0) {
-            await this.seedDefaults(false);
+                if (Array.isArray(rows) && rows.length > 0) {
+                    AppState.appData.safetyCalendarEvents = rows;
+                } else if (this.events().length > 0) {
+                    void this.saveEvents();
+                }
+            } catch (_e) { /* ignore — الإبقاء على البذور المحلية */ }
         }
     },
 
-    async seedDefaults(force) {
+    async seedDefaults(force, opts = {}) {
+        const persist = opts.persist !== false;
         if (!this.isAdmin() && force) return;
         const existing = this.events();
         const hasSeed = existing.some(e => e.source === 'seed');
         if (hasSeed && !force) return;
-        if (!global.SafetyCalendarSeeds) return;
+        if (typeof window.SafetyCalendarSeeds === 'undefined') return;
         const seeds = SafetyCalendarSeeds.allDefaults(SafetyCalendarSeeds.defaultCountry);
         const now = new Date().toISOString();
         const userId = AppState.currentUser?.id || AppState.currentUser?.email || '';
@@ -105,7 +111,7 @@ const SafetyCalendar = {
             });
             AppState.appData.safetyCalendarEvents.push(row);
         });
-        if (toAdd.length && typeof window.DataManager !== 'undefined' && DataManager.save) {
+        if (toAdd.length && persist && typeof window.DataManager !== 'undefined' && DataManager.save) {
             await DataManager.save();
         }
     },
