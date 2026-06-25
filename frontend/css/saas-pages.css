@@ -533,3 +533,19 @@ label.mod input{width:16px;height:16px;accent-color:var(--brand-600)}
   animation:saas-version-pulse 1.6s ease-in-out infinite;
 }
 .saas-version-update-btn:hover{filter:brightness(1.06)}
+
+/* Platform console — help center admin */
+.pf-hc-list{display:flex;flex-direction:column;gap:8px;margin:12px 0}
+.pf-hc-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff}
+.pf-hc-row__title{display:flex;flex-wrap:wrap;align-items:center;gap:8px;min-width:0}
+.pf-hc-row__actions{display:flex;flex-wrap:wrap;gap:4px}
+.pf-hc-badge{font-size:.7rem;padding:2px 8px;border-radius:999px;background:rgba(15,118,110,.12);color:var(--brand-700)}
+.pf-hc-on{font-size:.7rem;color:#059669}
+.pf-hc-off{font-size:.7rem;color:var(--ink-3)}
+.pf-hc-toolbar{flex-wrap:wrap;margin-bottom:12px}
+.pf-hc-form{margin-top:16px;padding:16px;border:1px solid var(--line);border-radius:12px;background:#f8fafc}
+.pf-hc-form h3{margin:0 0 12px;font-size:1rem}
+.pf-hc-form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:12px}
+.pf-hc-form label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;font-weight:600}
+.pf-hc-form label.pf-hc-check{flex-direction:row;align-items:center;font-weight:500}
+.pf-hc-form-actions{display:flex;gap:8px;margin-top:12px}

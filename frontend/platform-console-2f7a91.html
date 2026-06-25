@@ -52,6 +52,7 @@
       <button type="button" class="pf-tab" data-tab="messages" data-i18n="pf_tab_messages">الرسائل</button>
       <button type="button" class="pf-tab" data-tab="quotes" data-i18n="pf_tab_quotes">عروض الأسعار</button>
       <button type="button" class="pf-tab" data-tab="devices" data-i18n="pf_tab_devices">الأجهزة</button>
+      <button type="button" class="pf-tab" data-tab="help-center" data-i18n="pf_tab_help_center">مركز المساعدة</button>
     </nav>
 
     <div id="pane-overview" class="pf-pane active">
@@ -240,6 +241,50 @@
         <div class="pf-pager" id="devices-pager"></div>
       </div>
     </div>
+
+    <div id="pane-help-center" class="pf-pane">
+      <div class="pf-content-card">
+        <div class="pf-section-hd">
+          <h2 data-i18n="pf_tab_help_center">مركز المساعدة</h2>
+          <p class="muted-s">إدارة محتوى دليل النظام لجميع المؤسسات — مدير المنصّة فقط</p>
+        </div>
+        <div id="help-center-items-list" class="pf-hc-list"></div>
+        <div class="pf-toolbar pf-hc-toolbar">
+          <button type="button" class="saas-btn sm" id="help-center-add-btn">إضافة قسم</button>
+          <button type="button" class="saas-btn sm ghost" id="help-center-add-faq-btn">إضافة سؤال شائع</button>
+          <button type="button" class="saas-btn sm ghost" id="help-center-save-all-btn">حفظ الكل</button>
+          <button type="button" class="saas-btn sm ghost" id="help-center-preview-btn">معاينة</button>
+          <button type="button" class="saas-btn sm ghost" id="help-center-reset-btn">استعادة الافتراضي</button>
+          <span class="pf-msg" id="help-center-status"></span>
+        </div>
+        <div id="help-center-item-form" class="pf-hc-form" hidden>
+          <h3 id="help-center-form-title">إضافة قسم</h3>
+          <div class="pf-hc-form-grid">
+            <label>المعرّف (id)<input type="text" id="help-center-item-id" class="saas-input" placeholder="dashboard"></label>
+            <label>موديول مرتبط<input type="text" id="help-center-item-module" class="saas-input" placeholder="dashboard"></label>
+            <label>العنوان (عربي)<input type="text" id="help-center-item-title-ar" class="saas-input"></label>
+            <label>العنوان (English)<input type="text" id="help-center-item-title-en" class="saas-input"></label>
+            <label>أيقونة FontAwesome<input type="text" id="help-center-item-icon" class="saas-input" value="fa-circle-info"></label>
+            <label>الفئة
+              <select id="help-center-item-category" class="saas-input">
+                <option value="getting-started">البدء السريع</option>
+                <option value="faq">أسئلة شائعة (Q&A)</option>
+                <option value="modules">المديولات</option>
+                <option value="admin">الإدارة</option>
+              </select>
+            </label>
+            <label>الترتيب<input type="number" id="help-center-item-order" class="saas-input" min="1" value="1"></label>
+            <label class="pf-hc-check"><input type="checkbox" id="help-center-item-active" checked> مفعّل</label>
+          </div>
+          <label>المحتوى (عربي)<textarea id="help-center-item-body-ar" class="saas-input" rows="5"></textarea></label>
+          <label>المحتوى (English)<textarea id="help-center-item-body-en" class="saas-input" rows="5"></textarea></label>
+          <div class="pf-hc-form-actions">
+            <button type="button" class="saas-btn sm" id="help-center-item-save-btn">حفظ القسم</button>
+            <button type="button" class="saas-btn sm ghost" id="help-center-item-cancel-btn">إلغاء</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div id="modal-root" style="display:none"></div>
@@ -250,6 +295,8 @@
   <script src="js/saas/saas-escape.js"></script>
   <script src="js/saas/saas-i18n.js"></script>
   <script src="js/saas/saas-platform-export.js"></script>
+  <script src="js/modules/help-default-content.js"></script>
+  <script src="js/saas/help-center-admin.js"></script>
   <script>
     const $ = id => document.getElementById(id);
     const T = k => SaaSI18n.t(k);
@@ -589,6 +636,7 @@
       else if (tab === 'messages') loadMessagesPane();
       else if (tab === 'quotes') loadQuotesPane();
       else if (tab === 'devices') loadDevices();
+      else if (tab === 'help-center' && window.HelpCenterAdmin) HelpCenterAdmin.loadPane();
     }
 
     let _tenantOptions = [];
