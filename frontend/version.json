@@ -1,4 +1,4 @@
 {
-  "version": "2.2.39",
-  "message": "feat(safety-calendar): module, dashboard widget, and migration"
+  "version": "2.2.40",
+  "message": "chore: trigger Vercel production redeploy"
 }
