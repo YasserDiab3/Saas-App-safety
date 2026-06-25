@@ -4316,13 +4316,21 @@ window.UI = {
         const newNavItems = document.querySelectorAll('.nav-item');
         newNavItems.forEach(item => {
             item.addEventListener('click', function (e) {
+                const section = this.getAttribute('data-section');
+                const href = (this.getAttribute('href') || '').trim();
+                if (!section) {
+                    if (href && !href.startsWith('#')) {
+                        if (window.innerWidth <= 1024 && typeof UI !== 'undefined' && UI.toggleSidebar) {
+                            UI.toggleSidebar(false);
+                        }
+                        return;
+                    }
+                    return;
+                }
                 e.preventDefault();
                 e.stopPropagation();
-                const section = this.getAttribute('data-section');
-                if (section) {
-                    UI.showSection(section);
-                    // ملاحظة: إغلاق القائمة الجانبية يتم الآن تلقائياً في showSection() لجميع أحجام الشاشات
-                }
+                UI.showSection(section);
+                // ملاحظة: إغلاق القائمة الجانبية يتم الآن تلقائياً في showSection() لجميع أحجام الشاشات
             }, { passive: false });
         });
 

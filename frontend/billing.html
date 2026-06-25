@@ -86,12 +86,16 @@
         priceEl.textContent = price;
         const btn = document.createElement('button');
         btn.className = 'saas-btn' + (p.id === 'free' && !cur ? ' ghost' : '');
+        const needsQuote = p.id === 'enterprise' || !p.price_id;
         if (cur) {
           btn.disabled = true;
           btn.textContent = T('current_plan');
         } else if (p.id === 'free') {
           btn.disabled = true;
           btn.textContent = T('default_plan');
+        } else if (needsQuote) {
+          btn.textContent = T('request_quote');
+          btn.addEventListener('click', () => requestQuote(p.id));
         } else {
           btn.textContent = T('subscribe');
           btn.addEventListener('click', () => checkout(p.id));
@@ -101,6 +105,21 @@
         div.appendChild(btn);
         plansEl.appendChild(div);
       });
+    }
+
+    async function requestQuote(planId) {
+      const notes = prompt(T('request_quote_notes_ph') || '', '') || '';
+      try {
+        const { data, error } = await SaaS.client().rpc('api_request_price_quote', {
+          p_plan_id: planId || 'enterprise',
+          p_notes: notes.trim() || null
+        });
+        if (error) throw new Error(error.message);
+        if (data && data.success === false) throw new Error(data.message || T('checkout_failed'));
+        alert(T('request_quote_ok'));
+      } catch (e) {
+        alert(T('err_prefix') + (e.message || String(e)));
+      }
     }
 
     async function checkout(plan) {
