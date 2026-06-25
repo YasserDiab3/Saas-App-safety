@@ -116,10 +116,53 @@ const Help = {
     getCategoryLabel(cat) {
         const map = {
             'getting-started': this.t('module.help.catGettingStarted', 'البدء السريع'),
+            'faq': this.t('module.help.catFaq', 'أسئلة شائعة'),
             'modules': this.t('module.help.catModules', 'المديولات'),
             'admin': this.t('module.help.catAdmin', 'الإدارة')
         };
         return map[cat] || this.t('module.help.catOther', 'عام');
+    },
+
+    splitFaqAndArticles(sections) {
+        const faq = [];
+        const articles = [];
+        sections.forEach((s) => {
+            if (String(s.category || '') === 'faq') faq.push(s);
+            else articles.push(s);
+        });
+        return { faq, articles };
+    },
+
+    renderFaqAccordion(faqItems) {
+        if (!faqItems.length) {
+            return '';
+        }
+        return `
+            <section class="help-faq" aria-labelledby="help-faq-heading">
+                <div class="help-faq__header">
+                    <h2 id="help-faq-heading" class="help-faq__title">
+                        <i class="fas fa-comments ml-2" aria-hidden="true"></i>
+                        ${Utils.escapeHTML(this.t('module.help.faqTitle', 'أسئلة شائعة'))}
+                    </h2>
+                    <p class="help-faq__hint">${Utils.escapeHTML(this.t('module.help.faqHint', 'إجابات سريعة على الأسئلة الأكثر تكراراً'))}</p>
+                </div>
+                <div class="help-faq__list">
+                    ${faqItems.map((s) => {
+                        const q = Utils.escapeHTML(this.sectionTitle(s));
+                        const a = this.sanitizeHtml(this.sectionBody(s));
+                        const open = s.id === this.selectedId ? ' open' : '';
+                        return `
+                            <details class="help-faq__item" data-help-id="${Utils.escapeHTML(s.id)}"${open}>
+                                <summary class="help-faq__question">
+                                    <i class="fas fa-circle-question help-faq__q-icon" aria-hidden="true"></i>
+                                    <span>${q}</span>
+                                    <i class="fas fa-chevron-down help-faq__chevron" aria-hidden="true"></i>
+                                </summary>
+                                <div class="help-faq__answer">${a}</div>
+                            </details>`;
+                    }).join('')}
+                </div>
+            </section>`;
     },
 
     filterSections(sections) {
@@ -145,7 +188,7 @@ const Help = {
             if (!groups[cat]) groups[cat] = [];
             groups[cat].push(s);
         });
-        const order = ['getting-started', 'modules', 'admin'];
+        const order = ['getting-started', 'faq', 'modules', 'admin'];
         return order.filter((c) => groups[c]?.length).map((c) => ({ category: c, items: groups[c] }));
     },
 
@@ -197,23 +240,45 @@ const Help = {
                 this.renderContent(sectionEl);
             });
         });
+        sectionEl.querySelectorAll('.help-faq__item').forEach((item) => {
+            item.addEventListener('toggle', () => {
+                if (item.open) {
+                    this.selectedId = item.getAttribute('data-help-id');
+                    sectionEl.querySelectorAll('.help-faq__item').forEach((other) => {
+                        if (other !== item) other.open = false;
+                    });
+                }
+            });
+        });
     },
 
     renderContent(sectionEl) {
         const sections = this.cache.sections || [];
         const filtered = this.filterSections(sections);
-        if (!this.selectedId && filtered.length) {
-            this.selectedId = filtered[0].id;
+        const { faq, articles } = this.splitFaqAndArticles(filtered);
+        if (!this.selectedId && articles.length) {
+            this.selectedId = articles[0].id;
+        } else if (!this.selectedId && faq.length) {
+            this.selectedId = faq[0].id;
         } else if (this.selectedId && !filtered.find((s) => s.id === this.selectedId)) {
-            this.selectedId = filtered[0]?.id || null;
+            this.selectedId = articles[0]?.id || faq[0]?.id || null;
         }
-        const groups = this.groupByCategory(filtered);
-        const current = filtered.find((s) => s.id === this.selectedId) || null;
+        const groups = this.groupByCategory(articles);
+        const current = articles.find((s) => s.id === this.selectedId) || null;
+        const faqPanel = sectionEl.querySelector('#help-faq-panel');
         const toc = sectionEl.querySelector('#help-toc');
         const article = sectionEl.querySelector('#help-article-panel');
         const count = sectionEl.querySelector('#help-result-count');
+        if (faqPanel) {
+            faqPanel.innerHTML = this.renderFaqAccordion(faq);
+            faqPanel.hidden = !faq.length;
+        }
         if (toc) toc.innerHTML = this.renderToc(groups);
-        if (article) article.innerHTML = this.renderArticle(current);
+        if (article) {
+            article.innerHTML = articles.length
+                ? this.renderArticle(current)
+                : `<div class="help-article help-article--empty"><p>${Utils.escapeHTML(this.t('module.help.faqEmpty', 'لا توجد مقالات — راجع الأسئلة الشائعة أعلاه'))}</p></div>`;
+        }
         if (count) {
             count.textContent = this.searchQuery
                 ? `${filtered.length} ${this.t('module.help.results', 'نتيجة')}`
@@ -239,6 +304,7 @@ const Help = {
                         value="${Utils.escapeHTML(this.searchQuery)}" autocomplete="off">
                     <span id="help-result-count" class="help-search-bar__count"></span>
                 </div>
+                <div id="help-faq-panel" class="help-faq-panel" hidden></div>
                 <div class="help-center-layout">
                     <aside class="help-toc" id="help-toc" aria-label="${Utils.escapeHTML(this.t('module.help.toc', 'فهرس المساعدة'))}">
                         <p class="text-sm text-gray-500">${Utils.escapeHTML(this.t('module.common.loading', 'جاري التحميل...'))}</p>

@@ -1,4 +1,4 @@
 {
-  "version": "2.2.22",
-  "message": "chore(release): correct v2.2.21 message"
+  "version": "2.2.24",
+  "message": "feat(help): add Help Center module with admin-editable content"
 }

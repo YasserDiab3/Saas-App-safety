@@ -127,10 +127,12 @@ const Settings = {
             const active = item.active !== false;
             const order = item.order ?? idx;
             const realIndex = items.indexOf(item);
+            const isFaq = item.category === 'faq';
             return `
                 <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg bg-white" data-help-index="${realIndex}">
                     <div class="flex-1 min-w-0">
                         <span class="font-medium text-gray-800">${title}</span>
+                        ${isFaq ? '<span class="text-xs bg-teal-100 text-teal-800 px-2 py-0.5 rounded mr-2">Q&A</span>' : ''}
                         <span class="text-xs text-gray-500 mr-2">${Utils.escapeHTML(item.moduleKey || '—')}</span>
                         ${active ? '<span class="text-xs text-green-600">مفعّل</span>' : '<span class="text-xs text-gray-400">معطّل</span>'}
                     </div>
@@ -144,14 +146,18 @@ const Settings = {
         }).join('');
     },
 
-    showHelpCenterForm(index) {
+    showHelpCenterForm(index, preset) {
         const form = document.getElementById('help-center-item-form');
         const titleEl = document.getElementById('help-center-form-title');
         if (!form) return;
         this.helpCenterEditIndex = index === null || index === undefined ? null : index;
         const items = this.getHelpCenterSections();
         const item = this.helpCenterEditIndex !== null ? items[this.helpCenterEditIndex] : null;
-        if (titleEl) titleEl.textContent = item ? 'تعديل قسم المساعدة' : 'إضافة قسم جديد';
+        if (titleEl) {
+            titleEl.textContent = item
+                ? 'تعديل قسم المساعدة'
+                : (preset === 'faq' ? 'إضافة سؤال شائع' : 'إضافة قسم جديد');
+        }
         const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val ?? ''; };
         setVal('help-center-item-id', item?.id || '');
         setVal('help-center-item-title-ar', item?.titleAr || '');
@@ -159,8 +165,8 @@ const Settings = {
         setVal('help-center-item-body-ar', item?.bodyAr || '');
         setVal('help-center-item-body-en', item?.bodyEn || '');
         setVal('help-center-item-module', item?.moduleKey || '');
-        setVal('help-center-item-icon', item?.icon || 'fa-circle-info');
-        setVal('help-center-item-category', item?.category || 'modules');
+        setVal('help-center-item-icon', item?.icon || (preset === 'faq' ? 'fa-circle-question' : 'fa-circle-info'));
+        setVal('help-center-item-category', item?.category || preset || 'modules');
         setVal('help-center-item-order', item?.order ?? items.length + 1);
         const activeEl = document.getElementById('help-center-item-active');
         if (activeEl) activeEl.checked = item ? item.active !== false : true;
@@ -198,6 +204,7 @@ const Settings = {
         this.loadHelpCenterSections().then(() => this.renderHelpCenterList()).catch(() => this.renderHelpCenterList());
 
         document.getElementById('help-center-add-btn')?.addEventListener('click', () => this.showHelpCenterForm(null));
+        document.getElementById('help-center-add-faq-btn')?.addEventListener('click', () => this.showHelpCenterForm(null, 'faq'));
         document.getElementById('help-center-item-cancel-btn')?.addEventListener('click', () => this.hideHelpCenterForm());
         document.getElementById('help-center-preview-btn')?.addEventListener('click', () => {
             if (typeof UI !== 'undefined' && typeof UI.showSection === 'function') UI.showSection('help');
@@ -1382,6 +1389,9 @@ const Settings = {
                                     <button type="button" id="help-center-add-btn" class="btn-primary">
                                         <i class="fas fa-plus ml-2"></i>إضافة قسم
                                     </button>
+                                    <button type="button" id="help-center-add-faq-btn" class="btn-secondary">
+                                        <i class="fas fa-comments ml-2"></i>إضافة سؤال شائع
+                                    </button>
                                     <button type="button" id="help-center-save-all-btn" class="btn-secondary">
                                         <i class="fas fa-save ml-2"></i>حفظ الكل
                                     </button>
@@ -1419,9 +1429,11 @@ const Settings = {
                                             <label class="block text-sm font-semibold mb-1">الفئة</label>
                                             <select id="help-center-item-category" class="form-input">
                                                 <option value="getting-started">البدء السريع</option>
+                                                <option value="faq">أسئلة شائعة (Q&A)</option>
                                                 <option value="modules">المديولات</option>
                                                 <option value="admin">الإدارة</option>
                                             </select>
+                                            <p class="text-xs text-gray-500 mt-1">للأسئلة الشائعة: العنوان = السؤال، المحتوى = الإجابة</p>
                                         </div>
                                         <div>
                                             <label class="block text-sm font-semibold mb-1">الترتيب</label>
