@@ -58,7 +58,7 @@ function isSwDev() {
 // Bump cache version to force clients to pick up latest JS/CSS updates (زيادة عند كل نشر لظهور التحديثات)
 // يجب تحديث __SW_REGISTER_QUERY في index.html بنفس اللاحقة عند تغيير الإصدار لتسريع اكتشاف service-worker.js
 // Service Worker Version: 20260612d — fix WhatsApp in-app middleware false positive
-const CACHE_VERSION = 'hse-app-v2.2.19-20260625';
+const CACHE_VERSION = 'hse-app-v2.2.21-20260625';
 const CACHE_NAME = `hse-cache-${CACHE_VERSION}`;
 
 /** أقصى حجم لعنصر في الكاش (بايت) — يحدّ تخزين ملفات CDN الضخمة */
@@ -200,6 +200,13 @@ self.addEventListener('fetch', (event) => {
         
         // تجاهل طلبات POST, PUT, DELETE وغيرها - تمريرها مباشرة للشبكة
         if (request.method !== 'GET' && request.method !== 'HEAD') {
+            return;
+        }
+
+        // الخطوط (Cairo/Google): لا تعترضها — المتصفح يحمّلها عبر font-src وليس fetch من SW
+        if (request.destination === 'font' ||
+            url.hostname.includes('fonts.gstatic.com') ||
+            url.hostname.includes('fonts.googleapis.com')) {
             return;
         }
         
