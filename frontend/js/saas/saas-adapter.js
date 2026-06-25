@@ -192,6 +192,46 @@
             });
         }
 
+        if (action === 'getFormSettings') {
+            const rows = await rpc('api_read_sheet', { p_sheet: 'FormSettings' });
+            if (rows && rows.success === false) return rows;
+            const arr = Array.isArray(rows) ? rows : [];
+            const row = arr.find(r => String(r.id) === 'FORM-SETTINGS-1')
+                || arr.find(r => String(r.id) === 'default')
+                || arr[0]
+                || {};
+            const parseField = (val, fallback) => {
+                if (Array.isArray(val)) return val;
+                if (typeof val === 'string' && val.trim()) {
+                    try { return JSON.parse(val); } catch (_e) { return fallback; }
+                }
+                return fallback;
+            };
+            return {
+                success: true,
+                data: {
+                    sites: parseField(row.sites, []),
+                    departments: parseField(row.departments, []),
+                    safetyTeam: parseField(row.safetyTeam, [])
+                }
+            };
+        }
+        if (action === 'saveFormSettings') {
+            const id = String((data && data.id) || 'FORM-SETTINGS-1');
+            const payload = {
+                id,
+                sites: Array.isArray(data && data.sites) ? data.sites : [],
+                departments: Array.isArray(data && data.departments) ? data.departments : [],
+                safetyTeam: Array.isArray(data && data.safetyTeam) ? data.safetyTeam : [],
+                updatedAt: new Date().toISOString()
+            };
+            return await rpc('api_upsert', {
+                p_sheet: 'FormSettings',
+                p_id: id,
+                p_data: payload
+            });
+        }
+
         if (action === 'reportUserVersion') {
             return await rpc('api_report_user_version', { p_payload: data || {} });
         }

@@ -1086,8 +1086,13 @@ const Permissions = {
             Utils.safeWarn('⚠️ لم يتم تحميل أي مواقع - تحقق من قاعدة البيانات');
         }
 
+        if (this._formSettingsBoundCard && this._formSettingsBoundCard !== card) {
+            this.formSettingsEventsBound = false;
+        }
+
         if (this.formSettingsEventsBound) return;
         this.formSettingsEventsBound = true;
+        this._formSettingsBoundCard = card;
 
         card.addEventListener('click', (event) => {
             const actionElement = event.target.closest('[data-action]');
@@ -1430,25 +1435,39 @@ const Permissions = {
             .map((value) => String(value || '').trim())
             .filter((value, index, array) => value && array.indexOf(value) === index);
 
-        // حفظ في localStorage أولاً
-        AppState.appData.observationSites = sites;
-        if (!AppState.companySettings) {
-            AppState.companySettings = {};
-        }
-        AppState.companySettings.formDepartments = departments;
-        AppState.companySettings.safetyTeam = safetyTeam;
-
         const dm = (typeof window !== 'undefined' && window.DataManager) ||
             (typeof DataManager !== 'undefined' && DataManager);
-        if (dm && typeof dm.save === 'function') {
-            dm.save();
-        }
-        if (dm && typeof dm.saveCompanySettings === 'function') {
-            dm.saveCompanySettings();
-        }
 
-        // مزامنة مع Google Sheets إذا كان متاحاً
-        if (AppState.backendConfig?.server?.enabled && typeof Backend !== 'undefined') {
+        const cloudReady = typeof Utils !== 'undefined'
+            && typeof Utils.hasCloudBackendSync === 'function'
+            && Utils.hasCloudBackendSync();
+
+        if (cloudReady && typeof Backend !== 'undefined') {
+            try {
+                const userData = AppState.currentUser || {};
+                const result = await Backend.sendToAppsScript('saveFormSettings', {
+                    id: 'FORM-SETTINGS-1',
+                    sites: sites,
+                    departments: departments,
+                    safetyTeam: safetyTeam,
+                    userData: {
+                        email: userData.email,
+                        name: userData.name,
+                        role: userData.role,
+                        permissions: userData.permissions
+                    }
+                });
+
+                if (!result || !result.success) {
+                    Notification.error('فشل حفظ إعدادات النماذج في السحابة: ' + ((result && result.message) || 'خطأ غير معروف'));
+                    return;
+                }
+                Utils.safeLog('✅ تم حفظ إعدادات النماذج في السحابة بنجاح');
+            } catch (error) {
+                Notification.error('خطأ أثناء حفظ إعدادات النماذج: ' + (error.message || error));
+                return;
+            }
+        } else if (AppState.backendConfig?.server?.enabled && typeof Backend !== 'undefined') {
             try {
                 const userData = AppState.currentUser || {};
                 const result = await Backend.sendToAppsScript('saveFormSettings', {
@@ -1474,6 +1493,21 @@ const Permissions = {
             }
         }
 
+        // حفظ في localStorage بعد نجاح السحابة (أو في الوضع المحلي فقط)
+        AppState.appData.observationSites = sites;
+        if (!AppState.companySettings) {
+            AppState.companySettings = {};
+        }
+        AppState.companySettings.formDepartments = departments;
+        AppState.companySettings.safetyTeam = safetyTeam;
+
+        if (dm && typeof dm.save === 'function') {
+            dm.save();
+        }
+        if (dm && typeof dm.saveCompanySettings === 'function') {
+            dm.saveCompanySettings();
+        }
+
         // تسجيل حركة المستخدم
         if (typeof UserActivityLog !== 'undefined') {
             UserActivityLog.log('settings', 'Settings', 'form-settings', {
@@ -1488,8 +1522,13 @@ const Permissions = {
         });
 
         Notification.success('تم حفظ إعدادات النماذج بنجاح.');
-        this.initFormSettingsState();
+        await this.initFormSettingsState();
         this.refreshFormSettingsUI();
+        try {
+            window.dispatchEvent(new CustomEvent('formSettingsUpdated', {
+                detail: { sites, observationSites: AppState.appData.observationSites }
+            }));
+        } catch (_e) { /* ignore */ }
     },
 
     handleImportFormSettingsFile() {
