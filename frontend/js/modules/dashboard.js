@@ -3847,55 +3847,11 @@ const Dashboard = {
         `;
 
         try {
-            if (typeof SafetyCalendar === 'undefined') {
+            if (typeof SafetyCalendar === 'undefined' || typeof SafetyCalendar.renderDashboardWidget !== 'function') {
                 container.innerHTML = `<p class="text-gray-500">${this.t('module.safetyCalendar.noEvents', 'لا توجد أحداث')}</p>`;
                 return;
             }
-            await SafetyCalendar.ensureData();
-
-            const esc = (v) => (typeof Utils !== 'undefined' && Utils.escapeHTML)
-                ? Utils.escapeHTML(String(v ?? ''))
-                : String(v ?? '');
-            const fmt = (iso) => {
-                if (typeof SafetyCalendar.formatDate === 'function') return SafetyCalendar.formatDate(iso);
-                return iso || '—';
-            };
-            const color = (ev) => (typeof SafetyCalendar.eventColor === 'function')
-                ? SafetyCalendar.eventColor(ev)
-                : '#64748B';
-            const titleOf = (ev) => {
-                const en = AppState.currentLanguage === 'en';
-                return (en && ev.titleEn) ? ev.titleEn : (ev.title || ev.titleEn || '—');
-            };
-
-            if (typeof SafetyCalendar.invalidateFeedCache === 'function') {
-                SafetyCalendar.invalidateFeedCache();
-            }
-
-            const todayList = SafetyCalendar.todayEvents();
-            const upcoming = SafetyCalendar.upcomingEvents(14).slice(0, 8);
-
-            const renderItem = (ev) => `
-                <li class="sc-widget-item">
-                    <span class="sc-widget-dot" style="background:${esc(color(ev))}"></span>
-                    <div>
-                        <strong class="sc-widget-title">${esc(titleOf(ev))}</strong>
-                        ${ev.moduleLabel ? `<span class="sc-widget-badge">${esc(ev.moduleLabel)}</span>` : ''}
-                        <span class="sc-widget-date">${esc(fmt(ev.startDate))}${ev.endDate && ev.endDate !== ev.startDate ? ' — ' + esc(fmt(ev.endDate)) : ''}</span>
-                    </div>
-                </li>`;
-
-            let html = '';
-            if (todayList.length) {
-                html += `<p class="sc-widget-label">${this.t('dash.safetyCalendarToday', 'اليوم')}</p><ul class="sc-widget-list">${todayList.map(renderItem).join('')}</ul>`;
-            }
-            if (upcoming.length) {
-                html += `<p class="sc-widget-label">${this.t('dash.safetyCalendarUpcoming', 'الأحداث القادمة (14 يوم)')}</p><ul class="sc-widget-list">${upcoming.map(renderItem).join('')}</ul>`;
-            }
-            if (!html) {
-                html = `<div class="empty-state"><i class="fas fa-calendar-check text-4xl text-gray-300 mb-4"></i><p class="text-gray-500">${this.t('dash.safetyCalendarNoUpcoming', 'لا توجد أحداث قادمة خلال أسبوعين')}</p></div>`;
-            }
-            container.innerHTML = html;
+            await SafetyCalendar.renderDashboardWidget(container);
         } catch (err) {
             if (typeof Utils !== 'undefined' && Utils.safeWarn) Utils.safeWarn('⚠️ تعذر تحميل ويدجت تقويم السلامة:', err);
             container.innerHTML = `<p class="text-gray-500">${this.t('module.safetyCalendar.noEvents', 'لا توجد أحداث')}</p>`;

@@ -93,7 +93,8 @@ const SafetyCalendar = {
             module_inspection: '#0891B2',
             module_behavior: '#CA8A04',
             module_emergency: '#EF4444',
-            module_clinic: '#DB2777'
+            module_clinic: '#DB2777',
+            module_risk: '#B45309'
         };
         if (ev.scope === 'country') return '#7C3AED';
         return map[ev.eventType] || '#64748B';
@@ -121,6 +122,147 @@ const SafetyCalendar = {
         };
         const v = this.t(key, fallbacks[ev.eventType] || ev.eventType || '');
         return v === key ? (fallbacks[ev.eventType] || ev.eventType || '') : v;
+    },
+
+    eventDetailRows(ev) {
+        const rows = [];
+        const type = this.typeLabel(ev);
+        if (type) rows.push({ icon: 'fa-tag', label: this.t('module.safetyCalendar.type', 'النوع'), value: type });
+        if (ev.status) rows.push({ icon: 'fa-circle-info', label: this.t('module.safetyCalendar.status', 'الحالة'), value: ev.status });
+        if (ev.priority) rows.push({ icon: 'fa-flag', label: this.t('module.safetyCalendar.priority', 'الأولوية'), value: ev.priority });
+        if (ev.location) rows.push({ icon: 'fa-location-dot', label: this.t('module.safetyCalendar.location', 'الموقع'), value: ev.location });
+        if (ev.assignee) rows.push({ icon: 'fa-user', label: this.t('module.safetyCalendar.assignee', 'المسؤول'), value: ev.assignee });
+        if (!this.isModuleEvent(ev) && ev.scope) {
+            rows.push({ icon: 'fa-globe', label: this.t('module.safetyCalendar.scope', 'النطاق'), value: ev.scope });
+        }
+        const dateLine = ev.endDate && ev.endDate !== ev.startDate
+            ? `${this.formatDate(ev.startDate)} — ${this.formatDate(ev.endDate)}`
+            : this.formatDate(ev.startDate);
+        rows.push({ icon: 'fa-calendar-day', label: this.t('common.date', 'التاريخ'), value: dateLine });
+        if (ev.description) rows.push({ icon: 'fa-align-right', label: this.t('common.description', 'الوصف'), value: ev.description });
+        return rows;
+    },
+
+    renderEventDetailsHtml(ev, compact) {
+        const rows = this.eventDetailRows(ev);
+        if (!rows.length) return '';
+        const cls = compact ? 'sc-ev-details sc-ev-details--compact' : 'sc-ev-details';
+        return `<ul class="${cls}">${rows.map(r =>
+            `<li><i class="fas ${r.icon}"></i><span class="sc-ev-detail-label">${this.esc(r.label)}:</span> <span class="sc-ev-detail-val">${this.esc(r.value)}</span></li>`
+        ).join('')}</ul>`;
+    },
+
+    renderEventCard(ev, opts = {}) {
+        const compact = !!opts.compact;
+        const clickable = ev.link ? ` data-link="${this.esc(ev.link)}" role="link" tabindex="0"` : '';
+        const tag = compact ? 'div' : 'article';
+        const cls = `sc-event-card${this.isModuleEvent(ev) ? ' sc-event-card--module' : ''}${compact ? ' sc-event-card--compact' : ''}`;
+        return `<${tag} class="${cls}"${clickable} style="--ev-color:${this.esc(this.eventColor(ev))}">
+            <div class="sc-event-card-icon"><i class="fas ${this.esc(this.eventIcon(ev))}"></i></div>
+            <div class="sc-event-card-body">
+                <div class="sc-event-card-top">
+                    <strong>${this.esc(this.displayTitle(ev))}</strong>
+                    <span class="sc-type-badge">${this.esc(this.typeLabel(ev))}</span>
+                </div>
+                ${this.renderEventDetailsHtml(ev, compact)}
+            </div>
+            ${!compact && this.isAdmin() && !this.isModuleEvent(ev) ? `<div class="sc-list-card-actions">
+                <button type="button" class="btn-xs btn-secondary sc-edit" data-id="${this.esc(ev.id)}">${this.t('common.edit', 'تعديل')}</button>
+                <button type="button" class="btn-xs btn-danger sc-del" data-id="${this.esc(ev.id)}">${this.t('common.delete', 'حذف')}</button>
+            </div>` : (ev.link ? `<span class="sc-list-go"><i class="fas fa-arrow-left"></i></span>` : '')}
+        </${tag}>`;
+    },
+
+    renderMiniMonth(year, month, selectedDate) {
+        const cells = this.monthMatrix(year, month);
+        const today = new Date().toISOString().slice(0, 10);
+        const weekDays = [
+            this.t('module.safetyCalendar.sun', 'أحد'),
+            this.t('module.safetyCalendar.mon', 'إثن'),
+            this.t('module.safetyCalendar.tue', 'ثل'),
+            this.t('module.safetyCalendar.wed', 'أرب'),
+            this.t('module.safetyCalendar.thu', 'خم'),
+            this.t('module.safetyCalendar.fri', 'جم'),
+            this.t('module.safetyCalendar.sat', 'سب')
+        ];
+        let html = '<div class="sc-mini-grid" role="grid">';
+        weekDays.forEach(w => { html += `<div class="sc-mini-weekday">${this.esc(w.slice(0, 1))}</div>`; });
+        cells.forEach(dateStr => {
+            if (!dateStr) {
+                html += '<div class="sc-mini-day sc-mini-day--empty"></div>';
+                return;
+            }
+            const n = this.eventsOnDate(dateStr).length;
+            const isToday = dateStr === today;
+            const sel = dateStr === selectedDate;
+            html += `<button type="button" class="sc-mini-day${isToday ? ' is-today' : ''}${sel ? ' is-selected' : ''}${n ? ' has-events' : ''}" data-dash-date="${dateStr}" aria-label="${dateStr}">`;
+            html += `<span>${parseInt(dateStr.slice(8), 10)}</span>`;
+            if (n) html += `<i class="sc-mini-dot" aria-hidden="true"></i>`;
+            html += '</button>';
+        });
+        html += '</div>';
+        return html;
+    },
+
+    async renderDashboardWidget(container) {
+        if (!container) return;
+        await this.ensureData();
+        this.invalidateFeedCache();
+
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth();
+        const today = now.toISOString().slice(0, 10);
+        const monthName = now.toLocaleString(AppState.currentLanguage === 'en' ? 'en' : 'ar', { month: 'long', year: 'numeric' });
+
+        const todayList = this.todayEvents();
+        const upcoming = this.upcomingEvents(14).filter(ev => {
+            const s = ev.startDate;
+            return s && s > today;
+        }).slice(0, 6);
+        const weekEnd = new Date();
+        weekEnd.setDate(weekEnd.getDate() + 7);
+        const weekEndStr = weekEnd.toISOString().slice(0, 10);
+        const weekCount = this.allEvents().filter(ev => {
+            const s = ev.startDate;
+            const e = ev.endDate || s;
+            return s && e && s <= weekEndStr && e >= today;
+        }).length;
+
+        container.innerHTML = `
+        <div class="sc-dash-widget">
+            <div class="sc-dash-top">
+                <div class="sc-dash-mini">
+                    <div class="sc-dash-mini-head">
+                        <strong>${this.esc(monthName)}</strong>
+                        <a href="#safety-calendar" class="sc-dash-open">${this.t('dash.viewAll', 'عرض الكل')}</a>
+                    </div>
+                    ${this.renderMiniMonth(year, month, today)}
+                </div>
+                <div class="sc-dash-summary">
+                    <div class="sc-dash-pill"><span>${todayList.length}</span>${this.t('dash.safetyCalendarToday', 'اليوم')}</div>
+                    <div class="sc-dash-pill"><span>${weekCount}</span>${this.t('module.safetyCalendar.thisWeek', 'هذا الأسبوع')}</div>
+                    <div class="sc-dash-pill sc-dash-pill--accent"><span>${this.allEvents().length}</span>${this.t('module.safetyCalendar.totalEvents', 'إجمالي')}</div>
+                </div>
+            </div>
+            <div class="sc-dash-events">
+                ${todayList.length ? `<p class="sc-widget-label">${this.t('dash.safetyCalendarToday', 'اليوم')}</p>
+                <div class="sc-dash-event-list">${todayList.map(ev => this.renderEventCard(ev, { compact: true })).join('')}</div>` : ''}
+                ${upcoming.length ? `<p class="sc-widget-label">${this.t('dash.safetyCalendarUpcoming', 'الأحداث القادمة (14 يوم)')}</p>
+                <div class="sc-dash-event-list">${upcoming.map(ev => this.renderEventCard(ev, { compact: true })).join('')}</div>` : ''}
+                ${!todayList.length && !upcoming.length ? `<div class="sc-empty sc-empty--dash"><i class="fas fa-calendar-check"></i><p>${this.t('dash.safetyCalendarNoUpcoming', 'لا توجد أحداث قادمة خلال أسبوعين')}</p></div>` : ''}
+            </div>
+        </div>`;
+
+        container.querySelectorAll('[data-dash-date]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const d = btn.getAttribute('data-dash-date');
+                try { sessionStorage.setItem('safetyCalendarSelectedDate', d); } catch (_e) { /* ignore */ }
+                if (typeof UI !== 'undefined' && UI.showSection) UI.showSection('safety-calendar');
+                else window.location.hash = '#safety-calendar';
+            });
+        });
+        this.bindEventLinks(container);
     },
 
     filteredEvents() {
@@ -257,26 +399,7 @@ const SafetyCalendar = {
         if (!items.length) {
             return `<div class="sc-empty"><i class="fas fa-calendar-xmark"></i><p>${this.t('module.safetyCalendar.noEvents', 'لا توجد أحداث')}</p></div>`;
         }
-        const cards = items.map(ev => {
-            const clickable = ev.link ? ` data-link="${this.esc(ev.link)}" role="link" tabindex="0"` : '';
-            return `<article class="sc-list-card${this.isModuleEvent(ev) ? ' sc-list-card--module' : ''}"${clickable} style="--ev-color:${this.esc(this.eventColor(ev))}">
-                <div class="sc-list-card-icon"><i class="fas ${this.esc(this.eventIcon(ev))}"></i></div>
-                <div class="sc-list-card-body">
-                    <div class="sc-list-card-top">
-                        <strong>${this.esc(this.displayTitle(ev))}</strong>
-                        <span class="sc-type-badge">${this.esc(this.typeLabel(ev))}</span>
-                    </div>
-                    <div class="sc-list-card-meta">
-                        <span><i class="fas fa-calendar-day"></i> ${this.esc(this.formatDate(ev.startDate))}${ev.endDate && ev.endDate !== ev.startDate ? ' — ' + this.esc(this.formatDate(ev.endDate)) : ''}</span>
-                        ${ev.description ? `<span class="sc-list-desc">${this.esc(ev.description)}</span>` : ''}
-                    </div>
-                </div>
-                ${this.isAdmin() && !this.isModuleEvent(ev) ? `<div class="sc-list-card-actions">
-                    <button type="button" class="btn-xs btn-secondary sc-edit" data-id="${this.esc(ev.id)}">${this.t('common.edit', 'تعديل')}</button>
-                    <button type="button" class="btn-xs btn-danger sc-del" data-id="${this.esc(ev.id)}">${this.t('common.delete', 'حذف')}</button>
-                </div>` : (ev.link ? `<span class="sc-list-go"><i class="fas fa-arrow-left"></i></span>` : '')}
-            </article>`;
-        }).join('');
+        const cards = items.map(ev => this.renderEventCard(ev)).join('');
         return `<div class="sc-list-cards">${cards}</div>`;
     },
 
@@ -285,17 +408,7 @@ const SafetyCalendar = {
         if (!d) return '';
         const evs = this.eventsOnDate(d);
         const list = evs.length
-            ? evs.map(ev => {
-                const clickable = ev.link ? ` data-link="${this.esc(ev.link)}" role="link" tabindex="0"` : '';
-                return `<li class="sc-day-ev"${clickable} style="--ev-color:${this.esc(this.eventColor(ev))}">
-                    <div class="sc-day-ev-icon"><i class="fas ${this.esc(this.eventIcon(ev))}"></i></div>
-                    <div class="sc-day-ev-body">
-                        <strong>${this.esc(this.displayTitle(ev))}</strong>
-                        <span class="sc-day-ev-meta">${this.esc(this.typeLabel(ev))}</span>
-                        ${ev.description ? `<p>${this.esc(ev.description)}</p>` : ''}
-                    </div>
-                </li>`;
-            }).join('')
+            ? evs.map(ev => `<li class="sc-day-ev-wrap">${this.renderEventCard(ev, { compact: true })}</li>`).join('')
             : `<li class="sc-day-ev sc-day-ev--empty">${this.t('module.safetyCalendar.noEventsDay', 'لا أحداث في هذا اليوم')}</li>`;
         return `<aside class="sc-day-panel">
             <div class="sc-day-panel-head">
@@ -353,6 +466,16 @@ const SafetyCalendar = {
         }
         const section = document.getElementById('safety-calendar-section');
         if (!section) return;
+        try {
+            const saved = sessionStorage.getItem('safetyCalendarSelectedDate');
+            if (saved && /^\d{4}-\d{2}-\d{2}$/.test(saved)) {
+                this.state.selectedDate = saved;
+                const p = saved.split('-').map(Number);
+                this.state.year = p[0];
+                this.state.month = p[1] - 1;
+                sessionStorage.removeItem('safetyCalendarSelectedDate');
+            }
+        } catch (_e) { /* ignore */ }
         this.invalidateFeedCache();
         await this.ensureData();
 
@@ -405,6 +528,7 @@ const SafetyCalendar = {
             <span><i class="sc-leg-dot" style="background:#DC2626"></i>${this.t('module.safetyCalendar.legIncident', 'حوادث')}</span>
             <span><i class="sc-leg-dot" style="background:#9333EA"></i>${this.t('module.safetyCalendar.legViolation', 'مخالفات')}</span>
             <span><i class="sc-leg-dot" style="background:#0D9488"></i>${this.t('module.safetyCalendar.legObservation', 'ملاحظات')}</span>
+            <span><i class="sc-leg-dot" style="background:#B45309"></i>${this.t('module.safetyCalendar.legRisk', 'تقييم مخاطر')}</span>
         </div>
         <div class="sc-body">
             <div class="sc-main card-style" id="sc-main">${this.state.view === 'list' ? this.renderList() : this.renderMonthGrid()}</div>

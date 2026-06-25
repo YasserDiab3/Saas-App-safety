@@ -13,7 +13,8 @@
             labelEn: 'Work permit',
             listKey: 'ptw',
             title: (r) => r.workDescription || r.permitType || r.location || `تصريح ${r.id || ''}`.trim(),
-            dates: (r) => [{ start: r.startDate || r.openDate || r.timeFrom || r.createdAt, end: r.endDate || r.timeTo }]
+            dates: (r) => [{ start: r.startDate || r.openDate || r.timeFrom || r.createdAt, end: r.endDate || r.timeTo }],
+            meta: (r) => ({ status: r.status, location: r.location, assignee: r.authorizedParty })
         },
         {
             moduleKey: 'training',
@@ -25,7 +26,8 @@
             labelEn: 'Training',
             listKey: 'training',
             title: (r) => r.name || r.subject || r.topic || r.title || 'تدريب',
-            dates: (r) => [{ start: r.startDate || r.date || r.trainingDate, end: r.endDate || r.startDate || r.date }]
+            dates: (r) => [{ start: r.startDate || r.date || r.trainingDate, end: r.endDate || r.startDate || r.date }],
+            meta: (r) => ({ location: r.location, assignee: r.trainer || r.conductedBy, status: r.status })
         },
         {
             moduleKey: 'incidents',
@@ -37,7 +39,8 @@
             labelEn: 'Incident',
             listKey: 'incidents',
             title: (r) => r.title || r.incidentType || r.description || r.location || 'حادث',
-            dates: (r) => [{ start: r.date || r.incidentDate || r.createdAt, end: r.date || r.incidentDate }]
+            dates: (r) => [{ start: r.date || r.incidentDate || r.createdAt, end: r.date || r.incidentDate }],
+            meta: (r) => ({ status: r.status, location: r.location, priority: r.severity, description: r.description })
         },
         {
             moduleKey: 'nearmiss',
@@ -133,7 +136,29 @@
             labelEn: 'Clinic visit',
             listKey: 'clinicVisits',
             title: (r) => r.employeeName || r.patientName || r.visitReason || 'زيارة عيادة',
-            dates: (r) => [{ start: r.visitDate || r.date || r.createdAt, end: r.visitDate || r.date }]
+            dates: (r) => [{ start: r.visitDate || r.date || r.createdAt, end: r.visitDate || r.date }],
+            meta: (r) => ({ assignee: r.employeeName || r.patientName, description: r.visitReason })
+        },
+        {
+            moduleKey: 'risk-assessment',
+            eventType: 'module_risk',
+            color: '#B45309',
+            icon: 'fa-balance-scale',
+            link: '#risk-assessment',
+            labelAr: 'تقييم مخاطر',
+            labelEn: 'Risk assessment',
+            listKey: 'riskAssessments',
+            title: (r) => r.title || r.activity || r.process || r.hazard || 'تقييم مخاطر',
+            dates: (r) => {
+                const out = [];
+                if (r.date) out.push({ start: r.date, end: r.date, label: 'assessment' });
+                if (r.planningDate) out.push({ start: r.planningDate, end: r.planningDate, label: 'planning' });
+                if (r.actionPlannedDate) out.push({ start: r.actionPlannedDate, end: r.actionPlannedDate, label: 'action' });
+                if (r.reviewDate) out.push({ start: r.reviewDate, end: r.reviewDate, label: 'review' });
+                if (!out.length && r.createdAt) out.push({ start: r.createdAt, end: r.createdAt });
+                return out;
+            },
+            meta: (r) => ({ status: r.status, location: r.location || r.department, priority: r.riskLevel || r.riskRating })
         }
     ];
 
@@ -145,6 +170,44 @@
         const d = new Date(s);
         if (Number.isNaN(d.getTime())) return null;
         return d.toISOString().slice(0, 10);
+    }
+
+    function pickMeta(...vals) {
+        for (let i = 0; i < vals.length; i++) {
+            const v = vals[i];
+            if (v != null && String(v).trim()) return String(v).trim();
+        }
+        return '';
+    }
+
+    function pushEvent(out, def, row, idx, ri, range, isEn) {
+        const start = toDateOnly(range.start);
+        if (!start) return;
+        const end = toDateOnly(range.end) || start;
+        const title = String(def.title(row) || '').trim() || def.labelAr;
+        const meta = typeof def.meta === 'function' ? def.meta(row) : {};
+        out.push({
+            id: `feed-${def.eventType}-${row.id || idx}-${ri}`,
+            title,
+            titleEn: isEn ? title : (row.titleEn || title),
+            startDate: start,
+            endDate: end,
+            eventType: def.eventType,
+            moduleKey: def.moduleKey,
+            scope: 'module',
+            source: 'feed',
+            color: def.color,
+            icon: def.icon,
+            link: def.link,
+            moduleLabel: isEn ? def.labelEn : def.labelAr,
+            description: pickMeta(meta.description, row.description, row.notes, row.message).slice(0, 200),
+            status: pickMeta(meta.status, row.status, row.permitStatus, row.state),
+            location: pickMeta(meta.location, row.location, row.siteName, row.workArea, row.area),
+            assignee: pickMeta(meta.assignee, row.assignedTo, row.employeeName, row.responsible, row.trainer, row.conductedBy),
+            priority: pickMeta(meta.priority, row.priority, row.severity, row.riskLevel),
+            recordId: row.id || null,
+            allDay: true
+        });
     }
 
     function canAccess(moduleKey) {
@@ -173,28 +236,7 @@
                     if (!row || typeof row !== 'object') return;
                     const ranges = def.dates(row) || [];
                     ranges.forEach((range, ri) => {
-                        const start = toDateOnly(range.start);
-                        if (!start) return;
-                        const end = toDateOnly(range.end) || start;
-                        const title = String(def.title(row) || '').trim() || def.labelAr;
-                        out.push({
-                            id: `feed-${def.eventType}-${row.id || idx}-${ri}`,
-                            title,
-                            titleEn: isEn ? title : (row.titleEn || title),
-                            startDate: start,
-                            endDate: end,
-                            eventType: def.eventType,
-                            moduleKey: def.moduleKey,
-                            scope: 'module',
-                            source: 'feed',
-                            color: def.color,
-                            icon: def.icon,
-                            link: def.link,
-                            moduleLabel: isEn ? def.labelEn : def.labelAr,
-                            description: String(row.description || row.notes || row.status || '').slice(0, 120),
-                            recordId: row.id || null,
-                            allDay: true
-                        });
+                        pushEvent(out, def, row, idx, ri, range, isEn);
                     });
                 });
             });
