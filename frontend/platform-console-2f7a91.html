@@ -562,8 +562,11 @@
     document.addEventListener('DOMContentLoaded', () => {
       SaaSI18n.init(() => {
         if (_plans) renderPlans(_plans);
-        const active = document.querySelector('.pf-tab.active');
-        if (active) loadTab(active.getAttribute('data-tab'));
+        const panel = $('panel');
+        if (panel && panel.style.display === 'block') {
+          const active = document.querySelector('.pf-tab.active');
+          if (active) loadTab(active.getAttribute('data-tab'));
+        }
       });
       $('tabs').addEventListener('click', e => {
         const btn = e.target.closest('.pf-tab');
@@ -611,9 +614,15 @@
       closeModal();
     }
 
-    async function initPanel() {
+    async function saasRpc(fn, args) {
+      await SaaS.ready;
       const client = SaaS.client();
-      const { data, error } = await client.rpc('api_admin_list_plans');
+      if (!client) return { data: null, error: { message: 'Supabase client not ready' } };
+      return client.rpc(fn, args || {});
+    }
+
+    async function initPanel() {
+      const { data, error } = await saasRpc('api_admin_list_plans');
       if (error) {
         document.body.innerHTML = '<div class="saas-page"><div class="saas-panel" style="color:#b91c1c">' + esc(T('pf_forbidden')) + '</div></div>';
         return;
@@ -807,7 +816,7 @@
     async function loadOverview() {
       $('kpis').innerHTML = `<p class="muted-s">${esc(T('pf_loading'))}</p>`;
       $('recent-tenants').innerHTML = '';
-      const { data, error } = await SaaS.client().rpc('api_admin_overview');
+      const { data, error } = await saasRpc('api_admin_overview');
       if (error) { $('kpis').innerHTML = `<p class="err">${esc(error.message)}</p>`; return; }
       const kpis = [
         ['pf_kpi_tenants', data.tenants_total],

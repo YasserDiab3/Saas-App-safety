@@ -23,7 +23,10 @@
         },
 
         async loadSections() {
-            const { data, error } = await global.SaaS.client().rpc('api_get_help_center', {});
+            await global.SaaS.ready;
+            const client = global.SaaS.client();
+            if (!client) throw new Error('Supabase client not ready');
+            const { data, error } = await client.rpc('api_get_help_center', {});
             if (error) throw new Error(error.message);
             const payload = (data && data.data) || data || {};
             let sections = Array.isArray(payload.sections) ? payload.sections : [];
@@ -39,12 +42,15 @@
         },
 
         async saveSections(sections) {
+            await global.SaaS.ready;
+            const client = global.SaaS.client();
+            if (!client) throw new Error('Supabase client not ready');
             const payload = {
                 id: 'default',
                 sections: sections || [],
                 updatedAt: new Date().toISOString()
             };
-            const { data, error } = await global.SaaS.client().rpc('api_save_help_center', { p_data: payload });
+            const { data, error } = await client.rpc('api_save_help_center', { p_data: payload });
             if (error) throw new Error(error.message);
             if (data && data.success === false) throw new Error(data.message || 'save failed');
             this.sections = (sections || []).slice();
