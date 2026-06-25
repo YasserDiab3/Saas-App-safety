@@ -5709,9 +5709,10 @@ window.UI = {
                     const at = it.consent_at ? new Date(it.consent_at).toLocaleString() : '—';
                     const act = esc(it.action || '—');
                     const ver = esc(it.policy_version || '—');
-                    return `<tr><td>${esc(at)}</td><td>${act}</td><td dir="ltr">${ver}</td></tr>`;
+                    const page = esc((it.context && it.context.page_path) || '—');
+                    return `<tr><td>${esc(at)}</td><td>${act}</td><td dir="ltr">${ver}</td><td><code>${page}</code></td></tr>`;
                 }).join('');
-                cookieHistoryWrap.innerHTML = `<table class="hse-cookie-history-table"><thead><tr><th>${t('common.date', 'التاريخ')}</th><th>${t('common.action', 'الإجراء')}</th><th>${t('common.version', 'الإصدار')}</th></tr></thead><tbody>${rows}</tbody></table>`;
+                cookieHistoryWrap.innerHTML = `<table class="hse-cookie-history-table"><thead><tr><th>${t('common.date', 'التاريخ')}</th><th>${t('common.action', 'الإجراء')}</th><th>${t('common.version', 'الإصدار')}</th><th>${t('module.profile.cookiePage', 'الصفحة')}</th></tr></thead><tbody>${rows}</tbody></table>`;
             }).catch(() => {
                 cookieHistoryWrap.textContent = t('common.noData', 'لا توجد بيانات');
             });

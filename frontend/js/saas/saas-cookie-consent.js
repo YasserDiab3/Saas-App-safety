@@ -128,7 +128,12 @@
             visitor_id: visitorId(),
             action: action,
             policy_version: policyVersion,
-            categories: categories
+            categories: categories,
+            context: {
+                page_path: (global.location && global.location.pathname) ? String(global.location.pathname).slice(0, 200) : '',
+                locale: lang(),
+                screen: (global.screen ? `${global.screen.width}x${global.screen.height}` : '')
+            }
         };
         const token = await jwt();
         const api = global.SaaSCookieApi;

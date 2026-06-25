@@ -52,6 +52,7 @@
       <button type="button" class="pf-tab" data-tab="messages" data-i18n="pf_tab_messages">الرسائل</button>
       <button type="button" class="pf-tab" data-tab="quotes" data-i18n="pf_tab_quotes">عروض الأسعار</button>
       <button type="button" class="pf-tab" data-tab="devices" data-i18n="pf_tab_devices">الأجهزة</button>
+      <button type="button" class="pf-tab" data-tab="cookies" data-i18n="pf_tab_cookies">الكوكيز والخصوصية</button>
       <button type="button" class="pf-tab" data-tab="help-center" data-i18n="pf_tab_help_center">مركز المساعدة</button>
     </nav>
 
@@ -242,6 +243,66 @@
       </div>
     </div>
 
+    <div id="pane-cookies" class="pf-pane">
+      <div class="pf-export-strip">
+        <button type="button" class="saas-btn sm ghost pf-export-btn" onclick="exportTab('cookies','excel')" data-i18n="pf_export_excel">Excel</button>
+        <button type="button" class="saas-btn sm ghost pf-export-btn" onclick="exportTab('cookies','pdf')" data-i18n="pf_export_pdf">PDF</button>
+        <span class="pf-msg" id="export-msg-cookies"></span>
+      </div>
+      <div class="pf-content-card pf-ck-card">
+        <div class="pf-section-hd">
+          <h2 data-i18n="pf_tab_cookies">الكوكيز والخصوصية</h2>
+          <div class="pf-toolbar">
+            <label class="pf-filter-label" data-i18n="pf_ck_period">الفترة</label>
+            <select id="cookie-days-filter" class="pf-filter-select">
+              <option value="7">7</option>
+              <option value="30" selected>30</option>
+              <option value="90">90</option>
+              <option value="180">180</option>
+            </select>
+            <button type="button" class="saas-btn sm ghost" id="cookie-refresh-btn" data-i18n="pf_ck_refresh">تحديث</button>
+            <span class="pf-msg" id="cookie-admin-status"></span>
+          </div>
+        </div>
+        <div class="pf-hc-body">
+          <div class="pf-kpis" id="cookie-kpis"></div>
+          <h3 class="pf-ck-subtitle" data-i18n="pf_ck_trend">اتجاه الموافقات اليومي</h3>
+          <div id="cookie-trend-chart" class="pf-ck-trend-wrap"></div>
+          <h3 class="pf-ck-subtitle" data-i18n="pf_ck_top_pages">أكثر الصفحات عند الموافقة</h3>
+          <div id="cookie-top-pages"></div>
+
+          <h3 class="pf-ck-subtitle" data-i18n="pf_ck_consent_log">سجل الموافقات</h3>
+          <div class="pf-toolbar pf-toolbar-search">
+            <input type="search" id="cookie-search" class="pf-search-input" data-i18n-ph="pf_search" placeholder="بحث…">
+            <button type="button" class="saas-btn sm pf-search-btn" id="cookie-search-btn" data-i18n="pf_search_btn">بحث</button>
+            <select id="cookie-action-filter" class="pf-filter-select">
+              <option value="" data-i18n="pf_filter_all">الكل</option>
+              <option value="accept_all" data-i18n="pf_ck_action_accept">قبول الكل</option>
+              <option value="reject_non_essential" data-i18n="pf_ck_action_reject">رفض غير الأساسية</option>
+              <option value="customize" data-i18n="pf_ck_action_custom">تخصيص</option>
+              <option value="update" data-i18n="pf_ck_action_update">تحديث</option>
+            </select>
+            <select id="cookie-filter-tenant" class="pf-filter-select">
+              <option value="" data-i18n="pf_filter_all">الكل</option>
+            </select>
+          </div>
+          <div class="pf-table-wrap" id="cookie-consents-table"></div>
+          <div class="pf-pager" id="cookie-consents-pager"></div>
+
+          <h3 class="pf-ck-subtitle" data-i18n="pf_ck_policy_edit">تحرير سياسة الكوكيز</h3>
+          <div class="pf-ck-policy-form">
+            <label data-i18n="pf_ck_policy_ver">إصدار السياسة<input type="text" id="cookie-policy-version" class="saas-input" placeholder="1.0.1"></label>
+            <label data-i18n="pf_ck_policy_title_ar">العنوان (عربي)<input type="text" id="cookie-policy-title-ar" class="saas-input"></label>
+            <label data-i18n="pf_ck_policy_body_ar">النص (عربي)<textarea id="cookie-policy-body-ar" class="saas-input" rows="3"></textarea></label>
+            <label data-i18n="pf_ck_policy_title_en">العنوان (English)<input type="text" id="cookie-policy-title-en" class="saas-input"></label>
+            <label data-i18n="pf_ck_policy_body_en">النص (English)<textarea id="cookie-policy-body-en" class="saas-input" rows="3"></textarea></label>
+            <button type="button" class="saas-btn sm" id="cookie-policy-save" data-i18n="pf_ck_policy_publish">نشر السياسة</button>
+            <p class="muted-s pf-ck-policy-note" data-i18n="pf_ck_policy_note">تغيير الإصدار يعيد عرض البانر للمستخدمين عند اختلاف إصدارهم المحفوظ.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div id="pane-help-center" class="pf-pane">
       <div class="pf-content-card">
         <div class="pf-section-hd">
@@ -301,6 +362,7 @@
   <script src="js/modules/help-default-content-data.js"></script>
   <script src="js/modules/help-default-content.js"></script>
   <script src="js/saas/help-center-admin.js"></script>
+  <script src="js/saas/cookie-admin.js"></script>
   <script>
     const $ = id => document.getElementById(id);
     const T = k => SaaSI18n.t(k);
@@ -330,7 +392,8 @@
       tenants: { offset: 0, search: '' },
       users: { offset: 0, search: '' },
       billing: { offset: 0, status: '' },
-      devices: { offset: 0, search: '' }
+      devices: { offset: 0, search: '' },
+      cookies: { offset: 0, search: '', action: '', days: 30 }
     };
 
     const locale = () => SaaSI18n.lang === 'ar' ? 'ar-EG' : 'en-US';
@@ -477,10 +540,34 @@
             const coords = (r.latitude != null && r.longitude != null) ? `${r.latitude}, ${r.longitude} (${r.geo_source || ''})` : '';
             return [
               r.email || '', r.full_name || '', r.tenant_name || '', r.org_code || '',
-              r.device_label || '', r.device_id || '', r.ip_address || '', region, coords,
-              (r.device_type || '') + (r.screen_size ? ' · ' + r.screen_size : ''), fmtExp(r.last_seen_at)
+              (r.device_label || '') + ' / ' + (r.browser || '') + ' ' + (r.platform || ''),
+              r.device_id || '', r.ip_address || '', region, coords,
+              r.device_type || '', fmtExp(r.last_seen_at)
             ];
           })
+        };
+      }
+
+      if (tab === 'cookies') {
+        const days = CookieAdmin ? CookieAdmin.days : 30;
+        const items = await fetchAllItems('api_admin_list_cookie_consents', {
+          p_search: null, p_action: null, p_tenant_id: null, p_days: days
+        });
+        const actLabel = (a) => {
+          const m = { accept_all: T('pf_ck_action_accept'), reject_non_essential: T('pf_ck_action_reject'),
+            customize: T('pf_ck_action_custom'), update: T('pf_ck_action_update') };
+          return m[a] || a || '';
+        };
+        return {
+          title: T('pf_tab_cookies'), filename: 'platform-cookies', subtitle, emptyMessage: empty,
+          headers: [T('pf_col_created'), T('pf_ck_col_action'), T('pf_col_email'), T('pf_msg_tenant'),
+            T('pf_ck_col_cats'), T('pf_ck_col_page'), 'visitor_id', T('pf_ck_policy_ver')],
+          rows: items.map(r => [
+            fmtExp(r.consent_at), actLabel(r.action), r.email || '', r.tenant_name || '',
+            JSON.stringify(r.categories || {}),
+            (r.context && r.context.page_path) || '',
+            r.visitor_id || '', r.policy_version || ''
+          ])
         };
       }
 
@@ -649,6 +736,7 @@
       else if (tab === 'messages') loadMessagesPane();
       else if (tab === 'quotes') loadQuotesPane();
       else if (tab === 'devices') loadDevices();
+      else if (tab === 'cookies' && window.CookieAdmin) CookieAdmin.loadPane();
       else if (tab === 'help-center' && window.HelpCenterAdmin) HelpCenterAdmin.loadPane();
     }
 
@@ -1114,6 +1202,7 @@
         b.onclick = () => onNav(parseInt(b.getAttribute('data-dir'), 10));
       });
     }
+    window.renderPager = renderPager;
 
     async function showTenant(id) {
       _currentTenantId = id;

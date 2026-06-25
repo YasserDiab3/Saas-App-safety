@@ -552,3 +552,17 @@ label.mod input{width:16px;height:16px;accent-color:var(--brand-600)}
 .pf-hc-form label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;font-weight:600}
 .pf-hc-form label.pf-hc-check{flex-direction:row;align-items:center;font-weight:500}
 .pf-hc-form-actions{display:flex;gap:8px;margin-top:12px}
+
+/* Platform console — cookie analytics */
+.pf-ck-card .pf-hc-body{padding:16px 20px 24px}
+.pf-ck-subtitle{margin:20px 0 10px;font-size:.95rem;font-weight:800;color:var(--brand-800)}
+.pf-ck-trend-wrap{margin-bottom:8px;overflow-x:auto}
+.pf-ck-trend{display:flex;align-items:flex-end;gap:6px;min-height:120px;padding:8px 4px}
+.pf-ck-trend-bar{flex:1;min-width:28px;max-width:48px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100px}
+.pf-ck-trend-fill{width:100%;max-width:36px;background:linear-gradient(180deg,var(--brand-500),var(--brand-700));border-radius:6px 6px 2px 2px;min-height:4px}
+.pf-ck-trend-lbl{font-size:.65rem;color:var(--ink-3);margin-top:4px}
+.pf-ck-pages{margin:0;padding:0 1.2rem 0 0;list-style:disc}
+.pf-ck-pages code{font-size:.78rem}
+.pf-ck-policy-form{display:grid;gap:10px;max-width:720px;margin-top:8px}
+.pf-ck-policy-form label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;font-weight:600}
+.pf-ck-policy-note{margin-top:4px;font-size:.78rem}

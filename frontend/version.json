@@ -1,4 +1,4 @@
 {
-  "version": "2.2.34",
-  "message": "feat(cookie): add GDPR cookie consent system"
+  "version": "2.2.35",
+  "message": "fix(cookie): SaaSI18n.lang is a string not a function"
 }

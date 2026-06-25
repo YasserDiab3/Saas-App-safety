@@ -157,7 +157,15 @@ Deno.serve(async (req) => {
       policy_version: body.policy_version ? String(body.policy_version) : null,
       categories: normalizeCategories(body.categories),
       ip_address: ip || null,
-      user_agent: (req.headers.get('user-agent') || '').slice(0, 512)
+      user_agent: (req.headers.get('user-agent') || '').slice(0, 512),
+      context: (body.context && typeof body.context === 'object') ? body.context : {
+        page_path: (() => {
+          try {
+            const ref = req.headers.get('referer') || '';
+            return ref ? new URL(ref).pathname.slice(0, 200) : '';
+          } catch { return ''; }
+        })()
+      }
     };
 
     const { data, error } = await sr.rpc('api_record_cookie_consent', { p_payload: payload });
@@ -197,7 +205,8 @@ Deno.serve(async (req) => {
       policy_version: body.policy_version ? String(body.policy_version) : null,
       categories: normalizeCategories(body.categories),
       ip_address: ip || null,
-      user_agent: (req.headers.get('user-agent') || '').slice(0, 512)
+      user_agent: (req.headers.get('user-agent') || '').slice(0, 512),
+      context: (body.context && typeof body.context === 'object') ? body.context : {}
     };
 
     const { data: hist } = await sr.rpc('api_get_cookie_consent_history', {
