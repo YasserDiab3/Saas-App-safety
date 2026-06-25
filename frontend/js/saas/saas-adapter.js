@@ -175,6 +175,23 @@
             if (br) return br;
         }
 
+        if (action === 'getCompanySettings') {
+            const rows = await rpc('api_read_sheet', { p_sheet: 'CompanySettings' });
+            if (rows && rows.success === false) return rows;
+            const arr = Array.isArray(rows) ? rows : [];
+            const row = arr.find(r => String(r.id) === 'default') || arr[0] || {};
+            return { success: true, data: row };
+        }
+        if (action === 'saveCompanySettings') {
+            const id = 'default';
+            const payload = Object.assign({}, data || {}, { id });
+            return await rpc('api_upsert', {
+                p_sheet: 'CompanySettings',
+                p_id: id,
+                p_data: payload
+            });
+        }
+
         return { success: false, message: `action غير معروف في محوّل SaaS: '${action}'`, _unmapped: true };
     }
 

@@ -1467,7 +1467,7 @@ const Settings = {
                         }
                         
                         // حفظ الشعار في قاعدة البيانات عند التحميل الأول
-                        if (AppState.backendConfig?.server?.enabled && typeof Backend !== 'undefined') {
+                        if (typeof Utils !== 'undefined' && typeof Utils.hasCloudBackendSync === 'function' && Utils.hasCloudBackendSync() && typeof Backend !== 'undefined') {
                             try {
                                 const userData = AppState.currentUser || {};
                                 const result = await Backend.sendToAppsScript('saveCompanySettings', {
@@ -1569,7 +1569,7 @@ const Settings = {
                         }
                         
                         // حفظ إزالة الشعار في قاعدة البيانات
-                        if (AppState.backendConfig?.server?.enabled && typeof Backend !== 'undefined') {
+                        if (typeof Utils !== 'undefined' && typeof Utils.hasCloudBackendSync === 'function' && Utils.hasCloudBackendSync() && typeof Backend !== 'undefined') {
                             try {
                                 const userData = AppState.currentUser || {};
                                 const result = await Backend.sendToAppsScript('saveCompanySettings', {
@@ -2149,7 +2149,7 @@ const Settings = {
                     
                     // حفظ في الخادم إذا كان متاحاً
                     let backendSyncSucceeded = true;
-                    if (AppState.backendConfig?.server?.enabled && typeof Backend !== 'undefined') {
+                    if (typeof Utils !== 'undefined' && typeof Utils.hasCloudBackendSync === 'function' && Utils.hasCloudBackendSync() && typeof Backend !== 'undefined') {
                         try {
                             const userData = AppState.currentUser || {};
                             const result = await Backend.sendToAppsScript('saveCompanySettings', {
@@ -2246,7 +2246,7 @@ const Settings = {
                 if (typeof DataManager !== 'undefined' && DataManager.saveCompanySettings) {
                     DataManager.saveCompanySettings();
                 }
-                if (AppState.backendConfig?.server?.enabled && typeof Backend !== 'undefined') {
+                if (typeof Utils !== 'undefined' && typeof Utils.hasCloudBackendSync === 'function' && Utils.hasCloudBackendSync() && typeof Backend !== 'undefined') {
                     try {
                         const userData = AppState.currentUser || {};
                         const payload = {
@@ -2394,7 +2394,7 @@ const Settings = {
                     DataManager.saveCompanySettings();
                     
                     // حفظ في الخادم إذا كان متاحاً
-                    if (AppState.backendConfig?.server?.enabled && typeof Backend !== 'undefined') {
+                    if (typeof Utils !== 'undefined' && typeof Utils.hasCloudBackendSync === 'function' && Utils.hasCloudBackendSync() && typeof Backend !== 'undefined') {
                         try {
                             const userData = AppState.currentUser || {};
                             const result = await Backend.sendToAppsScript('saveCompanySettings', {
@@ -4153,7 +4153,7 @@ const Settings = {
         }
 
                         // حفظ الشعار في قاعدة البيانات
-                        if (AppState.backendConfig?.server?.enabled && typeof Backend !== 'undefined') {
+                        if (typeof Utils !== 'undefined' && typeof Utils.hasCloudBackendSync === 'function' && Utils.hasCloudBackendSync() && typeof Backend !== 'undefined') {
                             try {
                                 const userData = AppState.currentUser || {};
                                 const result = await Backend.sendToAppsScript('saveCompanySettings', {
@@ -4238,7 +4238,7 @@ const Settings = {
         }
 
                     // حفظ إزالة الشعار في قاعدة البيانات
-                    if (AppState.backendConfig?.server?.enabled && typeof Backend !== 'undefined') {
+                    if (typeof Utils !== 'undefined' && typeof Utils.hasCloudBackendSync === 'function' && Utils.hasCloudBackendSync() && typeof Backend !== 'undefined') {
                         try {
                             const userData = AppState.currentUser || {};
                             const result = await Backend.sendToAppsScript('saveCompanySettings', {

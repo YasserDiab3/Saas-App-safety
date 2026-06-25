@@ -851,9 +851,9 @@ const DataManager = {
                 }
             }
             
-            // ✅ محاولة تحميل الإعدادات من Google Sheets فقط عند forceReload أو عدم وجود cache
-            // هذا يضمن تحميل الشعار من قاعدة البيانات مرة واحدة فقط
-            if (AppState.backendConfig?.server?.enabled && typeof Backend !== 'undefined') {
+            // ✅ محاولة تحميل الإعدادات من الخادم (Supabase أو Apps Script)
+            const cloudReady = typeof Utils !== 'undefined' && typeof Utils.hasCloudBackendSync === 'function' && Utils.hasCloudBackendSync();
+            if ((cloudReady || AppState.backendConfig?.server?.enabled) && typeof Backend !== 'undefined') {
                 try {
                     const result = await Backend.sendToAppsScript('getCompanySettings', {});
                     if (result && result.success && result.data) {

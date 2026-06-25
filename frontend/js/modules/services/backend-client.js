@@ -37,6 +37,9 @@ const Backend = {
      */
     _isBackendRpcConfigured() {
         try {
+            if (typeof window !== 'undefined' && window.SAAS_CONFIG && window.SAAS_CONFIG.useSupabaseBackend) {
+                return true;
+            }
             const sc = AppState && AppState.backendConfig && AppState.backendConfig.server;
             const url = sc && String(sc.scriptUrl || '').trim();
             if (!url) return false;
@@ -1225,6 +1228,9 @@ const Backend = {
      * التحقق من هل هو sendToAppsScript
      */
     async sendToAppsScript(action, data, retryCount = 0) {
+        if (typeof window !== 'undefined' && window.SAAS_CONFIG && window.SAAS_CONFIG.useSupabaseBackend && window.SaaSAdapter) {
+            return window.SaaSAdapter.sendRequest({ action, data: data || {} });
+        }
         // التحقق من هل هو Circuit Breaker
         try {
             this._checkCircuitBreaker();
