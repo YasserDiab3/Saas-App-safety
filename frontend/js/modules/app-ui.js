@@ -6924,6 +6924,15 @@ window.UI = {
                         }
                     }
                     break;
+                case 'safety-calendar':
+                    if (typeof SafetyCalendar !== 'undefined' && SafetyCalendar.load) {
+                        SafetyCalendar.load();
+                    } else {
+                        if (!silent) {
+                            Utils.safeError('❌ موديول SafetyCalendar غير متوفر - الموديول لم يُحمّل بشكل صحيح');
+                        }
+                    }
+                    break;
                 case 'risk-assessment':
                     if (typeof RiskAssessment !== 'undefined' && RiskAssessment.load) {
                         try {
@@ -11080,6 +11089,7 @@ window.UI = {
                 'contractors': 'Contractors',
                 'employees': 'Employees',
                 'emergency': 'Emergency',
+                'safety-calendar': 'SafetyCalendar',
                 'ppe': 'PPE',
                 'fire-equipment': 'FireEquipment',
                 'periodic-inspections': 'PeriodicInspections',

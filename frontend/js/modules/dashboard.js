@@ -153,6 +153,7 @@ const Dashboard = {
             } catch (_) { /* ignore */ }
         }
         this.loadRecentActivities();
+        this.loadSafetyCalendarWidget();
         this.loadUserTasksWidget();
         this.loadEmployeeReportWidget();
         try {
@@ -3818,6 +3819,81 @@ const Dashboard = {
                     </div>
                 `;
             }
+        }
+    },
+
+    /**
+     * ويدجت تقويم السلامة — أحداث اليوم والقادمة خلال 14 يوماً
+     */
+    async loadSafetyCalendarWidget() {
+        const container = document.getElementById('safety-calendar-widget');
+        if (!container) return;
+
+        if (!this.dashboardCan('safety-calendar')) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-lock text-4xl text-gray-300 mb-4"></i>
+                    <p class="text-gray-500">${this.t('dash.noPermissionTasks', 'لا توجد صلاحية لعرض هذا القسم.')}</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-spinner fa-spin text-4xl text-gray-300 mb-4"></i>
+                <p class="text-gray-500">${this.t('common.loading', 'جاري التحميل...')}</p>
+            </div>
+        `;
+
+        try {
+            if (typeof SafetyCalendar === 'undefined') {
+                container.innerHTML = `<p class="text-gray-500">${this.t('module.safetyCalendar.noEvents', 'لا توجد أحداث')}</p>`;
+                return;
+            }
+            await SafetyCalendar.ensureData();
+
+            const esc = (v) => (typeof Utils !== 'undefined' && Utils.escapeHTML)
+                ? Utils.escapeHTML(String(v ?? ''))
+                : String(v ?? '');
+            const fmt = (iso) => {
+                if (typeof SafetyCalendar.formatDate === 'function') return SafetyCalendar.formatDate(iso);
+                return iso || '—';
+            };
+            const color = (ev) => (typeof SafetyCalendar.eventColor === 'function')
+                ? SafetyCalendar.eventColor(ev)
+                : '#64748B';
+            const titleOf = (ev) => {
+                const en = AppState.currentLanguage === 'en';
+                return (en && ev.titleEn) ? ev.titleEn : (ev.title || ev.titleEn || '—');
+            };
+
+            const todayList = SafetyCalendar.todayEvents();
+            const upcoming = SafetyCalendar.upcomingEvents(14).slice(0, 8);
+
+            const renderItem = (ev) => `
+                <li class="sc-widget-item">
+                    <span class="sc-widget-dot" style="background:${esc(color(ev))}"></span>
+                    <div>
+                        <strong>${esc(titleOf(ev))}</strong>
+                        <span class="sc-widget-date">${esc(fmt(ev.startDate))}${ev.endDate && ev.endDate !== ev.startDate ? ' — ' + esc(fmt(ev.endDate)) : ''}</span>
+                    </div>
+                </li>`;
+
+            let html = '';
+            if (todayList.length) {
+                html += `<p class="sc-widget-label">${this.t('dash.safetyCalendarToday', 'اليوم')}</p><ul class="sc-widget-list">${todayList.map(renderItem).join('')}</ul>`;
+            }
+            if (upcoming.length) {
+                html += `<p class="sc-widget-label">${this.t('dash.safetyCalendarUpcoming', 'الأحداث القادمة (14 يوم)')}</p><ul class="sc-widget-list">${upcoming.map(renderItem).join('')}</ul>`;
+            }
+            if (!html) {
+                html = `<div class="empty-state"><i class="fas fa-calendar-check text-4xl text-gray-300 mb-4"></i><p class="text-gray-500">${this.t('dash.safetyCalendarNoUpcoming', 'لا توجد أحداث قادمة خلال أسبوعين')}</p></div>`;
+            }
+            container.innerHTML = html;
+        } catch (err) {
+            if (typeof Utils !== 'undefined' && Utils.safeWarn) Utils.safeWarn('⚠️ تعذر تحميل ويدجت تقويم السلامة:', err);
+            container.innerHTML = `<p class="text-gray-500">${this.t('module.safetyCalendar.noEvents', 'لا توجد أحداث')}</p>`;
         }
     },
 

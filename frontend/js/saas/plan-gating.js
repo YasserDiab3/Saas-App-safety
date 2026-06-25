@@ -48,7 +48,7 @@
             return this._state;
         },
 
-        CORE: ['dashboard', 'profile', 'help', 'settings', 'users', 'apptester'],
+        CORE: ['dashboard', 'profile', 'help', 'settings', 'users', 'apptester', 'safety-calendar'],
 
         isModuleAllowed(moduleKey) {
             if (!moduleKey) return true;

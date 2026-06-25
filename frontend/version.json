@@ -1,4 +1,4 @@
 {
-  "version": "2.2.36",
-  "message": "feat(safety-calendar): module + dashboard widget"
+  "version": "2.2.37",
+  "message": "chore(release): sync version after pre-commit bump"
 }
