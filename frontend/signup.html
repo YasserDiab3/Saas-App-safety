@@ -99,6 +99,10 @@
           <span data-i18n="have_account">لديك حساب؟</span>
           <a href="/login" data-i18n="login_link">تسجيل الدخول</a>
         </div>
+        <div class="saas-version-foot">
+          <span id="login-footer-version" class="saas-version-badge" dir="ltr" title="إصدار التطبيق">…</span>
+          <button type="button" id="login-footer-update" class="saas-version-update-btn" hidden>تحديث متاح</button>
+        </div>
       </div>
     </div>
   </div>
@@ -131,6 +135,7 @@
   <script src="/js/saas/saas-auth-fields.js"></script>
   <script src="/js/saas/saas-signup-errors.js"></script>
   <script src="/js/saas/saas-terms-modal.js"></script>
+  <script src="/js/saas/saas-version.js" defer></script>
   <script>
     const $ = id => document.getElementById(id);
     const T = k => SaaSI18n.t(k);

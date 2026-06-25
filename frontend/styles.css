@@ -1524,6 +1524,41 @@ body.saas-trial-banner-visible #company-logo-header {
 }
 
 /* Logout Button */
+.sidebar-version-wrap {
+    padding: 0.75rem 1rem 0;
+    text-align: center;
+}
+
+.sidebar-app-version-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.3rem 0.65rem;
+    background: rgba(255, 199, 44, 0.15);
+    color: #FFC72C;
+    border: 1px solid rgba(255, 199, 44, 0.35);
+    border-radius: 9999px;
+    font-weight: 700;
+    font-size: 0.72rem;
+    font-family: ui-monospace, Consolas, 'Courier New', monospace;
+    unicode-bidi: isolate;
+    cursor: default;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.sidebar-app-version-badge--update {
+    cursor: pointer;
+    animation: login-version-pulse 1.6s ease-in-out infinite;
+    box-shadow: 0 0 0 2px rgba(255, 199, 44, 0.35);
+    background: rgba(37, 99, 235, 0.2);
+    color: #93c5fd;
+    border-color: rgba(147, 197, 253, 0.5);
+}
+
+.sidebar-app-version-badge--update:hover {
+    transform: scale(1.04);
+}
+
 .logout-btn {
     padding: 1rem 1.5rem;
     background: rgba(200, 16, 46, 0.15);

@@ -114,17 +114,32 @@
             const verEl = document.getElementById('login-footer-version');
             const updEl = document.getElementById('login-footer-update');
             const l = lang || getLang();
+            const hasUpdate = this.isUpdateAvailable();
 
             if (verEl) {
                 verEl.textContent = this._server ? formatDisplay(this._server) : '…';
-                verEl.classList.toggle('login-footer-version-badge--update', this.isUpdateAvailable());
+                verEl.classList.toggle('login-footer-version-badge--update', hasUpdate);
+                verEl.classList.toggle('saas-version-badge--update', hasUpdate);
             }
 
             if (updEl) {
-                const show = this.isUpdateAvailable();
-                updEl.hidden = !show;
+                updEl.hidden = !hasUpdate;
                 updEl.textContent = l === 'en' ? 'Update available — refresh' : 'تحديث متاح — حدّث الصفحة';
             }
+
+            this.updateSidebarBadge(l);
+        },
+
+        updateSidebarBadge(lang) {
+            const el = document.getElementById('sidebar-app-version');
+            if (!el) return;
+            const l = lang || getLang();
+            const hasUpdate = this.isUpdateAvailable();
+            el.textContent = this._server ? formatDisplay(this._server) : '…';
+            el.classList.toggle('sidebar-app-version-badge--update', hasUpdate);
+            el.title = hasUpdate
+                ? (l === 'en' ? 'Update available — click to refresh' : 'تحديث متاح — انقر للتحديث')
+                : (l === 'en' ? 'App version' : 'إصدار التطبيق');
         },
 
         reloadForUpdate() {
@@ -272,7 +287,8 @@
                 const t = e.target;
                 if (!t) return;
                 if (t.id === 'login-footer-update' ||
-                    (t.id === 'login-footer-version' && t.classList.contains('login-footer-version-badge--update'))) {
+                    (t.id === 'login-footer-version' && (t.classList.contains('login-footer-version-badge--update') || t.classList.contains('saas-version-badge--update'))) ||
+                    (t.id === 'sidebar-app-version' && t.classList.contains('sidebar-app-version-badge--update'))) {
                     e.preventDefault();
                     Version.reloadForUpdate();
                 }

@@ -192,6 +192,23 @@
             });
         }
 
+        if (action === 'reportUserVersion') {
+            return await rpc('api_report_user_version', { p_payload: data || {} });
+        }
+        if (action === 'getAllUserVersions') {
+            const latest = (data && data.latestVersion) ? String(data.latestVersion) : '';
+            const res = await rpc('api_list_user_versions', { p_latest_version: latest });
+            if (res && res.success === false) return res;
+            const rows = (res && Array.isArray(res.data)) ? res.data : [];
+            return { success: true, data: rows };
+        }
+        if (action === 'getUserVersionStats') {
+            const latest = (data && data.latestVersion) ? String(data.latestVersion) : '';
+            const res = await rpc('api_user_version_stats', { p_latest_version: latest });
+            if (res && res.success === false) return res;
+            return Object.assign({ success: true }, res || {});
+        }
+
         return { success: false, message: `action غير معروف في محوّل SaaS: '${action}'`, _unmapped: true };
     }
 

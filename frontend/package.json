@@ -4,7 +4,8 @@
   "description": "بناء إنتاجي: تصغير JS وإزالة console/debugger بدون source maps",
   "scripts": {
     "build": "node scripts/build-frontend-prod.mjs",
-    "build:prod": "node scripts/build-frontend-prod.mjs"
+    "build:prod": "node scripts/build-frontend-prod.mjs",
+    "bump-version": "node scripts/bump-version.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.25.12"

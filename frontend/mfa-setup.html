@@ -40,6 +40,10 @@
           <a href="/" id="back-app" class="saas-btn saas-btn--ghost" data-i18n="mfa_back_app">العودة للتطبيق</a>
         </div>
         <div class="saas-msg" id="msg"></div>
+        <div class="saas-version-foot">
+          <span id="login-footer-version" class="saas-version-badge" dir="ltr" title="إصدار التطبيق">…</span>
+          <button type="button" id="login-footer-update" class="saas-version-update-btn" hidden>تحديث متاح</button>
+        </div>
       </div>
     </div>
   </div>
@@ -49,6 +53,7 @@
   <script src="/js/saas/supabase-bootstrap.js"></script>
   <script src="/js/saas/saas-mfa.js"></script>
   <script src="/js/saas/saas-i18n.js"></script>
+  <script src="/js/saas/saas-version.js" defer></script>
   <script>
     const $ = id => document.getElementById(id);
     const T = k => (window.SaaSI18n ? SaaSI18n.t(k) : k);

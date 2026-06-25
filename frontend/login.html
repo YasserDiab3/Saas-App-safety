@@ -53,6 +53,10 @@
           <span data-i18n="no_account">لا تملك حساباً؟</span>
           <a href="/signup" data-i18n="signup_link">أنشئ مؤسسة جديدة</a>
         </div>
+        <div class="saas-version-foot">
+          <span id="login-footer-version" class="saas-version-badge" dir="ltr" title="إصدار التطبيق">…</span>
+          <button type="button" id="login-footer-update" class="saas-version-update-btn" hidden>تحديث متاح</button>
+        </div>
       </div>
     </div>
   </div>
@@ -65,6 +69,7 @@
   <script src="/js/saas/saas-auth-fields.js"></script>
   <script src="/js/saas/saas-brand.js"></script>
   <script src="/js/saas/saas-mfa.js"></script>
+  <script src="/js/saas/saas-version.js" defer></script>
   <script>
     const $ = id => document.getElementById(id);
     const T = k => (window.SaaSI18n ? SaaSI18n.t(k) : k);

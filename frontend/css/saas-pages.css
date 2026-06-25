@@ -511,3 +511,25 @@ label.mod input{width:16px;height:16px;accent-color:var(--brand-600)}
 .saas-btn--ghost,.saas-btn.ghost{background:#eef2f7;color:var(--brand-700);box-shadow:none}
 .saas-btn--ghost:hover:not(:disabled),.saas-btn.ghost:hover:not(:disabled){background:#e2e8f0}
 .saas-btn--sm,.saas-btn.sm{height:38px;width:auto;padding:0 16px;font-size:.85rem;border-radius:9px}
+
+.saas-version-foot{
+  margin-top:14px;padding-top:12px;border-top:1px solid var(--line);
+  display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;
+}
+.saas-version-badge{
+  padding:0.22rem 0.55rem;background:rgba(15,118,110,0.1);color:var(--brand-700);
+  border-radius:9999px;font-weight:700;font-size:0.72rem;
+  font-family:ui-monospace,Consolas,'Courier New',monospace;unicode-bidi:isolate;
+}
+.saas-version-badge--update,.saas-version-badge.login-footer-version-badge--update{
+  cursor:pointer;animation:saas-version-pulse 1.6s ease-in-out infinite;
+  box-shadow:0 0 0 2px rgba(15,118,110,0.25);
+}
+@keyframes saas-version-pulse{0%,100%{opacity:1}50%{opacity:.72}}
+.saas-version-update-btn{
+  padding:0.22rem 0.6rem;border:none;border-radius:9999px;font-size:0.7rem;font-weight:700;
+  font-family:inherit;cursor:pointer;color:#fff;
+  background:linear-gradient(135deg,#0F766E,#0d9488);
+  animation:saas-version-pulse 1.6s ease-in-out infinite;
+}
+.saas-version-update-btn:hover{filter:brightness(1.06)}
