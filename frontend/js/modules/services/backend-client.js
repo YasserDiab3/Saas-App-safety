@@ -3563,11 +3563,10 @@ const Backend = {
 
             // اكتمال المزامنة
             if (showLoader && typeof Loading !== 'undefined') {
-                Loading.setProgress(100, 'جاري تحميل البيانات');
-                // إخفاء شريط التقدم بعد ثانية واحدة
+                Loading.setProgress(100, 'تم التحميل بنجاح!');
                 setTimeout(() => {
                     Loading.hide();
-                }, 1000);
+                }, 900);
             } else if (showLoader && typeof Loading !== 'undefined') {
                 Loading.hide();
             }

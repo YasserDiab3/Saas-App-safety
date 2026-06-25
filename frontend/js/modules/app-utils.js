@@ -5927,15 +5927,15 @@ const Loading = {
         overlay.setAttribute('aria-hidden', isVisible ? 'false' : 'true');
         overlay.dataset.loadingVisible = isVisible ? '1' : '0';
 
-        const spinner = overlay.querySelector('.loading-spinner');
-        if (spinner) {
-            spinner.style.setProperty('transform', 'none', important);
-            spinner.style.setProperty('rotate', 'none', important);
-            spinner.style.setProperty('writing-mode', 'horizontal-tb', important);
-            spinner.style.setProperty('direction', currentDir, important);
-            spinner.style.setProperty('margin', '0 auto', important);
-            spinner.style.setProperty('width', 'min(92vw, 520px)', important);
-            spinner.style.setProperty('max-width', 'min(92vw, 520px)', important);
+        const card = overlay.querySelector('.loading-card') || overlay.querySelector('.loading-spinner');
+        if (card) {
+            card.style.setProperty('transform', 'none', important);
+            card.style.setProperty('rotate', 'none', important);
+            card.style.setProperty('writing-mode', 'horizontal-tb', important);
+            card.style.setProperty('direction', currentDir, important);
+            card.style.setProperty('margin', '0 auto', important);
+            card.style.setProperty('width', 'min(92vw, 400px)', important);
+            card.style.setProperty('max-width', 'min(92vw, 400px)', important);
         }
     },
     currentProgress: 0,
@@ -5946,8 +5946,6 @@ const Loading = {
         const overlay = document.getElementById('loading-overlay');
         if (!overlay) return;
 
-        // تقليل الإزعاج: داخل التطبيق الرئيسي لا نعرض طبقة التحميل الكاملة
-        // عندما تكون الرسالة عامة فقط (ناتجة غالباً عن تحميلات خلفية/تلقائية).
         try {
             const isAppActive = document.body && document.body.classList.contains('app-active');
             const normalizedMessage = String(message || '').trim();
@@ -5960,112 +5958,77 @@ const Loading = {
         try {
             window._hseLoadingSince = Date.now();
         } catch (e) { /* ignore */ }
+
         this.normalizeOverlayPresentation(overlay, true);
         this.currentMessage = message;
 
-        // تحديث الرسالة
-        const messageEl = overlay.querySelector('.loading-message') || overlay.querySelector('p');
-        if (messageEl) {
-            messageEl.textContent = message;
+        if (typeof window.EnhancedLoader !== 'undefined') {
+            window.EnhancedLoader.init();
+            window.EnhancedLoader.loadingState.total = 100;
+            window.EnhancedLoader.loadingState.startTime = Date.now();
+            window.EnhancedLoader.setMode('loading');
+            window.EnhancedLoader.setStatus(message);
+            if (progress !== null) {
+                window.EnhancedLoader.updateProgress(progress);
+            } else {
+                window.EnhancedLoader.updateProgress(0);
+            }
+            return;
         }
 
-        // تحديث التقدم إذا كان موجوداً
-        if (progress !== null) {
-            this.setProgress(progress);
-        }
+        const messageEl = overlay.querySelector('.loading-message') || overlay.querySelector('#loading-status-text');
+        if (messageEl) messageEl.textContent = message;
+        if (progress !== null) this.setProgress(progress);
     },
 
     setProgress(percentage, message = null) {
+        const pct = Math.max(0, Math.min(100, Number(percentage) || 0));
+        this.currentProgress = pct;
+
+        if (typeof window.EnhancedLoader !== 'undefined') {
+            window.EnhancedLoader.init();
+            window.EnhancedLoader.loadingState.total = 100;
+            if (message) {
+                window.EnhancedLoader.setStatus(message);
+            }
+            window.EnhancedLoader.updateProgress(pct, message && pct < 100 ? message : null);
+            if (pct >= 100 && message && /نجاح|تم/i.test(String(message))) {
+                window.EnhancedLoader.setMode('success');
+            }
+            return;
+        }
+
         const overlay = document.getElementById('loading-overlay');
         if (!overlay) return;
-
-        this.currentProgress = Math.max(0, Math.min(100, percentage));
-
-        const messageEl = overlay.querySelector('.loading-message') || overlay.querySelector('p');
-
-        // تحديث الرسالة إذا تم توفيرها
-        if (message) {
-            this.currentMessage = message;
-            if (messageEl) {
-                messageEl.textContent = message;
-            }
-        }
-
-        // إخفاء شريط التحميل غير المحدد (animation) عند عرض تقدم مئوي واضح
-        const spinner = overlay.querySelector('.loading-spinner');
-        if (spinner) {
-            const anim = spinner.querySelector('.loading-progress-animation');
-            if (anim && anim.parentElement && anim.parentElement.parentElement) {
-                anim.parentElement.parentElement.style.display = 'none';
-            }
-        }
-
-        // إنشاء أو تحديث شريط التقدم
-        let progressBar = overlay.querySelector('.loading-progress-bar');
-        let progressFill = overlay.querySelector('.loading-progress-fill');
-        let progressText = overlay.querySelector('.loading-progress-text');
-
-        if (!progressBar && spinner) {
-            progressBar = document.createElement('div');
-            progressBar.className = 'loading-progress-bar';
-            progressBar.style.cssText = 'width: 300px; height: 8px; background: rgba(59, 130, 246, 0.2); border-radius: 4px; margin: 12px auto 8px; overflow: hidden;';
-
-            progressFill = document.createElement('div');
-            progressFill.className = 'loading-progress-fill';
-            progressFill.style.cssText = 'height: 100%; background: linear-gradient(90deg, #3b82f6, #2563eb); border-radius: 4px; transition: width 0.3s ease; width: 0%;';
-
-            progressText = document.createElement('div');
-            progressText.className = 'loading-progress-text';
-            progressText.style.cssText = 'text-align: center; color: #374151; font-weight: 700; font-size: 1.125rem; margin-top: 4px; font-family: Cairo, Segoe UI, sans-serif;';
-
-            progressBar.appendChild(progressFill);
-            // ترتيب: النص ثم الشريط ثم النسبة المئوية أسفل الشريط
-            if (messageEl) {
-                messageEl.insertAdjacentElement('afterend', progressBar);
-                progressBar.insertAdjacentElement('afterend', progressText);
-            } else {
-                spinner.appendChild(progressBar);
-                spinner.appendChild(progressText);
-            }
-        }
-
-        if (progressFill) {
-            progressFill.style.width = `${this.currentProgress}%`;
-        }
-
-        if (progressText) {
-            progressText.textContent = `${Math.round(this.currentProgress)}%`;
-            progressText.style.color = '#374151';
-        }
+        const fill = overlay.querySelector('.loading-progress-fill') || overlay.querySelector('#loading-progress-bar');
+        const text = overlay.querySelector('.loading-progress-text') || overlay.querySelector('#loading-progress-text');
+        const messageEl = overlay.querySelector('.loading-message');
+        if (message && messageEl) messageEl.textContent = message;
+        if (fill) fill.style.width = `${pct}%`;
+        if (text) text.textContent = `${Math.round(pct)}%`;
     },
 
     updateMessage(message) {
         this.currentMessage = message;
+        if (typeof window.EnhancedLoader !== 'undefined') {
+            window.EnhancedLoader.setStatus(message);
+            return;
+        }
         const overlay = document.getElementById('loading-overlay');
         if (!overlay) return;
-
-        const messageEl = overlay.querySelector('.loading-message') || overlay.querySelector('p');
-        if (messageEl) {
-            messageEl.textContent = message;
-        }
+        const messageEl = overlay.querySelector('.loading-message');
+        if (messageEl) messageEl.textContent = message;
     },
 
     hide() {
         const overlay = document.getElementById('loading-overlay');
+        if (typeof window.EnhancedLoader !== 'undefined') {
+            window.EnhancedLoader.hide();
+        }
         if (overlay) {
             this.normalizeOverlayPresentation(overlay, false);
             this.currentProgress = 0;
             this.currentMessage = '';
-            // إعادة إظهار شريط التحميل غير المحدد للمرة القادمة
-            try {
-                const spinner = overlay.querySelector('.loading-spinner');
-                if (spinner) {
-                    const anim = spinner.querySelector('.loading-progress-animation');
-                    if (anim && anim.parentElement && anim.parentElement.parentElement) {
-                        anim.parentElement.parentElement.style.display = '';
-                    }
-                }
-            } catch (e) { /* ignore */ }
         }
         try {
             delete window._hseLoadingSince;

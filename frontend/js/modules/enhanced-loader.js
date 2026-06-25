@@ -1,87 +1,25 @@
 /**
- * Enhanced Loading Screen
- * شاشة تحميل محسنة مع شريط تقدم وإحصائيات
+ * Enhanced Loading Screen — بطاقة تحميل موحّدة (#loading-overlay)
  */
-
 const EnhancedLoader = {
-    // حالة التحميل
     loadingState: {
-        total: 0,
+        total: 100,
         loaded: 0,
         currentStep: '',
         startTime: null,
         errors: []
     },
 
-    // عناصر DOM
-    elements: {
-        overlay: null,
-        progressBar: null,
-        progressText: null,
-        statusText: null,
-        timeText: null,
-        errorContainer: null
-    },
+    elements: {},
 
-    /**
-     * تهيئة شاشة التحميل
-     */
+    _bound: false,
+
     init() {
-        this.createLoadingScreen();
-        this.loadingState.startTime = Date.now();
-    },
-
-    /**
-     * إنشاء عناصر شاشة التحميل
-     */
-    createLoadingScreen() {
-        // البحث عن شاشة التحميل الموجودة
+        if (this._bound) return;
         this.elements.overlay = document.getElementById('loading-overlay');
-        
-        if (!this.elements.overlay) {
-            console.error('❌ شاشة التحميل غير موجودة!');
-            return;
-        }
+        if (!this.elements.overlay) return;
 
-        // تحديث محتوى شاشة التحميل
-        const spinner = this.elements.overlay.querySelector('.loading-spinner');
-        if (spinner) {
-            spinner.innerHTML = `
-                <i class="fas fa-spinner fa-spin text-5xl text-blue-600 mb-4"></i>
-                <div class="loading-content" style="width: 100%; max-width: 500px;">
-                    <p class="text-lg font-semibold text-gray-700 mb-4" id="loading-status-text">جاري تحميل النظام...</p>
-                    
-                    <!-- شريط التقدم -->
-                    <div class="progress-container" style="width: 100%; background: #e5e7eb; border-radius: 9999px; height: 8px; overflow: hidden; margin-bottom: 12px;">
-                        <div id="loading-progress-bar" class="progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #3b82f6, #2563eb); transition: width 0.3s ease; border-radius: 9999px;"></div>
-                    </div>
-                    
-                    <!-- نص التقدم -->
-                    <div class="flex justify-between items-center text-sm text-gray-600 mb-3">
-                        <span id="loading-progress-text">0%</span>
-                        <span id="loading-time-text">0s</span>
-                    </div>
-                    
-                    <!-- الخطوة الحالية -->
-                    <div class="current-step" style="text-align: center; font-size: 0.875rem; color: #6b7280; min-height: 20px;">
-                        <span id="loading-current-step"></span>
-                    </div>
-                    
-                    <!-- حاوية الأخطاء -->
-                    <div id="loading-error-container" style="margin-top: 16px; display: none;">
-                        <div class="bg-red-50 border border-red-200 rounded-lg p-3">
-                            <p class="text-sm text-red-600 font-semibold mb-2">
-                                <i class="fas fa-exclamation-triangle ml-1"></i>
-                                حدثت بعض المشاكل أثناء التحميل:
-                            </p>
-                            <ul id="loading-error-list" class="text-xs text-red-500 list-disc list-inside"></ul>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        // حفظ المراجع للعناصر
+        this.elements.card = this.elements.overlay.querySelector('.loading-card');
         this.elements.progressBar = document.getElementById('loading-progress-bar');
         this.elements.progressText = document.getElementById('loading-progress-text');
         this.elements.statusText = document.getElementById('loading-status-text');
@@ -89,178 +27,160 @@ const EnhancedLoader = {
         this.elements.currentStepText = document.getElementById('loading-current-step');
         this.elements.errorContainer = document.getElementById('loading-error-container');
         this.elements.errorList = document.getElementById('loading-error-list');
+        this.elements.spinnerIcon = document.getElementById('loading-spinner-icon');
+        this.elements.successIcon = document.getElementById('loading-success-icon');
+
+        this.loadingState.total = 100;
+        this.loadingState.startTime = Date.now();
+        this._bound = true;
     },
 
-    /**
-     * عرض شاشة التحميل (معطل - التحميل في الخلفية)
-     */
+    _pct() {
+        const total = Math.max(1, Number(this.loadingState.total) || 100);
+        const loaded = Math.max(0, Math.min(total, Number(this.loadingState.loaded) || 0));
+        return Math.round((loaded / total) * 100);
+    },
+
+    setMode(mode) {
+        const card = this.elements.card;
+        if (!card) return;
+        card.classList.toggle('loading-card--success', mode === 'success');
+        if (this.elements.spinnerIcon) {
+            this.elements.spinnerIcon.hidden = mode === 'success';
+        }
+        if (this.elements.successIcon) {
+            this.elements.successIcon.hidden = mode !== 'success';
+        }
+    },
+
     show(totalSteps = 100) {
-        // لا نعرض شاشة التحميل - التحميل في الخلفية
-        // نحدث الحالة فقط للاستخدام الداخلي
-        this.loadingState.total = totalSteps;
+        this.init();
+        this.loadingState.total = Math.max(1, totalSteps || 100);
         this.loadingState.loaded = 0;
         this.loadingState.startTime = Date.now();
         this.loadingState.errors = [];
-        this.updateProgress();
-        
-        // التأكد من إخفاء الشاشة حتى لو تم استدعاء show()
-        if (this.elements.overlay) {
-            this.elements.overlay.style.display = 'none';
-            this.elements.overlay.style.visibility = 'hidden';
-        }
+        this.setMode('loading');
+        this.updateProgress(0);
     },
 
-    /**
-     * إخفاء شاشة التحميل
-     */
     hide() {
-        if (this.elements.overlay) {
-            // إخفاء فوري لتقليل تأخير ظهور الواجهة (كان 500ms)
-            this.elements.overlay.style.display = 'none';
+        this.init();
+        const overlay = this.elements.overlay;
+        if (overlay) {
+            overlay.style.display = 'none';
+            overlay.style.visibility = 'hidden';
+            overlay.style.opacity = '0';
+            overlay.style.pointerEvents = 'none';
+            overlay.setAttribute('aria-hidden', 'true');
+        }
+        this.setMode('loading');
+        this.loadingState.loaded = 0;
+        if (this.elements.currentStepText) {
+            this.elements.currentStepText.textContent = '';
         }
     },
 
-    /**
-     * تحديث التقدم
-     */
     updateProgress(step = null, message = null) {
-        if (step !== null) {
-            this.loadingState.loaded = Math.min(step, this.loadingState.total);
+        this.init();
+        if (step !== null && !Number.isNaN(Number(step))) {
+            const total = Math.max(1, Number(this.loadingState.total) || 100);
+            this.loadingState.loaded = Math.max(0, Math.min(total, Number(step)));
         }
 
-        if (message !== null) {
-            this.loadingState.currentStep = message;
+        if (message !== null && message !== undefined) {
+            this.loadingState.currentStep = String(message);
         }
 
-        // حساب النسبة المئوية
-        const percentage = Math.round((this.loadingState.loaded / this.loadingState.total) * 100);
+        const pct = this._pct();
 
-        // تحديث شريط التقدم
         if (this.elements.progressBar) {
-            this.elements.progressBar.style.width = `${percentage}%`;
+            this.elements.progressBar.style.width = `${pct}%`;
         }
-
-        // تحديث نص التقدم
         if (this.elements.progressText) {
-            this.elements.progressText.textContent = `${percentage}%`;
+            this.elements.progressText.textContent = `${pct}%`;
         }
-
-        // تحديث الوقت المنقضي
         if (this.elements.timeText && this.loadingState.startTime) {
             const elapsed = Math.round((Date.now() - this.loadingState.startTime) / 1000);
-            this.elements.timeText.textContent = `${elapsed}s`;
+            this.elements.timeText.textContent = elapsed > 0 ? `${elapsed} ث` : '';
         }
-
-        // تحديث الخطوة الحالية
-        if (this.elements.currentStepText && this.loadingState.currentStep) {
-            this.elements.currentStepText.innerHTML = `<i class="fas fa-sync fa-spin ml-1"></i> ${this.loadingState.currentStep}`;
+        if (this.elements.currentStepText) {
+            const stepMsg = this.loadingState.currentStep;
+            if (stepMsg && pct < 100) {
+                this.elements.currentStepText.textContent = stepMsg;
+            } else if (pct >= 100) {
+                this.elements.currentStepText.textContent = '';
+            }
         }
     },
 
-    /**
-     * تحديث حالة التحميل
-     */
     setStatus(message) {
-        if (this.elements.statusText) {
+        this.init();
+        if (this.elements.statusText && message) {
             this.elements.statusText.textContent = message;
         }
     },
 
-    /**
-     * زيادة التقدم
-     */
     increment(amount = 1, message = null) {
         this.loadingState.loaded = Math.min(
-            this.loadingState.loaded + amount,
-            this.loadingState.total
+            (Number(this.loadingState.loaded) || 0) + amount,
+            Math.max(1, Number(this.loadingState.total) || 100)
         );
-        
-        if (message) {
-            this.loadingState.currentStep = message;
-        }
-        
+        if (message) this.loadingState.currentStep = message;
         this.updateProgress();
     },
 
-    /**
-     * إضافة خطأ
-     */
     addError(error) {
         this.loadingState.errors.push(error);
-        
         if (this.elements.errorContainer && this.elements.errorList) {
-            this.elements.errorContainer.style.display = 'block';
-            
+            this.elements.errorContainer.hidden = false;
             const li = document.createElement('li');
             li.textContent = error;
-            li.className = 'mb-1';
             this.elements.errorList.appendChild(li);
         }
     },
 
-    /**
-     * إنهاء التحميل بنجاح
-     */
     complete(message = 'تم التحميل بنجاح!') {
+        this.init();
+        this.loadingState.loaded = Math.max(1, Number(this.loadingState.total) || 100);
         this.setStatus(message);
-        this.updateProgress(this.loadingState.total, '✓ تم');
-        
-        // إظهار أيقونة النجاح
-        const spinner = this.elements.overlay?.querySelector('.fa-spinner');
-        if (spinner) {
-            spinner.className = 'fas fa-check-circle text-5xl text-green-600 mb-4';
-        }
-        
-        // إخفاء بعد ثانية
-        setTimeout(() => this.hide(), 1000);
+        this.setMode('success');
+        this.updateProgress(this.loadingState.loaded);
+        setTimeout(() => this.hide(), 900);
     },
 
-    /**
-     * إنهاء التحميل بخطأ
-     */
     fail(message = 'فشل التحميل!') {
+        this.init();
         this.setStatus(message);
-        
-        // إظهار أيقونة الخطأ
-        const spinner = this.elements.overlay?.querySelector('.fa-spinner');
-        if (spinner) {
-            spinner.className = 'fas fa-times-circle text-5xl text-red-600 mb-4';
-        }
+        this.setMode('loading');
     },
 
-    /**
-     * إعادة تعيين
-     */
     reset() {
         this.loadingState = {
-            total: 0,
+            total: 100,
             loaded: 0,
             currentStep: '',
             startTime: Date.now(),
             errors: []
         };
-        
         if (this.elements.errorContainer) {
-            this.elements.errorContainer.style.display = 'none';
+            this.elements.errorContainer.hidden = true;
         }
-        
         if (this.elements.errorList) {
             this.elements.errorList.innerHTML = '';
         }
+        this.setMode('loading');
+        this.updateProgress(0);
     },
 
-    /**
-     * الحصول على الإحصائيات
-     */
     getStats() {
-        const elapsed = this.loadingState.startTime 
-            ? (Date.now() - this.loadingState.startTime) / 1000 
+        const total = Math.max(1, Number(this.loadingState.total) || 100);
+        const elapsed = this.loadingState.startTime
+            ? (Date.now() - this.loadingState.startTime) / 1000
             : 0;
-        
         return {
-            percentage: Math.round((this.loadingState.loaded / this.loadingState.total) * 100),
+            percentage: this._pct(),
             loaded: this.loadingState.loaded,
-            total: this.loadingState.total,
+            total,
             elapsed: elapsed.toFixed(2),
             errors: this.loadingState.errors.length,
             currentStep: this.loadingState.currentStep
@@ -268,7 +188,6 @@ const EnhancedLoader = {
     }
 };
 
-// تصدير للاستخدام العام
 if (typeof window !== 'undefined') {
     window.EnhancedLoader = EnhancedLoader;
 }

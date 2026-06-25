@@ -198,11 +198,9 @@
             
             // تهيئة شاشة التحميل المحسنة (بدون عرض - التحميل في الخلفية)
             if (window.EnhancedLoader) {
-                // استخدام requestAnimationFrame لتأخير التنفيذ حتى يتم render CSS
                 requestAnimationFrame(() => {
                     window.EnhancedLoader.init();
-                    // لا نعرض شاشة التحميل - التحميل في الخلفية
-                    // window.EnhancedLoader.show(100);
+                    window.EnhancedLoader.show(100);
                 });
             }
             

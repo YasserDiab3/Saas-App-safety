@@ -12597,47 +12597,34 @@
         <!-- Notification Container -->
         <div id="notification-container" class="notification-container"></div>
 
-        <!-- Loading Overlay (مخفي - التحميل في الخلفية) -->
+        <!-- Loading Overlay -->
         <div
             id="loading-overlay"
             class="loading-overlay"
-            style="display: none !important; visibility: hidden"
+            aria-hidden="true"
+            style="display: none"
         >
-            <div class="loading-spinner">
-                <!-- Progress bar container -->
-                <div style="width: 300px; margin: 0 auto">
-                    <div
-                        style="
-                            width: 100%;
-                            height: 6px;
-                            background: rgba(59, 130, 246, 0.2);
-                            border-radius: 3px;
-                            overflow: hidden;
-                            margin-bottom: 16px;
-                        "
-                    >
-                        <div
-                            class="loading-progress-animation"
-                            style="
-                                height: 100%;
-                                background: linear-gradient(
-                                    90deg,
-                                    #3b82f6,
-                                    #2563eb,
-                                    #3b82f6
-                                );
-                                background-size: 200% 100%;
-                                border-radius: 3px;
-                                animation: loadingProgress 1.5s ease-in-out
-                                    infinite;
-                            "
-                        ></div>
-                    </div>
+            <div class="loading-card" role="status" aria-live="polite">
+                <div class="loading-card__icon" id="loading-icon-wrap">
+                    <div class="loading-card__spinner" id="loading-spinner-icon" aria-hidden="true"></div>
+                    <i class="fas fa-check loading-card__success-icon" id="loading-success-icon" hidden aria-hidden="true"></i>
                 </div>
-                <p class="mt-4 text-gray-600 loading-message">
-                    جاري تحميل النظام...
-                </p>
-                <!-- Progress bar will be added dynamically -->
+                <p class="loading-card__title loading-message" id="loading-status-text">جاري التحميل...</p>
+                <p class="loading-card__step" id="loading-current-step"></p>
+                <div class="loading-card__track" aria-hidden="true">
+                    <div class="loading-card__fill loading-progress-fill" id="loading-progress-bar"></div>
+                </div>
+                <div class="loading-card__meta">
+                    <span class="loading-card__pct loading-progress-text" id="loading-progress-text">0%</span>
+                    <span class="loading-card__time" id="loading-time-text"></span>
+                </div>
+                <div id="loading-error-container" class="loading-card__errors" hidden>
+                    <p class="loading-card__errors-title">
+                        <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
+                        حدثت بعض المشاكل أثناء التحميل
+                    </p>
+                    <ul id="loading-error-list" class="loading-card__errors-list"></ul>
+                </div>
             </div>
         </div>
 
