@@ -3349,6 +3349,59 @@ const Employees = {
         `;
     },
 
+    getImportTemplateHeaders() {
+        return [
+            'رقم SAP',
+            'رقم الموظف',
+            'اسم الموظف',
+            'تاريخ التعيين',
+            'المنصب',
+            'القسم',
+            'الفرع',
+            'الموقع',
+            'الجنس',
+            'رقم البطاقة القومى',
+            'تاريخ الميلاد',
+            'البريد الإلكتروني',
+            'الهاتف',
+            'الرقم التأميني'
+        ];
+    },
+
+    getImportTemplateExample() {
+        return {
+            'رقم SAP': '10001234',
+            'رقم الموظف': 'EMP-001',
+            'اسم الموظف': 'أحمد محمد علي',
+            'تاريخ التعيين': '2020-01-15',
+            'المنصب': 'مهندس سلامة',
+            'القسم': 'السلامة والصحة المهنية',
+            'الفرع': 'الفرع الرئيسي',
+            'الموقع': 'المصنع 1',
+            'الجنس': 'ذكر',
+            'رقم البطاقة القومى': '29001011234567',
+            'تاريخ الميلاد': '1990-01-01',
+            'البريد الإلكتروني': 'ahmed@example.com',
+            'الهاتف': '01000000000',
+            'الرقم التأميني': '12345678901'
+        };
+    },
+
+    downloadImportTemplate() {
+        if (typeof XLSX === 'undefined') {
+            Notification.error(this.t('module.employees.xlsxUnavailable', 'مكتبة Excel غير متاحة'));
+            return;
+        }
+
+        const headers = this.getImportTemplateHeaders();
+        const example = this.getImportTemplateExample();
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet([example], { header: headers });
+        XLSX.utils.book_append_sheet(wb, ws, 'الموظفين');
+        XLSX.writeFile(wb, `قالب_استيراد_الموظفين_${new Date().toISOString().slice(0, 10)}.xlsx`);
+        Notification.success(this.t('module.employees.templateDownloaded', 'تم تنزيل القالب'));
+    },
+
     async showImportExcel() {
         // التحقق من الصلاحيات
         if (!this.canAddOrImport()) {
@@ -3356,45 +3409,89 @@ const Employees = {
             return;
         }
 
+        const templateHeaders = this.getImportTemplateHeaders();
+        const templateExample = this.getImportTemplateExample();
+        const templateColumnsHtml = templateHeaders.map((h) =>
+            `<span class="inline-block text-xs bg-white/80 border border-green-200 text-green-900 rounded px-2 py-0.5 m-0.5">${Utils.escapeHTML(h)}</span>`
+        ).join('');
+        const templatePreviewHtml = templateHeaders.map((h) =>
+            `<tr><th>${Utils.escapeHTML(h)}</th><td class="text-gray-500">${Utils.escapeHTML(String(templateExample[h] || ''))}</td></tr>`
+        ).join('');
+
         const modal = document.createElement('div');
         modal.className = 'modal-overlay';
         modal.innerHTML = `
-            <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-content" style="max-width: 860px;">
                 <div class="modal-header">
-                    <h2 class="modal-title"><i class="fas fa-file-excel ml-2"></i>${this.t('module.employees.importModalTitle', 'استيراد الموظفين من ملف Excel')}</h2>
+                    <h2 class="modal-title"><i class="fas fa-file-excel ml-2 text-green-600"></i>${this.t('module.employees.importModalTitle', 'استيراد الموظفين من ملف Excel')}</h2>
                     <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
                 <div class="modal-body">
                     <div class="space-y-4">
-                        <div class="bg-blue-50 border border-blue-200 rounded p-4">
-                            <p class="text-sm text-blue-800 mb-2"><strong>ملاحظة مهمة:</strong></p>
-                            <p class="text-sm text-blue-700 mb-2">يجب أن يحتوي ملف Excel على الأعمدة التالية:</p>
-                            <ul class="text-sm text-blue-700 list-disc mr-6 mt-2 space-y-1">
-                                <li><strong>ID SAP</strong> أو <strong>رقم SAP</strong> - الكود الوظيفي</li>
-                                <li><strong>رقم الموظف</strong> أو <strong>الرقم الوظيفي</strong> أو <strong>Employee Number</strong> - (سيتم استخدامه كـ ID)</li>
-                                <li><strong>اسم الموظف</strong> أو <strong>Employee Name</strong> - إلزامي</li>
-                                <li><strong>تاريخ التعيين</strong> أو <strong>Hire Date</strong></li>
-                                <li><strong>Job</strong> أو <strong>المنصب</strong></li>
-                                <li><strong>Department</strong> أو <strong>القسم</strong></li>
-                                <li><strong>Branch</strong> أو <strong>الرع</strong></li>
-                                <li><strong>Location</strong> أو <strong>الموقع</strong></li>
-                                <li><strong>Gender</strong> أو <strong>الجنس</strong></li>
-                                <li><strong>رقم البطاقة القومى</strong> أو <strong>National ID</strong></li>
-                                <li><strong>تاريخ الميلاد</strong> أو <strong>Date of Birth</strong></li>
-                                <li><strong>الرقم التأميني</strong> أو <strong>Insurance Number</strong></li>
-                            </ul>
+                        <ol class="flex flex-col sm:flex-row gap-2 sm:gap-3 text-sm">
+                            <li class="flex-1 flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-green-900">
+                                <span class="flex-shrink-0 w-6 h-6 rounded-full bg-green-600 text-white text-xs font-bold flex items-center justify-center">1</span>
+                                <span>${this.t('module.employees.importStepDownload', 'حمّل القالب الجاهز')}</span>
+                            </li>
+                            <li class="flex-1 flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-gray-700">
+                                <span class="flex-shrink-0 w-6 h-6 rounded-full bg-gray-500 text-white text-xs font-bold flex items-center justify-center">2</span>
+                                <span>${this.t('module.employees.importStepFill', 'عبّئ بيانات الموظفين')}</span>
+                            </li>
+                            <li class="flex-1 flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-gray-700">
+                                <span class="flex-shrink-0 w-6 h-6 rounded-full bg-gray-500 text-white text-xs font-bold flex items-center justify-center">3</span>
+                                <span>${this.t('module.employees.importStepImport', 'اختر الملف ثم استورد')}</span>
+                            </li>
+                        </ol>
+
+                        <div class="rounded-xl border-2 border-dashed border-green-300 bg-gradient-to-br from-green-50 to-emerald-50 p-4">
+                            <div class="flex flex-col md:flex-row md:items-start gap-4">
+                                <div class="flex-shrink-0 w-14 h-14 rounded-xl bg-green-600 text-white flex items-center justify-center shadow-sm">
+                                    <i class="fas fa-file-excel text-2xl"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <h3 class="text-base font-bold text-green-900 mb-1">
+                                        ${this.t('module.employees.templateReadyTitle', 'قالب Excel جاهز للتحميل')}
+                                    </h3>
+                                    <p class="text-sm text-green-800 mb-3 leading-relaxed">
+                                        ${this.t('module.employees.templateReadyDesc', 'يحتوي القالب على جميع الأعمدة المطلوبة مع صف مثال. حمّله، عبّئه، ثم ارفع الملف في الخطوة التالية.')}
+                                    </p>
+                                    <div class="mb-3 flex flex-wrap gap-1">${templateColumnsHtml}</div>
+                                    <button type="button" id="employee-download-template-btn" class="btn-primary">
+                                        <i class="fas fa-download ml-2"></i>
+                                        ${this.t('module.employees.downloadImportTemplate', 'تحميل قالب الاستيراد')}
+                                    </button>
+                                </div>
+                            </div>
+                            <details class="mt-4 rounded-lg border border-green-200 bg-white/70">
+                                <summary class="cursor-pointer px-3 py-2 text-sm font-semibold text-green-900">
+                                    ${this.t('module.employees.templatePreviewTitle', 'معاينة شكل القالب (صف مثال)')}
+                                </summary>
+                                <div class="max-h-48 overflow-auto border-t border-green-100">
+                                    <table class="data-table text-xs w-full">
+                                        <thead><tr><th>${this.t('module.employees.importColumnHeader', 'العمود')}</th><th>${this.t('module.employees.importExampleHeader', 'مثال')}</th></tr></thead>
+                                        <tbody>${templatePreviewHtml}</tbody>
+                                    </table>
+                                </div>
+                            </details>
                         </div>
-                        <div>
-                            <label for="employee-excel-file-input" class="block text-sm font-semibold text-gray-700 mb-2">
-                                <i class="fas fa-file-excel ml-2"></i>
-                                اختر مل Excel (.xlsx, .xls)
-                            </label>
-                            <input type="file" id="employee-excel-file-input" accept=".xlsx,.xls" class="form-input">
+
+                        <div class="rounded-lg border border-blue-200 bg-blue-50 p-4">
+                            <p class="text-sm text-blue-800 mb-3">
+                                <strong>${this.t('module.employees.importNoteTitle', 'ملاحظة مهمة:')}</strong>
+                                ${this.t('module.employees.importTemplateHint', 'الحقول الإلزامية: اسم الموظف أو رقم الموظف. يمكن أيضاً استخدام أسماء الأعمدة بالإنجليزية (Employee Name, Employee Number, ...).')}
+                            </p>
+                            <input type="file" id="employee-excel-file-input" accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" class="hidden" tabindex="-1" aria-hidden="true">
+                            <button type="button" id="employee-pick-excel-btn" class="btn-secondary">
+                                <i class="fas fa-folder-open ml-2"></i>
+                                ${this.t('module.employees.pickExcelFile', 'اختيار ملف Excel بعد التعبئة')}
+                            </button>
+                            <p id="employee-selected-file-name" class="text-sm text-blue-900 mt-2 hidden font-medium"></p>
                         </div>
+
                         <div id="employee-import-preview" class="hidden">
-                            <h3 class="text-sm font-semibold mb-2">معاينة البيانات (أول 5 صورة):</h3>
+                            <h3 class="text-sm font-semibold mb-2">${this.t('module.employees.previewFirst5Rows', 'معاينة البيانات (أول 5 صفوف):')}</h3>
                             <div class="max-h-60 overflow-auto border rounded">
                                 <table class="data-table text-xs">
                                     <thead id="employee-preview-head"></thead>
@@ -3420,11 +3517,20 @@ const Employees = {
         const fileInput = document.getElementById('employee-excel-file-input');
         const preview = document.getElementById('employee-import-preview');
         const confirmBtn = document.getElementById('employee-import-confirm-btn');
+        const selectedFileName = document.getElementById('employee-selected-file-name');
         let importedData = [];
+
+        modal.querySelector('#employee-download-template-btn')?.addEventListener('click', () => this.downloadImportTemplate());
+        modal.querySelector('#employee-pick-excel-btn')?.addEventListener('click', () => fileInput?.click());
 
         fileInput.addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (!file) return;
+
+            if (selectedFileName) {
+                selectedFileName.textContent = `${this.t('module.employees.selectedFile', 'الملف المختار')}: ${file.name}`;
+                selectedFileName.classList.remove('hidden');
+            }
 
             Loading.show();
             try {
@@ -3490,13 +3596,13 @@ const Employees = {
                         const hireDate = row['تاريخ التعيين'] || row['Hire Date'] || row['hire_date'] || '';
                         const job = row['Job'] || row['job'] || row['المنصب'] || '';
                         const dept = row['Department'] || row['department'] || row['القسم'] || '';
-                        const branch = row['Branch'] || row['branch'] || row['الرع'] || '';
+                        const branch = row['Branch'] || row['branch'] || row['الفرع'] || row['الرع'] || '';
                         const location = row['Location'] || row['location'] || row['الموقع'] || '';
                         const gender = row['Gender'] || row['gender'] || row['الجنس'] || '';
                         const nationalId = row['رقم البطاقة القومى'] || row['National ID'] || row['national_id'] || '';
                         const birthDate = row['تاريخ الميلاد'] || row['Date of Birth'] || row['birth_date'] || '';
                         const email = row['Email'] || row['email'] || row['البريد الإلكتروني'] || '';
-                        const phone = row['Phone'] || row['phone'] || row['الهات'] || '';
+                        const phone = row['Phone'] || row['phone'] || row['الهاتف'] || row['الهات'] || '';
                         const insuranceNumber = row['الرقم التأميني'] || row['Insurance Number'] || row['insurance_number'] || row['رقم التأمين'] || '';
 
                         const employeeNumber = safeStr(employeeNumberRaw) || safeStr(sapId);
