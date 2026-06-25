@@ -1,40 +1,50 @@
 ---
-description: App version bump and update notification (version.json)
-globs: frontend/version.json,frontend/js/modules/app-utils.js,frontend/index.html,frontend/scripts/bump-version.mjs
-alwaysApply: false
+description: رفع رقم الإصدار تلقائياً مع كل تغيير في الكود
+alwaysApply: true
 ---
 
-# App version — single source of truth
+# إصدار التطبيق — رفع تلقائي مع كل تغيير
 
-## Automatic bump on deploy (Vercel)
+## القاعدة الإلزامية
 
-Every production build runs `bump-version.mjs --ci` when `VERCEL=1` (see `build-frontend-prod.mjs`).
-Message comes from the git commit. No manual bump needed per release.
+عند **أي تعديل** على ملفات التطبيق (frontend، supabase migrations، إعدادات النشر، إلخ) يجب **رفع patch** في `frontend/version.json` **قبل** الـ commit أو الرفع.
 
-Manual only when testing locally:
+لا تنتهِ من المهمة بدون تحديث الإصدار إذا غيّرت كوداً أو إعداداتاً تؤثر على المنتج.
+
+## الأمر
+
 ```bash
-cd frontend && npm run bump-version -- "وصف التحديث"
+cd frontend && npm run bump-version -- "وصف مختصر للتغيير"
 ```
 
-## Files synced on bump
+أو من جذر المستودع (بعد `npm run setup-hooks`):
 
-- `frontend/version.json` — `version` + `message`
-- `frontend/js/modules/app-utils.js` → `AppState.appVersion` fallback
-- `frontend/service-worker.js` → `CACHE_VERSION` (cache bust)
-
-Skip: `SKIP_BUMP_VERSION=1`
-
-## How updates are detected
-
-- `saas-version.js` fetches `/version.json` (no-cache via vercel.json)
-- Compares with `localStorage.hse_last_seen_version`
-- Login footer + sidebar badge + banner/modal when server version is newer
-
-## Example version.json
-
-```json
-{
-  "version": "2.2.14",
-  "message": "تحسين تصميم إعدادات النماذج"
-}
+```bash
+git commit -m "fix: …"
+# pre-commit يرفع الإصدار تلقائياً ويضيف version.json + app-utils + service-worker
 ```
+
+## الملفات المتزامنة
+
+| ملف | حقل |
+|-----|-----|
+| `frontend/version.json` | `version`, `message` |
+| `frontend/js/modules/app-utils.js` | `AppState.appVersion` |
+| `frontend/service-worker.js` | `CACHE_VERSION` |
+
+## تخطي مؤقت
+
+```bash
+SKIP_BUMP_VERSION=1 git commit …
+```
+
+## النشر (Vercel)
+
+- إذا الـ commit يحتوي `frontend/version.json` → البناء **لا** يرفع مرة ثانية (تجنب double bump).
+- إذا نُشر بدون hook → البناء يرفع تلقائياً عبر `bump-version.mjs --ci`.
+
+## للوكيل (Agent)
+
+1. بعد إنجاز التعديلات: شغّل `npm run bump-version` برسالة تعكس التغيير.
+2. ضمّن ملفات الإصدار الثلاثة في نفس الـ commit.
+3. لا تسأل المستخدم إن كان يريد رفع الإصدار — **افتراضياً نعم دائماً**.

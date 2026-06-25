@@ -3,7 +3,9 @@
   "private": true,
   "description": "HSEHub 360 — Vercel build entry (delegates to frontend/)",
   "scripts": {
-    "build": "cd frontend && npm ci && npm run build"
+    "build": "cd frontend && npm ci && npm run build",
+    "setup-hooks": "node scripts/setup-git-hooks.mjs",
+    "bump-version": "cd frontend && npm run bump-version"
   },
   "engines": {
     "node": ">=18"

@@ -6,7 +6,8 @@
     "build": "node scripts/build-frontend-prod.mjs",
     "build:prod": "node scripts/build-frontend-prod.mjs",
     "build:local": "node scripts/build-frontend-prod.mjs",
-    "bump-version": "node scripts/bump-version.mjs"
+    "bump-version": "node scripts/bump-version.mjs",
+    "pre-commit-bump": "node scripts/pre-commit-bump.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.25.12"

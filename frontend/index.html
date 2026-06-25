@@ -12606,8 +12606,29 @@
         >
             <div class="loading-card" role="status" aria-live="polite">
                 <div class="loading-card__icon" id="loading-icon-wrap">
-                    <div class="loading-card__spinner" id="loading-spinner-icon" aria-hidden="true"></div>
-                    <i class="fas fa-check loading-card__success-icon" id="loading-success-icon" hidden aria-hidden="true"></i>
+                    <div class="hse-orbit-loader" id="loading-spinner-icon" aria-hidden="true">
+                        <div class="hse-orbit-loader__glow" aria-hidden="true"></div>
+                        <svg class="hse-orbit-loader__svg" viewBox="0 0 88 88" aria-hidden="true">
+                            <defs>
+                                <linearGradient id="hse-loader-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#237c63" />
+                                    <stop offset="45%" stop-color="#1a634f" />
+                                    <stop offset="100%" stop-color="#144e3e" />
+                                </linearGradient>
+                            </defs>
+                            <circle class="hse-orbit-loader__track" cx="44" cy="44" r="36" />
+                            <circle class="hse-orbit-loader__progress" id="loading-orbit-progress" cx="44" cy="44" r="36" />
+                        </svg>
+                        <span class="hse-orbit-loader__orbit hse-orbit-loader__orbit--1" aria-hidden="true"></span>
+                        <span class="hse-orbit-loader__orbit hse-orbit-loader__orbit--2" aria-hidden="true"></span>
+                        <span class="hse-orbit-loader__orbit hse-orbit-loader__orbit--3" aria-hidden="true"></span>
+                        <span class="hse-orbit-loader__hub" aria-hidden="true"></span>
+                    </div>
+                    <div class="hse-orbit-success" id="loading-success-icon" hidden aria-hidden="true">
+                        <span class="hse-orbit-success__ring">
+                            <i class="fas fa-check" aria-hidden="true"></i>
+                        </span>
+                    </div>
                 </div>
                 <p class="loading-card__title loading-message" id="loading-status-text">جاري التحميل...</p>
                 <p class="loading-card__step" id="loading-current-step"></p>

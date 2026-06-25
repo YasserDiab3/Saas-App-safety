@@ -1,0 +1,6 @@
+#!/bin/sh
+# Auto-bump app version when committing code changes (see .cursor/rules/app-version.mdc)
+set -e
+ROOT="$(git rev-parse --show-toplevel)"
+cd "$ROOT"
+node frontend/scripts/pre-commit-bump.mjs

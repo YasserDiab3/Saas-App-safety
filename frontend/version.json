@@ -1,4 +1,4 @@
 {
-  "version": "2.2.14",
-  "message": "رفع الإصدار تلقائياً عند كل نشر على Vercel"
+  "version": "2.2.16",
+  "message": "fix(profile): allow user photo upload in SaaS mode"
 }

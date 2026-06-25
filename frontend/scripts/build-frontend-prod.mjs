@@ -15,6 +15,19 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const frontendRoot = path.resolve(__dirname, '..');
 
+function versionJsonInCommit(sha) {
+    if (!sha) return false;
+    const r = spawnSync('git', ['diff-tree', '--no-commit-id', '--name-only', '-r', sha], {
+        cwd: repoRoot,
+        encoding: 'utf8',
+    });
+    if (r.status !== 0) return false;
+    return r.stdout.split('\n').some((f) => {
+        const n = f.trim().replace(/\\/g, '/');
+        return n === 'frontend/version.json' || n.endsWith('/frontend/version.json');
+    });
+}
+
 function runAutoVersionBump() {
     if (process.env.SKIP_BUMP_VERSION === '1') {
         console.log('SKIP_BUMP_VERSION=1 — auto version bump skipped');
@@ -25,6 +38,11 @@ function runAutoVersionBump() {
         || process.env.AUTO_BUMP_VERSION === '1';
     if (!onDeploy) {
         console.log('Local build — auto version bump skipped (set AUTO_BUMP_VERSION=1 to force)');
+        return;
+    }
+    const commitSha = process.env.VERCEL_GIT_COMMIT_SHA || process.env.GITHUB_SHA || '';
+    if (versionJsonInCommit(commitSha)) {
+        console.log('version.json already in commit — deploy bump skipped (no double bump)');
         return;
     }
     console.log('Deploy build — auto-bumping app version…');

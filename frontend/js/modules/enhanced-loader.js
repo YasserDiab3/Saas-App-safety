@@ -28,6 +28,7 @@ const EnhancedLoader = {
         this.elements.errorContainer = document.getElementById('loading-error-container');
         this.elements.errorList = document.getElementById('loading-error-list');
         this.elements.spinnerIcon = document.getElementById('loading-spinner-icon');
+        this.elements.progressArc = document.getElementById('loading-orbit-progress');
         this.elements.successIcon = document.getElementById('loading-success-icon');
 
         this.loadingState.total = 100;
@@ -41,15 +42,26 @@ const EnhancedLoader = {
         return Math.round((loaded / total) * 100);
     },
 
+    _orbitCircumference: 2 * Math.PI * 36,
+
+    _updateOrbitArc(pct) {
+        const arc = this.elements.progressArc;
+        if (!arc) return;
+        const c = this._orbitCircumference;
+        arc.style.strokeDasharray = `${c}`;
+        arc.style.strokeDashoffset = `${c * (1 - pct / 100)}`;
+    },
+
     setMode(mode) {
         const card = this.elements.card;
         if (!card) return;
-        card.classList.toggle('loading-card--success', mode === 'success');
+        const isSuccess = mode === 'success';
+        card.classList.toggle('loading-card--success', isSuccess);
         if (this.elements.spinnerIcon) {
-            this.elements.spinnerIcon.hidden = mode === 'success';
+            this.elements.spinnerIcon.hidden = isSuccess;
         }
         if (this.elements.successIcon) {
-            this.elements.successIcon.hidden = mode !== 'success';
+            this.elements.successIcon.hidden = !isSuccess;
         }
     },
 
@@ -96,6 +108,7 @@ const EnhancedLoader = {
         if (this.elements.progressBar) {
             this.elements.progressBar.style.width = `${pct}%`;
         }
+        this._updateOrbitArc(pct);
         if (this.elements.progressText) {
             this.elements.progressText.textContent = `${pct}%`;
         }
