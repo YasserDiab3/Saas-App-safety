@@ -7,8 +7,10 @@ const SafetyCalendar = {
         scopeFilter: 'all',
         year: new Date().getFullYear(),
         month: new Date().getMonth(),
-        selectedDate: null
+        selectedDate: new Date().toISOString().slice(0, 10)
     },
+    _feedCache: null,
+    _feedCacheAt: 0,
 
     t(key, fallback) {
         if (typeof I18n !== 'undefined' && I18n.t) {
@@ -29,6 +31,39 @@ const SafetyCalendar = {
         return Array.isArray(list) ? list : [];
     },
 
+    feedEvents() {
+        const now = Date.now();
+        if (!this._feedCache || now - this._feedCacheAt > 15000) {
+            this._feedCache = (typeof window.SafetyCalendarFeed !== 'undefined' && SafetyCalendarFeed.buildEvents)
+                ? SafetyCalendarFeed.buildEvents()
+                : [];
+            this._feedCacheAt = now;
+        }
+        return this._feedCache;
+    },
+
+    invalidateFeedCache() {
+        this._feedCache = null;
+        this._feedCacheAt = 0;
+    },
+
+    allEvents() {
+        return this.events().concat(this.feedEvents());
+    },
+
+    displayTitle(ev) {
+        const en = AppState.currentLanguage === 'en';
+        return (en && ev.titleEn) ? ev.titleEn : (ev.title || ev.titleEn || '—');
+    },
+
+    isModuleEvent(ev) {
+        return ev && (ev.source === 'feed' || ev.scope === 'module');
+    },
+
+    isOccasionEvent(ev) {
+        return ev && !this.isModuleEvent(ev);
+    },
+
     isAdmin() {
         return typeof Permissions !== 'undefined' && Permissions.isCurrentUserAdmin && Permissions.isCurrentUserAdmin();
     },
@@ -43,15 +78,58 @@ const SafetyCalendar = {
 
     eventColor(ev) {
         if (ev.color) return ev.color;
-        const map = { holiday: '#059669', occasion: '#D97706', hse_event: '#2563EB', custom: '#64748B' };
+        const map = {
+            holiday: '#059669',
+            occasion: '#D97706',
+            hse_event: '#2563EB',
+            custom: '#64748B',
+            module_ptw: '#EA580C',
+            module_training: '#2563EB',
+            module_incident: '#DC2626',
+            module_nearmiss: '#D97706',
+            module_violation: '#9333EA',
+            module_observation: '#0D9488',
+            module_task: '#4F46E5',
+            module_inspection: '#0891B2',
+            module_behavior: '#CA8A04',
+            module_emergency: '#EF4444',
+            module_clinic: '#DB2777'
+        };
         if (ev.scope === 'country') return '#7C3AED';
         return map[ev.eventType] || '#64748B';
     },
 
+    eventIcon(ev) {
+        if (ev.icon) return ev.icon;
+        const map = {
+            holiday: 'fa-umbrella-beach',
+            occasion: 'fa-star',
+            hse_event: 'fa-globe',
+            custom: 'fa-calendar-plus'
+        };
+        return map[ev.eventType] || 'fa-circle';
+    },
+
+    typeLabel(ev) {
+        if (ev.moduleLabel) return ev.moduleLabel;
+        const key = `module.safetyCalendar.type_${ev.eventType || 'custom'}`;
+        const fallbacks = {
+            holiday: this.t('module.safetyCalendar.legHoliday', 'إجازة'),
+            occasion: this.t('module.safetyCalendar.legOccasion', 'مناسبة'),
+            hse_event: this.t('module.safetyCalendar.legGlobal', 'عالمي HSE'),
+            custom: this.t('module.safetyCalendar.filterCustom', 'مخصص')
+        };
+        const v = this.t(key, fallbacks[ev.eventType] || ev.eventType || '');
+        return v === key ? (fallbacks[ev.eventType] || ev.eventType || '') : v;
+    },
+
     filteredEvents() {
         const f = this.state.scopeFilter;
-        return this.events().filter(ev => {
+        const all = this.allEvents();
+        return all.filter(ev => {
             if (f === 'all') return true;
+            if (f === 'modules') return this.isModuleEvent(ev);
+            if (f === 'occasions') return this.isOccasionEvent(ev);
             if (f === 'global') return ev.scope === 'global';
             if (f === 'country') return ev.scope === 'country';
             if (f === 'tenant') return ev.scope === 'tenant' || ev.source === 'tenant';
@@ -160,13 +238,14 @@ const SafetyCalendar = {
             const evs = this.eventsOnDate(dateStr);
             const isToday = dateStr === today;
             const sel = dateStr === this.state.selectedDate;
-            html += `<button type="button" class="sc-day${isToday ? ' is-today' : ''}${sel ? ' is-selected' : ''}" data-date="${dateStr}" role="gridcell">`;
+            html += `<button type="button" class="sc-day${isToday ? ' is-today' : ''}${sel ? ' is-selected' : ''}${evs.length ? ' has-events' : ''}" data-date="${dateStr}" role="gridcell">`;
             html += `<span class="sc-day-num">${parseInt(dateStr.slice(8), 10)}</span>`;
-            html += '<div class="sc-day-dots">';
-            evs.slice(0, 3).forEach(ev => {
-                html += `<span class="sc-dot" style="background:${this.esc(this.eventColor(ev))}" title="${this.esc(ev.title)}"></span>`;
+            html += '<div class="sc-day-chips">';
+            evs.slice(0, 2).forEach(ev => {
+                const short = this.displayTitle(ev).slice(0, 18) + (this.displayTitle(ev).length > 18 ? '…' : '');
+                html += `<span class="sc-day-chip${this.isModuleEvent(ev) ? ' sc-day-chip--module' : ''}" style="--chip-color:${this.esc(this.eventColor(ev))}" title="${this.esc(this.displayTitle(ev))}">${this.esc(short)}</span>`;
             });
-            if (evs.length > 3) html += `<span class="sc-more">+${evs.length - 3}</span>`;
+            if (evs.length > 2) html += `<span class="sc-more">+${evs.length - 2}</span>`;
             html += '</div></button>';
         });
         html += '</div>';
@@ -176,21 +255,29 @@ const SafetyCalendar = {
     renderList() {
         const items = this.filteredEvents().slice().sort((a, b) => (a.startDate || '').localeCompare(b.startDate || ''));
         if (!items.length) {
-            return `<p class="text-slate-500">${this.t('module.safetyCalendar.noEvents', 'لا توجد أحداث')}</p>`;
+            return `<div class="sc-empty"><i class="fas fa-calendar-xmark"></i><p>${this.t('module.safetyCalendar.noEvents', 'لا توجد أحداث')}</p></div>`;
         }
-        const rows = items.map(ev => `<tr>
-            <td>${this.esc(this.formatDate(ev.startDate))}</td>
-            <td>${this.esc(ev.title)}</td>
-            <td><span class="sc-type-badge" style="border-color:${this.esc(this.eventColor(ev))}">${this.esc(ev.eventType || '')}</span></td>
-            <td>${this.esc(ev.scope || '')}</td>
-            ${this.isAdmin() ? `<td><button type="button" class="btn-xs btn-secondary sc-edit" data-id="${this.esc(ev.id)}">${this.t('common.edit', 'تعديل')}</button>
-            <button type="button" class="btn-xs btn-danger sc-del" data-id="${this.esc(ev.id)}">${this.t('common.delete', 'حذف')}</button></td>` : ''}
-        </tr>`).join('');
-        return `<table class="sc-list-table"><thead><tr>
-            <th>${this.t('common.date', 'التاريخ')}</th><th>${this.t('common.title', 'العنوان')}</th>
-            <th>${this.t('module.safetyCalendar.type', 'النوع')}</th><th>${this.t('module.safetyCalendar.scope', 'النطاق')}</th>
-            ${this.isAdmin() ? `<th>${this.t('common.actions', 'إجراءات')}</th>` : ''}
-        </tr></thead><tbody>${rows}</tbody></table>`;
+        const cards = items.map(ev => {
+            const clickable = ev.link ? ` data-link="${this.esc(ev.link)}" role="link" tabindex="0"` : '';
+            return `<article class="sc-list-card${this.isModuleEvent(ev) ? ' sc-list-card--module' : ''}"${clickable} style="--ev-color:${this.esc(this.eventColor(ev))}">
+                <div class="sc-list-card-icon"><i class="fas ${this.esc(this.eventIcon(ev))}"></i></div>
+                <div class="sc-list-card-body">
+                    <div class="sc-list-card-top">
+                        <strong>${this.esc(this.displayTitle(ev))}</strong>
+                        <span class="sc-type-badge">${this.esc(this.typeLabel(ev))}</span>
+                    </div>
+                    <div class="sc-list-card-meta">
+                        <span><i class="fas fa-calendar-day"></i> ${this.esc(this.formatDate(ev.startDate))}${ev.endDate && ev.endDate !== ev.startDate ? ' — ' + this.esc(this.formatDate(ev.endDate)) : ''}</span>
+                        ${ev.description ? `<span class="sc-list-desc">${this.esc(ev.description)}</span>` : ''}
+                    </div>
+                </div>
+                ${this.isAdmin() && !this.isModuleEvent(ev) ? `<div class="sc-list-card-actions">
+                    <button type="button" class="btn-xs btn-secondary sc-edit" data-id="${this.esc(ev.id)}">${this.t('common.edit', 'تعديل')}</button>
+                    <button type="button" class="btn-xs btn-danger sc-del" data-id="${this.esc(ev.id)}">${this.t('common.delete', 'حذف')}</button>
+                </div>` : (ev.link ? `<span class="sc-list-go"><i class="fas fa-arrow-left"></i></span>` : '')}
+            </article>`;
+        }).join('');
+        return `<div class="sc-list-cards">${cards}</div>`;
     },
 
     renderDayPanel() {
@@ -198,13 +285,65 @@ const SafetyCalendar = {
         if (!d) return '';
         const evs = this.eventsOnDate(d);
         const list = evs.length
-            ? evs.map(ev => `<li class="sc-day-ev" style="border-inline-start:4px solid ${this.esc(this.eventColor(ev))}">
-                <strong>${this.esc(ev.title)}</strong>
-                <span class="sc-day-ev-meta">${this.esc(ev.eventType)} · ${this.esc(ev.scope || '')}</span>
-                ${ev.description ? `<p>${this.esc(ev.description)}</p>` : ''}
-            </li>`).join('')
-            : `<li class="text-slate-500">${this.t('module.safetyCalendar.noEventsDay', 'لا أحداث في هذا اليوم')}</li>`;
-        return `<aside class="sc-day-panel"><h4>${this.esc(this.formatDate(d))}</h4><ul>${list}</ul></aside>`;
+            ? evs.map(ev => {
+                const clickable = ev.link ? ` data-link="${this.esc(ev.link)}" role="link" tabindex="0"` : '';
+                return `<li class="sc-day-ev"${clickable} style="--ev-color:${this.esc(this.eventColor(ev))}">
+                    <div class="sc-day-ev-icon"><i class="fas ${this.esc(this.eventIcon(ev))}"></i></div>
+                    <div class="sc-day-ev-body">
+                        <strong>${this.esc(this.displayTitle(ev))}</strong>
+                        <span class="sc-day-ev-meta">${this.esc(this.typeLabel(ev))}</span>
+                        ${ev.description ? `<p>${this.esc(ev.description)}</p>` : ''}
+                    </div>
+                </li>`;
+            }).join('')
+            : `<li class="sc-day-ev sc-day-ev--empty">${this.t('module.safetyCalendar.noEventsDay', 'لا أحداث في هذا اليوم')}</li>`;
+        return `<aside class="sc-day-panel">
+            <div class="sc-day-panel-head">
+                <h4>${this.esc(this.formatDate(d))}</h4>
+                <span class="sc-day-count">${evs.length} ${this.t('module.safetyCalendar.eventsCount', 'حدث')}</span>
+            </div>
+            <ul>${list}</ul>
+        </aside>`;
+    },
+
+    renderStats() {
+        const monthStart = `${this.state.year}-${String(this.state.month + 1).padStart(2, '0')}-01`;
+        const monthEnd = new Date(this.state.year, this.state.month + 1, 0).toISOString().slice(0, 10);
+        const inMonth = this.filteredEvents().filter(ev => {
+            const s = ev.startDate;
+            const e = ev.endDate || s;
+            return s && e && s <= monthEnd && e >= monthStart;
+        });
+        const modules = inMonth.filter(ev => this.isModuleEvent(ev)).length;
+        const occasions = inMonth.filter(ev => this.isOccasionEvent(ev)).length;
+        const today = new Date().toISOString().slice(0, 10);
+        const todayN = this.eventsOnDate(today).length;
+        return `<div class="sc-stats">
+            <div class="sc-stat"><span class="sc-stat-num">${todayN}</span><span class="sc-stat-label">${this.t('dash.safetyCalendarToday', 'اليوم')}</span></div>
+            <div class="sc-stat"><span class="sc-stat-num">${inMonth.length}</span><span class="sc-stat-label">${this.t('module.safetyCalendar.thisMonth', 'هذا الشهر')}</span></div>
+            <div class="sc-stat sc-stat--module"><span class="sc-stat-num">${modules}</span><span class="sc-stat-label">${this.t('module.safetyCalendar.filterModules', 'عمليات HSE')}</span></div>
+            <div class="sc-stat sc-stat--occasion"><span class="sc-stat-num">${occasions}</span><span class="sc-stat-label">${this.t('module.safetyCalendar.filterOccasions', 'مناسبات')}</span></div>
+        </div>`;
+    },
+
+    bindEventLinks(root) {
+        if (!root) return;
+        root.querySelectorAll('[data-link]').forEach(el => {
+            const go = () => {
+                const link = el.getAttribute('data-link');
+                if (!link) return;
+                if (typeof UI !== 'undefined' && UI.showSection) {
+                    const section = link.replace(/^#/, '');
+                    UI.showSection(section);
+                } else {
+                    window.location.hash = link;
+                }
+            };
+            el.addEventListener('click', go);
+            el.addEventListener('keydown', e => {
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); }
+            });
+        });
     },
 
     async load() {
@@ -214,6 +353,7 @@ const SafetyCalendar = {
         }
         const section = document.getElementById('safety-calendar-section');
         if (!section) return;
+        this.invalidateFeedCache();
         await this.ensureData();
 
         const monthName = new Date(this.state.year, this.state.month).toLocaleString(
@@ -222,44 +362,54 @@ const SafetyCalendar = {
         );
 
         section.innerHTML = `
-        <div class="section-header">
+        <div class="sc-shell">
+        <div class="section-header sc-hero">
             <div class="flex items-center justify-between flex-wrap gap-3">
                 <div>
                     <h1 class="section-title"><i class="fas fa-calendar-days ml-2"></i>${this.t('module.safetyCalendar.title', 'تقويم السلامة')}</h1>
-                    <p class="section-subtitle">${this.t('module.safetyCalendar.subtitle', 'مناسبات عالمية HSE وإجازات مصر — قابلة للتخصيص')}</p>
+                    <p class="section-subtitle">${this.t('module.safetyCalendar.subtitle', 'مناسبات HSE وعمليات التصاريح والتدريب والحوادث — في مكان واحد')}</p>
                 </div>
                 <div class="flex flex-wrap gap-2">
                     ${this.isAdmin() ? `<button type="button" id="sc-add-btn" class="btn-primary btn-sm"><i class="fas fa-plus ml-1"></i>${this.t('module.safetyCalendar.add', 'حدث جديد')}</button>
                     <button type="button" id="sc-seed-btn" class="btn-secondary btn-sm"><i class="fas fa-download ml-1"></i>${this.t('module.safetyCalendar.importSeeds', 'استيراد الافتراضي')}</button>` : ''}
                 </div>
             </div>
+            ${this.renderStats()}
         </div>
-        <div class="sc-toolbar">
+        <div class="sc-toolbar card-style">
             <div class="sc-nav">
-                <button type="button" id="sc-prev" class="btn-secondary btn-sm" aria-label="prev"><i class="fas fa-chevron-right"></i></button>
-                <strong id="sc-month-label">${this.esc(monthName)}</strong>
-                <button type="button" id="sc-next" class="btn-secondary btn-sm" aria-label="next"><i class="fas fa-chevron-left"></i></button>
+                <button type="button" id="sc-prev" class="btn-secondary btn-sm sc-nav-btn" aria-label="prev"><i class="fas fa-chevron-right"></i></button>
+                <button type="button" id="sc-today" class="btn-secondary btn-sm">${this.t('module.safetyCalendar.today', 'اليوم')}</button>
+                <strong id="sc-month-label" class="sc-month-label">${this.esc(monthName)}</strong>
+                <button type="button" id="sc-next" class="btn-secondary btn-sm sc-nav-btn" aria-label="next"><i class="fas fa-chevron-left"></i></button>
             </div>
             <div class="sc-filters">
-                <select id="sc-scope" class="form-input">
+                <select id="sc-scope" class="form-input sc-scope-select">
                     <option value="all">${this.t('module.safetyCalendar.filterAll', 'الكل')}</option>
+                    <option value="modules">${this.t('module.safetyCalendar.filterModules', 'عمليات HSE')}</option>
+                    <option value="occasions">${this.t('module.safetyCalendar.filterOccasions', 'مناسبات')}</option>
                     <option value="global">${this.t('module.safetyCalendar.filterGlobal', 'عالمي')}</option>
                     <option value="country">${this.t('module.safetyCalendar.filterCountry', 'مصر')}</option>
                     <option value="tenant">${this.t('module.safetyCalendar.filterCustom', 'مخصص')}</option>
                 </select>
-                <button type="button" class="btn-secondary btn-sm sc-view-btn${this.state.view === 'month' ? ' active' : ''}" data-view="month">${this.t('module.safetyCalendar.month', 'شهر')}</button>
-                <button type="button" class="btn-secondary btn-sm sc-view-btn${this.state.view === 'list' ? ' active' : ''}" data-view="list">${this.t('module.safetyCalendar.list', 'قائمة')}</button>
+                <button type="button" class="btn-secondary btn-sm sc-view-btn${this.state.view === 'month' ? ' active' : ''}" data-view="month"><i class="fas fa-calendar ml-1"></i>${this.t('module.safetyCalendar.month', 'شهر')}</button>
+                <button type="button" class="btn-secondary btn-sm sc-view-btn${this.state.view === 'list' ? ' active' : ''}" data-view="list"><i class="fas fa-list ml-1"></i>${this.t('module.safetyCalendar.list', 'قائمة')}</button>
             </div>
         </div>
-        <div class="sc-legend">
+        <div class="sc-legend card-style">
+            <span class="sc-legend-title">${this.t('module.safetyCalendar.legend', 'دليل الألوان')}</span>
             <span><i class="sc-leg-dot" style="background:#2563EB"></i>${this.t('module.safetyCalendar.legGlobal', 'عالمي HSE')}</span>
             <span><i class="sc-leg-dot" style="background:#7C3AED"></i>${this.t('module.safetyCalendar.legEgypt', 'مصر')}</span>
-            <span><i class="sc-leg-dot" style="background:#059669"></i>${this.t('module.safetyCalendar.legHoliday', 'إجازة')}</span>
-            <span><i class="sc-leg-dot" style="background:#D97706"></i>${this.t('module.safetyCalendar.legOccasion', 'مناسبة')}</span>
+            <span><i class="sc-leg-dot" style="background:#EA580C"></i>${this.t('module.safetyCalendar.legPtw', 'تصاريح')}</span>
+            <span><i class="sc-leg-dot" style="background:#2563EB"></i>${this.t('module.safetyCalendar.legTraining', 'تدريب')}</span>
+            <span><i class="sc-leg-dot" style="background:#DC2626"></i>${this.t('module.safetyCalendar.legIncident', 'حوادث')}</span>
+            <span><i class="sc-leg-dot" style="background:#9333EA"></i>${this.t('module.safetyCalendar.legViolation', 'مخالفات')}</span>
+            <span><i class="sc-leg-dot" style="background:#0D9488"></i>${this.t('module.safetyCalendar.legObservation', 'ملاحظات')}</span>
         </div>
         <div class="sc-body">
-            <div class="sc-main" id="sc-main">${this.state.view === 'list' ? this.renderList() : this.renderMonthGrid()}</div>
+            <div class="sc-main card-style" id="sc-main">${this.state.view === 'list' ? this.renderList() : this.renderMonthGrid()}</div>
             ${this.state.view === 'month' ? this.renderDayPanel() : ''}
+        </div>
         </div>`;
 
         const scopeEl = section.querySelector('#sc-scope');
@@ -268,6 +418,13 @@ const SafetyCalendar = {
         section.querySelector('#sc-prev')?.addEventListener('click', () => {
             this.state.month -= 1;
             if (this.state.month < 0) { this.state.month = 11; this.state.year -= 1; }
+            this.load();
+        });
+        section.querySelector('#sc-today')?.addEventListener('click', () => {
+            const now = new Date();
+            this.state.year = now.getFullYear();
+            this.state.month = now.getMonth();
+            this.state.selectedDate = now.toISOString().slice(0, 10);
             this.load();
         });
         section.querySelector('#sc-next')?.addEventListener('click', () => {
@@ -298,17 +455,23 @@ const SafetyCalendar = {
             this.load();
         });
         section.querySelectorAll('.sc-edit').forEach(btn => {
-            btn.addEventListener('click', () => this.openForm(btn.getAttribute('data-id')));
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.openForm(btn.getAttribute('data-id'));
+            });
         });
         section.querySelectorAll('.sc-del').forEach(btn => {
-            btn.addEventListener('click', async () => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
                 const id = btn.getAttribute('data-id');
                 if (!confirm(this.t('module.safetyCalendar.confirmDelete', 'حذف هذا الحدث؟'))) return;
-                AppState.appData.safetyCalendarEvents = this.events().filter(e => e.id !== id);
+                AppState.appData.safetyCalendarEvents = this.events().filter(ev => ev.id !== id);
                 await this.saveEvents();
                 this.load();
             });
         });
+
+        this.bindEventLinks(section);
 
         if (typeof I18n !== 'undefined' && I18n.applyModuleI18n) I18n.applyModuleI18n(section);
     },
@@ -387,7 +550,7 @@ const SafetyCalendar = {
         const end = new Date();
         end.setDate(end.getDate() + (days || 7));
         const endStr = end.toISOString().slice(0, 10);
-        return this.events().filter(ev => {
+        return this.allEvents().filter(ev => {
             const s = ev.startDate;
             const e = ev.endDate || s;
             return s <= endStr && e >= today;
@@ -396,7 +559,11 @@ const SafetyCalendar = {
 
     todayEvents() {
         const today = new Date().toISOString().slice(0, 10);
-        return this.eventsOnDate(today);
+        return this.allEvents().filter(ev => {
+            const s = ev.startDate;
+            const e = ev.endDate || ev.startDate;
+            return s && e && today >= s && today <= e;
+        });
     }
 };
 

@@ -3868,6 +3868,10 @@ const Dashboard = {
                 return (en && ev.titleEn) ? ev.titleEn : (ev.title || ev.titleEn || '—');
             };
 
+            if (typeof SafetyCalendar.invalidateFeedCache === 'function') {
+                SafetyCalendar.invalidateFeedCache();
+            }
+
             const todayList = SafetyCalendar.todayEvents();
             const upcoming = SafetyCalendar.upcomingEvents(14).slice(0, 8);
 
@@ -3875,7 +3879,8 @@ const Dashboard = {
                 <li class="sc-widget-item">
                     <span class="sc-widget-dot" style="background:${esc(color(ev))}"></span>
                     <div>
-                        <strong>${esc(titleOf(ev))}</strong>
+                        <strong class="sc-widget-title">${esc(titleOf(ev))}</strong>
+                        ${ev.moduleLabel ? `<span class="sc-widget-badge">${esc(ev.moduleLabel)}</span>` : ''}
                         <span class="sc-widget-date">${esc(fmt(ev.startDate))}${ev.endDate && ev.endDate !== ev.startDate ? ' — ' + esc(fmt(ev.endDate)) : ''}</span>
                     </div>
                 </li>`;
