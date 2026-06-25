@@ -5,6 +5,7 @@
   "scripts": {
     "build": "node scripts/build-frontend-prod.mjs",
     "build:prod": "node scripts/build-frontend-prod.mjs",
+    "build:local": "node scripts/build-frontend-prod.mjs",
     "bump-version": "node scripts/bump-version.mjs"
   },
   "devDependencies": {

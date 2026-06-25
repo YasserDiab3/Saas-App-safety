@@ -7,12 +7,38 @@
  * الناتج: Frontend/dist/ ثم نسخ إلى dist/ عند جذر المستودع (لتوافق إعدادات Vercel التي تتوقع dist).
  */
 import * as esbuild from 'esbuild';
+import { spawnSync } from 'node:child_process';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const frontendRoot = path.resolve(__dirname, '..');
+
+function runAutoVersionBump() {
+    if (process.env.SKIP_BUMP_VERSION === '1') {
+        console.log('SKIP_BUMP_VERSION=1 — auto version bump skipped');
+        return;
+    }
+    const onDeploy = process.env.VERCEL === '1'
+        || process.env.CI === 'true'
+        || process.env.AUTO_BUMP_VERSION === '1';
+    if (!onDeploy) {
+        console.log('Local build — auto version bump skipped (set AUTO_BUMP_VERSION=1 to force)');
+        return;
+    }
+    console.log('Deploy build — auto-bumping app version…');
+    const r = spawnSync(process.execPath, [path.join(__dirname, 'bump-version.mjs'), '--ci'], {
+        cwd: frontendRoot,
+        stdio: 'inherit',
+        env: process.env
+    });
+    if (r.status !== 0) {
+        process.exit(r.status ?? 1);
+    }
+}
+
+runAutoVersionBump();
 const distRoot = path.join(frontendRoot, 'dist');
 const repoRoot = path.resolve(frontendRoot, '..');
 const rootDist = path.join(repoRoot, 'dist');
