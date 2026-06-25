@@ -802,77 +802,83 @@ const Permissions = {
             <div class="content-card mt-6" id="form-settings-card">
                 <div class="card-header">
                     <h2 class="card-title">
-                        <i class="fas fa-sliders-h ml-2"></i>
+                        <i class="fas fa-file-alt ml-2"></i>
                         إعدادات النماذج
                     </h2>
                 </div>
                 <div class="card-body space-y-6">
-                    <p class="text-sm text-gray-600 leading-6">
-                        من هنا يمكنك إدارة المواقع وأماكنها، وتحديد قوائم الإدارات المسؤولة وفريق السلامة المستخدمين داخل النماذج (مثل الملاحظات اليومية).
-                        أي تعديل يتم حفظه مباشرة في قاعدة البيانات ويظهر في النماذج عند تعبئتها. جميع العمليات تُسجل في سجل النشاطات مع اسم المستخدم والتاريخ.
-                    </p>
-                    <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 md:p-6 shadow">
-                        <div class="flex flex-col gap-1 mb-4 pb-4 border-b border-gray-200">
-                            <h3 class="text-sm font-semibold text-gray-800 flex items-center gap-2">
-                                <span class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-blue-100 text-blue-700" aria-hidden="true">
-                                    <i class="fas fa-map-marked-alt text-sm"></i>
-                                </span>
-                                المواقع والأماكن
-                            </h3>
-                            <p class="text-xs text-gray-500 pr-2">
-                                اختر موقعاً من العمود الأول لإدارة الأماكن التابعة له في العمود الثاني. الترتيب المعروض هنا يُستخدم في قوائم النماذج.
-                            </p>
+                    <div class="fs-intro">
+                        <span class="fs-intro__icon" aria-hidden="true"><i class="fas fa-info"></i></span>
+                        <p class="mb-0">
+                            من هنا يمكنك إدارة المواقع وأماكنها، وتحديد قوائم الإدارات المسؤولة وفريق السلامة المستخدمين داخل النماذج (مثل الملاحظات اليومية).
+                            أي تعديل يتم حفظه مباشرة في قاعدة البيانات ويظهر في النماذج عند تعبئتها. جميع العمليات تُسجل في سجل النشاطات مع اسم المستخدم والتاريخ.
+                        </p>
+                    </div>
+
+                    <section class="fs-section fs-locations-panel" aria-labelledby="fs-locations-title">
+                        <div class="fs-section__head">
+                            <span class="fs-section__icon fs-section__icon--map" aria-hidden="true"><i class="fas fa-map-marked-alt"></i></span>
+                            <div>
+                                <h3 class="fs-section__title" id="fs-locations-title">المواقع والأماكن</h3>
+                                <p class="fs-section__desc">اختر موقعاً من العمود الأول لإدارة الأماكن التابعة له. الترتيب المعروض يُستخدم في قوائم النماذج.</p>
+                            </div>
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                            <div class="rounded-lg border border-gray-200 bg-white p-4 shadow flex flex-col" style="min-height: 12rem;">
-                                <h4 class="text-sm font-semibold text-gray-700 mb-1 flex items-center gap-2">
-                                    <i class="fas fa-map-marker-alt text-gray-400 text-xs" aria-hidden="true"></i>
-                                    المواقع
-                                </h4>
-                                <p class="text-xs text-gray-500 mb-3">قائمة المصانع أو المواقع؛ استخدم «اختيار» لتحديد الموقع النشط.</p>
-                                <div id="form-settings-sites-list" class="space-y-2 flex-1 min-h-0 max-h-96 overflow-y-auto pr-1"></div>
-                                <button type="button" class="btn-primary btn-sm mt-3 w-full flex-shrink-0" data-action="add-site">
+                        <div class="fs-columns">
+                            <div class="fs-panel">
+                                <div class="fs-panel__head">
+                                    <h4 class="fs-panel__title"><i class="fas fa-map-marker-alt" aria-hidden="true"></i>المواقع</h4>
+                                    <p class="fs-panel__hint">قائمة المصانع أو المواقع؛ استخدم «اختيار» لتحديد الموقع النشط.</p>
+                                </div>
+                                <div id="form-settings-sites-list" class="fs-scroll-list"></div>
+                                <button type="button" class="btn-primary btn-sm flex-shrink-0" data-action="add-site">
                                     <i class="fas fa-plus ml-2"></i>إضافة موقع
                                 </button>
                             </div>
-                            <div class="rounded-lg border border-gray-200 bg-white p-4 shadow flex flex-col" style="min-height: 12rem; border-inline-start: 4px solid #3b82f6;">
-                                <h4 class="text-sm font-semibold text-gray-700 mb-1 flex items-center gap-2">
-                                    <i class="fas fa-location-dot text-gray-400 text-xs" aria-hidden="true"></i>
-                                    الأماكن داخل الموقع المحدد
-                                </h4>
-                                <p id="form-settings-places-context" class="text-xs text-gray-600 mb-3 rounded-md bg-gray-50 border border-dashed border-gray-200 px-3 py-2" style="min-height: 2.75rem;" aria-live="polite"></p>
-                                <div id="form-settings-places-list" class="space-y-2 flex-1 min-h-0 max-h-96 overflow-y-auto pr-1"></div>
-                                <button type="button" class="btn-secondary btn-sm mt-3 w-full flex-shrink-0" data-action="add-place" id="form-settings-add-place-btn">
+                            <div class="fs-panel fs-panel--places">
+                                <div class="fs-panel__head">
+                                    <h4 class="fs-panel__title"><i class="fas fa-location-dot" aria-hidden="true"></i>الأماكن داخل الموقع المحدد</h4>
+                                </div>
+                                <p id="form-settings-places-context" class="fs-places-context" aria-live="polite"></p>
+                                <div id="form-settings-places-list" class="fs-scroll-list"></div>
+                                <button type="button" class="btn-secondary btn-sm flex-shrink-0" data-action="add-place" id="form-settings-add-place-btn">
                                     <i class="fas fa-plus ml-2"></i>إضافة مكان
                                 </button>
                             </div>
                         </div>
+                    </section>
+
+                    <div class="fs-teams-grid">
+                        <section class="fs-team-card" aria-labelledby="fs-dept-title">
+                            <div class="fs-team-card__head fs-team-card__head--dept">
+                                <i class="fas fa-briefcase" aria-hidden="true"></i>
+                                <h3 class="fs-team-card__title" id="fs-dept-title">المسؤولون عن التنفيذ</h3>
+                            </div>
+                            <div id="form-settings-departments-list" class="fs-scroll-list" style="max-height:16rem;"></div>
+                            <button type="button" class="btn-secondary btn-sm" data-action="add-department">
+                                <i class="fas fa-plus ml-2"></i>إضافة إدارة
+                            </button>
+                        </section>
+                        <section class="fs-team-card" aria-labelledby="fs-safety-title">
+                            <div class="fs-team-card__head fs-team-card__head--safety">
+                                <i class="fas fa-user-shield" aria-hidden="true"></i>
+                                <h3 class="fs-team-card__title" id="fs-safety-title">فريق السلامة</h3>
+                            </div>
+                            <div id="form-settings-safety-list" class="fs-scroll-list" style="max-height:16rem;"></div>
+                            <button type="button" class="btn-secondary btn-sm" data-action="add-safety-member">
+                                <i class="fas fa-plus ml-2"></i>إضافة عضو
+                            </button>
+                        </section>
                     </div>
-                    <div>
-                        <h3 class="text-sm font-semibold text-gray-700 mb-3">
-                            <i class="fas fa-briefcase ml-2"></i>المسؤولون عن التنفيذ
-                        </h3>
-                        <div id="form-settings-departments-list" class="space-y-2"></div>
-                        <button type="button" class="btn-secondary btn-sm mt-2" data-action="add-department">
-                            <i class="fas fa-plus ml-2"></i>إضافة إدارة
-                        </button>
-                    </div>
-                    <div>
-                        <h3 class="text-sm font-semibold text-gray-700 mb-3">
-                            <i class="fas fa-user-shield ml-2"></i>فريق السلامة
-                        </h3>
-                        <div id="form-settings-safety-list" class="space-y-2"></div>
-                        <button type="button" class="btn-secondary btn-sm mt-2" data-action="add-safety-member">
-                            <i class="fas fa-plus ml-2"></i>إضافة عضو
-                        </button>
-                    </div>
-                    
-                    <!-- استيراد وتصدير البيانات -->
-                    <div class="border-t border-gray-200 pt-4 mt-4">
-                        <h3 class="text-sm font-semibold text-gray-700 mb-3">
-                            <i class="fas fa-exchange-alt ml-2"></i>استيراد وتصدير البيانات
-                        </h3>
-                        <div class="flex flex-wrap gap-2 mb-4">
+
+                    <section class="fs-io-panel fs-section" aria-labelledby="fs-io-title">
+                        <div class="fs-section__head" style="border-bottom:none;padding-bottom:0;margin-bottom:0.75rem;">
+                            <span class="fs-section__icon fs-section__icon--io" aria-hidden="true"><i class="fas fa-exchange-alt"></i></span>
+                            <div>
+                                <h3 class="fs-section__title" id="fs-io-title">استيراد وتصدير البيانات</h3>
+                                <p class="fs-section__desc">نسخ الإعدادات بين المؤسسات أو استعادتها من ملف JSON.</p>
+                            </div>
+                        </div>
+                        <div class="fs-io-toolbar">
                             <button type="button" class="btn-secondary btn-sm" data-action="import-form-settings-file">
                                 <i class="fas fa-file-import ml-2"></i>استيراد من ملف
                             </button>
@@ -881,18 +887,16 @@ const Permissions = {
                             </button>
                             <input type="file" id="form-settings-file-input" accept=".json" style="display: none;">
                         </div>
-                        
-                        <!-- منطقة النسخ واللصق -->
-                        <div class="mt-4">
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <div class="fs-paste-block">
+                            <label for="form-settings-paste-area">
                                 <i class="fas fa-paste ml-2"></i>النسخ واللصق (JSON)
                             </label>
-                            <textarea 
-                                id="form-settings-paste-area" 
+                            <textarea
+                                id="form-settings-paste-area"
                                 class="form-input w-full min-h-[150px] font-mono text-sm"
                                 placeholder='الصق البيانات بصيغة JSON هنا، مثال:&#10;{&#10;  "sites": [{"id": "SITE1", "name": "موقع 1", "places": [{"id": "PLACE1", "name": "مكان 1"}]}],&#10;  "departments": ["إدارة 1", "إدارة 2"],&#10;  "safetyTeam": ["عضو 1", "عضو 2"]&#10;}'
                             ></textarea>
-                            <div class="flex gap-2 mt-2">
+                            <div class="fs-paste-actions">
                                 <button type="button" class="btn-secondary btn-sm" data-action="paste-form-settings">
                                     <i class="fas fa-clipboard ml-2"></i>استيراد من النص
                                 </button>
@@ -903,12 +907,12 @@ const Permissions = {
                                     <i class="fas fa-eraser ml-2"></i>مسح
                                 </button>
                             </div>
-                            <p class="text-xs text-gray-500 mt-2">
+                            <p class="fs-hint">
                                 <i class="fas fa-info-circle ml-1"></i>
                                 يمكنك نسخ البيانات من ملف JSON ولصقها هنا، أو نسخ البيانات الحالية للصقها في مكان آخر.
                             </p>
                         </div>
-                    </div>
+                    </section>
                 </div>
                 <div class="card-footer flex flex-wrap items-center justify-between gap-3">
                     <button type="button" class="btn-secondary" data-action="reset-form-settings">
@@ -926,17 +930,16 @@ const Permissions = {
         const state = this.getFormSettingsState();
         if (!Array.isArray(state.sites) || state.sites.length === 0) {
             return `
-                <div class="bg-gray-50 border border-dashed border-gray-300 rounded-lg p-4 text-sm text-gray-600">
-                    لا توجد مواقع مسجلة. اضغط على زر <strong>إضافة موقع</strong> للبدء.
+                <div class="fs-empty">
+                    <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
+                    <span>لا توجد مواقع مسجلة. اضغط على زر <strong>إضافة موقع</strong> للبدء.</span>
                 </div>
             `;
         }
 
-        // ✅ إصلاح: عرض جميع المواقع بدون أي قيود (50 موقع أو أكثر)
-        // لا نستخدم slice() أو limit - نعرض جميع المواقع
         return state.sites.map((site, index) => `
-            <div class="flex flex-wrap items-center gap-2 p-3 border border-gray-200 rounded-lg bg-white hover:border-gray-300 transition-colors ${site.id === state.selectedSiteId ? 'border-blue-500 bg-blue-50' : ''}" data-site-id="${Utils.escapeHTML(site.id)}">
-                <span class="inline-flex items-center justify-center rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600 flex-shrink-0" title="الترتيب">#${index + 1}</span>
+            <div class="fs-list-row fs-site-row ${site.id === state.selectedSiteId ? 'fs-site-row--selected' : ''}" data-site-id="${Utils.escapeHTML(site.id)}">
+                <span class="fs-row-index" title="الترتيب">#${index + 1}</span>
                 <input type="text" class="form-input flex-1 min-w-0" data-field="site-name" data-site-id="${Utils.escapeHTML(site.id)}"
                     value="${Utils.escapeHTML(site.name || '')}" placeholder="اسم الموقع" style="min-width: 8rem;">
                 <button type="button" class="btn-secondary btn-xs flex-shrink-0 ${site.id === state.selectedSiteId ? 'btn-primary' : ''}" data-action="select-site" data-site-id="${Utils.escapeHTML(site.id)}">
@@ -951,27 +954,28 @@ const Permissions = {
 
     renderFormPlacesList() {
         const state = this.getFormSettingsState();
-        const emptyBox = (body) => `
-            <div class="bg-gray-50 border border-dashed border-gray-300 rounded-lg p-4 text-sm text-gray-600 leading-relaxed">
-                ${body}
+        const emptyBox = (icon, body) => `
+            <div class="fs-empty fs-empty--inline">
+                <i class="fas ${icon}" aria-hidden="true"></i>
+                <span>${body}</span>
             </div>`;
         if (!state || !Array.isArray(state.sites)) {
-            return emptyBox('لا توجد مواقع متاحة. أضف موقعاً أولاً من العمود المجاور.');
+            return emptyBox('fa-map', 'لا توجد مواقع متاحة. أضف موقعاً أولاً من العمود المجاور.');
         }
         if (!state.selectedSiteId) {
-            return emptyBox('اختر موقعاً من قائمة المواقع باستخدام زر <strong>اختيار</strong> لعرض وتعديل الأماكن التابعة له.');
+            return emptyBox('fa-hand-pointer', 'اختر موقعاً من قائمة المواقع باستخدام زر <strong>اختيار</strong> لعرض وتعديل الأماكن التابعة له.');
         }
         const site = state.sites.find((item) => item.id === state.selectedSiteId);
         if (!site) {
-            return emptyBox('الموقع المحدد غير موجود. اختر موقعاً صالحاً من القائمة.');
+            return emptyBox('fa-exclamation-circle', 'الموقع المحدد غير موجود. اختر موقعاً صالحاً من القائمة.');
         }
         if (!Array.isArray(site.places) || site.places.length === 0) {
             const label = (site.name || '').trim() || 'هذا الموقع';
-            return emptyBox(`لا توجد أماكن مسجلة لـ <strong>${Utils.escapeHTML(label)}</strong>. استخدم زر <strong>إضافة مكان</strong> أدناه.`);
+            return emptyBox('fa-location-dot', `لا توجد أماكن مسجلة لـ <strong>${Utils.escapeHTML(label)}</strong>. استخدم زر <strong>إضافة مكان</strong> أدناه.`);
         }
         return site.places.map((place, index) => `
-            <div class="flex flex-wrap items-center gap-2 p-3 border border-gray-200 rounded-lg bg-white hover:border-gray-300 transition-colors" data-place-id="${Utils.escapeHTML(place.id)}">
-                <span class="inline-flex items-center justify-center rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600 flex-shrink-0" title="الترتيب">#${index + 1}</span>
+            <div class="fs-list-row" data-place-id="${Utils.escapeHTML(place.id)}">
+                <span class="fs-row-index" title="الترتيب">#${index + 1}</span>
                 <input type="text" class="form-input flex-1 min-w-0" data-field="place-name" data-place-id="${Utils.escapeHTML(place.id)}"
                     value="${Utils.escapeHTML(place.name || '')}" placeholder="اسم المكان داخل الموقع" style="min-width: 8rem;">
                 <button type="button" class="btn-danger btn-xs flex-shrink-0" data-action="remove-place" data-place-id="${Utils.escapeHTML(place.id)}" title="حذف المكان">
@@ -984,11 +988,15 @@ const Permissions = {
     renderDepartmentsList() {
         const state = this.getFormSettingsState();
         if (!Array.isArray(state.departments) || state.departments.length === 0) {
-            return `<p class="text-sm text-gray-500">لم يتم تحديد إدارات مسؤولة بعد. يمكنك إضافتها عبر الزر أدناه.</p>`;
+            return `
+                <div class="fs-empty fs-empty--inline">
+                    <i class="fas fa-briefcase" aria-hidden="true"></i>
+                    <span class="text-sm text-gray-500">لم يتم تحديد إدارات مسؤولة بعد. يمكنك إضافتها عبر الزر أدناه.</span>
+                </div>`;
         }
         return state.departments.map((department, index) => `
-            <div class="flex items-center gap-2 p-2 border border-gray-200 rounded-lg bg-white" data-department-index="${index}">
-                <span class="text-xs text-gray-400">#${index + 1}</span>
+            <div class="fs-list-row" data-department-index="${index}">
+                <span class="fs-row-index">#${index + 1}</span>
                 <input type="text" class="form-input flex-1" data-field="department-name" data-department-index="${index}"
                     value="${Utils.escapeHTML(department || '')}" placeholder="اسم الإدارة أو الجهة المسؤولة">
                 <button type="button" class="btn-danger btn-xs" data-action="remove-department" data-department-index="${index}">
@@ -1001,11 +1009,15 @@ const Permissions = {
     renderSafetyTeamList() {
         const state = this.getFormSettingsState();
         if (!Array.isArray(state.safetyTeam) || state.safetyTeam.length === 0) {
-            return `<p class="text-sm text-gray-500">لم يتم تسجيل أعضاء فريق السلامة. يمكنك إضافة الأسماء عبر الزر أدناه.</p>`;
+            return `
+                <div class="fs-empty fs-empty--inline">
+                    <i class="fas fa-user-shield" aria-hidden="true"></i>
+                    <span class="text-sm text-gray-500">لم يتم تسجيل أعضاء فريق السلامة. يمكنك إضافة الأسماء عبر الزر أدناه.</span>
+                </div>`;
         }
         return state.safetyTeam.map((member, index) => `
-            <div class="flex items-center gap-2 p-2 border border-gray-200 rounded-lg bg-white" data-safety-index="${index}">
-                <span class="text-xs text-gray-400">#${index + 1}</span>
+            <div class="fs-list-row" data-safety-index="${index}">
+                <span class="fs-row-index">#${index + 1}</span>
                 <input type="text" class="form-input flex-1" data-field="safety-name" data-safety-index="${index}"
                     value="${Utils.escapeHTML(member || '')}" placeholder="اسم عضو فريق السلامة">
                 <button type="button" class="btn-danger btn-xs" data-action="remove-safety-member" data-safety-index="${index}">
