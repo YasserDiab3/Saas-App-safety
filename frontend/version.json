@@ -1,4 +1,4 @@
 {
-  "version": "2.2.42",
-  "message": "chore(release): trigger Vercel production redeploy"
+  "version": "2.2.43",
+  "message": "chore: sync Vercel production deploy"
 }
