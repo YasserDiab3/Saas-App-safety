@@ -72,10 +72,13 @@
     }
 
     function lang() {
-        if (global.SaaSI18n && SaaSI18n.lang) return SaaSI18n.lang();
+        if (global.SaaSI18n && SaaSI18n.lang != null) {
+            if (typeof SaaSI18n.lang === 'function') return SaaSI18n.lang();
+            return String(SaaSI18n.lang);
+        }
         if (global.AppState && AppState.currentLanguage) return AppState.currentLanguage;
         try {
-            return localStorage.getItem('language') || localStorage.getItem('saas_lang') || 'ar';
+            return localStorage.getItem('saas_lang') || localStorage.getItem('language') || 'ar';
         } catch (_e) {
             return 'ar';
         }
