@@ -1,4 +1,4 @@
 {
   "version": "2.2.21",
-  "message": "chore(release): correct v2.2.18 message and pre-commit hint"
+  "message": "إصلاح CSP لخطوط Google Fonts في service worker"
 }
