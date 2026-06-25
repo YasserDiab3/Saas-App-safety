@@ -235,6 +235,14 @@
         if (action === 'reportUserVersion') {
             return await rpc('api_report_user_version', { p_payload: data || {} });
         }
+        if (action === 'getHelpCenter') {
+            const res = await rpc('api_get_help_center', {});
+            if (res && res.success === false) return res;
+            return { success: true, data: (res && res.data) || res || {} };
+        }
+        if (action === 'saveHelpCenter') {
+            return await rpc('api_save_help_center', { p_data: data || {} });
+        }
         if (action === 'updateMyProfile') {
             return await rpc('api_update_my_profile', { p_patch: data.patch || data.updateData || data || {} });
         }

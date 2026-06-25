@@ -10625,6 +10625,16 @@
                         <span data-i18n="nav.pricing">عروض الأسعار</span>
                     </a>
                     <a
+                        href="#help"
+                        class="nav-item"
+                        data-section="help"
+                        role="menuitem"
+                        title="المساعدة"
+                    >
+                        <i class="fas fa-circle-question" aria-hidden="true"></i>
+                        <span data-i18n="nav.help">المساعدة</span>
+                    </a>
+                    <a
                         href="#settings"
                         class="nav-item"
                         data-section="settings"
@@ -12569,6 +12579,13 @@
                         role="region"
                         aria-label="قسم اختبار التطبيق"
                     ></section>
+                    <!-- Help Center Section -->
+                    <section
+                        id="help-section"
+                        class="section"
+                        role="region"
+                        aria-label="قسم المساعدة"
+                    ></section>
                     <!-- Settings Section (محتواه يُملأ من Settings.load — يظهر skeleton مؤقت لمنع تأخير الواجهة) -->
                     <section
                         id="settings-section"
@@ -12907,6 +12924,8 @@
         <script src="js/modules/modules/useraiassistant.js" defer></script>
         <script src="js/modules/modules/issuetracking.js" defer></script>
         <script src="js/modules/modules/changemanagement.js" defer></script>
+        <script src="js/modules/help-default-content.js" defer></script>
+        <script src="js/modules/modules/help.js" defer></script>
         <script src="js/modules/modules/apptester.js" defer></script>
 
         <!-- 5. Events (Event listeners and initialization) -->

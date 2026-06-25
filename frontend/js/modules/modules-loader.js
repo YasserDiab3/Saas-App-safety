@@ -44,6 +44,7 @@ const MODULES_TO_LOAD = [
     'issuetracking',
     'changemanagement',
     'apptester',
+    'help',
     'issuingauthorities',
     // ثقيل الحجم — يُحمَّل بعد الأساسيات لتسريع أول عرض
     'ptw',

@@ -6937,6 +6937,15 @@ window.UI = {
                         }
                     }
                     break;
+                case 'help':
+                    if (typeof Help !== 'undefined' && Help.load) {
+                        Help.load();
+                    } else {
+                        if (!silent) {
+                            Utils.safeError('❌ موديول Help غير متوفر - الموديول لم يُحمّل بشكل صحيح');
+                        }
+                    }
+                    break;
                 case 'safety-budget':
                     if (typeof SafetyBudget !== 'undefined' && SafetyBudget.load) {
                         SafetyBudget.load();

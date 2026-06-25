@@ -1,4 +1,4 @@
 {
-  "version": "2.2.21",
-  "message": "إصلاح CSP لخطوط Google Fonts في service worker"
+  "version": "2.2.22",
+  "message": "chore(release): correct v2.2.21 message"
 }

@@ -262,6 +262,7 @@ const MODULE_PERMISSIONS_CONFIG = [
     { key: 'kpi-annual-plan', label: 'الخطة السنوية لمؤشرات الأداء (KPIs)', icon: 'fa-calendar-alt', parentModule: 'safety-performance-kpis' },
     { key: 'hse-monitoring-plan', label: 'خطة متابعة HSE', icon: 'fa-clipboard-check', parentModule: 'safety-performance-kpis' },
     { key: 'safety-health-management', label: 'إدارة السلامة والصحة', icon: 'fa-user-shield' },
+    { key: 'help', label: 'المساعدة', icon: 'fa-circle-question' },
     { key: 'settings', label: 'الإعدادات', icon: 'fa-cog', adminOnly: true },
     { key: 'action-tracking', label: 'سجل متابعة الإجراءات', icon: 'fa-clipboard-list' },
     { key: 'issue-tracking', label: 'تتبع المشاكل', icon: 'fa-bug', hasDetailedPermissions: true },
@@ -2898,7 +2899,7 @@ const DEFAULT_COMPANY_NAME = '';
 
 const AppState = {
     /** fallback فقط — المصدر الرسمي: frontend/version.json (يُحدَّث عبر saas-version.js) */
-    appVersion: '2.2.21',
+    appVersion: '2.2.22',
     /** نص اختياري لرسالة التحديث (ملخص التغييرات). إن تُركت فارغة يُستخدم النص الافتراضي. */
     updateMessage: '',
     debugMode: false,
@@ -8208,6 +8209,7 @@ const I18n = {
             'settings.tabs.email': 'إشعارات البريد الإلكتروني',
             'settings.tabs.permissions': 'الصلاحيات والموافقات',
             'settings.tabs.circuit': 'دائرة الموافقة',
+            'settings.tabs.help': 'مركز المساعدة',
             'settings.tabs.logs': 'السجلات والرصد',
             
             'settings.company.title': 'بيانات الشركة والهوية',
@@ -8865,6 +8867,7 @@ const I18n = {
             'settings.tabs.email': 'Email Notifications',
             'settings.tabs.permissions': 'Permissions & Approvals',
             'settings.tabs.circuit': 'Approval Circuit',
+            'settings.tabs.help': 'Help Center',
             'settings.tabs.logs': 'Logs & Monitoring',
             
             'settings.company.title': 'Company Data & Identity',

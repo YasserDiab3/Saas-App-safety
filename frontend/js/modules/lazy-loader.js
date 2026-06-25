@@ -50,6 +50,7 @@ const LazyLoader = {
         'action-tracking': { name: 'ActionTrackingRegister', required: false, priority: 3 },
         'ai-assistant': { name: 'AIAssistant', required: false, priority: 3 },
         'settings': { name: 'Settings', required: false, priority: 3 },
+        'help': { name: 'Help', required: false, priority: 3 },
         'user-tasks': { name: 'UserTasks', required: false, priority: 3 }
     },
 
