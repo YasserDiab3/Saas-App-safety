@@ -116,6 +116,7 @@ const Help = {
     getCategoryLabel(cat) {
         const map = {
             'getting-started': this.t('module.help.catGettingStarted', 'البدء السريع'),
+            'legal': this.t('module.help.catLegal', 'السياسات والمسؤولية'),
             'faq': this.t('module.help.catFaq', 'أسئلة شائعة'),
             'modules': this.t('module.help.catModules', 'المديولات'),
             'admin': this.t('module.help.catAdmin', 'الإدارة')
@@ -188,7 +189,7 @@ const Help = {
             if (!groups[cat]) groups[cat] = [];
             groups[cat].push(s);
         });
-        const order = ['getting-started', 'faq', 'modules', 'admin'];
+        const order = ['getting-started', 'legal', 'faq', 'modules', 'admin'];
         return order.filter((c) => groups[c]?.length).map((c) => ({ category: c, items: groups[c] }));
     },
 

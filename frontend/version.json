@@ -1,4 +1,4 @@
 {
-  "version": "2.2.29",
-  "message": "fix(help): resolve help_center_global RPC and console init race"
+  "version": "2.2.30",
+  "message": "fix(help): make help center edit form visible and clickable"
 }
