@@ -1,4 +1,4 @@
 {
-  "version": "2.2.18",
-  "message": "chore(release): v2.2.16 sync version message for production deploy"
+  "version": "2.2.19",
+  "message": "fix(release): repair Vercel version bump detection and add verify-version"
 }

@@ -32,12 +32,15 @@ function stagedFiles() {
 }
 
 function commitMessageHint() {
+    const fromEnv = (process.env.GIT_COMMIT_MESSAGE || '').trim();
+    if (fromEnv) return fromEnv.length > 140 ? fromEnv.slice(0, 137) + '…' : fromEnv;
+
     const msgPath = path.join(repoRoot, '.git', 'COMMIT_EDITMSG');
     if (!fs.existsSync(msgPath)) return '';
     const raw = fs.readFileSync(msgPath, 'utf8').trim();
-    if (!raw || raw.startsWith('#')) return '';
-    const first = raw.split('\n')[0].trim();
-    if (/^merge /i.test(first)) return '';
+    const lines = raw.split('\n').map((l) => l.trim()).filter((l) => l && !l.startsWith('#'));
+    const first = lines[0] || '';
+    if (!first || /^merge /i.test(first)) return '';
     return first.length > 140 ? first.slice(0, 137) + '…' : first;
 }
 
