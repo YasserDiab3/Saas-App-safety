@@ -252,6 +252,7 @@ const MODULE_PERMISSIONS_CONFIG = [
     { key: 'daily-observations', label: 'الملاحظات اليومية', icon: 'fa-eye', hasDetailedPermissions: true },
     { key: 'iso', label: 'نظام ISO', icon: 'fa-certificate' },
     { key: 'emergency', label: 'تنبيهات الطوارئ', icon: 'fa-bell' },
+    { key: 'safety-calendar', label: 'تقويم السلامة', icon: 'fa-calendar-days' },
     { key: 'risk-assessment', label: 'تقييم المخاطر', icon: 'fa-balance-scale' },
     { key: 'sop-jha', label: 'إجراءات العمل والتقييمات', icon: 'fa-tasks' },
     { key: 'legal-documents', label: 'الوثائق القانونية', icon: 'fa-file-contract' },
@@ -2899,7 +2900,7 @@ const DEFAULT_COMPANY_NAME = '';
 
 const AppState = {
     /** fallback فقط — المصدر الرسمي: frontend/version.json (يُحدَّث عبر saas-version.js) */
-    appVersion: '2.2.35',
+    appVersion: '2.2.36',
     /** نص اختياري لرسالة التحديث (ملخص التغييرات). إن تُركت فارغة يُستخدم النص الافتراضي. */
     updateMessage: '',
     debugMode: false,
@@ -2948,6 +2949,7 @@ const AppState = {
         isoProcedures: [],
         isoForms: [],
         emergencyAlerts: [],
+        safetyCalendarEvents: [],
         emergencyPlans: [],
         emergencyPlansUpdates: [],
         riskAssessments: [],
