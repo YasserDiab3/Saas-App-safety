@@ -1878,6 +1878,11 @@ const Permissions = {
             return true;
         }
 
+        // مديولات أساسية — متاحة لكل مستخدم مسجل (مطابقة plan-gating CORE و app.core_module_keys)
+        if (moduleName === 'safety-calendar' || moduleName === 'help') {
+            return true;
+        }
+
         // التحقق من الموديولات المحمية (adminOnly): مدير فعلي، أو منح صريح في permissions (يتوافق مع شاشة المستخدمين)
         const moduleConfig = MODULE_PERMISSIONS_CONFIG.find(m => m.key === moduleName);
         if (moduleConfig && moduleConfig.adminOnly) {
@@ -2900,7 +2905,7 @@ const DEFAULT_COMPANY_NAME = '';
 
 const AppState = {
     /** fallback فقط — المصدر الرسمي: frontend/version.json (يُحدَّث عبر saas-version.js) */
-    appVersion: '2.2.37',
+    appVersion: '2.2.39',
     /** نص اختياري لرسالة التحديث (ملخص التغييرات). إن تُركت فارغة يُستخدم النص الافتراضي. */
     updateMessage: '',
     debugMode: false,
