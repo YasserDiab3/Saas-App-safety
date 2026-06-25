@@ -94,6 +94,9 @@
                     if (window.SaaSAuthStorage && window.SaaSAuthStorage.markSessionActive) {
                         window.SaaSAuthStorage.markSessionActive();
                     }
+                    if (window.CookieConsent && typeof CookieConsent.linkVisitorAfterLogin === 'function') {
+                        CookieConsent.linkVisitorAfterLogin().catch(function () { /* ignore */ });
+                    }
                 } catch (gateErr) {
                     log('⚠️ SaaS early gate failed — redirect to login:', gateErr);
                     location.replace('/login');

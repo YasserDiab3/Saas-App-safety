@@ -14,6 +14,7 @@
 <meta name="application-name" content="HSEHub 360">
 <link rel="icon" type="image/png" href="/assets/brand/favicon.png">
 <link rel="stylesheet" href="/css/saas-pages.css">
+<link rel="stylesheet" href="/css/saas-cookie-consent.css">
 <link rel="preconnect" href="https://tbkajjarkqhsdiabufjv.supabase.co" crossorigin>
 </head>
 <body data-i18n-title="login_doctitle">
@@ -66,6 +67,8 @@
   <script src="/js/saas/supabase-bootstrap.js"></script>
   <script src="/js/saas/saas-device-track.js"></script>
   <script src="/js/saas/saas-i18n.js"></script>
+  <script src="/js/saas/saas-cookie-api.js"></script>
+  <script src="/js/saas/saas-cookie-consent.js"></script>
   <script src="/js/saas/saas-auth-fields.js"></script>
   <script src="/js/saas/saas-brand.js"></script>
   <script src="/js/saas/saas-mfa.js"></script>
@@ -144,7 +147,12 @@
         SaaSAuthStorage.markSessionActive();
         await SaaSAuthStorage.clearServiceWorkers();
       }
-      if (window.SaaSDeviceTrack) SaaSDeviceTrack.report({ force: true });
+      if (window.CookieConsent && typeof CookieConsent.linkVisitorAfterLogin === 'function') {
+        await CookieConsent.linkVisitorAfterLogin();
+      }
+      if (window.SaaSDeviceTrack && (!window.CookieConsent || CookieConsent.has('functional'))) {
+        SaaSDeviceTrack.report({ force: true });
+      }
       msg(T('login_ok') || 'تم الدخول', 'ok');
       setTimeout(() => location.replace(nextUrl()), 200);
     }

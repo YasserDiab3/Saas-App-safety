@@ -5504,6 +5504,22 @@ window.UI = {
             return `<div><span>${esc(entry[0])}</span><strong ${isLtr ? 'dir="ltr"' : ''}>${esc(val)}</strong></div>`;
         }).join('');
 
+        const cookieLocal = (typeof window !== 'undefined' && window.CookieConsent && typeof CookieConsent.read === 'function')
+            ? CookieConsent.read() : null;
+        const cookieCats = (cookieLocal && cookieLocal.categories) || { essential: true, functional: false, analytics: false, marketing: false };
+        const cookieChip = (id, on) => {
+            const labels = {
+                essential: t('cookie_cat_essential', 'أساسية'),
+                functional: t('cookie_cat_functional', 'وظيفية'),
+                analytics: t('cookie_cat_analytics', 'تحليلية'),
+                marketing: t('cookie_cat_marketing', 'تسويقية')
+            };
+            const state = on ? t('module.profile.cookieOn', 'مفعّل') : t('module.profile.cookieOff', 'معطّل');
+            return `<span class="hse-cookie-chip ${on ? 'is-on' : ''}">${esc(labels[id] || id)}: ${esc(state)}</span>`;
+        };
+        const cookieStatusHtml = ['essential', 'functional', 'analytics', 'marketing']
+            .map(id => cookieChip(id, !!cookieCats[id])).join('');
+
         section.innerHTML = `
             <div class="section-header">
                 <h2 class="section-title"><i class="fas fa-id-card ml-2"></i>${t('nav.profile', 'ملفي الشخصي')}</h2>
@@ -5535,6 +5551,17 @@ window.UI = {
                     <div class="card-header"><h3 class="card-title">${t('module.profile.personalInfo', 'البيانات الشخصية')}</h3></div>
                     <div class="card-body profile-info-list">
                         ${personalInfoHtml}
+                    </div>
+                </div>
+
+                <div class="content-card profile-card hse-cookie-profile-card">
+                    <div class="card-header"><h3 class="card-title"><i class="fas fa-cookie-bite ml-2"></i>${t('module.profile.cookieTitle', 'الخصوصية والكوكيز')}</h3></div>
+                    <div class="card-body">
+                        <p class="text-sm text-slate-600 mb-2">${t('module.profile.cookieDesc', 'إدارة تفضيلات الكوكيز والتخزين المحلي.')}</p>
+                        <div class="hse-cookie-status">${cookieStatusHtml}</div>
+                        <button type="button" id="profile-cookie-manage-btn" class="btn-secondary btn-sm"><i class="fas fa-sliders ml-1"></i>${t('module.profile.cookieManage', 'إدارة الكوكيز')}</button>
+                        <h4 class="text-sm font-semibold mt-4 mb-1">${t('module.profile.cookieHistory', 'سجل الموافقة')}</h4>
+                        <div id="profile-cookie-history-wrap" class="text-sm text-slate-500">${t('common.loading', 'جاري التحميل...')}</div>
                     </div>
                 </div>
 
@@ -5632,6 +5659,8 @@ window.UI = {
         const photoInput = document.getElementById('profile-photo-input');
         const changePhotoBtn = document.getElementById('profile-change-photo-btn');
         const changePassBtn = document.getElementById('profile-change-password-btn');
+        const cookieManageBtn = document.getElementById('profile-cookie-manage-btn');
+        const cookieHistoryWrap = document.getElementById('profile-cookie-history-wrap');
         const openCardBtn = document.getElementById('profile-open-card-btn');
         const copyBtn = document.getElementById('profile-copy-link-btn');
         const refreshQrBtn = document.getElementById('profile-refresh-qr-btn');
@@ -5655,6 +5684,36 @@ window.UI = {
             changePassBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 this.showChangePasswordModal(false);
+            });
+        }
+
+        if (cookieManageBtn && window.CookieConsent && typeof CookieConsent.openSettings === 'function') {
+            cookieManageBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                CookieConsent.openSettings();
+            });
+            document.addEventListener('cookie-consent-changed', () => {
+                if (AppState.currentSection === 'profile') {
+                    Promise.resolve(this.renderMyProfileSection()).catch(function () { /* ignore */ });
+                }
+            }, { once: false });
+        }
+
+        if (cookieHistoryWrap && window.CookieConsent && typeof CookieConsent.loadHistory === 'function') {
+            CookieConsent.loadHistory(10).then((items) => {
+                if (!items.length) {
+                    cookieHistoryWrap.textContent = t('common.noData', 'لا توجد بيانات');
+                    return;
+                }
+                const rows = items.map((it) => {
+                    const at = it.consent_at ? new Date(it.consent_at).toLocaleString() : '—';
+                    const act = esc(it.action || '—');
+                    const ver = esc(it.policy_version || '—');
+                    return `<tr><td>${esc(at)}</td><td>${act}</td><td dir="ltr">${ver}</td></tr>`;
+                }).join('');
+                cookieHistoryWrap.innerHTML = `<table class="hse-cookie-history-table"><thead><tr><th>${t('common.date', 'التاريخ')}</th><th>${t('common.action', 'الإجراء')}</th><th>${t('common.version', 'الإصدار')}</th></tr></thead><tbody>${rows}</tbody></table>`;
+            }).catch(() => {
+                cookieHistoryWrap.textContent = t('common.noData', 'لا توجد بيانات');
             });
         }
 

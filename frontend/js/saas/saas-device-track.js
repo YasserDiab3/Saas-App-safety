@@ -99,6 +99,10 @@
         const CFG = global.SAAS_CONFIG || {};
         if (!SaaS || !CFG.supabaseUrl || !CFG.supabaseAnonKey) return;
 
+        if (global.CookieConsent && typeof CookieConsent.has === 'function' && !CookieConsent.has('functional')) {
+            return;
+        }
+
         await SaaS.ready;
         const session = await SaaS.getSession();
         if (!session || !session.access_token) return;

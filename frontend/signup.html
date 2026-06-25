@@ -12,6 +12,7 @@
 <meta name="application-name" content="HSEHub 360">
 <link rel="icon" type="image/png" href="/assets/brand/favicon.png">
 <link rel="stylesheet" href="/css/saas-pages.css">
+<link rel="stylesheet" href="/css/saas-cookie-consent.css">
 </head>
 <body data-i18n-title="signup_doctitle">
   <div class="saas-shell">
@@ -131,6 +132,8 @@
   <script src="/js/saas/supabase-bootstrap.js"></script>
   <script src="/js/saas/country-codes.js"></script>
   <script src="/js/saas/saas-i18n.js"></script>
+  <script src="/js/saas/saas-cookie-api.js"></script>
+  <script src="/js/saas/saas-cookie-consent.js"></script>
   <script src="/js/saas/saas-auth-storage.js"></script>
   <script src="/js/saas/saas-auth-fields.js"></script>
   <script src="/js/saas/saas-signup-errors.js"></script>
@@ -225,6 +228,9 @@
         await SaaS.waitForPersistedSession(5000);
         SaaSAuthStorage.markSessionActive();
         await SaaSAuthStorage.clearServiceWorkers();
+      }
+      if (window.CookieConsent && typeof CookieConsent.linkVisitorAfterLogin === 'function') {
+        await CookieConsent.linkVisitorAfterLogin();
       }
     }
 
