@@ -58,7 +58,7 @@
             <p class="saas-contact-direct" data-i18n="login_contact_direct">أو تواصل مباشرة:</p>
             <div class="saas-contact-actions">
               <div class="saas-contact-row saas-contact-row--icons">
-                <a id="contact-admin-link" class="saas-contact-link saas-contact-link--email saas-contact-link--icon-only" href="mailto:support@qhsseconsultant.onmicrosoft.com" data-i18n-aria="login_contact_email" title="Email">
+                <a id="contact-admin-link" class="saas-contact-link saas-contact-link--email saas-contact-link--icon-only" href="#" target="_blank" rel="noopener noreferrer" data-i18n-aria="login_contact_email" title="Email">
                   <svg class="saas-contact-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                 </a>
                 <a id="contact-admin-wa" class="saas-contact-link saas-contact-link--wa saas-contact-link--icon-only" href="#" target="_blank" rel="noopener noreferrer" hidden data-i18n-aria="login_contact_wa" title="WhatsApp">
@@ -169,10 +169,57 @@
       return String(raw || '').replace(/\D/g, '');
     }
 
-    function contactAdminMailto() {
-      const email = (window.SAAS_CONFIG && SAAS_CONFIG.salesEmail) || '';
+    function contactAdminEmailUrl() {
+      const email = String((window.SAAS_CONFIG && SAAS_CONFIG.salesEmail) || '').trim();
       if (!email) return '#';
-      return 'mailto:' + email.trim();
+      const cfg = window.SAAS_CONFIG || {};
+      if (cfg.salesEmailComposeUrl) return String(cfg.salesEmailComposeUrl).trim();
+      const to = encodeURIComponent(email);
+      const subject = encodeURIComponent(T('login_mailto_subject') || 'HSEHub 360 account request');
+      if (/@onmicrosoft\.com$/i.test(email)) {
+        return 'https://outlook.office.com/mail/deeplink/compose?to=' + to + '&subject=' + subject;
+      }
+      return 'https://mail.google.com/mail/?view=cm&fs=1&to=' + to + '&su=' + subject;
+    }
+
+    function copyEmailAddress(email) {
+      const value = String(email || '').trim();
+      if (!value) return false;
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = value;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        const ok = document.execCommand('copy');
+        ta.remove();
+        return ok;
+      } catch (_) {
+        return false;
+      }
+    }
+
+    function openContactEmail(e) {
+      const email = String((window.SAAS_CONFIG && SAAS_CONFIG.salesEmail) || '').trim();
+      if (!email) {
+        if (e) e.preventDefault();
+        return;
+      }
+      if (e) e.preventDefault();
+      const url = contactAdminEmailUrl();
+      const opened = window.open(url, '_blank', 'noopener,noreferrer');
+      if (opened) return;
+      if (copyEmailAddress(email)) {
+        msg(T('login_email_copied') || 'تم نسخ البريد. الصقه في تطبيق البريد لديك.', 'ok');
+        return;
+      }
+      try {
+        window.location.href = 'mailto:' + email;
+      } catch (_) {
+        msg((T('login_email_open_failed') || 'تعذّر فتح البريد.') + ' ' + email, 'err');
+      }
     }
 
     function contactAdminWhatsApp() {
@@ -180,46 +227,6 @@
       if (!digits) return '#';
       const text = encodeURIComponent(T('login_wa_text') || '');
       return 'https://wa.me/' + digits + (text ? '?text=' + text : '');
-    }
-
-    function launchMailto(email) {
-      const addr = String(email || '').trim();
-      if (!addr) return false;
-      const url = 'mailto:' + addr;
-      try {
-        const a = document.createElement('a');
-        a.href = url;
-        a.style.display = 'none';
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        return true;
-      } catch (_) {
-        try {
-          window.location.assign(url);
-          return true;
-        } catch (__) {
-          return false;
-        }
-      }
-    }
-
-    async function openContactEmail(e) {
-      const email = (window.SAAS_CONFIG && SAAS_CONFIG.salesEmail) || '';
-      if (!email) {
-        if (e) e.preventDefault();
-        return;
-      }
-      if (e) e.preventDefault();
-      if (launchMailto(email)) return;
-      try {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          await navigator.clipboard.writeText(email);
-          msg(T('login_email_copied') || 'تم نسخ البريد. الصقه في تطبيق البريد لديك.', 'ok');
-          return;
-        }
-      } catch (_) { /* ignore */ }
-      msg(T('login_email_open_failed') || 'تعذّر فتح البريد. راسلنا على: ' + email, 'err');
     }
 
     function refreshContactAdminLink() {
@@ -233,8 +240,9 @@
       const waNum = waDigits(waRaw);
 
       if (emailLink) {
-        const mailto = contactAdminMailto();
-        emailLink.href = mailto;
+        emailLink.href = contactAdminEmailUrl();
+        emailLink.target = '_blank';
+        emailLink.rel = 'noopener noreferrer';
         if (email) {
           emailLink.title = email;
           emailLink.setAttribute('aria-label', (T('login_contact_email') || 'البريد الإلكتروني') + ' — ' + email);
