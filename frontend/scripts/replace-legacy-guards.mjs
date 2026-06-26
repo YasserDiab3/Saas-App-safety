@@ -9,10 +9,6 @@ const replacements = [
     [/AppState\.backendConfig\?\.server\?\.enabled\s*&&\s*AppState\.backendConfig\?\.server\?\.scriptUrl/g, 'Utils.hasCloudBackendSync()'],
     [/AppState\.backendConfig\.server\.enabled\s*&&\s*AppState\.backendConfig\.server\.scriptUrl/g, 'Utils.hasCloudBackendSync()'],
     [/!AppState\.backendConfig\.server\.enabled\s*\|\|\s*!AppState\.backendConfig\.server\.scriptUrl/g, '!Utils.hasCloudBackendSync()'],
-    [/AppState\.backendConfig\?\.server\?\.enabled/g, 'Utils.hasCloudBackendSync()'],
-    [/AppState\.backendConfig\.server\.enabled/g, 'Utils.hasCloudBackendSync()'],
-    [/AppState\?\.backendConfig\?\.server\?\.scriptUrl/g, "''"],
-    [/AppState\.backendConfig\.server\.scriptUrl/g, "''"],
     [/AppState\.backendConfig && AppState\.backendConfig\.server && Utils\.hasCloudBackendSync\(\) && AppState\.backendConfig\.sheets && AppState\.backendConfig\.sheets\.spreadsheetId/g, 'Utils.hasCloudBackendSync()'],
 ];
 

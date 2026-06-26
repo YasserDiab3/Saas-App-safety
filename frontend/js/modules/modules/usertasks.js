@@ -343,8 +343,7 @@ const UserTasks = {
     startAutoSync() {
         // التحقق من تكوين الخادم السحابي قبل بدء المزامنة
         if (typeof AppState !== 'undefined') {
-            const isBackendConfigured = Utils.hasCloudBackendSync() &&
-                ''.trim() !== '';
+            const isBackendConfigured = Utils.hasCloudBackendSync();
 
             if (!isBackendConfigured) {
                 Utils.safeLog('ℹ️ لن يتم تفعيل المزامنة التلقائية: الخادم السحابي غير مفعل أو غير مُكوَّن');
@@ -389,8 +388,7 @@ const UserTasks = {
             }
 
             // فحص شامل لإعدادات الخادم السحابي
-            const isBackendConfigured = Utils.hasCloudBackendSync() &&
-                ''.trim() !== '';
+            const isBackendConfigured = Utils.hasCloudBackendSync();
 
             if (!isBackendConfigured) {
                 // الخادم السحابي غير مفعل أو غير مُكوَّن بشكل صحيح

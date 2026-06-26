@@ -2905,7 +2905,7 @@ const DEFAULT_COMPANY_NAME = '';
 
 const AppState = {
     /** fallback فقط — المصدر الرسمي: frontend/version.json (يُحدَّث عبر saas-version.js) */
-    appVersion: '2.2.75',
+    appVersion: '2.2.77',
     /** نص اختياري لرسالة التحديث (ملخص التغييرات). إن تُركت فارغة يُستخدم النص الافتراضي. */
     updateMessage: '',
     debugMode: false,
@@ -3232,8 +3232,7 @@ const Utils = {
         if (allText.includes('خطأ في طلب google sheets') &&
             (allText.includes('failed to fetch') || allText.includes('networkerror'))) {
             // التحقق من حالة Google Sheets
-            const isGoogleAppsScriptEnabled = window.Utils.hasCloudBackendSync() &&
-                window.'';
+            const isGoogleAppsScriptEnabled = window.Utils.hasCloudBackendSync();
             if (!isGoogleAppsScriptEnabled) {
                 return; // تجاهل الخطأ إذا كانت Google Sheets غير مفعّلة
             }

@@ -1,4 +1,4 @@
 {
-  "version": "2.2.75",
-  "message": "fix(platform-console): improve tab nav text contrast"
+  "version": "2.2.77",
+  "message": "refactor: remove legacy Google Sheets/Apps Script integration"
 }
