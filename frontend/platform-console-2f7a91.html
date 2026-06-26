@@ -10,40 +10,67 @@
 <link rel="stylesheet" href="css/saas-pages.css">
 </head>
 <body data-i18n-title="pf_doctitle">
-  <div id="login" class="saas-shell" style="display:none">
-    <div class="saas-card">
+  <div id="login" class="saas-shell pf-login-shell" style="display:none">
+    <div class="saas-card pf-login-card">
       <div class="saas-head">
         <div class="saas-logo"><img src="assets/brand/logo.png" alt="HSEHub 360" class="saas-logo-img"></div>
         <h1 data-i18n="pf_login_title">دخول مدير المنصّة</h1>
         <p data-i18n="brand_sub">HSEHub 360 — السلامة • الصحة • البيئة</p>
       </div>
       <div class="saas-body">
-        <div class="saas-field"><label data-i18n="f_email">البريد</label>
-          <input id="email" class="saas-input" type="email" data-i18n-ph="ph_email"></div>
-        <div class="saas-field"><label data-i18n="f_password">كلمة المرور</label>
-          <input id="pwd" class="saas-input" type="password" data-i18n-ph="ph_pwd"></div>
-        <button class="saas-btn" data-i18n="btn_login" onclick="doLogin()">دخول</button>
+        <div class="saas-field">
+          <label data-i18n="f_email">البريد</label>
+          <div class="saas-input-wrap">
+            <span class="saas-input-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span>
+            <input id="email" class="saas-input saas-input--icon" type="email" inputmode="email" autocapitalize="none" autocomplete="username" data-i18n-ph="ph_email">
+          </div>
+        </div>
+        <div class="saas-field">
+          <label data-i18n="f_password">كلمة المرور</label>
+          <div class="saas-input-wrap">
+            <span class="saas-input-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+            <input id="pwd" class="saas-input saas-input--icon" type="password" autocomplete="current-password" data-i18n-ph="ph_pwd">
+          </div>
+        </div>
+        <button type="button" class="saas-btn pf-login-btn" data-i18n="btn_login" onclick="doLogin()">دخول</button>
         <div class="saas-msg err" id="lmsg"></div>
       </div>
     </div>
   </div>
 
-  <div id="panel" class="saas-page pf-console-page" style="display:none">
-    <header class="pf-topbar">
-      <div class="pf-topbar-brand">
-        <img src="assets/brand/logo.png" alt="HSEHub 360" class="pf-topbar-logo">
-        <div>
+  <div id="panel" class="pf-app" style="display:none">
+    <header class="pf-app-header">
+      <div class="pf-app-header-start">
+        <img src="assets/brand/logo.png" alt="HSEHub 360" class="pf-app-logo">
+        <div class="pf-app-title-wrap">
           <h1 data-i18n="pf_console_title">لوحة تشغيل المنصّة</h1>
-          <p class="pf-topbar-sub" data-i18n="brand_sub">HSEHub 360 — السلامة • الصحة • البيئة</p>
+          <p class="pf-app-sub" data-i18n="brand_sub">HSEHub 360 — السلامة • الصحة • البيئة</p>
         </div>
       </div>
-      <div class="pf-topbar-actions">
-        <span class="saas-pill pf-role-pill" id="who"></span>
-        <button type="button" class="saas-btn sm ghost pf-logout-btn" id="pf-logout" data-i18n="pf_logout">تسجيل الخروج</button>
+      <div class="pf-app-header-end">
+        <div class="pf-notif-wrap" id="pf-notif-wrap">
+          <button type="button" class="pf-notif-btn" id="pf-notif-btn" aria-haspopup="true" aria-expanded="false" data-i18n-title="pf_notifications" title="الإشعارات">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="pf-notif-badge" id="pf-notif-badge" hidden>0</span>
+          </button>
+          <div class="pf-notif-panel" id="pf-notif-panel" hidden>
+            <div class="pf-notif-panel-hd">
+              <strong data-i18n="pf_notifications">الإشعارات</strong>
+              <button type="button" class="pf-notif-close" id="pf-notif-close" aria-label="×">×</button>
+            </div>
+            <div class="pf-notif-list" id="pf-notif-list"></div>
+          </div>
+        </div>
+        <div class="pf-user-chip" id="pf-user-chip" title="">
+          <span class="pf-user-avatar" id="pf-user-avatar" aria-hidden="true">A</span>
+          <span class="pf-user-email" id="who" dir="ltr"></span>
+        </div>
+        <div id="pf-lang-slot" class="pf-lang-slot"></div>
+        <button type="button" class="pf-logout-btn" id="pf-logout" data-i18n="pf_logout">تسجيل الخروج</button>
       </div>
     </header>
 
-    <nav class="pf-tabs pf-tabs-bar" id="tabs">
+    <nav class="pf-tabs pf-tabs-bar pf-app-nav" id="tabs">
       <button type="button" class="pf-tab active" data-tab="overview" data-i18n="pf_tab_overview">نظرة عامة</button>
       <button type="button" class="pf-tab" data-tab="tenants" data-i18n="pf_tab_tenants">المؤسسات</button>
       <button type="button" class="pf-tab" data-tab="users" data-i18n="pf_tab_users">المستخدمون</button>
@@ -56,6 +83,8 @@
       <button type="button" class="pf-tab" data-tab="cookies" data-i18n="pf_tab_cookies">الكوكيز والخصوصية</button>
       <button type="button" class="pf-tab" data-tab="help-center" data-i18n="pf_tab_help_center">مركز المساعدة</button>
     </nav>
+
+    <main class="pf-app-main">
 
     <div id="pane-overview" class="pf-pane active">
       <div class="pf-export-strip">
@@ -373,6 +402,8 @@
         </div>
       </div>
     </div>
+
+    </main>
   </div>
 
   <div id="modal-root" style="display:none"></div>
@@ -381,7 +412,7 @@
   <script src="js/saas/saas-brand.js"></script>
   <script src="js/saas/supabase-bootstrap.js"></script>
   <script src="js/saas/saas-escape.js"></script>
-  <script src="js/saas/saas-i18n.js?v=2.2.64"></script>
+  <script src="js/saas/saas-i18n.js?v=2.2.68"></script>
   <script src="js/saas/saas-platform-export.js"></script>
   <script src="js/modules/help-default-content-data.js"></script>
   <script src="js/modules/help-default-content.js"></script>
@@ -412,6 +443,7 @@
     const modLabel = m => SaaSI18n.lang === 'ar' ? m[1] : m[2];
 
     let _plans = null;
+    let _platformAlerts = [];
     let _state = {
       tenants: { offset: 0, search: '' },
       users: { offset: 0, search: '' },
@@ -700,11 +732,128 @@
       btn.classList.toggle('is-loading', !!on);
     };
 
+    function setAppShell(active) {
+      document.body.classList.toggle('pf-body-app', !!active);
+    }
+
+    function updateUserChip(email) {
+      const chip = $('pf-user-chip');
+      const avatar = $('pf-user-avatar');
+      const who = $('who');
+      const addr = String(email || '').trim();
+      if (who) who.textContent = addr || T('pf_who');
+      if (chip) chip.title = addr;
+      if (avatar) {
+        const initial = addr ? addr.charAt(0).toUpperCase() : 'A';
+        avatar.textContent = initial;
+      }
+    }
+
+    function switchToTab(tabId) {
+      const btn = document.querySelector(`.pf-tab[data-tab="${tabId}"]`);
+      if (!btn) return;
+      document.querySelectorAll('.pf-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.pf-pane').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      const pane = $('pane-' + tabId);
+      if (pane) pane.classList.add('active');
+      loadTab(tabId);
+    }
+
+    function renderPlatformAlerts() {
+      const list = $('pf-notif-list');
+      const badge = $('pf-notif-badge');
+      const btn = $('pf-notif-btn');
+      if (!list || !badge) return;
+      const total = _platformAlerts.reduce((n, a) => n + (a.count || 0), 0);
+      if (total > 0) {
+        badge.hidden = false;
+        badge.textContent = total > 99 ? '99+' : String(total);
+        if (btn) btn.classList.add('has-alerts');
+      } else {
+        badge.hidden = true;
+        badge.textContent = '0';
+        if (btn) btn.classList.remove('has-alerts');
+      }
+      if (!_platformAlerts.length) {
+        list.innerHTML = `<p class="pf-notif-empty">${esc(T('pf_notif_empty'))}</p>`;
+        return;
+      }
+      list.innerHTML = _platformAlerts.map(a => `
+        <button type="button" class="pf-notif-item" data-tab="${esc(a.tab)}">
+          <span class="pf-notif-item-count">${esc(String(a.count))}</span>
+          <span class="pf-notif-item-text">
+            <strong>${esc(a.label)}</strong>
+            <span class="pf-notif-item-action">${esc(T('pf_notif_view'))} →</span>
+          </span>
+        </button>`).join('');
+      list.querySelectorAll('.pf-notif-item').forEach(el => {
+        el.onclick = () => {
+          closeNotifPanel();
+          switchToTab(el.getAttribute('data-tab'));
+        };
+      });
+    }
+
+    async function loadPlatformAlerts() {
+      try {
+        const client = SaaS.client();
+        const alerts = [];
+        const [{ data: overview, error: ovErr }, { data: inquiries, error: inqErr }] = await Promise.all([
+          client.rpc('api_admin_overview'),
+          client.rpc('api_admin_list_sales_inquiries', { p_limit: 200 })
+        ]);
+        if (!ovErr && overview) {
+          const pastDue = Number(overview.past_due || 0);
+          const frozen = Number(overview.frozen || 0);
+          if (pastDue > 0) alerts.push({ tab: 'billing', count: pastDue, label: T('pf_notif_past_due') });
+          if (frozen > 0) alerts.push({ tab: 'tenants', count: frozen, label: T('pf_notif_frozen') });
+        }
+        if (!inqErr) {
+          const items = parseInquiryList(inquiries);
+          const newCount = items.filter(r => r.status === 'new').length;
+          if (newCount > 0) alerts.push({ tab: 'inquiries', count: newCount, label: T('pf_notif_new_inquiries') });
+        }
+        _platformAlerts = alerts;
+        renderPlatformAlerts();
+        const inqTab = document.querySelector('.pf-tab[data-tab="inquiries"]');
+        if (inqTab) {
+          const newAlert = alerts.find(a => a.tab === 'inquiries');
+          inqTab.classList.toggle('has-badge', !!(newAlert && newAlert.count));
+        }
+      } catch (_e) { /* ignore */ }
+    }
+
+    function toggleNotifPanel(force) {
+      const panel = $('pf-notif-panel');
+      const btn = $('pf-notif-btn');
+      if (!panel || !btn) return;
+      const open = typeof force === 'boolean' ? force : panel.hidden;
+      panel.hidden = !open;
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+
+    function closeNotifPanel() { toggleNotifPanel(false); }
+
+    function setupNotifHandlers() {
+      const btn = $('pf-notif-btn');
+      const close = $('pf-notif-close');
+      const wrap = $('pf-notif-wrap');
+      if (btn) btn.onclick = e => { e.stopPropagation(); toggleNotifPanel(); };
+      if (close) close.onclick = e => { e.stopPropagation(); closeNotifPanel(); };
+      document.addEventListener('click', e => {
+        if (wrap && !wrap.contains(e.target)) closeNotifPanel();
+      });
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') closeNotifPanel();
+      });
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       SaaSI18n.init(() => {
         if (_plans) renderPlans(_plans);
         const panel = $('panel');
-        if (panel && panel.style.display === 'block') {
+        if (panel && (panel.style.display === 'flex' || panel.style.display === 'block')) {
           const active = document.querySelector('.pf-tab.active');
           if (active) loadTab(active.getAttribute('data-tab'));
         }
@@ -732,6 +881,7 @@
       $('quote-create').onclick = () => createQuote(false);
       $('quote-create-send').onclick = () => createQuote(true);
       $('pf-logout').onclick = doLogout;
+      setupNotifHandlers();
     });
 
     (async () => {
@@ -749,11 +899,13 @@
 
     async function doLogout() {
       try { await SaaS.signOut(); } catch (_e) { /* ignore */ }
+      setAppShell(false);
       $('panel').style.display = 'none';
       $('login').style.display = 'flex';
       $('email').value = '';
       $('pwd').value = '';
       $('lmsg').textContent = '';
+      closeNotifPanel();
       closeModal();
     }
 
@@ -770,12 +922,14 @@
         document.body.innerHTML = '<div class="saas-page"><div class="saas-panel" style="color:#b91c1c">' + esc(T('pf_forbidden')) + '</div></div>';
         return;
       }
-      $('panel').style.display = 'block';
+      $('panel').style.display = 'flex';
+      setAppShell(true);
       const u = await SaaS.getUser();
-      $('who').textContent = u?.email || T('pf_who');
+      updateUserChip(u?.email || T('pf_who'));
       _plans = data || [];
       renderPlans(_plans);
       await loadTenantOptions();
+      await loadPlatformAlerts();
       loadTab('overview');
     }
 
@@ -937,6 +1091,7 @@
         if (error) throw new Error(error.message);
         if (!data || data.success !== true) throw new Error(T('pf_export_fail'));
         loadInquiries();
+        loadPlatformAlerts();
       } catch (e) {
         alert(e.message);
       } finally {

@@ -192,6 +192,12 @@
       pf_extend_7: '+7 أيام تجربة', pf_extend_30: '+30 يوم تجربة',
       pf_freeze: 'تجميد', pf_activate: 'تفعيل', pf_frozen: 'مجمد',
       pf_logout: 'تسجيل الخروج',
+      pf_notifications: 'الإشعارات',
+      pf_notif_empty: 'لا توجد تنبيهات جديدة',
+      pf_notif_new_inquiries: 'طلبات تواصل جديدة',
+      pf_notif_past_due: 'اشتراكات متأخرة السداد',
+      pf_notif_frozen: 'مؤسسات مجمّدة',
+      pf_notif_view: 'عرض',
       pf_mem_active: 'نشط', pf_mem_invited: 'مدعو', pf_mem_disabled: 'مجمد',
       pf_member_save: 'حفظ', pf_saved_ok: 'تم الحفظ',
       pf_role: 'الدور', pf_manage: 'إدارة',
@@ -435,6 +441,12 @@
       pf_extend_7: '+7 day trial', pf_extend_30: '+30 day trial',
       pf_freeze: 'Freeze', pf_activate: 'Activate', pf_frozen: 'Frozen',
       pf_logout: 'Sign out',
+      pf_notifications: 'Notifications',
+      pf_notif_empty: 'No new alerts',
+      pf_notif_new_inquiries: 'New contact requests',
+      pf_notif_past_due: 'Past-due subscriptions',
+      pf_notif_frozen: 'Frozen organizations',
+      pf_notif_view: 'View',
       pf_mem_active: 'Active', pf_mem_invited: 'Invited', pf_mem_disabled: 'Disabled',
       pf_member_save: 'Save', pf_saved_ok: 'Saved',
       pf_role: 'Role', pf_manage: 'Manage',
@@ -543,9 +555,12 @@
     mount() {
       if (this._btn) return;
       const b = document.createElement('button');
-      b.type = 'button'; b.className = 'saas-lang-toggle';
+      b.type = 'button';
+      const slot = document.getElementById('pf-lang-slot');
+      b.className = slot ? 'pf-lang-btn' : 'saas-lang-toggle';
       b.addEventListener('click', () => this.toggle());
-      document.body.appendChild(b); this._btn = b;
+      (slot || document.body).appendChild(b);
+      this._btn = b;
     },
     init(onChange) { this.onChange = onChange || null; this.mount(); this.apply(); }
   };

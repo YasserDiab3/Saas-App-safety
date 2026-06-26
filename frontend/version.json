@@ -1,4 +1,4 @@
 {
-  "version": "2.2.67",
-  "message": "fix(i18n): show inquiry tab labels instead of raw keys"
+  "version": "2.2.69",
+  "message": "feat(help): improve help center typography and readability"
 }
