@@ -695,8 +695,8 @@ const AppTester = {
             }
 
             // التحقق من إعدادات الخادم السحابي
-            const isEnabled = AppState?.backendConfig?.server?.enabled;
-            const scriptUrl = AppState?.backendConfig?.server?.scriptUrl;
+            const isEnabled = Utils.hasCloudBackendSync();
+            const scriptUrl = '';
 
             if (!isEnabled || !scriptUrl || scriptUrl.trim() === '') {
                 const result = {

@@ -6,7 +6,8 @@
                   ┌─────────────────────────────┐
    المستخدم  ───► │  Frontend SPA (Vercel)      │
                   │  - 38 مديول (يُعاد استخدامها)│
-                  │  - google-integration.js    │  ← طبقة النقل (نقطة التبديل)
+                  │  - backend-client.js        │
+                  │  - saas-adapter.js          │  ← طبقة النقل (Supabase)
                   └──────────────┬──────────────┘
                                  │  fetch {action, data} + JWT
                                  ▼
@@ -31,11 +32,12 @@
 
 الواجهة تستدعي حصراً:
 ```js
-GoogleIntegration.sendRequest({ action: '<name>', data: {…} })
+Backend.sendRequest({ action: '<name>', data: {…} })
+  → SaaSAdapter → Supabase RPC
   → Promise<{ success: boolean, data?: any, message?: string }>
 ```
 أي backend يحترم هذا العقد يُشغّل المديولات الـ38 دون تعديل. هذا أساس استراتيجية
-**Strangler-Fig**: نُبدّل داخلية `sendRequest` فقط لتذهب إلى `/api` بدل Apps Script.
+**Strangler-Fig**: `sendRequest` يُوجَّه إلى Supabase RPC بدل أي خادم قديم.
 
 ## 3. تعدد المستأجرين (Multi-Tenancy)
 

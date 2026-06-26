@@ -2418,7 +2418,7 @@ const PPE = {
                         }
 
                         // 1.1 حفظ إلزامي في الخادم قبل إعلان النجاح
-                        if (AppState.backendConfig?.server?.enabled && typeof Backend !== 'undefined' && Backend.sendToAppsScript) {
+                        if (Utils.hasCloudBackendSync() && typeof Backend !== 'undefined' && Backend.sendToAppsScript) {
                             if (isEdit) {
                                 if (!updatedRecordForServer) {
                                     throw new Error('تعذر تجهيز بيانات التعديل للحفظ في الخادم.');

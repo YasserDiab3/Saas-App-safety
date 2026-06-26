@@ -253,7 +253,7 @@ const ActionTrackingRegister = {
 
     async loadSettings() {
         // التحقق من تفعيل Google Integration قبل إجراء الطلبات
-        if (!AppState.backendConfig?.server?.enabled || !AppState.backendConfig?.server?.scriptUrl) {
+        if (!Utils.hasCloudBackendSync()) {
             this.settings = this.getDefaultSettings();
             return;
         }
@@ -423,7 +423,7 @@ const ActionTrackingRegister = {
         this.renderKPIs(localKPIs);
 
         // التحقق من تفعيل Google Integration قبل إجراء الطلبات
-        if (!AppState.backendConfig?.server?.enabled || !AppState.backendConfig?.server?.scriptUrl) {
+        if (!Utils.hasCloudBackendSync()) {
             return; // البيانات المحلية معروضة بالفعل
         }
 
@@ -655,7 +655,7 @@ const ActionTrackingRegister = {
         }
 
         // تحميل البيانات من Backend في الخلفية (بدون تأخير العرض)
-        const isGoogleEnabled = AppState.backendConfig?.server?.enabled && AppState.backendConfig?.server?.scriptUrl;
+        const isGoogleEnabled = Utils.hasCloudBackendSync();
         const isBackendAvailable = typeof Backend !== 'undefined' && typeof Backend.sendRequest === 'function';
 
         if (isGoogleEnabled && isBackendAvailable) {

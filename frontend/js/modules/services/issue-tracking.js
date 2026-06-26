@@ -46,7 +46,7 @@ const IssueTrackingService = {
             };
 
             // التحقق من تفعيل Google Integration
-            if (!AppState.backendConfig?.server?.enabled || !AppState.backendConfig?.server?.scriptUrl) {
+            if (!Utils.hasCloudBackendSync()) {
                 throw new Error('يجب تفعيل Google Integration أولاً');
             }
 
@@ -298,7 +298,7 @@ const IssueTrackingService = {
     async getOpenIssuesCount() {
         try {
             // التحقق من تفعيل Google Integration
-            if (!AppState.backendConfig?.server?.enabled || !AppState.backendConfig?.server?.scriptUrl) {
+            if (!Utils.hasCloudBackendSync()) {
                 return 0;
             }
 
@@ -323,7 +323,7 @@ const IssueTrackingService = {
     async getCriticalIssues() {
         try {
             // التحقق من تفعيل Google Integration
-            if (!AppState.backendConfig?.server?.enabled || !AppState.backendConfig?.server?.scriptUrl) {
+            if (!Utils.hasCloudBackendSync()) {
                 return [];
             }
 

@@ -3241,22 +3241,8 @@ window.UI = {
             }
         }
 
-        // بدء نظام مراقبة الاتصال بعد عرض التطبيق الرئيسي
-        if (typeof ConnectionMonitor !== 'undefined' && ConnectionMonitor.start) {
-            setTimeout(() => {
-                try {
-                    ConnectionMonitor.start();
-                    Utils.safeLog('✅ تم بدء نظام مراقبة الاتصال');
-                    // تحديث حالة الأزرار بعد بدء المراقبة
-                    this.updateSyncButtonStatus();
-                    this.updateUserConnectionStatus();
-                } catch (monitorError) {
-                    Utils.safeWarn('⚠️ فشل بدء نظام مراقبة الاتصال:', monitorError);
-                }
-            }, 2000); // انتظار 2 ثانية بعد تحميل التطبيق
-        }
-        
-        // تحديث حالة زر المزامنة بشكل دوري (حالة الاتصال يتم تحديثها تلقائياً عبر startAutoRefreshConnectionStatus)
+
+        // تحديث حالة زر المزامنة بشكل دوري
         setInterval(() => {
             this.updateSyncButtonStatus();
         }, 15000); // كل 15 ثانية — أقل ضغطاً على الواجهة والخلفية
@@ -5238,7 +5224,7 @@ window.UI = {
         });
         if (!response || response.success === false || !response.data?.token) return null;
 
-        let scriptUrl = String(AppState?.backendConfig?.server?.scriptUrl || '').trim();
+        let scriptUrl = String('' || '').trim();
         if (!scriptUrl) return null;
         // نسخة اختبار /dev قد لا تعمل كبطاقة عامة — استخدم /exec لنشر تطبيق الويب
         if (scriptUrl.indexOf('script.google.com/macros/s/') !== -1) {
@@ -5937,7 +5923,7 @@ window.UI = {
             }
             const scriptUrl = typeof Utils.getAppsScriptScriptUrl === 'function'
                 ? Utils.getAppsScriptScriptUrl()
-                : ((AppState.backendConfig && AppState.backendConfig.server && AppState.backendConfig.server.scriptUrl) ? String(AppState.backendConfig.server.scriptUrl).trim() : '');
+                : '';
 
             // بعد النشر: صور Drive عبر وكيل getProfileImage (يُطبَّق /exec تلقائياً في getAppsScriptScriptUrl)
             if (isDriveUrl && driveFileId && scriptUrl && scriptUrl.includes('script.google.com')) {
@@ -9811,7 +9797,7 @@ window.UI = {
 
             const cloudSyncConfigured = typeof Utils !== 'undefined' && typeof Utils.hasCloudBackendSync === 'function'
                 ? Utils.hasCloudBackendSync()
-                : !!(AppState.backendConfig?.server?.enabled && AppState.backendConfig?.server?.scriptUrl);
+                : !!(Utils.hasCloudBackendSync());
             
             if (typeof Backend.syncData === 'function') {
                 // ✅ تحميل تدريجي: تحميل البيانات غير المكتملة فقط
@@ -9905,7 +9891,7 @@ window.UI = {
         } else {
             isConnected = typeof Utils !== 'undefined' && typeof Utils.hasCloudBackendSync === 'function'
                 ? Utils.hasCloudBackendSync()
-                : !!(AppState.backendConfig?.server?.enabled && AppState.backendConfig?.server?.scriptUrl);
+                : !!(Utils.hasCloudBackendSync());
         }
 
         // تحديث فئة الزر

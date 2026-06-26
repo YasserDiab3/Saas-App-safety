@@ -1313,7 +1313,7 @@ const Users = {
                 Loading.hide();
                 
                 // المزامنة مع Google Sheets في الخلفية (غير متزامنة)
-                if (AppState.backendConfig.server.enabled) {
+                if (Utils.hasCloudBackendSync()) {
                     // تشغيل المزامنة في الخلفية بدون انتظار
                     Backend.immediateSyncWithRetry('addUser', formData, 3)
                         .then(addUserResult => {
@@ -1370,7 +1370,7 @@ const Users = {
                 Loading.hide();
                 
                 // المزامنة مع Google Sheets في الخلفية (غير متزامنة)
-                if (AppState.backendConfig.server.enabled) {
+                if (Utils.hasCloudBackendSync()) {
                     // تشغيل المزامنة في الخلفية بدون انتظار
                     Backend.immediateSyncWithRetry('updateUser', {
                         userId: formData.id,
@@ -1663,7 +1663,7 @@ const Users = {
             let deleteSuccess = false;
 
             // 1) حذف من قاعدة البيانات (Google Sheets) أولاً ثم تحديث الواجهة
-            if (AppState.backendConfig.server.enabled) {
+            if (Utils.hasCloudBackendSync()) {
                 try {
                     const result = await Backend.sendToAppsScript('deleteUser', { userId });
                     deleteSuccess = result && result.success === true;

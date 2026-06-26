@@ -8338,7 +8338,7 @@ const Clinic = {
 
         try {
             // حذف فعلي من Backend باستخدام معرف الزيارة فقط (بدون إرسال كل سجل الزيارات)
-            if (AppState.backendConfig?.server?.enabled) {
+            if (Utils.hasCloudBackendSync()) {
                 const deleteResult = await Backend.sendRequest({
                     action: 'deleteClinicVisit',
                     data: { visitId: visitId }
@@ -8379,7 +8379,7 @@ const Clinic = {
                 return;
             }
 
-            const isEnabled = AppState?.backendConfig?.server?.enabled && AppState?.backendConfig?.server?.scriptUrl;
+            const isEnabled = Utils.hasCloudBackendSync();
             if (!isEnabled || typeof Backend === 'undefined' || !Backend.sendRequest) {
                 Notification.error('تعذر إرسال طلب الحذف (الخادم غير متاح)');
                 return;
@@ -11955,7 +11955,7 @@ const Clinic = {
     async ensureApprovalsDataLoaded({ force = false } = {}) {
         if (this._approvalsLoadPromise && !force) return this._approvalsLoadPromise;
         this._approvalsLoadPromise = (async () => {
-            const isEnabled = AppState?.backendConfig?.server?.enabled && AppState?.backendConfig?.server?.scriptUrl;
+            const isEnabled = Utils.hasCloudBackendSync();
             if (!isEnabled || typeof Backend === 'undefined' || !Backend.sendRequest) {
                 this._approvalsBackendFetchOk = true;
                 return;

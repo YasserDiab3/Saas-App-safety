@@ -14,34 +14,7 @@ const SafetyHealthManagement = {
     },
     // دالة مساعدة للتحقق من حالة الخادم السحابي
     isGoogleAppsScriptEnabled() {
-        // التحقق من وجود AppState أولاً
-        if (typeof AppState === 'undefined' || !AppState.backendConfig) {
-            return false;
-        }
-        
-        // التحقق من تفعيل الخادم السحابي ووجود scriptUrl
-        const serverConfig = AppState.backendConfig?.server;
-        if (!serverConfig) {
-            return false;
-        }
-        
-        // التحقق من أن enabled هو true (وليس undefined أو null)
-        if (serverConfig.enabled !== true) {
-            return false;
-        }
-        
-        // التحقق من وجود scriptUrl (يجب أن يكون string غير فارغ)
-        const scriptUrl = serverConfig.scriptUrl;
-        if (!scriptUrl || typeof scriptUrl !== 'string' || scriptUrl.trim() === '') {
-            return false;
-        }
-        
-        // التحقق من وجود Backend و sendRequest
-        if (typeof Backend === 'undefined' || typeof Backend.sendRequest !== 'function') {
-            return false;
-        }
-        
-        return true;
+        return typeof Utils !== 'undefined' && typeof Utils.hasCloudBackendSync === 'function' && Utils.hasCloudBackendSync();
     },
     
     // دالة مساعدة للتحقق من وجود بيانات محلية كبديل

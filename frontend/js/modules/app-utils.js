@@ -1469,7 +1469,7 @@ const Permissions = {
                 Notification.error('خطأ أثناء حفظ إعدادات النماذج: ' + (error.message || error));
                 return;
             }
-        } else if (AppState.backendConfig?.server?.enabled && typeof Backend !== 'undefined') {
+        } else if (Utils.hasCloudBackendSync() && typeof Backend !== 'undefined') {
             try {
                 const userData = AppState.currentUser || {};
                 const result = await Backend.sendToAppsScript('saveFormSettings', {
@@ -2905,7 +2905,7 @@ const DEFAULT_COMPANY_NAME = '';
 
 const AppState = {
     /** fallback فقط — المصدر الرسمي: frontend/version.json (يُحدَّث عبر saas-version.js) */
-    appVersion: '2.2.71',
+    appVersion: '2.2.75',
     /** نص اختياري لرسالة التحديث (ملخص التغييرات). إن تُركت فارغة يُستخدم النص الافتراضي. */
     updateMessage: '',
     debugMode: false,
@@ -3011,20 +3011,8 @@ const AppState = {
         lastSyncTime: 0, // آخر مرة تم فيها التحميل الكامل
         userEmail: null // البريد الإلكتروني للمستخدم الحالي
     },
-    /** إعدادات الخادم السحابي و Google Sheets (الاسم التاريخي backendConfig) */
+    /** إعدادات الخرائط (Google Maps API — اختياري لـ PTW وغيره) */
     backendConfig: {
-        server: {
-            // 🔒 نسخة SaaS: الباكند هو Supabase حصراً — Apps Script معطّل ولا رابط له
-            // لمنع أي تداخل مع النسخة الإنتاجية القديمة (Google Sheets).
-            enabled: false,
-            scriptUrl: ''
-        },
-        sheets: {
-            // يُفعَّل تلقائياً عند ضبط spreadsheetId من الإعدادات المحفوظة؛ المعرف الرسمي يُفضَّل في Script Properties بالخادم
-            enabled: false,
-            spreadsheetId: '',
-            apiKey: ''
-        },
         maps: {
             enabled: false,
             apiKey: ''
@@ -3080,79 +3068,17 @@ const AppState = {
     legalAutoNotify: false // تفعيل التنبيهات التلقائية للتحديثات القانونية
 };
 
-(function applyBackendConfigFromStorage() {
-    /** دمج إعدادات الاتصال من localStorage قبل أي وحدة أخرى */
+(function applyMapsConfigFromStorage() {
     try {
-        if (typeof localStorage !== 'undefined' && AppState.backendConfig) {
-            const raw = localStorage.getItem('hse_backend_config');
-            if (raw) {
-                const parsed = JSON.parse(raw);
-                if (parsed && typeof parsed === 'object') {
-                    if (parsed.server && typeof parsed.server === 'object') {
-                        const currentApps = AppState.backendConfig.server || {};
-                        const parsedApps = parsed.server || {};
-                        let parsedUrl = String(parsedApps.scriptUrl || '').trim();
-                        // ✅ ترقية تلقائية من نشرات قديمة إلى @124 (إصلاح خصم الأدوية لزيارة جديدة + دائرة اعتماد المخالفات)
-                        const OLD_DEPLOYMENT_URLS = [
-                            'AKfycbxkqiYDwVdSUhzi-DOGZO8bBJMORw78FzLhUzRYwSfGldDqvlXerdajhd7byDeuvsP0', // @92
-                            'AKfycbzmZKpLvrFm-zcaY91_a7JsW7O6sHzf7vO-sw1ujsa7FbSELMhCFFxF04_5vReLU9Xr', // @95
-                            'AKfycbzzUIVg7t0RNEqL9RtmKlOZd_3yU7VDsHlFLbnMZOjantyBy62vhBTK-xn0K3AWvyme', // @97
-                            'AKfycbznQux2RDY-UB56gAhrluEoXYfPt2s0CtAUQpQ8WHwna8w64cUez_QLhm4gRk8ez2Aw', // @98
-                            'AKfycbwLzUsMbK4abB7n8Ft1hOcMIHMQhSGbeInuqvUmjOAJdyCmFqQzJ-4Oczhkw2OVZIQh', // @109
-                            'AKfycbxnX6Is8GOk_zHQPKhyrAokL-QHOCLgE4kZHqaTpspsnP9huAwAPI833368mfatYsiV', // @112
-                            'AKfycbyJBW2DhTWtuNmN_IXs7jqkLChky6LQikPlUUvyXPhotC_S5hFE_3_I-_WOCOV9j1dt', // @114
-                            'AKfycbwjAwsW72gWeMpRpTVZqkMFh_QVKwp_-ff2tvLcze3XcmANcZPrcmmXEvvueYLm6h7Q', // @116
-                            'AKfycbyisizNKergIPDRKFa6IUHUL9x98Prcs16FvflommIo-PSr41gXHQv59I3QUasSEPA2', // @118
-                            'AKfycbwhWmcjchhLNbl6cbr_BzsjrFkZOCUFk8pgoSONvbvIXHpRnqFqnER4esHiOZYIWL7X', // @120
-                            'AKfycbyFmgpaD4d2y74A1T3uWzLXXFK7YJSPw5IA45uv2TpCUX3gkQJhcgjuVmZS6zPNWcMa', // @122 — broken addClinicVisit medication deduction
-                        ];
-                        const LATEST_DEPLOYMENT_URL = ''; // 🔒 SaaS: never point to Apps Script
-                        if (parsedUrl && OLD_DEPLOYMENT_URLS.some(old => parsedUrl.includes(old))) {
-                            parsedUrl = LATEST_DEPLOYMENT_URL;
-                            // حفظ الرابط المُحدَّث تلقائياً
-                            try {
-                                const updatedConfig = { ...parsed, server: { ...parsedApps, scriptUrl: LATEST_DEPLOYMENT_URL } };
-                                localStorage.setItem('hse_backend_config', JSON.stringify(updatedConfig));
-                            } catch(e) { /* ignore */ }
-                        }
-                        AppState.backendConfig.server = {
-                            ...currentApps,
-                            ...parsedApps,
-                            scriptUrl: parsedUrl || String(currentApps.scriptUrl || '').trim(),
-                            enabled: parsedUrl ? true : !!(parsedApps.enabled ?? currentApps.enabled)
-                        };
-                    }
-                    if (parsed.sheets && typeof parsed.sheets === 'object') {
-                        const currentSheets = AppState.backendConfig.sheets || {};
-                        const parsedSheets = parsed.sheets || {};
-                        const parsedSheetId = String(parsedSheets.spreadsheetId || '').trim();
-                        AppState.backendConfig.sheets = {
-                            ...currentSheets,
-                            ...parsedSheets,
-                            spreadsheetId: parsedSheetId || String(currentSheets.spreadsheetId || '').trim(),
-                            enabled: parsedSheetId ? true : !!(parsedSheets.enabled ?? currentSheets.enabled)
-                        };
-                    }
-                    if (parsed.maps && typeof parsed.maps === 'object') {
-                        AppState.backendConfig.maps = {
-                            ...AppState.backendConfig.maps,
-                            ...parsed.maps
-                        };
-                    }
-                }
-            }
+        if (typeof localStorage === 'undefined' || !AppState.backendConfig) return;
+        localStorage.removeItem('hse_google_config');
+        const raw = localStorage.getItem('hse_backend_config');
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (parsed?.maps && typeof parsed.maps === 'object') {
+            AppState.backendConfig.maps = { ...AppState.backendConfig.maps, ...parsed.maps };
         }
-    } catch (mergeErr) { /* تجاهل تالف hse_backend_config */ }
-
-    // 🔒 SaaS isolation (enforced unconditionally): this build NEVER talks to
-    // Apps Script — the backend is Supabase only. Neutralise any scriptUrl that
-    // may have arrived from a saved hse_backend_config so there is ZERO chance of
-    // reaching the old production Google Sheets, even if a flag is mis-set.
-    try {
-        if (AppState.backendConfig && AppState.backendConfig.server) {
-            AppState.backendConfig.server.scriptUrl = '';
-            AppState.backendConfig.server.enabled = false;
-        }
+        localStorage.setItem('hse_backend_config', JSON.stringify({ maps: AppState.backendConfig.maps || {} }));
     } catch (e) { /* ignore */ }
 })();
 
@@ -3173,13 +3099,7 @@ const Utils = {
      * هل يوجد مسار مزامنة عبر الخادم السحابي (تفعيل + رابط Web App /exec)
      */
     hasCloudBackendSync() {
-        if (typeof window !== 'undefined' && window.SAAS_CONFIG && window.SAAS_CONFIG.useSupabaseBackend) {
-            return true;
-        }
-        const gc = typeof AppState !== 'undefined' ? AppState.backendConfig : null;
-        if (!gc || !gc.server) return false;
-        const url = String(gc.server.scriptUrl || '').trim();
-        return !!(gc.server.enabled && url);
+        return !!(typeof window !== 'undefined' && window.SAAS_CONFIG && window.SAAS_CONFIG.useSupabaseBackend && window.SaaSAdapter);
     },
 
     /**
@@ -3312,8 +3232,8 @@ const Utils = {
         if (allText.includes('خطأ في طلب google sheets') &&
             (allText.includes('failed to fetch') || allText.includes('networkerror'))) {
             // التحقق من حالة Google Sheets
-            const isGoogleAppsScriptEnabled = window.AppState?.backendConfig?.server?.enabled &&
-                window.AppState?.backendConfig?.server?.scriptUrl;
+            const isGoogleAppsScriptEnabled = window.Utils.hasCloudBackendSync() &&
+                window.'';
             if (!isGoogleAppsScriptEnabled) {
                 return; // تجاهل الخطأ إذا كانت Google Sheets غير مفعّلة
             }
@@ -3703,18 +3623,7 @@ const Utils = {
      * رابط نشر Apps Script (Web App) إن وُجد في الإعدادات.
      */
     getAppsScriptScriptUrl() {
-        try {
-            let u = (typeof AppState !== 'undefined' && AppState.backendConfig && AppState.backendConfig.server && AppState.backendConfig.server.scriptUrl)
-                ? String(AppState.backendConfig.server.scriptUrl).trim()
-                : '';
-            // نشر الويب يعمل عادة عبر /exec؛ /dev قد يعيد HTML أو يرفض طلبات getProfileImage
-            if (u && u.indexOf('script.google.com/macros/s/') !== -1) {
-                u = u.replace(/\/dev(\?|#|$)/, '/exec$1');
-            }
-            return u;
-        } catch (e) {
-            return '';
-        }
+        return '';
     },
 
     /**
@@ -7131,7 +7040,7 @@ const EmployeeHelper = {
             // تشغيل بدون Backend (file://) أو عدم وجود Backend/Config.
             if (AppState?.runningWithoutBackend) return false;
             if (typeof Backend === 'undefined' || typeof Backend.sendRequest !== 'function') return false;
-            if (!AppState?.backendConfig?.server?.enabled || !AppState?.backendConfig?.server?.scriptUrl) return false;
+            if (!Utils.hasCloudBackendSync()) return false;
 
             this._employeesLoadPromise = (async () => {
                 let result = await Backend.sendRequest({
@@ -7884,7 +7793,7 @@ function removeDefaultUsersIfNeeded(options = {}) {
                     : (AppState.currentUser?.role || '').toLowerCase() === 'admin';
 
                 if (isAdmin && typeof Backend !== 'undefined' && typeof Backend.autoSave === 'function' &&
-                    AppState.backendConfig?.server?.enabled) {
+                    Utils.hasCloudBackendSync()) {
                     Backend.autoSave('Users', AppState.appData.users).catch(() => { });
                 }
             } catch (e) {

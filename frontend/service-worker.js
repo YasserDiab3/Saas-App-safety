@@ -58,7 +58,7 @@ function isSwDev() {
 // Bump cache version to force clients to pick up latest JS/CSS updates (زيادة عند كل نشر لظهور التحديثات)
 // يجب تحديث __SW_REGISTER_QUERY في index.html بنفس اللاحقة عند تغيير الإصدار لتسريع اكتشاف service-worker.js
 // Service Worker Version: 20260612d — fix WhatsApp in-app middleware false positive
-const CACHE_VERSION = 'hse-app-v2.2.71-20260626';
+const CACHE_VERSION = 'hse-app-v2.2.75-20260626';
 const CACHE_NAME = `hse-cache-${CACHE_VERSION}`;
 
 /** أقصى حجم لعنصر في الكاش (بايت) — يحدّ تخزين ملفات CDN الضخمة */
@@ -103,7 +103,6 @@ const CORE_CACHE_FILES = [
 // الموديولات التي سيتم تخزينها مؤقتاً عند الطلب
 const MODULE_CACHE_FILES = [
     `${BASE_PATH}/js/modules/modules-loader.js`,
-    `${BASE_PATH}/js/modules/sync-improvements.js`,
     `${BASE_PATH}/js/modules/error-handling.js`,
     `${BASE_PATH}/js/modules/dynamic-module-loader.js`
 ];
@@ -737,8 +736,7 @@ function isModuleFile(pathname) {
  * التحقق من أن الطلب API
  */
 function isAPIRequest(url) {
-    return url.hostname.includes('script.google.com') ||
-           url.hostname.includes('googleapis.com') ||
+    return url.hostname.includes('googleapis.com') ||
            url.pathname.includes('/api/');
 }
 

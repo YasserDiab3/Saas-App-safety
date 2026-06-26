@@ -232,7 +232,7 @@ const IssueTracking = {
             const filters = this.buildFilters();
             
             // التحقق من تفعيل Google Integration
-            if (!AppState.backendConfig?.server?.enabled || !AppState.backendConfig?.server?.scriptUrl) {
+            if (!Utils.hasCloudBackendSync()) {
                 this.showEmptyState('يجب تفعيل Google Integration أولاً');
                 return;
             }

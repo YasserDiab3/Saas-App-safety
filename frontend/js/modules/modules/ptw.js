@@ -1584,8 +1584,7 @@ const PTW = {
                 const result = await Backend.sendRequest({
                     action: 'readFromSheet',
                     data: {
-                        sheetName: 'PTWRegistry',
-                        spreadsheetId: AppState.backendConfig.sheets.spreadsheetId
+                        sheetName: 'PTWRegistry'
                     }
                 });
 

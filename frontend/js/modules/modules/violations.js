@@ -1129,7 +1129,7 @@ const Violations = {
             const CACHE_DURATION = 10 * 60 * 1000; // 10 دقائق
             const isStale = cacheAge >= CACHE_DURATION;
             const canFetch = typeof Backend !== 'undefined' && Backend.readFromSheets;
-            const isEnabled = AppState?.backendConfig?.server?.enabled && AppState?.backendConfig?.server?.scriptUrl;
+            const isEnabled = Utils.hasCloudBackendSync();
             if (!hasViolationsData && canFetch && isEnabled) {
                 try {
                     await this.ensureViolationsCoreDataLoaded({ force: true });
@@ -1270,7 +1270,7 @@ const Violations = {
         this._violationsCoreLoadPromise = (async () => {
             if (typeof Backend === 'undefined' || !Backend.readFromSheets) return;
 
-            const isEnabled = AppState?.backendConfig?.server?.enabled && AppState?.backendConfig?.server?.scriptUrl;
+            const isEnabled = Utils.hasCloudBackendSync();
             if (!isEnabled) return;
 
             const [violationsData, typesData] = await Promise.all([
@@ -5209,7 +5209,7 @@ ${inner}
             }
 
             // التحقق من تفعيل Google Integration
-            const isGoogleEnabled = AppState.backendConfig?.server?.enabled && AppState.backendConfig?.server?.scriptUrl;
+            const isGoogleEnabled = Utils.hasCloudBackendSync();
             const isBackendAvailable = typeof Backend !== 'undefined' && typeof Backend.sendRequest === 'function';
 
             if (!isGoogleEnabled || !isBackendAvailable) {

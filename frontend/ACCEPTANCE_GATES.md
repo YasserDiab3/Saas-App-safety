@@ -24,16 +24,16 @@
 - **PASS**: أخطاء التحميل من Backend يتم التعامل معها بإظهار واجهة fallback + زر retry بدون crash.
 - **FAIL**: فتح PTW يسبب hang أو تكرار `load()` بلا نهاية أو أخطاء قاتلة.
 
-## Gate 5: Google Apps Script الاتصال + المزامنة
-- **PASS**: `scriptUrl` و `spreadsheetId` موجودين وصالحين (وفق إعدادات المشروع).
-- **PASS**: قراءة بيانات أساسية تملأ `AppState.appData` بعد login/sync.
+## Gate 5: Supabase الاتصال + المزامنة
+- **PASS**: `SAAS_CONFIG.useSupabaseBackend === true` و`SaaSAdapter` جاهز.
+- **PASS**: قراءة بيانات أساسية تملأ `AppState.appData` بعد login/sync عبر RPC.
 - **PASS**: الكتابة (save/append) ترجع نجاح أو رسالة خطأ واضحة؛ لا يوجد “نجاح صامت” مع فشل فعلي.
-- **FAIL**: فشل متكرر في `doPost` أو أخطاء CORS/Network بدون fallback واضح.
+- **FAIL**: فشل متكرر في RPC أو أخطاء شبكة بدون fallback واضح.
 
 ## Gate 6: Local storage + Pending sync
 - **PASS**: بعد Refresh، بيانات `hse_app_data` تعيد بناء الواجهة بشكل صحيح.
-- **PASS**: في وضع Offline ثم Online، `pending sync` يفلش ويثبت البيانات في Sheets.
-- **FAIL**: فقد بيانات بسبب overwrite كامل للشيت أو coalescing غير مقصود للـ queue.
+- **PASS**: في وضع Offline ثم Online، `pending sync` يفلش ويثبت البيانات في Supabase.
+- **FAIL**: فقد بيانات بسبب overwrite غير مقصود أو coalescing خاطئ للـ queue.
 
 ## خطوات اختبار مختصرة (Smoke Test)
 - مسح localStorage → فتح التطبيق → تحقق من Login.

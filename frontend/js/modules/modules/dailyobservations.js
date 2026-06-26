@@ -1579,7 +1579,7 @@ const DailyObservations = {
         this._dailyObsLoadPromise = (async () => {
             if (typeof Backend === 'undefined' || !Backend.readFromSheets) return;
 
-            const isEnabled = AppState?.backendConfig?.server?.enabled && AppState?.backendConfig?.server?.scriptUrl;
+            const isEnabled = Utils.hasCloudBackendSync();
             if (!isEnabled) {
                 this._dailyObsBackendFetchOk = true;
                 return;
@@ -2450,7 +2450,7 @@ const DailyObservations = {
 
             // إرسال إشعار لكل مدير (بدون انتظار لتجنب مشاكل المهلة)
             if (typeof Backend !== 'undefined' && Backend.sendRequest &&
-                AppState?.backendConfig?.server?.enabled) {
+                Utils.hasCloudBackendSync()) {
 
                 // إرسال الإشعارات بشكل غير متزامن دون انتظار لتجنب مشاكل المهلة
                 adminUsers.forEach((admin) => {
@@ -5895,7 +5895,7 @@ const DailyObservations = {
                 }
                 return;
             }
-            if (!AppState.backendConfig?.server?.enabled || !AppState.backendConfig?.server?.scriptUrl) {
+            if (!Utils.hasCloudBackendSync()) {
                 Notification.error('الخادم السحابي غير مفعّل. يرجى تفعيله في الإعدادات أولاً.');
                 return;
             }
@@ -9120,7 +9120,7 @@ const DailyObservations = {
 
         try {
             // التحقق من تفعيل Google Integration
-            if (!AppState.backendConfig?.server?.enabled || !AppState.backendConfig?.server?.scriptUrl) {
+            if (!Utils.hasCloudBackendSync()) {
                 Notification.error('يجب تفعيل Google Integration أولاً');
                 return;
             }
@@ -9199,7 +9199,7 @@ const DailyObservations = {
 
         try {
             // التحقق من تفعيل Google Integration
-            if (!AppState.backendConfig?.server?.enabled || !AppState.backendConfig?.server?.scriptUrl) {
+            if (!Utils.hasCloudBackendSync()) {
                 Notification.error('يجب تفعيل Google Integration أولاً');
                 return;
             }

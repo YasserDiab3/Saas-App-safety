@@ -14,7 +14,7 @@
 ```
 clinic-saas/
 ├── frontend/              # SPA (منسوخ من الإنتاج، يُعاد استخدامه)
-│   └── js/modules/services/google-integration.js  ← نقطة تبديل النقل
+│   └── js/saas/saas-adapter.js  ← طبقة النقل (Strangler-Fig → Supabase)
 ├── supabase/
 │   ├── migrations/        # مخطّط Postgres + سياسات RLS
 │   └── functions/

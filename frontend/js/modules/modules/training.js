@@ -561,7 +561,7 @@ const Training = {
         }
 
         // التحقق من تفعيل Google Integration قبل إجراء الطلبات
-        if (!AppState.backendConfig?.server?.enabled || !AppState.backendConfig?.server?.scriptUrl) {
+        if (!Utils.hasCloudBackendSync()) {
             if (AppState.debugMode) {
                 Utils.safeLog('⚠️ الخادم السحابي غير مفعل - استخدام البيانات المحلية فقط');
             }
@@ -4962,7 +4962,7 @@ const Training = {
                     // المزامنة مع Google Sheets في الخلفية
                     (async () => {
                         try {
-                            if (AppState.backendConfig?.server?.enabled && typeof Backend !== 'undefined') {
+                            if (Utils.hasCloudBackendSync() && typeof Backend !== 'undefined') {
                                 if (existing) {
                                     await Backend.sendRequest({
                                         action: 'updateContractorTraining',
@@ -5144,7 +5144,7 @@ const Training = {
         }
         
         // حفظ في Google Sheets
-        if (AppState.backendConfig?.server?.enabled) {
+        if (Utils.hasCloudBackendSync()) {
             try {
                 // استخدام saveToSheet لحذف السجل
                 const filteredTrainings = AppState.appData.contractorTrainings.filter(t => t.id !== trainingId);
@@ -6857,7 +6857,7 @@ const Training = {
                 }
                 
                 // حفظ في Google Sheets
-                if (AppState.backendConfig?.server?.enabled) {
+                if (Utils.hasCloudBackendSync()) {
                     try {
                         // حفظ التدريب
                         await Backend.sendRequest({
@@ -8694,7 +8694,7 @@ const Training = {
             }
             
             // حذف من Google Sheets إذا كان مفعلاً
-            if (AppState.backendConfig?.server?.enabled) {
+            if (Utils.hasCloudBackendSync()) {
                 try {
                     const result = await Backend.sendToAppsScript('deleteTraining', { 
                         trainingId: id,

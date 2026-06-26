@@ -303,7 +303,7 @@ const ChemicalSafety = {
             return this._chemicalDataLoadPromise;
         }
         this._chemicalDataLoadPromise = (async () => {
-            if (!AppState.backendConfig?.server?.enabled || !AppState.backendConfig?.server?.scriptUrl) {
+            if (!Utils.hasCloudBackendSync()) {
                 this._chemicalBackendFetchOk = true;
                 this.loadChemicalList();
                 return;

@@ -281,7 +281,7 @@ const ChangeManagement = {
         if (!container) return;
         if (this.state._loadInProgress) return;
 
-        if (!AppState.backendConfig?.server?.enabled || !AppState.backendConfig?.server?.scriptUrl) {
+        if (!Utils.hasCloudBackendSync()) {
             const c = document.getElementById('change-requests-count');
             if (c) c.textContent = '—';
             container.innerHTML = this.showEmptyState('يجب تفعيل Google Integration أولاً');

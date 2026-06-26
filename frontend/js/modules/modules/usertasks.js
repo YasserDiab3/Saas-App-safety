@@ -343,9 +343,8 @@ const UserTasks = {
     startAutoSync() {
         // التحقق من تكوين الخادم السحابي قبل بدء المزامنة
         if (typeof AppState !== 'undefined') {
-            const isBackendConfigured = AppState.backendConfig?.server?.enabled &&
-                AppState.backendConfig?.server?.scriptUrl &&
-                AppState.backendConfig.server.scriptUrl.trim() !== '';
+            const isBackendConfigured = Utils.hasCloudBackendSync() &&
+                ''.trim() !== '';
 
             if (!isBackendConfigured) {
                 Utils.safeLog('ℹ️ لن يتم تفعيل المزامنة التلقائية: الخادم السحابي غير مفعل أو غير مُكوَّن');
@@ -390,9 +389,8 @@ const UserTasks = {
             }
 
             // فحص شامل لإعدادات الخادم السحابي
-            const isBackendConfigured = AppState.backendConfig?.server?.enabled &&
-                AppState.backendConfig?.server?.scriptUrl &&
-                AppState.backendConfig.server.scriptUrl.trim() !== '';
+            const isBackendConfigured = Utils.hasCloudBackendSync() &&
+                ''.trim() !== '';
 
             if (!isBackendConfigured) {
                 // الخادم السحابي غير مفعل أو غير مُكوَّن بشكل صحيح
@@ -1295,7 +1293,7 @@ const UserTasks = {
                     // AppState.appData.userTasks مفلترة (مهامه فقط) → الحفظ الجماعي
                     // كان سيعيد كتابة ورقة UserTasks بمهام هذا المستخدم فقط فيمحو
                     // مهام جميع المستخدمين الآخرين. updateUserTask يحدّث صفّاً واحداً فقط.
-                    if (AppState.backendConfig?.server?.enabled
+                    if (Utils.hasCloudBackendSync()
                         && typeof Backend !== 'undefined' && Backend.sendRequest) {
                         try {
                             const vr = await Backend.sendRequest({
@@ -1527,7 +1525,7 @@ const UserTasks = {
             }
 
             // محاولة الحصول من Google Sheets
-            if (AppState.backendConfig.server.enabled) {
+            if (Utils.hasCloudBackendSync()) {
                 try {
                     // استخدام readFromSheets بدلاً من getUsers
                     const users = await Backend.readFromSheets('Users');
@@ -1924,8 +1922,7 @@ const UserTasks = {
             // مفلترة (مهام المستخدم فقط) → الحفظ الجماعي كان سيمسح مهام بقية
             // المستخدمين. الدوال الذرّية تكتب صفّاً واحداً فقط (appendToSheet/
             // updateSingleRowInSheet) — آمنة ولا تمسّ صفوف الآخرين.
-            if (AppState.backendConfig && AppState.backendConfig.server && AppState.backendConfig.server.enabled
-                && typeof Backend !== 'undefined' && Backend.sendRequest) {
+            if (Utils.hasCloudBackendSync() && typeof Backend !== 'undefined' && Backend.sendRequest) {
                 try {
                     if (existingTask) {
                         const vr = await Backend.sendRequest({
@@ -2124,7 +2121,7 @@ const UserTasks = {
 
                 // ✅ FIX جذري: استخدام deleteUserTask الذرّي (حذف صفّ واحد بالـ id)
                 // بدل autoSave('UserTasks', الكامل) الذي يعيد كتابة الورقة كاملةً.
-                if (AppState.backendConfig?.server?.enabled
+                if (Utils.hasCloudBackendSync()
                     && typeof Backend !== 'undefined' && Backend.sendRequest) {
                     try {
                         const vr = await Backend.sendRequest({

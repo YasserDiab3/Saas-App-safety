@@ -733,28 +733,6 @@ window.Auth = {
             Notification.success(`مرحباً ${user.name}`);
         }
 
-        // تحميل إعدادات Google بشكل دائم بعد تسجيل الدخول (يجب أن تكون متاحة لجميع المستخدمين)
-        if (typeof window.DataManager !== 'undefined' && window.DataManager.loadBackendConfig) {
-            try {
-                window.DataManager.loadBackendConfig();
-                Utils.safeLog('✅ تم تحميل إعدادات Google بعد تسجيل الدخول');
-            } catch (configError) {
-                Utils.safeWarn('⚠️ خطأ في تحميل إعدادات Google بعد تسجيل الدخول:', configError);
-            }
-        }
-
-        // بدء نظام مراقبة الاتصال بعد تسجيل الدخول
-        if (typeof ConnectionMonitor !== 'undefined' && ConnectionMonitor.start) {
-            setTimeout(() => {
-                try {
-                    ConnectionMonitor.start();
-                    Utils.safeLog('✅ تم بدء نظام مراقبة الاتصال بعد تسجيل الدخول');
-                } catch (monitorError) {
-                    Utils.safeWarn('⚠️ فشل بدء نظام مراقبة الاتصال:', monitorError);
-                }
-            }, 500);
-        }
-
         // ✅ إصلاح: تحميل البيانات الأساسية أولاً بشكل مباشر ومتسلسل بدون تأخير
         // بدء تحميل البيانات مباشرة بعد تسجيل الدخول (بدون requestAnimationFrame)
         // ⚠️ مهم: لا نستخدم await هنا حتى لا نبطئ عملية تسجيل الدخول
@@ -940,15 +918,6 @@ window.Auth = {
             InactivityManager.stop();
         }
 
-        // إيقاف نظام مراقبة الاتصال
-        if (typeof ConnectionMonitor !== 'undefined' && ConnectionMonitor.stop) {
-            try {
-                ConnectionMonitor.stop();
-                Utils.safeLog('✅ تم إيقاف نظام مراقبة الاتصال');
-            } catch (monitorError) {
-                Utils.safeWarn('⚠️ فشل إيقاف نظام مراقبة الاتصال:', monitorError);
-            }
-        }
 
         // تسجيل حركة تسجيل الخروج قبل حذف بيانات المستخدم
         if (AppState.currentUser && typeof UserActivityLog !== 'undefined') {
@@ -1647,7 +1616,7 @@ window.Auth = {
         }
 
         // حفظ في Google Sheets إذا كان معّلاً
-        if (AppState.backendConfig && AppState.backendConfig.server && AppState.backendConfig.server.enabled && AppState.backendConfig.sheets && AppState.backendConfig.sheets.spreadsheetId) {
+        if (Utils.hasCloudBackendSync()) {
             try {
                 await Backend.autoSave('Users', AppState.appData.users);
                 Utils.safeLog('✅ تم حفظ كلمة المرور الجديدة في Google Sheets');
@@ -1665,7 +1634,7 @@ window.Auth = {
      * يتم تحميل البيانات بشكل متتالي لضمان عدم فقدان أي بيانات
      */
     async loadModulesDataSequentially() {
-        if (!AppState.backendConfig?.server?.enabled || typeof Backend === 'undefined') {
+        if (!Utils.hasCloudBackendSync() || typeof Backend === 'undefined') {
             return;
         }
 
@@ -1998,7 +1967,7 @@ window.Auth = {
 
         // حفظ تلقائياً في Google Sheets
         try {
-            if (AppState.backendConfig.server.enabled && AppState.backendConfig.server.scriptUrl) {
+            if (Utils.hasCloudBackendSync()) {
                 // استخدام resetUserPassword في Backend أولاً
                 let result = await Backend.sendToAppsScript('resetUserPassword', {
                     userId: user.id,

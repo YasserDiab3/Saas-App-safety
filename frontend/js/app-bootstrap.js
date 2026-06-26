@@ -303,15 +303,6 @@
                         // لا نكسر التحميل بسبب فشل cleanup
                         log('⚠️ تعذر تنفيذ تنظيف الحسابات الافتراضية legacy:', cleanupError);
                     }
-                    
-                    if (window.DataManager && window.DataManager.loadBackendConfig) {
-                        try {
-                            window.DataManager.loadBackendConfig();
-                            log('✅ تم تحميل إعدادات الاتصال بالخادم بنجاح');
-                        } catch (configError) {
-                            console.warn('⚠️ خطأ في تحميل إعدادات الاتصال بالخادم:', configError);
-                        }
-                    }
 
                     // ✅ تحسين: تحميل ذكي للبيانات حسب الصلاحيات (بدلاً من تحميل كل شيء)
                     // هذا يقلل من وقت التحميل الأولي ويحسن الأداء

@@ -4565,7 +4565,7 @@ ${innerContent}
      */
     async loadWasteManagementFromSheets() {
         // التحقق من تفعيل Google Integration
-        if (!AppState.backendConfig?.server?.enabled || !AppState.backendConfig?.server?.scriptUrl) {
+        if (!Utils.hasCloudBackendSync()) {
             return;
         }
 
@@ -4635,7 +4635,7 @@ ${innerContent}
      * — طلبات متوازية لتقليل زمن الانتظار، ودمج متزامن لمنع تكرار الشبكة.
      */
     async loadResourceConsumptionFromSheets() {
-        if (!AppState.backendConfig?.server?.enabled || !AppState.backendConfig?.server?.scriptUrl) {
+        if (!Utils.hasCloudBackendSync()) {
             return;
         }
 

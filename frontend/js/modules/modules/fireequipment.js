@@ -1554,7 +1554,7 @@ FireEquipment = {
      */
     async loadAssetsFromBackend() {
         try {
-            if (!Backend || !AppState.backendConfig?.server?.enabled) {
+            if (!Backend || !Utils.hasCloudBackendSync()) {
                 Utils.safeWarn('⚠️ Backend غير متاح - استخدام البيانات المحلية');
                 return;
             }
@@ -2526,7 +2526,7 @@ FireEquipment = {
                 
                 let backendResult;
 
-                if (Backend && AppState.backendConfig?.server?.enabled) {
+                if (Backend && Utils.hasCloudBackendSync()) {
                     // استخدام saveOrUpdateFireEquipmentAsset للحفظ المباشر
                     backendResult = await Backend.sendRequest({
                         action: 'saveOrUpdateFireEquipmentAsset',
@@ -3156,7 +3156,7 @@ FireEquipment = {
         // حفظ في Backend (في الخلفية)
         (async () => {
             try {
-                if (Backend && AppState.backendConfig?.server?.enabled) {
+                if (Backend && Utils.hasCloudBackendSync()) {
                     const result = await Backend.sendRequest({
                         action: 'addFireEquipmentApprovalRequest',
                         data: approvalRequest
@@ -3206,7 +3206,7 @@ FireEquipment = {
             // إذا لم يتم العثور على مديرين في البيانات المحلية، إرسال إشعار عام
             if (admins.length === 0) {
                 // إرسال إشعار عام للمديرين
-                if (Backend && AppState.backendConfig?.server?.enabled) {
+                if (Backend && Utils.hasCloudBackendSync()) {
                     await Backend.sendRequest({
                         action: 'addNotification',
                         data: {
@@ -3231,7 +3231,7 @@ FireEquipment = {
                 for (const admin of admins) {
                     if (admin.id || admin.email) {
                         try {
-                            if (Backend && AppState.backendConfig?.server?.enabled) {
+                            if (Backend && Utils.hasCloudBackendSync()) {
                                 await Backend.sendRequest({
                                     action: 'addNotification',
                                     data: {
@@ -3498,7 +3498,7 @@ FireEquipment = {
                 // ✅ المزامنة في الخلفية (بدون انتظار)
                 (async () => {
             try {
-                if (Backend && AppState.backendConfig?.server?.enabled) {
+                if (Backend && Utils.hasCloudBackendSync()) {
                             // حفظ الفحص في Backend
                     const inspectionResult = await Backend.sendRequest({
                         action: isEdit ? 'updateFireEquipmentInspection' : 'addFireEquipmentInspection',
@@ -3973,7 +3973,7 @@ FireEquipment = {
                 // ✅ المزامنة في الخلفية (بدون انتظار)
                 (async () => {
                     try {
-                        if (Backend && AppState.backendConfig?.server?.enabled) {
+                        if (Backend && Utils.hasCloudBackendSync()) {
                             // حفظ الفحص في Backend
                             const inspectionResult = await Backend.sendRequest({
                                 action: isEdit ? 'updateFireEquipmentInspection' : 'addFireEquipmentInspection',
@@ -4192,7 +4192,7 @@ FireEquipment = {
         }
 
         // حفظ في Google Sheets - استخدام الطريقة الآمنة
-        if (AppState.backendConfig?.server?.enabled) {
+        if (Utils.hasCloudBackendSync()) {
             try {
                 Utils.safeLog('🔄 بدء حفظ بيانات معدات الحريق...');
 
@@ -4623,7 +4623,7 @@ FireEquipment = {
             const total = importedData.length;
 
             // استخدام Backend للحفظ المباشر
-            if (Backend && AppState.backendConfig?.server?.enabled) {
+            if (Backend && Utils.hasCloudBackendSync()) {
                 // تقسيم البيانات إلى دفعات صغيرة لتجنب مشاكل الشبكة
                 const BATCH_SIZE = 5;
 
@@ -5943,7 +5943,7 @@ FireEquipment = {
      */
     async loadApprovalRequestsFromBackend() {
         try {
-            if (Backend && AppState.backendConfig?.server?.enabled) {
+            if (Backend && Utils.hasCloudBackendSync()) {
                 const result = await Backend.sendRequest({
                     action: 'getFireEquipmentApprovalRequests',
                     data: {}
@@ -6323,7 +6323,7 @@ FireEquipment = {
                 return; // حالة غير معروفة
             }
 
-            if (Backend && AppState.backendConfig?.server?.enabled) {
+            if (Backend && Utils.hasCloudBackendSync()) {
                 await Backend.sendRequest({
                     action: 'addNotification',
                     data: {

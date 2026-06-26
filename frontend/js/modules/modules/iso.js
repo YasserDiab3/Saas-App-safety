@@ -1386,7 +1386,7 @@ const ISO = {
         }
 
                 // إرسال مباشر إلى الخلفية للسجل الجديد
-                if (AppState.backendConfig.server.enabled && AppState.backendConfig.server.scriptUrl) {
+                if (Utils.hasCloudBackendSync()) {
                     try {
                         await Backend.sendToAppsScript('addHSEObjective', formData);
                         Utils.safeLog('✅ تم حفظ الهدف مباشرة في الخلفية');
@@ -1514,7 +1514,7 @@ const ISO = {
         }
 
                 // إرسال مباشر إلى الخلفية للسجل الجديد
-                if (AppState.backendConfig.server.enabled && AppState.backendConfig.server.scriptUrl) {
+                if (Utils.hasCloudBackendSync()) {
                     try {
                         await Backend.sendToAppsScript('addEnvironmentalAspect', formData);
                         Utils.safeLog('✅ تم حفظ الجانب البيئي مباشرة في الخلفية');
@@ -1659,7 +1659,7 @@ const ISO = {
         }
 
                 // إرسال مباشر إلى الخلفية للسجل الجديد
-                if (AppState.backendConfig.server.enabled && AppState.backendConfig.server.scriptUrl) {
+                if (Utils.hasCloudBackendSync()) {
                     try {
                         await Backend.sendToAppsScript('addHSEAudit', formData);
                         Utils.safeLog('✅ تم حفظ التدقيق مباشرة في الخلفية');
@@ -1819,7 +1819,7 @@ const ISO = {
         }
 
                 // إرسال مباشر إلى الخلفية للسجل الجديد
-                if (AppState.backendConfig.server.enabled && AppState.backendConfig.server.scriptUrl) {
+                if (Utils.hasCloudBackendSync()) {
                     try {
                         await Backend.sendToAppsScript('addHSENonConformity', formData);
                         Utils.safeLog('✅ تم حفظ عدم المطابقة مباشرة في الخلفية');
@@ -1983,7 +1983,7 @@ const ISO = {
         }
 
                 // إرسال مباشر إلى الخلفية للسجل الجديد
-                if (AppState.backendConfig.server.enabled && AppState.backendConfig.server.scriptUrl) {
+                if (Utils.hasCloudBackendSync()) {
                     try {
                         await Backend.sendToAppsScript('addHSECorrectiveAction', formData);
                         Utils.safeLog('✅ تم حفظ الإجراء التصحيحي مباشرة في الخلفية');

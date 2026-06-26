@@ -324,7 +324,7 @@ const Reports = {
         const needTraining = !Array.isArray(AppState.appData.training);
         if (!needContractor && !needAttendance && !needTraining) return;
         if (typeof Backend === 'undefined' || typeof Backend.sendRequest !== 'function') return;
-        if (!AppState.backendConfig?.server?.enabled || !AppState.backendConfig?.server?.scriptUrl) return;
+        if (!Utils.hasCloudBackendSync()) return;
         try {
             const req = (action) => Promise.resolve(Backend.sendRequest({ action, data: {} }))
                 .then(r => (r && r.success && Array.isArray(r.data) ? r.data : []))

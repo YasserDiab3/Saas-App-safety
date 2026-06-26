@@ -1,4 +1,4 @@
 {
-  "version": "2.2.71",
-  "message": "feat(platform-console): full-screen dashboard with alerts header"
+  "version": "2.2.75",
+  "message": "fix(platform-console): improve tab nav text contrast"
 }

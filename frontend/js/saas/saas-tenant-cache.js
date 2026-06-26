@@ -18,6 +18,7 @@
         'hse_cached_users',
         'hse_read_notifications',
         'hse_backend_config',
+        'hse_google_config',
         'hse_cloud_storage_config'
     ];
 

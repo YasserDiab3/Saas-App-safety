@@ -7,5 +7,5 @@
 | `stripe-webhook/` | استقبال أحداث Stripe وتحديث `subscriptions` / `tenants.plan`. (Phase 5) |
 | `trial-reminders/` | إيميلات تذكير التجربة (يومان / يوم / انتهاء) — تجربة 3 أيام — جدولة يومية عبر `x-cron-secret`. |
 
-> الواجهة لا تتغير وظيفياً — فقط `frontend/js/modules/services/google-integration.js`
-> يُعاد توجيهه إلى `api/` بدل scriptUrl (Phase 3).
+> الواجهة لا تتغير وظيفياً — `Backend.sendRequest` يُوجَّه عبر
+> `frontend/js/saas/saas-adapter.js` إلى Supabase RPC (Strangler-Fig).

@@ -2350,7 +2350,7 @@ const Dashboard = {
         this.contractorReportRequests.set(requestKey, contractorReportPromise);
         this.renderContractorReportLoading(reportContractor, contractorCodeVal);
         let serverDetailedAnalytics = null;
-        if (typeof Backend !== 'undefined' && Backend.sendRequest && AppState.backendConfig?.server?.enabled) {
+        if (typeof Backend !== 'undefined' && Backend.sendRequest && Utils.hasCloudBackendSync()) {
             try {
                 const analyticsRes = await Backend.sendRequest({
                     action: 'getContractorDetailedAnalytics',

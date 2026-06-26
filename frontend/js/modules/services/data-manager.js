@@ -355,69 +355,7 @@ const DataManager = {
             }
             return results;
         }
-        
-        // التحقق من تفعيل الخادم السحابي (Google Apps Script)
-        if (!AppState.backendConfig || !AppState.backendConfig.server || !AppState.backendConfig.server.enabled || !AppState.backendConfig.server.scriptUrl) {
-            Utils.safeLog('ℹ️ الخادم السحابي غير مفعّل، تخطي المزامنة');
-            return { success: false, synced: 0, failed: 0, message: 'الخادم السحابي غير مفعّل' };
-        }
-        
-        // التحقق من وجود معرف Google Sheets
-        const spreadsheetId = AppState.backendConfig.sheets?.spreadsheetId?.trim();
-        if (!spreadsheetId || spreadsheetId === '') {
-            Utils.safeLog('ℹ️ معرف Google Sheets غير محدد، تخطي المزامنة');
-            return { success: false, synced: 0, failed: 0, message: 'معرف Google Sheets غير محدد' };
-        }
-        
-        for (const item of queueCopy) {
-            if (item.retryCount >= maxRetries) {
-                // تجاوز الحد الأقصى للمحاولات - إزالة من قائمة الانتظار
-                this.removeFromPendingSync(item.sheetName);
-                results.failed++;
-                results.errors.push(`${item.sheetName}: تجاوز الحد الأقصى للمحاولات`);
-                continue;
-            }
-            
-            try {
-                // زيادة عداد المحاولات
-                item.retryCount = (item.retryCount || 0) + 1;
-                const preparedData = (typeof Backend !== 'undefined' && typeof Backend.prepareSheetPayload === 'function')
-                    ? Backend.prepareSheetPayload(item.sheetName, item.data)
-                    : item.data;
-                
-                // محاولة المزامنة
-                await Backend.sendToAppsScript('saveToSheet', {
-                    sheetName: item.sheetName,
-                    data: preparedData,
-                    spreadsheetId: spreadsheetId
-                });
-                
-                // نجحت المزامنة - إزالة من قائمة الانتظار
-                this.removeFromPendingSync(item.sheetName);
-                results.synced++;
-                Utils.safeLog(`✅ تمت مزامنة ${item.sheetName} بنجاح`);
-            } catch (error) {
-                // فشلت المزامنة - الاحتفاظ في قائمة الانتظار
-                const index = this._pendingSyncQueue.findIndex(i => i.sheetName === item.sheetName);
-                if (index >= 0) {
-                    this._pendingSyncQueue[index] = item;
-                }
-                this.savePendingSyncQueue();
-                results.failed++;
-                
-                // تسجيل الخطأ فقط إذا لم يكن خطأ "معرف Google Sheets غير محدد"
-                const errorMsg = error.message || 'خطأ غير معروف';
-                if (!errorMsg.includes('معرف Google Sheets غير محدد') && !errorMsg.includes('Google Sheets غير مفعّل')) {
-                    results.errors.push(`${item.sheetName}: ${errorMsg}`);
-                    Utils.safeWarn(`⚠️ فشلت مزامنة ${item.sheetName}:`, errorMsg);
-                    const rejectedFieldMatch = String(errorMsg).match(/حقل غير مسموح في البيانات:\s*([^\s(]+)/i);
-                    if (rejectedFieldMatch && rejectedFieldMatch[1]) {
-                        Utils.safeWarn(`⚠️ تم رفض حقل في queue (${item.sheetName}): ${rejectedFieldMatch[1]}`);
-                    }
-                }
-            }
-        }
-        
+
         return results;
     },
     
@@ -767,7 +705,7 @@ const DataManager = {
     async refreshTruncatedDataFromServer() {
         if (!AppState._localDataIsTruncated) return;
         if (typeof Backend === 'undefined' || !Backend.sendRequest) return;
-        if (!AppState.backendConfig?.server?.enabled) return;
+        if (!Utils.hasCloudBackendSync()) return;
 
         // خريطة اسم الحقل في AppState → اسم الورقة في Google Sheets
         const fieldToSheetMap = {
@@ -945,7 +883,7 @@ const DataManager = {
             
             // ✅ محاولة تحميل الإعدادات من الخادم (Supabase أو Apps Script)
             const cloudReady = typeof Utils !== 'undefined' && typeof Utils.hasCloudBackendSync === 'function' && Utils.hasCloudBackendSync();
-            if ((cloudReady || AppState.backendConfig?.server?.enabled) && typeof Backend !== 'undefined') {
+            if ((cloudReady || Utils.hasCloudBackendSync()) && typeof Backend !== 'undefined') {
                 try {
                     const result = await Backend.sendToAppsScript('getCompanySettings', {});
                     if (result && result.success && result.data) {
@@ -1178,33 +1116,6 @@ const DataManager = {
             return true;
         } catch (error) {
             Utils.safeError('❌ خطأ في حفظ إعدادات الشركة:', error);
-            return false;
-        }
-    },
-
-    /**
-     * تحميل إعدادات الاتصال بالخادم الخلفي (المفتاح التاريخي hse_backend_config)
-     */
-    loadBackendConfig() {
-        try {
-            const config = localStorage.getItem('hse_backend_config');
-            if (config) {
-                AppState.backendConfig = JSON.parse(config);
-            }
-        } catch (error) {
-            Utils.safeError('❌ خطأ في تحميل إعدادات الاتصال بالخادم:', error);
-        }
-    },
-
-    /**
-     * حفظ إعدادات الاتصال بالخادم الخلفي
-     */
-    saveBackendConfig() {
-        try {
-            localStorage.setItem('hse_backend_config', JSON.stringify(AppState.backendConfig));
-            return true;
-        } catch (error) {
-            Utils.safeError('❌ خطأ في حفظ إعدادات الاتصال بالخادم:', error);
             return false;
         }
     },

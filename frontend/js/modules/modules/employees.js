@@ -2018,7 +2018,7 @@ const Employees = {
                 AppState.appData.employees = this.cache.data;
             }
             // ✅ مرة واحدة لكل جلسة: إذا عداد المستقيلين 0 والكاش قد يكون قديماً، جلب كامل من الخادم في الخلفية
-            if (!this.config._refreshedOnceForInactive && AppState.appData.employees.length > 0 && AppState.backendConfig?.server?.enabled) {
+            if (!this.config._refreshedOnceForInactive && AppState.appData.employees.length > 0 && Utils.hasCloudBackendSync()) {
                 const inactiveInCache = (AppState.appData.employees || []).filter(e => this.isEmployeeInactive(e)).length;
                 if (inactiveInCache === 0) {
                     this.config._refreshedOnceForInactive = true;
@@ -2071,7 +2071,7 @@ const Employees = {
 
         try {
             // التحقق من تفعيل Google Integration
-            if (!AppState.backendConfig?.server?.enabled || !AppState.backendConfig?.server?.scriptUrl) {
+            if (!Utils.hasCloudBackendSync()) {
                 if (AppState.debugMode) {
                     Utils.safeLog('⚠️ الخادم السحابي غير مفعّل - استخدام البيانات المحلية فقط');
                 }
@@ -2136,8 +2136,7 @@ const Employees = {
                     const sheetResult = await Backend.sendRequest({
                         action: 'readFromSheet',
                         data: { 
-                            sheetName: 'Employees',
-                            spreadsheetId: AppState.backendConfig.sheets.spreadsheetId
+                            sheetName: 'Employees'
                         }
                     });
 
@@ -2204,7 +2203,7 @@ const Employees = {
         
         try {
             // التحقق من تفعيل Google Integration
-            if (!AppState.backendConfig?.server?.enabled || !AppState.backendConfig?.server?.scriptUrl) {
+            if (!Utils.hasCloudBackendSync()) {
                 return;
             }
 
@@ -4426,7 +4425,7 @@ const Employees = {
             
             // ✅ تنفيذ المزامنة مع Backend في الخلفية لتجنب عدم استجابة النظام
             // نستخدم sendToAppsScript فقط (بدون autoSave) لتحديث صف واحد بدلاً من رفع كل السجلات
-            if (AppState.backendConfig?.server?.enabled) {
+            if (Utils.hasCloudBackendSync()) {
                 Backend.sendToAppsScript('deactivateEmployee', { employeeId: id })
                     .then(res => {
                         if (!res || !res.success) {
@@ -4495,7 +4494,7 @@ const Employees = {
             
             // ✅ تنفيذ المزامنة مع Backend في الخلفية لتجنب عدم استجابة النظام
             // نستخدم sendToAppsScript فقط للحذف الدقيق والسريع
-            if (AppState.backendConfig?.server?.enabled) {
+            if (Utils.hasCloudBackendSync()) {
                 Backend.sendToAppsScript('deleteEmployee', { employeeId: id })
                     .then(res => {
                         if (!res || !res.success) {

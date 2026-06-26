@@ -676,8 +676,7 @@ const Contractors = {
 
         const canSync = typeof Backend !== 'undefined' &&
             typeof Backend.syncData === 'function' &&
-            AppState.backendConfig?.server?.enabled &&
-            AppState.backendConfig?.server?.scriptUrl;
+            Utils.hasCloudBackendSync();
 
         if (!canSync) return;
 
@@ -10073,7 +10072,7 @@ const Contractors = {
 
         let evaluations = AppState.appData.contractorEvaluations || [];
         let violations = AppState.appData.violations || [];
-        if (typeof Backend !== 'undefined' && Backend.readFromSheets && AppState.backendConfig?.server?.enabled) {
+        if (typeof Backend !== 'undefined' && Backend.readFromSheets && Utils.hasCloudBackendSync()) {
             try {
                 const [v, ev] = await Promise.all([
                     Backend.readFromSheets('Violations'),
@@ -11774,7 +11773,7 @@ const Contractors = {
 
         (async () => {
             try {
-                if (typeof Backend !== 'undefined' && Backend.syncData && AppState.backendConfig?.server?.enabled) {
+                if (typeof Backend !== 'undefined' && Backend.syncData && Utils.hasCloudBackendSync()) {
                     const needCT = !AppState.appData.contractorTrainings?.length;
                     const needT = !AppState.appData.training?.length;
                     const needPTW = (!AppState.appData.ptw || !AppState.appData.ptw.length) && (!AppState.appData.ptwRegistry || !AppState.appData.ptwRegistry.length);
@@ -11806,7 +11805,7 @@ const Contractors = {
                 }
 
                 let serverDetailedAnalytics = null;
-                if (typeof Backend !== 'undefined' && Backend.sendRequest && AppState.backendConfig?.server?.enabled) {
+                if (typeof Backend !== 'undefined' && Backend.sendRequest && Utils.hasCloudBackendSync()) {
                     const analyticsRes = await Backend.sendRequest({
                         action: 'getContractorDetailedAnalytics',
                         data: { contractor, contractorId: analyticsLookupKey }
