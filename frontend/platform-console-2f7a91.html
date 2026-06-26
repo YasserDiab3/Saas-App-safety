@@ -210,7 +210,7 @@
     </div>
 
     <div id="pane-inquiries" class="pf-pane">
-      <div class="pf-content-card">
+      <div class="pf-content-card pf-inq-card">
         <div class="pf-section-hd">
           <h2 data-i18n="pf_tab_inquiries">طلبات التواصل</h2>
           <div class="pf-toolbar">
@@ -227,8 +227,25 @@
             <span class="pf-msg" id="export-msg-inquiries"></span>
           </div>
         </div>
-        <p class="pf-plans-note muted-s" data-i18n="pf_inq_note">طلبات حساب أو عرض سعر من صفحة تسجيل الدخول (نموذج التواصل).</p>
-        <div class="pf-table-wrap" id="inquiries-table"></div>
+        <div class="pf-inq-banner" role="note">
+          <div class="pf-inq-banner-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <div class="pf-inq-banner-body">
+            <strong class="pf-inq-banner-title" data-i18n="pf_inq_banner_title">نموذج طلب حساب / عرض سعر — صفحة تسجيل الدخول</strong>
+            <p class="pf-inq-banner-text" data-i18n="pf_inq_note">يتضمّن الحقول: الاسم الكامل، الوظيفة، المؤسسة، بريد العمل، الجوال، عدد المستخدمين (أسفل الجوال)، وملاحظات اختيارية.</p>
+            <div class="pf-inq-field-tags" aria-hidden="true">
+              <span class="pf-inq-tag" data-i18n="f_name">الاسم الكامل</span>
+              <span class="pf-inq-tag pf-inq-tag--accent" data-i18n="pf_inq_job">الوظيفة</span>
+              <span class="pf-inq-tag" data-i18n="pf_inq_org">المؤسسة</span>
+              <span class="pf-inq-tag" data-i18n="pf_col_email">البريد</span>
+              <span class="pf-inq-tag" data-i18n="pf_inq_phone">الجوال</span>
+              <span class="pf-inq-tag" data-i18n="pf_inq_users">عدد المستخدمين</span>
+            </div>
+          </div>
+        </div>
+        <div class="pf-inq-stats" id="inquiry-stats" hidden></div>
+        <div class="pf-table-wrap pf-table-wrap--inquiries" id="inquiries-table"></div>
       </div>
     </div>
 
@@ -412,7 +429,7 @@
   <script src="js/saas/saas-brand.js"></script>
   <script src="js/saas/supabase-bootstrap.js"></script>
   <script src="js/saas/saas-escape.js"></script>
-  <script src="js/saas/saas-i18n.js?v=2.2.68"></script>
+  <script src="js/saas/saas-i18n.js?v=2.2.80"></script>
   <script src="js/saas/saas-platform-export.js"></script>
   <script src="js/modules/help-default-content-data.js"></script>
   <script src="js/modules/help-default-content.js"></script>
@@ -734,6 +751,7 @@
 
     function setAppShell(active) {
       document.body.classList.toggle('pf-body-app', !!active);
+      document.body.classList.toggle('pf-console-page', !!active);
     }
 
     function updateUserChip(email) {
@@ -1073,6 +1091,40 @@
       return `<span class="badge ${cls}">${esc(inquiryStatusLabel(s))}</span>`;
     }
 
+    function inquiryRowStatusClass(st) {
+      const s = String(st || 'new');
+      if (s === 'contacted') return 'pf-inq-row--contacted';
+      if (s === 'closed') return 'pf-inq-row--closed';
+      return 'pf-inq-row--new';
+    }
+
+    function inquiryJobCell(job) {
+      const value = String(job || '').trim();
+      if (!value) return `<span class="pf-inq-empty">${esc(T('pf_inq_job_missing'))}</span>`;
+      return `<span class="pf-inq-job" title="${esc(value)}">${esc(value)}</span>`;
+    }
+
+    function inquiryUsersCell(users) {
+      if (users == null || users === '') return '<span class="pf-inq-empty">—</span>';
+      return `<span class="pf-inq-users">${esc(String(users))}</span>`;
+    }
+
+    function renderInquiryStats(items) {
+      const box = $('inquiry-stats');
+      if (!box) return;
+      const counts = { new: 0, contacted: 0, closed: 0 };
+      items.forEach(r => {
+        const key = String(r.status || 'new');
+        if (counts[key] != null) counts[key] += 1;
+      });
+      box.hidden = !items.length;
+      box.innerHTML = `
+        <span class="pf-inq-stat"><span class="pf-inq-stat-n">${items.length}</span><span class="pf-inq-stat-l">${esc(T('pf_inq_stat_total'))}</span></span>
+        <span class="pf-inq-stat pf-inq-stat--new"><span class="pf-inq-stat-n">${counts.new}</span><span class="pf-inq-stat-l">${esc(T('pf_inq_st_new'))}</span></span>
+        <span class="pf-inq-stat pf-inq-stat--contacted"><span class="pf-inq-stat-n">${counts.contacted}</span><span class="pf-inq-stat-l">${esc(T('pf_inq_st_contacted'))}</span></span>
+        <span class="pf-inq-stat pf-inq-stat--closed"><span class="pf-inq-stat-n">${counts.closed}</span><span class="pf-inq-stat-l">${esc(T('pf_inq_st_closed'))}</span></span>`;
+    }
+
     function inquiryActionButtons(id, status) {
       const iid = esc(id);
       const st = String(status || 'new');
@@ -1102,42 +1154,54 @@
     async function loadInquiries() {
       const box = $('inquiries-table');
       if (!box) return;
-      box.innerHTML = `<p class="muted-s">${esc(T('pf_loading'))}</p>`;
+      box.innerHTML = `<p class="muted-s pf-inq-loading">${esc(T('pf_loading'))}</p>`;
       const { data, error } = await saasRpc('api_admin_list_sales_inquiries', { p_limit: 200 });
       if (error) { box.innerHTML = `<p class="err">${esc(error.message)}</p>`; return; }
-      let items = parseInquiryList(data);
+      const allItems = parseInquiryList(data);
+      renderInquiryStats(allItems);
+      let items = allItems;
       const st = _state.inquiries.status;
       if (st) items = items.filter(r => r.status === st);
       const msgPreview = m => {
         const s = String(m || '').trim();
-        if (!s) return '—';
-        return s.length > 72 ? esc(s.slice(0, 72)) + '…' : esc(s);
+        if (!s) return '<span class="pf-inq-empty">—</span>';
+        return s.length > 64 ? esc(s.slice(0, 64)) + '…' : esc(s);
       };
-      box.innerHTML = items.length ? `<table class="pf-table"><thead><tr>
-        <th>${esc(T('pf_col_created'))}</th><th>${esc(T('pf_col_name'))}</th><th>${esc(T('pf_inq_job'))}</th><th>${esc(T('pf_inq_org'))}</th>
-        <th>${esc(T('pf_col_email'))}</th><th>${esc(T('pf_inq_phone'))}</th><th>${esc(T('pf_inq_users'))}</th>
-        <th>${esc(T('pf_inq_message'))}</th><th>${esc(T('pf_col_status'))}</th><th>${esc(T('pf_inq_source'))}</th>
-        <th>${esc(T('pf_actions'))}</th></tr></thead><tbody>${
+      box.innerHTML = items.length ? `<table class="pf-table pf-table--inquiries"><thead><tr>
+        <th class="pf-inq-th-date">${esc(T('pf_col_created'))}</th>
+        <th class="pf-inq-th-name">${esc(T('pf_col_name'))}</th>
+        <th class="pf-inq-th-job">${esc(T('pf_inq_job'))}</th>
+        <th class="pf-inq-th-org">${esc(T('pf_inq_org'))}</th>
+        <th class="pf-inq-th-contact">${esc(T('pf_col_email'))}</th>
+        <th class="pf-inq-th-phone">${esc(T('pf_inq_phone'))}</th>
+        <th class="pf-inq-th-users">${esc(T('pf_inq_users'))}</th>
+        <th class="pf-inq-th-msg">${esc(T('pf_inq_message'))}</th>
+        <th class="pf-inq-th-status">${esc(T('pf_col_status'))}</th>
+        <th class="pf-inq-th-source">${esc(T('pf_inq_source'))}</th>
+        <th class="pf-inq-th-actions pf-td-actions">${esc(T('pf_actions'))}</th>
+      </tr></thead><tbody>${
         items.map(r => {
           const email = String(r.email || '').trim();
           const phone = String(r.phone || '').trim();
           const mailHref = email ? 'mailto:' + email : '#';
           const telHref = phone ? 'tel:' + phone.replace(/\s/g, '') : '#';
-          return `<tr>
-            <td>${esc(fmtExp(r.created_at))}</td>
-            <td>${esc(r.full_name || '—')}</td>
-            <td>${esc(r.job_title || '—')}</td>
-            <td>${esc(r.org_name || '—')}</td>
-            <td dir="ltr">${email ? `<a href="${esc(mailHref)}" target="_blank" rel="noopener noreferrer">${esc(email)}</a>` : '—'}</td>
-            <td dir="ltr">${phone ? `<a href="${esc(telHref)}">${esc(phone)}</a>` : '—'}</td>
-            <td>${r.expected_users != null ? esc(String(r.expected_users)) : '—'}</td>
-            <td title="${esc(r.message || '')}">${msgPreview(r.message)}</td>
-            <td>${inquiryStatusBadge(r.status)}</td>
-            <td>${esc(r.source || '—')}</td>
-            <td>${inquiryActionButtons(r.id, r.status)}</td>
+          const name = String(r.full_name || '').trim();
+          const org = String(r.org_name || '').trim();
+          return `<tr class="${inquiryRowStatusClass(r.status)}">
+            <td class="pf-inq-td-date"><time datetime="${esc(r.created_at || '')}">${esc(fmtExp(r.created_at))}</time></td>
+            <td class="pf-inq-td-name"><span class="pf-inq-name">${name ? esc(name) : '<span class="pf-inq-empty">—</span>'}</span></td>
+            <td class="pf-inq-td-job">${inquiryJobCell(r.job_title)}</td>
+            <td class="pf-inq-td-org"><span class="pf-inq-org">${org ? esc(org) : '<span class="pf-inq-empty">—</span>'}</span></td>
+            <td class="pf-inq-td-email" dir="ltr">${email ? `<a class="pf-inq-link" href="${esc(mailHref)}" target="_blank" rel="noopener noreferrer">${esc(email)}</a>` : '<span class="pf-inq-empty">—</span>'}</td>
+            <td class="pf-inq-td-phone" dir="ltr">${phone ? `<a class="pf-inq-link" href="${esc(telHref)}">${esc(phone)}</a>` : '<span class="pf-inq-empty">—</span>'}</td>
+            <td class="pf-inq-td-users">${inquiryUsersCell(r.expected_users)}</td>
+            <td class="pf-inq-td-msg" title="${esc(r.message || '')}">${msgPreview(r.message)}</td>
+            <td class="pf-inq-td-status">${inquiryStatusBadge(r.status)}</td>
+            <td class="pf-inq-td-source"><span class="pf-inq-source">${esc(r.source || '—')}</span></td>
+            <td class="pf-inq-td-actions pf-td-actions">${inquiryActionButtons(r.id, r.status)}</td>
           </tr>`;
         }).join('')
-      }</tbody></table>` : `<p class="muted-s">${esc(T('pf_no_rows'))}</p>`;
+      }</tbody></table>` : `<div class="pf-inq-empty-state"><p>${esc(T('pf_no_rows'))}</p></div>`;
     }
 
     async function createQuote(andSend) {

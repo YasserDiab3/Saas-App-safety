@@ -1,4 +1,4 @@
 {
-  "version": "2.2.79",
-  "message": "fix(build): repair broken legacy-guard replacements"
+  "version": "2.2.81",
+  "message": "feat(sales-inquiry): add job title and reorder quote form fields"
 }
