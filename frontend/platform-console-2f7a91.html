@@ -50,6 +50,7 @@
       <button type="button" class="pf-tab" data-tab="billing" data-i18n="pf_tab_billing">الفوترة</button>
       <button type="button" class="pf-tab" data-tab="plans" data-i18n="pf_tab_plans">الخطط</button>
       <button type="button" class="pf-tab" data-tab="messages" data-i18n="pf_tab_messages">الرسائل</button>
+      <button type="button" class="pf-tab" data-tab="inquiries" data-i18n="pf_tab_inquiries">طلبات التواصل</button>
       <button type="button" class="pf-tab" data-tab="quotes" data-i18n="pf_tab_quotes">عروض الأسعار</button>
       <button type="button" class="pf-tab" data-tab="devices" data-i18n="pf_tab_devices">الأجهزة</button>
       <button type="button" class="pf-tab" data-tab="cookies" data-i18n="pf_tab_cookies">الكوكيز والخصوصية</button>
@@ -176,6 +177,29 @@
           </div>
           <div class="pf-table-wrap" id="msg-history"></div>
         </div>
+      </div>
+    </div>
+
+    <div id="pane-inquiries" class="pf-pane">
+      <div class="pf-content-card">
+        <div class="pf-section-hd">
+          <h2 data-i18n="pf_tab_inquiries">طلبات التواصل</h2>
+          <div class="pf-toolbar">
+            <label class="pf-filter-label" data-i18n="pf_filter_status">تصفية بالحالة</label>
+            <select id="inquiry-status-filter" class="pf-filter-select">
+              <option value="" data-i18n="pf_filter_all">الكل</option>
+              <option value="new" data-i18n="pf_inq_st_new">جديد</option>
+              <option value="contacted" data-i18n="pf_inq_st_contacted">تم التواصل</option>
+              <option value="closed" data-i18n="pf_inq_st_closed">مغلق</option>
+            </select>
+            <button type="button" class="saas-btn sm ghost" id="inquiry-refresh-btn" data-i18n="pf_ck_refresh">تحديث</button>
+            <button type="button" class="saas-btn sm ghost pf-export-btn" onclick="exportTab('inquiries','excel')" data-i18n="pf_export_excel">Excel</button>
+            <button type="button" class="saas-btn sm ghost pf-export-btn" onclick="exportTab('inquiries','pdf')" data-i18n="pf_export_pdf">PDF</button>
+            <span class="pf-msg" id="export-msg-inquiries"></span>
+          </div>
+        </div>
+        <p class="pf-plans-note muted-s" data-i18n="pf_inq_note">طلبات حساب أو عرض سعر من صفحة تسجيل الدخول (نموذج التواصل).</p>
+        <div class="pf-table-wrap" id="inquiries-table"></div>
       </div>
     </div>
 
@@ -393,7 +417,8 @@
       users: { offset: 0, search: '' },
       billing: { offset: 0, status: '' },
       devices: { offset: 0, search: '' },
-      cookies: { offset: 0, search: '', action: '', days: 30 }
+      cookies: { offset: 0, search: '', action: '', days: 30 },
+      inquiries: { status: '' }
     };
 
     const locale = () => SaaSI18n.lang === 'ar' ? 'ar-EG' : 'en-US';
@@ -406,6 +431,11 @@
       const map = { trialing: 'st_trialing', active: 'st_active', past_due: 'st_past_due', frozen: 'st_frozen', canceled: 'st_canceled' };
       return map[st] ? T(map[st]) : (st || '');
     };
+    const inquiryStatusLabel = st => {
+      const map = { new: 'pf_inq_st_new', contacted: 'pf_inq_st_contacted', closed: 'pf_inq_st_closed' };
+      return map[st] ? T(map[st]) : (st || '—');
+    };
+    const parseInquiryList = data => Array.isArray(data) ? data : [];
     const EXPORT_LIMIT = 200;
 
     async function fetchAllItems(rpc, params) {
@@ -513,6 +543,26 @@
           rows: items.map(n => [
             fmtExp(n.created_at), n.tenant_name || '', n.subject || '',
             n.status || '', n.channel || ''
+          ])
+        };
+      }
+
+      if (tab === 'inquiries') {
+        const { data, error } = await client.rpc('api_admin_list_sales_inquiries', { p_limit: EXPORT_LIMIT });
+        if (error) throw new Error(error.message);
+        let items = parseInquiryList(data);
+        const st = _state.inquiries.status;
+        if (st) items = items.filter(r => r.status === st);
+        return {
+          title: T('pf_tab_inquiries'), filename: 'platform-inquiries', subtitle, emptyMessage: empty,
+          headers: [
+            T('pf_col_created'), T('pf_col_name'), T('pf_inq_org'), T('pf_col_email'),
+            T('pf_inq_phone'), T('pf_inq_users'), T('pf_inq_message'), T('pf_col_status'), T('pf_inq_source')
+          ],
+          rows: items.map(r => [
+            fmtExp(r.created_at), r.full_name || '', r.org_name || '', r.email || '',
+            r.phone || '', r.expected_users != null ? String(r.expected_users) : '',
+            r.message || '', inquiryStatusLabel(r.status), r.source || ''
           ])
         };
       }
@@ -675,6 +725,8 @@
       $('device-search-btn').onclick = () => { _state.devices.offset = 0; _state.devices.search = $('device-search').value.trim(); loadDevices(); };
       $('device-search').onkeydown = e => { if (e.key === 'Enter') $('device-search-btn').click(); };
       $('billing-filter').onchange = () => { _state.billing.offset = 0; _state.billing.status = $('billing-filter').value; loadBilling(); };
+      $('inquiry-status-filter').onchange = () => { _state.inquiries.status = $('inquiry-status-filter').value; loadInquiries(); };
+      $('inquiry-refresh-btn').onclick = () => loadInquiries();
       $('msg-tenant').onchange = onMsgTenantChange;
       $('msg-send').onclick = sendMessage;
       $('quote-create').onclick = () => createQuote(false);
@@ -734,6 +786,7 @@
       else if (tab === 'billing') loadBilling();
       else if (tab === 'plans') renderPlans(_plans || []);
       else if (tab === 'messages') loadMessagesPane();
+      else if (tab === 'inquiries') loadInquiries();
       else if (tab === 'quotes') loadQuotesPane();
       else if (tab === 'devices') loadDevices();
       else if (tab === 'cookies' && window.CookieAdmin) CookieAdmin.loadPane();
@@ -857,6 +910,77 @@
           <td>${esc(fmtDate(q.valid_until))}</td>
           <td>${q.status === 'draft' ? `<button type="button" class="pf-btn-act pf-btn-act--primary" onclick="sendQuote('${esc(q.id)}')">${esc(T('pf_quote_send'))}</button>` : '—'}</td>
         </tr>`).join('')
+      }</tbody></table>` : `<p class="muted-s">${esc(T('pf_no_rows'))}</p>`;
+    }
+
+    function inquiryStatusBadge(st) {
+      const s = String(st || 'new');
+      const cls = s === 'new' ? 'warn' : (s === 'contacted' ? 'ok' : (s === 'closed' ? 'err' : ''));
+      return `<span class="badge ${cls}">${esc(inquiryStatusLabel(s))}</span>`;
+    }
+
+    function inquiryActionButtons(id, status) {
+      const iid = esc(id);
+      const st = String(status || 'new');
+      const contacted = st === 'contacted';
+      const closed = st === 'closed';
+      return `<div class="pf-act-row">
+        <button type="button" class="pf-btn-act pf-btn-act--ok${contacted ? ' is-current' : ''}" ${contacted ? 'disabled' : ''} onclick="updateInquiryStatus('${iid}','contacted', this)">${esc(T('pf_inq_mark_contacted'))}</button>
+        <button type="button" class="pf-btn-act pf-btn-act--warn${closed ? ' is-current' : ''}" ${closed ? 'disabled' : ''} onclick="updateInquiryStatus('${iid}','closed', this)">${esc(T('pf_inq_mark_closed'))}</button>
+      </div>`;
+    }
+
+    async function updateInquiryStatus(id, status, btn) {
+      if (btn) setBtnLoading(btn, true);
+      try {
+        const { data, error } = await saasRpc('api_admin_update_sales_inquiry_status', { p_id: id, p_status: status });
+        if (error) throw new Error(error.message);
+        if (!data || data.success !== true) throw new Error(T('pf_export_fail'));
+        loadInquiries();
+      } catch (e) {
+        alert(e.message);
+      } finally {
+        if (btn) setBtnLoading(btn, false);
+      }
+    }
+
+    async function loadInquiries() {
+      const box = $('inquiries-table');
+      if (!box) return;
+      box.innerHTML = `<p class="muted-s">${esc(T('pf_loading'))}</p>`;
+      const { data, error } = await saasRpc('api_admin_list_sales_inquiries', { p_limit: 200 });
+      if (error) { box.innerHTML = `<p class="err">${esc(error.message)}</p>`; return; }
+      let items = parseInquiryList(data);
+      const st = _state.inquiries.status;
+      if (st) items = items.filter(r => r.status === st);
+      const msgPreview = m => {
+        const s = String(m || '').trim();
+        if (!s) return '—';
+        return s.length > 72 ? esc(s.slice(0, 72)) + '…' : esc(s);
+      };
+      box.innerHTML = items.length ? `<table class="pf-table"><thead><tr>
+        <th>${esc(T('pf_col_created'))}</th><th>${esc(T('pf_col_name'))}</th><th>${esc(T('pf_inq_org'))}</th>
+        <th>${esc(T('pf_col_email'))}</th><th>${esc(T('pf_inq_phone'))}</th><th>${esc(T('pf_inq_users'))}</th>
+        <th>${esc(T('pf_inq_message'))}</th><th>${esc(T('pf_col_status'))}</th><th>${esc(T('pf_inq_source'))}</th>
+        <th>${esc(T('pf_actions'))}</th></tr></thead><tbody>${
+        items.map(r => {
+          const email = String(r.email || '').trim();
+          const phone = String(r.phone || '').trim();
+          const mailHref = email ? 'mailto:' + email : '#';
+          const telHref = phone ? 'tel:' + phone.replace(/\s/g, '') : '#';
+          return `<tr>
+            <td>${esc(fmtExp(r.created_at))}</td>
+            <td>${esc(r.full_name || '—')}</td>
+            <td>${esc(r.org_name || '—')}</td>
+            <td dir="ltr">${email ? `<a href="${esc(mailHref)}" target="_blank" rel="noopener noreferrer">${esc(email)}</a>` : '—'}</td>
+            <td dir="ltr">${phone ? `<a href="${esc(telHref)}">${esc(phone)}</a>` : '—'}</td>
+            <td>${r.expected_users != null ? esc(String(r.expected_users)) : '—'}</td>
+            <td title="${esc(r.message || '')}">${msgPreview(r.message)}</td>
+            <td>${inquiryStatusBadge(r.status)}</td>
+            <td>${esc(r.source || '—')}</td>
+            <td>${inquiryActionButtons(r.id, r.status)}</td>
+          </tr>`;
+        }).join('')
       }</tbody></table>` : `<p class="muted-s">${esc(T('pf_no_rows'))}</p>`;
     }
 
