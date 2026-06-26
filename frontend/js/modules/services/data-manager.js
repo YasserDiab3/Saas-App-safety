@@ -198,6 +198,39 @@ const DataManager = {
     },
 
     /**
+     * إضافة زيارة واحدة إلى قائمة المزامنة المعلقة (Supabase/SaaS).
+     */
+    addClinicVisitToPendingSync(visitRecord, timestamp = null) {
+        if (!visitRecord || typeof visitRecord !== 'object') return;
+        if (!this._pendingSyncQueue) {
+            this.loadPendingSyncQueue();
+        }
+        const visitId = String(visitRecord.id || '').trim();
+        if (!visitId) return;
+
+        const existingIndex = this._pendingSyncQueue.findIndex(
+            (item) => item.sheetName === 'ClinicVisit' && item.recordId === visitId
+        );
+
+        const pendingItem = {
+            sheetName: 'ClinicVisit',
+            recordId: visitId,
+            data: JSON.parse(Utils.safeStringify(visitRecord)),
+            timestamp: timestamp || new Date().toISOString(),
+            retryCount: existingIndex >= 0 ? (this._pendingSyncQueue[existingIndex].retryCount || 0) : 0
+        };
+
+        if (existingIndex >= 0) {
+            this._pendingSyncQueue[existingIndex] = pendingItem;
+        } else {
+            this._pendingSyncQueue.push(pendingItem);
+        }
+
+        this.savePendingSyncQueue();
+        Utils.safeLog(`✅ تمت إضافة زيارة ${visitId} إلى قائمة المزامنة المعلقة`);
+    },
+
+    /**
      * إضافة عنصر جديد إلى قائمة المزامنة المعلقة
      */
     addToPendingSync(sheetName, data, timestamp = null) {
@@ -234,15 +267,67 @@ const DataManager = {
     /**
      * إزالة عنصر من قائمة المزامنة المعلقة بعد نجاح المزامنة
      */
-    removeFromPendingSync(sheetName) {
+    removeFromPendingSync(sheetName, recordId = null) {
         if (!this._pendingSyncQueue) {
             this.loadPendingSyncQueue();
         }
-        
-        const index = this._pendingSyncQueue.findIndex(item => item.sheetName === sheetName);
+
+        const index = this._pendingSyncQueue.findIndex((item) => {
+            if (item.sheetName !== sheetName) return false;
+            if (recordId != null && item.recordId) {
+                return String(item.recordId) === String(recordId);
+            }
+            return !item.recordId;
+        });
         if (index >= 0) {
             this._pendingSyncQueue.splice(index, 1);
             this.savePendingSyncQueue();
+        }
+    },
+
+    /**
+     * مزامنة زيارات العيادة المعلّقة عبر Supabase RPC.
+     */
+    async _retryPendingClinicVisitsSaas(queueCopy, results, maxRetries) {
+        if (typeof Backend === 'undefined' || typeof Backend.sendRequest !== 'function') {
+            return;
+        }
+
+        for (const item of queueCopy) {
+            if (item.sheetName !== 'ClinicVisit' || !item.data) continue;
+            if ((item.retryCount || 0) >= maxRetries) {
+                this.removeFromPendingSync('ClinicVisit', item.recordId);
+                results.failed++;
+                results.errors.push(`ClinicVisit/${item.recordId || '?'}: تجاوز الحد الأقصى للمحاولات`);
+                continue;
+            }
+
+            item.retryCount = (item.retryCount || 0) + 1;
+            try {
+                const visit = item.data;
+                const vr = await Backend.sendRequest({
+                    action: 'addClinicVisit',
+                    data: { ...visit, __timeoutMs: 60000 }
+                });
+                if (!vr || vr.success !== true) {
+                    throw new Error((vr && vr.message) || 'لم يُؤكد الخادم حفظ الزيارة');
+                }
+                this.removeFromPendingSync('ClinicVisit', item.recordId || visit.id);
+                results.synced++;
+                Utils.safeLog(`✅ [SaaS] تمت مزامنة زيارة ${item.recordId || visit.id}`);
+            } catch (error) {
+                const index = this._pendingSyncQueue.findIndex(
+                    (i) => i.sheetName === 'ClinicVisit' && String(i.recordId) === String(item.recordId)
+                );
+                if (index >= 0) {
+                    this._pendingSyncQueue[index] = item;
+                }
+                this.savePendingSyncQueue();
+                results.failed++;
+                const errorMsg = (error && error.message) || 'خطأ غير معروف';
+                results.errors.push(`ClinicVisit/${item.recordId || '?'}: ${errorMsg}`);
+                Utils.safeWarn(`⚠️ [SaaS] فشلت مزامنة زيارة ${item.recordId}:`, errorMsg);
+            }
         }
     },
     
@@ -257,8 +342,21 @@ const DataManager = {
         if (!this._pendingSyncQueue || this._pendingSyncQueue.length === 0) {
             return { success: true, synced: 0, failed: 0 };
         }
+
+        const maxRetries = 3;
+        const results = { success: true, synced: 0, failed: 0, errors: [] };
+        const queueCopy = [...this._pendingSyncQueue];
+
+        // Supabase SaaS: مزامنة زيارات العيادة عبر RPC
+        if (this._isSaasTenantMode()) {
+            await this._retryPendingClinicVisitsSaas(queueCopy, results, maxRetries);
+            if (results.synced > 0 && typeof window.Clinic !== 'undefined' && Clinic.refreshClinicVisitsFromServerAfterSave) {
+                try { Clinic.refreshClinicVisitsFromServerAfterSave(); } catch (_e) { /* ignore */ }
+            }
+            return results;
+        }
         
-        // التحقق من تفعيل الخادم السحابي
+        // التحقق من تفعيل الخادم السحابي (Google Apps Script)
         if (!AppState.backendConfig || !AppState.backendConfig.server || !AppState.backendConfig.server.enabled || !AppState.backendConfig.server.scriptUrl) {
             Utils.safeLog('ℹ️ الخادم السحابي غير مفعّل، تخطي المزامنة');
             return { success: false, synced: 0, failed: 0, message: 'الخادم السحابي غير مفعّل' };
@@ -270,12 +368,6 @@ const DataManager = {
             Utils.safeLog('ℹ️ معرف Google Sheets غير محدد، تخطي المزامنة');
             return { success: false, synced: 0, failed: 0, message: 'معرف Google Sheets غير محدد' };
         }
-        
-        const results = { success: true, synced: 0, failed: 0, errors: [] };
-        const maxRetries = 3;
-        
-        // نسخ قائمة الانتظار لتجنب التعديل أثناء التكرار
-        const queueCopy = [...this._pendingSyncQueue];
         
         for (const item of queueCopy) {
             if (item.retryCount >= maxRetries) {

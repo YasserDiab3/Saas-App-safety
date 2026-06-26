@@ -139,6 +139,23 @@ body{
 .saas-foot{text-align:center;margin-top:16px;font-size:.85rem;color:var(--ink-3)}
 .saas-foot a{color:var(--brand-600);text-decoration:none;font-weight:800}
 .saas-foot a:hover{text-decoration:underline}
+.saas-contact-foot p{margin:0 0 6px;line-height:1.55}
+.saas-contact-actions{
+  display:flex;flex-wrap:wrap;align-items:center;justify-content:center;
+  gap:10px 12px;margin-top:10px;
+}
+.saas-contact-link{
+  display:inline-flex;align-items:center;gap:8px;
+  color:var(--brand-600);text-decoration:none;font-weight:800;
+  padding:9px 14px;border-radius:10px;background:#f1f5f9;
+  font-size:.84rem;transition:background .15s,transform .15s;
+}
+.saas-contact-link:hover{text-decoration:none;background:#e2e8f0;transform:translateY(-1px)}
+.saas-contact-link--wa{color:#0f766e;background:#ecfdf5}
+.saas-contact-link--wa:hover{background:#d1fae5}
+.saas-contact-link[hidden],.saas-contact-or[hidden]{display:none!important}
+.saas-contact-icon{width:18px;height:18px;flex-shrink:0}
+.saas-contact-or{color:var(--ink-3);font-size:.8rem;font-weight:700}
 
 /* ---- signup terms modal ---- */
 .saas-signup-card{max-width:480px}

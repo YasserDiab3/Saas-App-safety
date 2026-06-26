@@ -22,5 +22,9 @@ window.SAAS_CONFIG = {
     publicSiteUrl: 'https://saas-app-safety.vercel.app/?v=hsehub360',
     ogImageUrl: 'assets/brand/logo.png',
     defaultLogoUrl: 'assets/brand/logo.png',
-    defaultFaviconUrl: 'assets/brand/favicon.png'
+    defaultFaviconUrl: 'assets/brand/favicon.png',
+
+    // بريد وواتساب مسؤول المنصّة — طلب حساب أو عرض سعر (صفحة تسجيل الدخول)
+    salesEmail: 'Yasser@qhsseconsultant.onmicrosoft.com',
+    salesWhatsApp: '+201032823055'
 };

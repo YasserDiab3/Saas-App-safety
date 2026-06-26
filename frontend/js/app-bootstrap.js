@@ -784,6 +784,11 @@
                     if (typeof window.DataManager.loadCompanySettings === 'function') {
                         await window.DataManager.loadCompanySettings();
                     }
+                    if (typeof window.DataManager.retryPendingSync === 'function') {
+                        window.DataManager.retryPendingSync().catch((syncErr) => {
+                            log('⚠️ SaaS: فشل مزامنة البيانات المعلّقة:', syncErr);
+                        });
+                    }
                 }
                 if (typeof Permissions !== 'undefined' && typeof Permissions.getCurrentUserPermissions === 'function') {
                     try {

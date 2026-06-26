@@ -6404,46 +6404,14 @@ const Clinic = {
             if (!v || v.id == null || String(v.id).trim() === '') return;
             const id = String(v.id);
 
-            // ✅ إذا لم يكن السجل المحلي موجوداً في الخادم، نحتفظ به (سجل لم يتم مزامنته بعد أو كاش قديم)
+            // إذا لم يكن السجل المحلي موجوداً في الخادم بالمعرّف، نحتفظ به حتى تُؤكَّد المزامنة
+            // (لا نعتمد على تطابق الاسم/التاريخ — قد يكون للشخص أكثر من زيارة في اليوم)
             if (!seen.has(id)) {
-                // محاولة البحث عن بديل (نفس الشخص والوقت) لتجنب التكرار إذا تغير الـ ID
-                const isDuplicate = server.some(sv => {
-                    if (sv.personType !== v.personType) return false;
-                    if (sv.visitDate !== v.visitDate) return false;
-                    
-                    if (sv.personType === 'employee') {
-                        const svCode = String(sv.employeeCode || sv.employeeNumber || '').trim();
-                        const vCode = String(v.employeeCode || v.employeeNumber || '').trim();
-                        if (svCode && vCode && svCode === vCode) return true;
-                        
-                        const svName = Clinic.normalizeArabicText(sv.employeeName);
-                        const vName = Clinic.normalizeArabicText(v.employeeName);
-                        return !!svName && svName === vName;
-                    } else {
-                        // contractor or external
-                        const svCName = Clinic.normalizeArabicText(sv.contractorName || sv.externalName);
-                        const vCName = Clinic.normalizeArabicText(v.contractorName || v.externalName);
-                        const svWName = Clinic.normalizeArabicText(sv.contractorWorkerName);
-                        const vWName = Clinic.normalizeArabicText(v.contractorWorkerName);
-                        
-                        return svCName === vCName && svWName === vWName;
-                    }
-                });
-
-                if (!isDuplicate) {
-                    // ✅ المشكلة: السجلات التي تُحذف من الخادم تبقى هنا للأبد بسبب الدمج!
-                    // ✅ الحل: نحتفظ بالسجلات المحلية الإضافية فقط إذا كانت حديثة جداً (أقل من 2 ساعة)
-                    // على افتراض أنها أُضيفت أوفلاين ولم تُرفع بعد. أما السجلات القديمة المحذوفة من الخادم فنتخلص منها.
-                    const recordTime = new Date(v.createdAt || v.visitDate).getTime();
-                    const now = new Date().getTime();
-                    if (!isNaN(recordTime) && (now - recordTime) < (2 * 60 * 60 * 1000)) { // ساعتين
-                        seen.add(id);
-                        extras.push(v);
-                    } else if (isNaN(recordTime)) {
-                        // إذا لم يكن هناك تاريخ، نحتفظ به لتجنب فقدان البيانات
-                        seen.add(id);
-                        extras.push(v);
-                    }
+                const recordTime = new Date(v.createdAt || v.visitDate).getTime();
+                const maxAgeMs = 24 * 60 * 60 * 1000; // 24 ساعة لزيارات لم تُرفع بعد
+                if (isNaN(recordTime) || (Date.now() - recordTime) < maxAgeMs) {
+                    seen.add(id);
+                    extras.push(v);
                 }
             }
         });
@@ -6463,6 +6431,54 @@ const Clinic = {
             return dateB - dateA;
         });
         return merged;
+    },
+
+    /**
+     * حفظ زيارة في Supabase/الخادم — يجب await قبل إظهار «تم التسجيل» للمستخدم.
+     */
+    async persistClinicVisitToBackend(options = {}) {
+        const {
+            formData,
+            isEdit = false,
+            visitId = null,
+            medicationAdjustments = [],
+            hasInventoryChange = false,
+            rpcTimeoutMs = 60000
+        } = options;
+
+        const adjustmentsToSend = (hasInventoryChange && medicationAdjustments.length > 0)
+            ? medicationAdjustments.map((a) => ({
+                medicationId: String(a.medicationId),
+                delta: Number(a.delta) || 0
+            }))
+            : null;
+
+        let result;
+        if (isEdit) {
+            const updateDataPayload = { ...formData };
+            if (adjustmentsToSend) updateDataPayload.medicationAdjustments = adjustmentsToSend;
+            result = await Backend.sendRequest({
+                action: 'updateClinicVisit',
+                data: {
+                    visitId: visitId || formData.id,
+                    updateData: updateDataPayload,
+                    __timeoutMs: rpcTimeoutMs
+                }
+            });
+        } else {
+            const addDataPayload = { ...formData, __timeoutMs: rpcTimeoutMs };
+            if (adjustmentsToSend) addDataPayload.medicationAdjustments = adjustmentsToSend;
+            result = await Backend.sendRequest({
+                action: 'addClinicVisit',
+                data: addDataPayload
+            });
+        }
+
+        this.assertClinicVisitRpcResult(result);
+        if (!isEdit) {
+            this.applyClinicVisitIdFromServer(formData, result);
+        }
+        return result;
     },
 
     /**
@@ -10866,103 +10882,81 @@ const Clinic = {
                     Utils.safeWarn('فحص تردد العيادة الشهري:', e);
                 }
 
-                // ✅ إغلاق النموذج فوراً مع المزامنة في الخلفية (بدون انتظار)
-                Loading.hide();
-                Notification.success(`تم ${isEdit ? 'تحديث' : 'تسجيل'} الزيارة بنجاح`);
-                modal.remove();
+                // ✅ انتظار تأكيد الخادم قبل إغلاق النموذج — لا نُظهر «تم التسجيل» إلا بعد الحفظ الفعلي
+                const rpcTimeoutMs = 60000;
+                try {
+                    await this.persistClinicVisitToBackend({
+                        formData,
+                        isEdit,
+                        visitId: visitData?.id,
+                        medicationAdjustments,
+                        hasInventoryChange,
+                        rpcTimeoutMs
+                    });
 
-                // 🔄 المزامنة في الخلفية (لا تمنع واجهة المستخدم)
-                const rpcTimeoutMs = 60000; // 60 ثانية (يكفي Apps Script Cold Start)
-                (async () => {
-                    try {
-                        // ✅ FIX جذري: تمرير medicationAdjustments مع الزيارة → backend يطبّقها atomically
-                        // (مسار موحد، بدون استدعاءات updateMedication متوازية → بدون race condition)
-                        const adjustmentsToSend = (hasInventoryChange && medicationAdjustments.length > 0)
-                            ? medicationAdjustments.map(a => ({ medicationId: String(a.medicationId), delta: Number(a.delta) || 0 }))
-                            : null;
-
-                        if (isEdit) {
-                            const updateDataPayload = { ...formData };
-                            if (adjustmentsToSend) updateDataPayload.medicationAdjustments = adjustmentsToSend;
-                            const vr = await Backend.sendRequest({
-                                action: 'updateClinicVisit',
-                                data: { visitId: visitData.id, updateData: updateDataPayload, __timeoutMs: rpcTimeoutMs }
-                            });
-                            this.assertClinicVisitRpcResult(vr);
-                        } else {
-                            const addDataPayload = { ...formData, __timeoutMs: rpcTimeoutMs };
-                            if (adjustmentsToSend) addDataPayload.medicationAdjustments = adjustmentsToSend;
-                            const vr = await Backend.sendRequest({
-                                action: 'addClinicVisit',
-                                data: addDataPayload
-                            });
-                            this.assertClinicVisitRpcResult(vr);
-                            this.applyClinicVisitIdFromServer(formData, vr);
-                        }
-
-                        // ✅ تم حذف الـ forEach(async updateMedication) المتوازي بالكامل
-                        // الـ backend الآن يطبّق التعديلات atomically عبر applyMedicationAdjustments_
-                        // (يستخدم updateSingleRowInSheet لكل دواء — لا race condition، لا double deduction)
-
-                        // ✅ FIX: إعادة جلب الأدوية من الخادم بعد النجاح للتأكد من عرض الرصيد الصحيح
-                        // الجلب المباشر يضمن أن المستخدم يرى الرصيد الفعلي بعد الخصم (لا يعتمد على
-                        // الـ optimistic update الذي قد يُلغى لاحقاً من syncModule أو data-saved).
-                        if (hasInventoryChange) {
-                            Backend.sendRequest({
-                                action: 'getAllMedications',
-                                data: {}
-                            }).then(medResult => {
-                                if (medResult && medResult.success && Array.isArray(medResult.data)) {
-                                    const normalizedMeds = medResult.data.map(m => this.normalizeMedicationRecord(m));
-                                    AppState.appData.medications     = normalizedMeds;
-                                    AppState.appData.clinicMedications = normalizedMeds;
-                                    AppState.appData.clinicInventory   = normalizedMeds;
-                                    Utils.safeLog('✅ [CLINIC] الأدوية مُحدَّثة من الخادم بعد الزيارة: '
-                                        + normalizedMeds.length + ' دواء');
-                                    // إعادة عرض تبويب الأدوية إذا كان مفتوحاً
-                                    if (this.state && this.state.activeTab === 'medications') {
-                                        try { this.renderMedicationsTab(); } catch (e) { /* ignore */ }
-                                    }
+                    if (hasInventoryChange) {
+                        Backend.sendRequest({
+                            action: 'getAllMedications',
+                            data: {}
+                        }).then((medResult) => {
+                            if (medResult && medResult.success && Array.isArray(medResult.data)) {
+                                const normalizedMeds = medResult.data.map((m) => this.normalizeMedicationRecord(m));
+                                AppState.appData.medications = normalizedMeds;
+                                AppState.appData.clinicMedications = normalizedMeds;
+                                AppState.appData.clinicInventory = normalizedMeds;
+                                if (this.state && this.state.activeTab === 'medications') {
+                                    try { this.renderMedicationsTab(); } catch (e) { /* ignore */ }
                                 }
-                            }).catch(() => { /* صامت — الـ optimistic update يبقى */ });
-
-                            document.dispatchEvent(new CustomEvent('data-saved', {
-                                detail: {
-                                    module: 'medications',
-                                    action: 'تحديث',
-                                    data: { updated: medicationAdjustments.length }
-                                }
-                            }));
-                        }
+                            }
+                        }).catch(() => { /* optimistic update يبقى */ });
 
                         document.dispatchEvent(new CustomEvent('data-saved', {
                             detail: {
-                                module: 'clinicVisits',
-                                action: isEdit ? 'تحديث' : 'إضافة',
-                                data: formData
+                                module: 'medications',
+                                action: 'تحديث',
+                                data: { updated: medicationAdjustments.length }
                             }
                         }));
+                    }
 
-                        if (typeof window.DataManager !== 'undefined' && window.DataManager.save) {
+                    document.dispatchEvent(new CustomEvent('data-saved', {
+                        detail: {
+                            module: 'clinicVisits',
+                            action: isEdit ? 'تحديث' : 'إضافة',
+                            data: formData
+                        }
+                    }));
+
+                    if (typeof window.DataManager !== 'undefined') {
+                        if (window.DataManager.saveImmediate) {
+                            window.DataManager.saveImmediate();
+                        } else if (window.DataManager.save) {
                             window.DataManager.save();
                         }
-                        this.refreshClinicVisitsFromServerAfterSave();
-                    } catch (syncError) {
-                        Utils.safeWarn('⚠️ فشل حفظ الزيارة في قاعدة البيانات:', syncError);
-                        try {
-                            if (typeof window.DataManager !== 'undefined' && window.DataManager.addToPendingSync) {
-                                window.DataManager.addToPendingSync('ClinicVisits', AppState.appData.clinicVisits);
-                            }
-                        } catch (e) { /* ignore */ }
-                        // تحديث من الخادم للتأكد من الحالة الفعلية (قد تكون البيانات حُفظت رغم الخطأ)
-                        try { this.refreshClinicVisitsFromServerAfterSave(); } catch (e) { /* ignore */ }
-                        // إشعار واضح للمستخدم في حالة فشل حقيقي
-                        try {
-                            const errMsg = (syncError && syncError.message) ? syncError.message : 'فشل غير معروف';
-                            Notification.warning('⚠️ تعذّر تأكيد حفظ الزيارة: ' + errMsg + '. سيتم التحقق تلقائياً من الخادم.');
-                        } catch (e) { /* ignore */ }
                     }
-                })();
+                    this.refreshClinicVisitsFromServerAfterSave();
+
+                    Loading.hide();
+                    Notification.success(`تم ${isEdit ? 'تحديث' : 'تسجيل'} الزيارة بنجاح`);
+                    modal.remove();
+                } catch (syncError) {
+                    Utils.safeWarn('⚠️ فشل حفظ الزيارة في قاعدة البيانات:', syncError);
+                    try {
+                        if (typeof window.DataManager !== 'undefined' && window.DataManager.addClinicVisitToPendingSync) {
+                            window.DataManager.addClinicVisitToPendingSync(formData);
+                        } else if (typeof window.DataManager !== 'undefined' && window.DataManager.addToPendingSync) {
+                            window.DataManager.addToPendingSync('ClinicVisits', AppState.appData.clinicVisits);
+                        }
+                    } catch (e) { /* ignore */ }
+                    Loading.hide();
+                    const errMsg = (syncError && syncError.message) ? syncError.message : 'فشل غير معروف';
+                    this.showVisitFormAlert('تعذّر حفظ الزيارة في قاعدة البيانات: ' + errMsg + '. البيانات محفوظة محلياً وسيتم إعادة المحاولة.');
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalText;
+                    }
+                    return;
+                }
 
                 // تحديث واجهة المستخدم فقط بدون إعادة تحميل كامل
                 setTimeout(() => {
@@ -14858,36 +14852,38 @@ const Clinic = {
                     });
                 }
 
-                const result = await Backend.sendRequest({
-                    action: isEdit ? 'updateClinicVisit' : 'addClinicVisit',
-                    data: isEdit
-                        ? { visitId: formData.id, updateData: formData, __timeoutMs: rpcTimeoutMs }
-                        : { ...formData, __timeoutMs: rpcTimeoutMs }
+                await this.persistClinicVisitToBackend({
+                    formData,
+                    isEdit,
+                    visitId: formData.id,
+                    medicationAdjustments: [],
+                    hasInventoryChange: false,
+                    rpcTimeoutMs
                 });
 
-                this.assertClinicVisitRpcResult(result);
-                if (!isEdit) {
-                    this.applyClinicVisitIdFromServer(formData, result);
-                }
-
                 if (AppState.debugMode) {
-                    Utils.safeLog('✅ تم إرسال formData إلى Backend بنجاح', result);
+                    Utils.safeLog('✅ تم إرسال formData إلى Backend بنجاح');
                 }
 
-                if (typeof DataManager !== 'undefined' && DataManager.save) {
-                    DataManager.save();
+                if (typeof DataManager !== 'undefined') {
+                    if (DataManager.saveImmediate) {
+                        DataManager.saveImmediate();
+                    } else if (DataManager.save) {
+                        DataManager.save();
+                    }
                 }
                 this.refreshClinicVisitsFromServerAfterSave();
             } catch (syncErr) {
-                Utils.safeWarn('⚠️ خطأ في مزامنة الزيارة (البيانات قد تكون حُفظت):', syncErr);
+                Utils.safeWarn('⚠️ خطأ في مزامنة الزيارة:', syncErr);
                 Loading.hide();
                 try {
-                    if (typeof DataManager !== 'undefined' && DataManager.addToPendingSync) {
+                    if (typeof DataManager !== 'undefined' && DataManager.addClinicVisitToPendingSync) {
+                        DataManager.addClinicVisitToPendingSync(formData);
+                    } else if (typeof DataManager !== 'undefined' && DataManager.addToPendingSync) {
                         DataManager.addToPendingSync('ClinicVisits', AppState.appData.clinicVisits);
                     }
                 } catch (e) { /* ignore */ }
-                // تحديث البيانات من الخادم حتى عند الخطأ — البيانات قد تكون حُفظت فعلاً
-                try { this.refreshClinicVisitsFromServerAfterSave(); } catch (e) { /* ignore */ }
+                Notification.error('تعذّر حفظ الزيارة في قاعدة البيانات: ' + ((syncErr && syncErr.message) || 'خطأ غير معروف'));
                 return;
             }
 
