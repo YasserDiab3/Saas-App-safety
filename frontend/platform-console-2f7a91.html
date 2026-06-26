@@ -588,11 +588,11 @@
         return {
           title: T('pf_tab_inquiries'), filename: 'platform-inquiries', subtitle, emptyMessage: empty,
           headers: [
-            T('pf_col_created'), T('pf_col_name'), T('pf_inq_org'), T('pf_col_email'),
+            T('pf_col_created'), T('pf_col_name'), T('pf_inq_job'), T('pf_inq_org'), T('pf_col_email'),
             T('pf_inq_phone'), T('pf_inq_users'), T('pf_inq_message'), T('pf_col_status'), T('pf_inq_source')
           ],
           rows: items.map(r => [
-            fmtExp(r.created_at), r.full_name || '', r.org_name || '', r.email || '',
+            fmtExp(r.created_at), r.full_name || '', r.job_title || '', r.org_name || '', r.email || '',
             r.phone || '', r.expected_users != null ? String(r.expected_users) : '',
             r.message || '', inquiryStatusLabel(r.status), r.source || ''
           ])
@@ -1114,7 +1114,7 @@
         return s.length > 72 ? esc(s.slice(0, 72)) + '…' : esc(s);
       };
       box.innerHTML = items.length ? `<table class="pf-table"><thead><tr>
-        <th>${esc(T('pf_col_created'))}</th><th>${esc(T('pf_col_name'))}</th><th>${esc(T('pf_inq_org'))}</th>
+        <th>${esc(T('pf_col_created'))}</th><th>${esc(T('pf_col_name'))}</th><th>${esc(T('pf_inq_job'))}</th><th>${esc(T('pf_inq_org'))}</th>
         <th>${esc(T('pf_col_email'))}</th><th>${esc(T('pf_inq_phone'))}</th><th>${esc(T('pf_inq_users'))}</th>
         <th>${esc(T('pf_inq_message'))}</th><th>${esc(T('pf_col_status'))}</th><th>${esc(T('pf_inq_source'))}</th>
         <th>${esc(T('pf_actions'))}</th></tr></thead><tbody>${
@@ -1126,6 +1126,7 @@
           return `<tr>
             <td>${esc(fmtExp(r.created_at))}</td>
             <td>${esc(r.full_name || '—')}</td>
+            <td>${esc(r.job_title || '—')}</td>
             <td>${esc(r.org_name || '—')}</td>
             <td dir="ltr">${email ? `<a href="${esc(mailHref)}" target="_blank" rel="noopener noreferrer">${esc(email)}</a>` : '—'}</td>
             <td dir="ltr">${phone ? `<a href="${esc(telHref)}">${esc(phone)}</a>` : '—'}</td>

@@ -1,4 +1,4 @@
 {
-  "version": "2.2.77",
-  "message": "refactor: remove legacy Google Sheets/Apps Script integration"
+  "version": "2.2.79",
+  "message": "fix(build): repair broken legacy-guard replacements"
 }

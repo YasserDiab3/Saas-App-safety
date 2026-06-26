@@ -43,6 +43,7 @@
         const m = String(message || '').toLowerCase();
         if (m.includes('work email') || m.includes('organization work')) return 'inq_err_work_email';
         if (m.includes('full_name')) return 'inq_err_name';
+        if (m.includes('job_title')) return 'inq_err_job';
         if (m.includes('org_name')) return 'inq_err_org';
         if (m.includes('email')) return 'inq_err_email';
         if (m.includes('expected_users')) return 'inq_err_users';
