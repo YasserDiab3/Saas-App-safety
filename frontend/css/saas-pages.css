@@ -48,7 +48,7 @@ body{
 .saas-logo-img{display:block; object-fit:contain}
 /* wordmark on light header — dark logo colors stay readable */
 .saas-head .saas-logo-img{
-  max-height:148px; max-width:min(100%,280px);
+  max-height:108px; max-width:min(100%,240px);
   width:auto; height:auto;
   filter:none;
 }
@@ -139,46 +139,87 @@ body{
 /* ---- messages ---- */
 .saas-msg{margin-top:12px;font-size:.85rem;min-height:20px;text-align:center}
 .saas-msg.ok{color:var(--ok)} .saas-msg.err{color:var(--err)}
-.saas-foot{text-align:center;margin-top:16px;font-size:.85rem;color:var(--ink-3)}
+.saas-foot{text-align:center;margin-top:18px;font-size:.85rem;color:var(--ink-3)}
 .saas-foot a{color:var(--brand-600);text-decoration:none;font-weight:800}
 .saas-foot a:hover{text-decoration:underline}
-.saas-contact-foot p{margin:0 0 6px;line-height:1.55}
+.saas-contact-foot{margin-top:20px;text-align:initial}
+.saas-contact-box{
+  padding:16px 16px 14px;border-radius:14px;
+  border:1px solid var(--line);background:linear-gradient(180deg,#f8fafc 0%,#fff 100%);
+}
+.saas-contact-foot p{margin:0 0 8px;line-height:1.5}
 .saas-contact-actions{
-  display:flex;flex-wrap:wrap;align-items:center;justify-content:center;
-  gap:10px 12px;margin-top:10px;
+  display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-start;
+  gap:8px;margin-top:8px;
 }
 .saas-contact-link{
-  display:inline-flex;align-items:center;gap:8px;
-  color:var(--brand-600);text-decoration:none;font-weight:800;
-  padding:9px 14px;border-radius:10px;background:#f1f5f9;
-  font-size:.84rem;transition:background .15s,transform .15s;
+  display:inline-flex;align-items:center;gap:7px;
+  color:var(--brand-700);text-decoration:none;font-weight:700;
+  padding:8px 12px;border-radius:999px;background:#fff;
+  border:1px solid var(--line);font-size:.8rem;
+  transition:border-color .15s,background .15s,transform .15s,box-shadow .15s;
+  box-shadow:0 1px 2px rgba(15,23,42,.04);
 }
-.saas-contact-link:hover{text-decoration:none;background:#e2e8f0;transform:translateY(-1px)}
-.saas-contact-link--wa{color:#0f766e;background:#ecfdf5}
-.saas-contact-link--wa:hover{background:#d1fae5}
+.saas-contact-link:hover{
+  text-decoration:none;background:#f8fafc;border-color:var(--line-2);
+  transform:translateY(-1px);box-shadow:0 4px 12px rgba(15,23,42,.08);
+}
+.saas-contact-link--wa{color:#0f766e;border-color:#bbf7d0;background:#f0fdf4}
+.saas-contact-link--wa:hover{background:#dcfce7;border-color:#86efac}
+.saas-contact-link--icon-only{
+  width:42px;height:42px;padding:0;justify-content:center;border-radius:12px;
+}
+.saas-contact-link--icon-only .saas-contact-icon{width:22px;height:22px}
+.saas-contact-link--email span{
+  max-width:min(52vw,220px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
 .saas-contact-link[hidden],.saas-contact-or[hidden]{display:none!important}
 .saas-contact-icon{width:18px;height:18px;flex-shrink:0}
 .saas-contact-or{color:var(--ink-3);font-size:.8rem;font-weight:700}
 
-.saas-contact-lead{font-weight:700;color:var(--ink);margin-bottom:4px!important}
-.saas-contact-hint{font-size:.8rem;color:var(--ink-3);margin-bottom:10px!important}
+.saas-contact-lead{font-weight:800;color:var(--brand-900);font-size:.9rem;margin-bottom:4px!important}
+.saas-contact-sub{font-size:.8rem;color:var(--ink-2);margin-bottom:12px!important}
 .saas-contact-direct{
-  margin:14px 0 0!important;font-size:.78rem;font-weight:700;color:var(--ink-3);
+  margin:12px 0 0!important;font-size:.74rem;font-weight:700;color:var(--ink-3);
+  text-transform:uppercase;letter-spacing:.04em;
 }
 .saas-inquiry-open-btn{
-  width:100%;margin:4px 0 0;
+  width:100%;margin:0;height:44px;font-size:.9rem;
+  box-shadow:0 6px 16px rgba(37,99,235,.22);
 }
-.saas-inquiry-modal-panel{max-width:480px}
-.saas-inquiry-modal-panel .saas-modal-scroll{max-height:min(70vh,560px)}
-.saas-inquiry-modal-body{padding-inline:2px}
+.saas-inquiry-modal-panel{
+  max-width:500px;padding:0;overflow:hidden;
+  border:1px solid rgba(226,232,240,.9);
+}
+.saas-inquiry-modal-panel .saas-modal-hd{
+  margin:0;padding:16px 18px 14px;
+  background:linear-gradient(135deg,var(--brand-050) 0%,#fff 72%);
+  border-bottom:1px solid var(--line);
+}
+.saas-inquiry-modal-panel .saas-modal-hd h2{font-size:1.05rem;color:var(--brand-900)}
+.saas-inquiry-modal-panel .saas-modal-scroll{
+  max-height:min(72vh,580px);padding:14px 18px 18px;
+}
+.saas-inquiry-modal-body{padding-inline:0}
 .saas-inquiry-modal-hint{
-  margin:0 0 12px;font-size:.82rem;line-height:1.5;color:var(--ink-3);text-align:center;
+  margin:0 0 14px;font-size:.8rem;line-height:1.5;color:var(--ink-2);
+  text-align:center;padding:8px 10px;border-radius:10px;background:#f8fafc;
 }
-.saas-inquiry-form .saas-field:last-of-type{margin-bottom:10px}
-.saas-inquiry-form .saas-btn{margin-top:2px}
+.saas-inquiry-grid{display:grid;gap:0 12px;grid-template-columns:1fr}
+@media (min-width:420px){
+  .saas-inquiry-grid--pair{grid-template-columns:1fr 1fr}
+  .saas-inquiry-grid--pair .saas-field:only-child{grid-column:1/-1}
+}
+.saas-inquiry-form .saas-field{margin-bottom:12px}
+.saas-inquiry-form .saas-field--optional{margin-bottom:8px}
+.saas-inquiry-form .saas-field-hint{font-size:.72rem}
+.saas-inquiry-form .saas-input{height:44px;font-size:.9rem}
+.saas-inquiry-form .saas-phone-row select.saas-input{min-width:118px;width:38%}
+.saas-inquiry-submit{margin-top:4px;height:46px}
+.saas-inquiry-form .saas-msg{margin-top:10px;min-height:18px}
 .saas-textarea{
-  min-height:72px;resize:vertical;padding-top:10px;padding-bottom:10px;
-  line-height:1.45;
+  min-height:64px;resize:vertical;padding-top:10px;padding-bottom:10px;
+  line-height:1.45;height:auto;
 }
 
 /* ---- signup terms modal ---- */
