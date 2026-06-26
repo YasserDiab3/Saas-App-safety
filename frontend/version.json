@@ -1,4 +1,4 @@
 {
-  "version": "2.2.65",
-  "message": "feat(platform): add contact inquiries tab in admin console"
+  "version": "2.2.67",
+  "message": "fix(i18n): show inquiry tab labels instead of raw keys"
 }

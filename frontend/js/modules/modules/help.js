@@ -293,18 +293,21 @@ const Help = {
         if (!sectionEl) return;
 
         sectionEl.innerHTML = `
-            <div class="section-header">
-                <h1 class="section-title"><i class="fas fa-circle-question ml-3"></i>${Utils.escapeHTML(this.t('module.help.title', 'مركز المساعدة'))}</h1>
-                <p class="section-subtitle">${Utils.escapeHTML(this.t('module.help.subtitle', 'دليل شامل لاستخدام النظام — ابحث أو اختر موضوعاً من الفهرس'))}</p>
+            <div class="section-header help-section-header">
+                <div class="help-section-header__text">
+                    <h1 class="section-title help-section-title"><i class="fas fa-circle-question ml-3" aria-hidden="true"></i>${Utils.escapeHTML(this.t('module.help.title', 'مركز المساعدة'))}</h1>
+                    <p class="section-subtitle help-section-subtitle">${Utils.escapeHTML(this.t('module.help.subtitle', 'دليل شامل لاستخدام النظام — ابحث أو اختر موضوعاً من الفهرس'))}</p>
+                </div>
             </div>
             <div class="content-card help-center-card mt-6">
-                <div class="help-search-bar">
+                <label class="help-search-bar" for="help-search-input">
+                    <span class="sr-only">${Utils.escapeHTML(this.t('module.help.searchPlaceholder', 'ابحث في المساعدة...'))}</span>
                     <i class="fas fa-search help-search-bar__icon" aria-hidden="true"></i>
                     <input type="search" id="help-search-input" class="form-input help-search-bar__input"
                         placeholder="${Utils.escapeHTML(this.t('module.help.searchPlaceholder', 'ابحث في المساعدة...'))}"
                         value="${Utils.escapeHTML(this.searchQuery)}" autocomplete="off">
-                    <span id="help-result-count" class="help-search-bar__count"></span>
-                </div>
+                    <span id="help-result-count" class="help-search-bar__count" aria-live="polite"></span>
+                </label>
                 <div id="help-faq-panel" class="help-faq-panel" hidden></div>
                 <div class="help-center-layout">
                     <aside class="help-toc" id="help-toc" aria-label="${Utils.escapeHTML(this.t('module.help.toc', 'فهرس المساعدة'))}">
