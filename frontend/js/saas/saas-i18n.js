@@ -513,8 +513,20 @@
     apply() {
       const html = document.documentElement;
       html.lang = this.lang; html.dir = (this.lang === 'ar') ? 'rtl' : 'ltr';
-      document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = this.t(el.getAttribute('data-i18n')); });
-      document.querySelectorAll('[data-i18n-ph]').forEach(el => { el.setAttribute('placeholder', this.t(el.getAttribute('data-i18n-ph'))); });
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (!key) return;
+        const val = this.t(key);
+        const fb = (el.textContent || '').trim();
+        el.textContent = (val === key && fb) ? fb : val;
+      });
+      document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+        const key = el.getAttribute('data-i18n-ph');
+        if (!key) return;
+        const val = this.t(key);
+        const fb = el.getAttribute('placeholder') || '';
+        el.setAttribute('placeholder', (val === key && fb) ? fb : val);
+      });
       document.querySelectorAll('[data-i18n-html]').forEach(el => { el.innerHTML = this.t(el.getAttribute('data-i18n-html')); });
       const tk = document.body && document.body.getAttribute('data-i18n-title');
       if (tk) document.title = this.t(tk);
