@@ -182,14 +182,44 @@
       return 'https://wa.me/' + digits + (text ? '?text=' + text : '');
     }
 
-    function openContactEmail(e) {
-      const mailto = contactAdminMailto();
-      if (!mailto || mailto === '#') {
+    function launchMailto(email) {
+      const addr = String(email || '').trim();
+      if (!addr) return false;
+      const url = 'mailto:' + addr;
+      try {
+        const a = document.createElement('a');
+        a.href = url;
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        return true;
+      } catch (_) {
+        try {
+          window.location.assign(url);
+          return true;
+        } catch (__) {
+          return false;
+        }
+      }
+    }
+
+    async function openContactEmail(e) {
+      const email = (window.SAAS_CONFIG && SAAS_CONFIG.salesEmail) || '';
+      if (!email) {
         if (e) e.preventDefault();
         return;
       }
       if (e) e.preventDefault();
-      window.location.href = mailto;
+      if (launchMailto(email)) return;
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(email);
+          msg(T('login_email_copied') || 'تم نسخ البريد. الصقه في تطبيق البريد لديك.', 'ok');
+          return;
+        }
+      } catch (_) { /* ignore */ }
+      msg(T('login_email_open_failed') || 'تعذّر فتح البريد. راسلنا على: ' + email, 'err');
     }
 
     function refreshContactAdminLink() {

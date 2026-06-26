@@ -176,7 +176,8 @@ body{
   width:44px;height:44px;padding:0;justify-content:center;border-radius:12px;
   flex-shrink:0;
 }
-.saas-contact-link--icon-only .saas-contact-icon{width:22px;height:22px}
+.saas-contact-link--icon-only .saas-contact-icon{width:22px;height:22px;pointer-events:none}
+.saas-contact-link svg{pointer-events:none}
 .saas-contact-link--email{color:var(--brand-600);border-color:#bfdbfe;background:#eff6ff}
 .saas-contact-link--email:hover{background:#dbeafe;border-color:#93c5fd}
 .saas-contact-link--wa{color:#0f766e;border-color:#bbf7d0;background:#f0fdf4}
