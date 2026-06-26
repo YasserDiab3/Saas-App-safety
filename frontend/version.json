@@ -1,4 +1,4 @@
 {
-  "version": "2.2.51",
-  "message": "feat(safety-calendar): polished dashboard widget and full event details"
+  "version": "2.2.53",
+  "message": "feat(login): contact admin via email and WhatsApp instead of signup"
 }

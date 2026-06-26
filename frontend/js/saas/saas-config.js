@@ -24,7 +24,8 @@ window.SAAS_CONFIG = {
     defaultLogoUrl: 'assets/brand/logo.png',
     defaultFaviconUrl: 'assets/brand/favicon.png',
 
-    // بريد وواتساب مسؤول المنصّة — طلب حساب أو عرض سعر (صفحة تسجيل الدخول)
-    salesEmail: 'Yasser@qhsseconsultant.onmicrosoft.com',
-    salesWhatsApp: '+201032823055'
+    // بريد وواتساب وموقع الشركة — طلب حساب أو عرض سعر (صفحة تسجيل الدخول)
+    salesEmail: 'support@qhsseconsultant.onmicrosoft.com',
+    salesWhatsApp: '+201117755096',
+    companyWebsiteUrl: 'https://qhse-consultancy-global.vercel.app/'
 };
