@@ -19,7 +19,7 @@
 </head>
 <body data-i18n-title="login_doctitle">
   <div class="saas-shell">
-    <div class="saas-card saas-login-card">
+    <div class="saas-card">
       <div class="saas-head">
         <div class="saas-logo"><img src="/assets/brand/logo.png" alt="HSEHub 360" class="saas-logo-img"></div>
         <h1 data-i18n="login_title">تسجيل الدخول</h1>
@@ -54,38 +54,7 @@
           <p class="saas-contact-lead" data-i18n="login_need_account">لا تملك حساباً؟</p>
           <p class="saas-contact-lead" data-i18n="login_contact_admin">التسجيل الذاتي غير متاح. لطلب حساب أو عرض سعر، تواصل مع فريق المبيعات:</p>
           <p class="saas-contact-hint" data-i18n="login_contact_hint">عبّئ النموذج وسيتواصل معك فريق الدعم في أسرع وقت.</p>
-
-          <form id="sales-inquiry-form" class="saas-inquiry-form" novalidate>
-            <div class="saas-field">
-              <label for="inq-name" data-i18n="f_name">الاسم الكامل</label>
-              <input id="inq-name" class="saas-input" type="text" autocomplete="name" data-i18n-ph="ph_name" required>
-            </div>
-            <div class="saas-field">
-              <label for="inq-org" data-i18n="f_org">اسم المؤسسة</label>
-              <input id="inq-org" class="saas-input" type="text" data-i18n-ph="ph_org" required>
-            </div>
-            <div class="saas-field">
-              <label for="inq-email" data-i18n="f_email">البريد الإلكتروني</label>
-              <input id="inq-email" class="saas-input" type="email" inputmode="email" autocapitalize="none" autocomplete="email" data-i18n-ph="ph_email" required dir="ltr">
-            </div>
-            <div class="saas-field">
-              <label data-i18n="f_phone">رقم الجوال</label>
-              <div class="saas-phone-row">
-                <select id="inq-phone-cc" class="saas-input" aria-label="country code"></select>
-                <input id="inq-phone" class="saas-input" type="tel" inputmode="tel" autocomplete="tel-national" data-i18n-ph="ph_phone" required>
-              </div>
-            </div>
-            <div class="saas-field">
-              <label for="inq-users" data-i18n="inq_users_label">عدد المستخدمين المتوقع</label>
-              <input id="inq-users" class="saas-input" type="number" min="1" max="100000" inputmode="numeric" data-i18n-ph="inq_users_ph">
-            </div>
-            <div class="saas-field">
-              <label for="inq-message" data-i18n="inq_message_label">ملاحظات (اختياري)</label>
-              <textarea id="inq-message" class="saas-input saas-textarea" rows="3" data-i18n-ph="inq_message_ph"></textarea>
-            </div>
-            <button type="submit" id="inq-submit" class="saas-btn" data-i18n="inq_submit_btn">إرسال الطلب</button>
-            <div class="saas-msg" id="inq-msg" aria-live="polite"></div>
-          </form>
+          <button type="button" id="inq-open-btn" class="saas-btn ghost sm saas-inquiry-open-btn" data-i18n="inq_open_btn">طلب حساب / عرض سعر</button>
 
           <p class="saas-contact-direct" data-i18n="login_contact_direct">أو تواصل مباشرة:</p>
           <div class="saas-contact-actions">
@@ -108,6 +77,51 @@
           <span id="login-footer-version" class="saas-version-badge" dir="ltr" title="إصدار التطبيق">…</span>
           <button type="button" id="login-footer-update" class="saas-version-update-btn" hidden>تحديث متاح</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="inquiry-modal" class="saas-modal" aria-hidden="true" role="dialog" aria-labelledby="inquiry-modal-title">
+    <div class="saas-modal-backdrop" data-inq-close></div>
+    <div class="saas-modal-panel saas-inquiry-modal-panel">
+      <div class="saas-modal-hd">
+        <h2 id="inquiry-modal-title" data-i18n="inq_modal_title">طلب حساب أو عرض سعر</h2>
+        <button type="button" class="saas-modal-close" data-inq-close aria-label="إغلاق">&times;</button>
+      </div>
+      <div class="saas-modal-scroll saas-inquiry-modal-body">
+        <p class="saas-inquiry-modal-hint" data-i18n="login_contact_hint">عبّئ النموذج وسيتواصل معك فريق الدعم في أسرع وقت.</p>
+        <form id="sales-inquiry-form" class="saas-inquiry-form" novalidate>
+          <div class="saas-field">
+            <label for="inq-name" data-i18n="f_name">الاسم الكامل</label>
+            <input id="inq-name" class="saas-input" type="text" autocomplete="name" data-i18n-ph="ph_name" required>
+          </div>
+          <div class="saas-field">
+            <label for="inq-org" data-i18n="f_org">اسم المؤسسة</label>
+            <input id="inq-org" class="saas-input" type="text" data-i18n-ph="ph_org" required>
+          </div>
+          <div class="saas-field">
+            <label for="inq-email" data-i18n="inq_org_email_label">البريد الإلكتروني للمؤسسة</label>
+            <input id="inq-email" class="saas-input" type="email" inputmode="email" autocapitalize="none" autocomplete="work email" data-i18n-ph="inq_org_email_ph" required dir="ltr" aria-describedby="inq-email-hint">
+            <p id="inq-email-hint" class="saas-field-hint" data-i18n="inq_org_email_hint">استخدم بريد المؤسسة الرسمي (مثل admin@company.com) وليس حسابات Gmail أو Hotmail الشخصية.</p>
+          </div>
+          <div class="saas-field">
+            <label data-i18n="f_phone">رقم الجوال</label>
+            <div class="saas-phone-row">
+              <select id="inq-phone-cc" class="saas-input" aria-label="country code"></select>
+              <input id="inq-phone" class="saas-input" type="tel" inputmode="tel" autocomplete="tel-national" data-i18n-ph="ph_phone" required>
+            </div>
+          </div>
+          <div class="saas-field">
+            <label for="inq-users" data-i18n="inq_users_label">عدد المستخدمين المتوقع</label>
+            <input id="inq-users" class="saas-input" type="number" min="1" max="100000" inputmode="numeric" data-i18n-ph="inq_users_ph">
+          </div>
+          <div class="saas-field">
+            <label for="inq-message" data-i18n="inq_message_label">ملاحظات (اختياري)</label>
+            <textarea id="inq-message" class="saas-input saas-textarea" rows="3" data-i18n-ph="inq_message_ph"></textarea>
+          </div>
+          <button type="submit" id="inq-submit" class="saas-btn" data-i18n="inq_submit_btn">إرسال الطلب</button>
+          <div class="saas-msg" id="inq-msg" aria-live="polite"></div>
+        </form>
       </div>
     </div>
   </div>
@@ -216,6 +230,44 @@
       el.textContent = text || '';
     }
 
+    function openInquiryModal() {
+      const modal = $('inquiry-modal');
+      if (!modal) return;
+      modal.classList.add('is-open');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('saas-modal-open');
+      inqMsg('', '');
+      const first = $('inq-name');
+      if (first) setTimeout(() => first.focus(), 60);
+    }
+
+    function closeInquiryModal() {
+      const modal = $('inquiry-modal');
+      if (!modal || !modal.classList.contains('is-open')) return;
+      modal.classList.remove('is-open');
+      modal.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('saas-modal-open');
+    }
+
+    function initInquiryModal() {
+      const openBtn = $('inq-open-btn');
+      if (openBtn && openBtn.dataset.bound !== '1') {
+        openBtn.dataset.bound = '1';
+        openBtn.addEventListener('click', openInquiryModal);
+      }
+      document.querySelectorAll('[data-inq-close]').forEach((el) => {
+        if (el.dataset.inqCloseBound === '1') return;
+        el.dataset.inqCloseBound = '1';
+        el.addEventListener('click', closeInquiryModal);
+      });
+      if (document.body.dataset.inqEscBound !== '1') {
+        document.body.dataset.inqEscBound = '1';
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') closeInquiryModal();
+        });
+      }
+    }
+
     function initSalesInquiryForm() {
       const form = $('sales-inquiry-form');
       if (!form || form.dataset.bound === '1') return;
@@ -238,6 +290,10 @@
 
         if (!name || !org || !email || !phoneLocal) {
           inqMsg(T('inq_err_required') || 'أكمل الحقول المطلوبة', 'err');
+          return;
+        }
+        if (window.SaaSSalesInquiry && !SaaSSalesInquiry.isOrganizationEmail(email)) {
+          inqMsg(T('inq_err_work_email') || 'أدخل بريد المؤسسة الرسمي وليس بريداً شخصياً.', 'err');
           return;
         }
 
@@ -270,6 +326,7 @@
           if (window.SaaSCountryCodes && $('inq-phone-cc')) {
             SaaSCountryCodes.fillSelect($('inq-phone-cc'), '+20');
           }
+          setTimeout(closeInquiryModal, 2200);
         } catch (err) {
           inqMsg(T('inq_err_network') || 'تعذّر الإرسال. تحقق من الاتصال وحاول مرة أخرى.', 'err');
         } finally {
@@ -291,6 +348,9 @@
         if (window.SaaSCountryCodes && $('inq-phone-cc')) {
           SaaSCountryCodes.refreshLabels($('inq-phone-cc'));
         }
+        const inqClose = document.querySelector('#inquiry-modal .saas-modal-close');
+        if (inqClose) inqClose.setAttribute('aria-label', T('modal_close') || 'إغلاق');
+        initInquiryModal();
         initSalesInquiryForm();
       };
       if (window.SaaSI18n) SaaSI18n.init(boot);
