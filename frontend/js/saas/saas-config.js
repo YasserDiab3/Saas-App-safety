@@ -27,5 +27,6 @@ window.SAAS_CONFIG = {
     // بريد وواتساب وموقع الشركة — طلب حساب أو عرض سعر (صفحة تسجيل الدخول)
     salesEmail: 'support@qhsseconsultant.onmicrosoft.com',
     salesWhatsApp: '+201117755096',
-    companyWebsiteUrl: 'https://qhse-consultancy-global.vercel.app/'
+    companyWebsiteUrl: 'https://qhse-consultancy-global.vercel.app/',
+    companyWebsiteName: 'QHSE Consultancy Global'
 };

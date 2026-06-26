@@ -149,9 +149,15 @@ body{
 }
 .saas-contact-foot p{margin:0 0 8px;line-height:1.5}
 .saas-contact-actions{
-  display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-start;
-  gap:8px;margin-top:8px;
+  display:flex;flex-direction:column;align-items:center;
+  gap:10px;margin-top:8px;
 }
+.saas-contact-row{
+  display:flex;align-items:center;justify-content:center;
+  gap:8px;width:100%;
+}
+.saas-contact-row--main{align-items:stretch}
+.saas-contact-row--web{justify-content:center}
 .saas-contact-link{
   display:inline-flex;align-items:center;gap:7px;
   color:var(--brand-700);text-decoration:none;font-weight:700;
@@ -170,8 +176,17 @@ body{
   width:42px;height:42px;padding:0;justify-content:center;border-radius:12px;
 }
 .saas-contact-link--icon-only .saas-contact-icon{width:22px;height:22px}
+.saas-contact-link--email{
+  flex:1;min-width:0;justify-content:center;
+}
 .saas-contact-link--email span{
-  max-width:min(52vw,220px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  max-width:min(58vw,240px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.saas-contact-link--web{
+  justify-content:center;max-width:100%;
+}
+.saas-contact-link--web span{
+  font-size:.78rem;letter-spacing:.01em;
 }
 .saas-contact-link[hidden],.saas-contact-or[hidden]{display:none!important}
 .saas-contact-icon{width:18px;height:18px;flex-shrink:0}
