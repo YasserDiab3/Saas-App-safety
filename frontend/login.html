@@ -19,7 +19,7 @@
 </head>
 <body data-i18n-title="login_doctitle">
   <div class="saas-shell">
-    <div class="saas-card">
+    <div class="saas-card saas-login-card">
       <div class="saas-head">
         <div class="saas-logo"><img src="/assets/brand/logo.png" alt="HSEHub 360" class="saas-logo-img"></div>
         <h1 data-i18n="login_title">تسجيل الدخول</h1>
@@ -51,8 +51,43 @@
         <button id="go" class="saas-btn" data-i18n="btn_login">دخول</button>
         <div class="saas-msg" id="msg"></div>
         <div class="saas-foot saas-contact-foot">
-          <p data-i18n="login_need_account">لا تملك حساباً؟</p>
-          <p data-i18n="login_contact_admin">التسجيل الذاتي غير متاح. لطلب حساب أو عرض سعر، تواصل مع مسؤول المنصّة:</p>
+          <p class="saas-contact-lead" data-i18n="login_need_account">لا تملك حساباً؟</p>
+          <p class="saas-contact-lead" data-i18n="login_contact_admin">التسجيل الذاتي غير متاح. لطلب حساب أو عرض سعر، تواصل مع فريق المبيعات:</p>
+          <p class="saas-contact-hint" data-i18n="login_contact_hint">عبّئ النموذج وسيتواصل معك فريق الدعم في أسرع وقت.</p>
+
+          <form id="sales-inquiry-form" class="saas-inquiry-form" novalidate>
+            <div class="saas-field">
+              <label for="inq-name" data-i18n="f_name">الاسم الكامل</label>
+              <input id="inq-name" class="saas-input" type="text" autocomplete="name" data-i18n-ph="ph_name" required>
+            </div>
+            <div class="saas-field">
+              <label for="inq-org" data-i18n="f_org">اسم المؤسسة</label>
+              <input id="inq-org" class="saas-input" type="text" data-i18n-ph="ph_org" required>
+            </div>
+            <div class="saas-field">
+              <label for="inq-email" data-i18n="f_email">البريد الإلكتروني</label>
+              <input id="inq-email" class="saas-input" type="email" inputmode="email" autocapitalize="none" autocomplete="email" data-i18n-ph="ph_email" required dir="ltr">
+            </div>
+            <div class="saas-field">
+              <label data-i18n="f_phone">رقم الجوال</label>
+              <div class="saas-phone-row">
+                <select id="inq-phone-cc" class="saas-input" aria-label="country code"></select>
+                <input id="inq-phone" class="saas-input" type="tel" inputmode="tel" autocomplete="tel-national" data-i18n-ph="ph_phone" required>
+              </div>
+            </div>
+            <div class="saas-field">
+              <label for="inq-users" data-i18n="inq_users_label">عدد المستخدمين المتوقع</label>
+              <input id="inq-users" class="saas-input" type="number" min="1" max="100000" inputmode="numeric" data-i18n-ph="inq_users_ph">
+            </div>
+            <div class="saas-field">
+              <label for="inq-message" data-i18n="inq_message_label">ملاحظات (اختياري)</label>
+              <textarea id="inq-message" class="saas-input saas-textarea" rows="3" data-i18n-ph="inq_message_ph"></textarea>
+            </div>
+            <button type="submit" id="inq-submit" class="saas-btn" data-i18n="inq_submit_btn">إرسال الطلب</button>
+            <div class="saas-msg" id="inq-msg" aria-live="polite"></div>
+          </form>
+
+          <p class="saas-contact-direct" data-i18n="login_contact_direct">أو تواصل مباشرة:</p>
           <div class="saas-contact-actions">
             <a id="contact-admin-link" class="saas-contact-link" href="#">
               <svg class="saas-contact-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
@@ -86,6 +121,8 @@
   <script src="/js/saas/saas-cookie-consent.js"></script>
   <script src="/js/saas/saas-auth-fields.js"></script>
   <script src="/js/saas/saas-brand.js"></script>
+  <script src="/js/saas/country-codes.js"></script>
+  <script src="/js/saas/saas-sales-inquiry.js"></script>
   <script src="/js/saas/saas-mfa.js"></script>
   <script src="/js/saas/saas-version.js" defer></script>
   <script>
@@ -172,8 +209,77 @@
       if (orEl) orEl.hidden = !(email && waNum);
     }
 
+    function inqMsg(text, cls) {
+      const el = $('inq-msg');
+      if (!el) return;
+      el.className = 'saas-msg ' + (cls || '');
+      el.textContent = text || '';
+    }
+
+    function initSalesInquiryForm() {
+      const form = $('sales-inquiry-form');
+      if (!form || form.dataset.bound === '1') return;
+      form.dataset.bound = '1';
+
+      if (window.SaaSCountryCodes) {
+        SaaSCountryCodes.fillSelect($('inq-phone-cc'), '+20');
+      }
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = $('inq-submit');
+        const name = ($('inq-name') && $('inq-name').value || '').trim();
+        const org = ($('inq-org') && $('inq-org').value || '').trim();
+        const email = ($('inq-email') && $('inq-email').value || '').trim();
+        const phoneCc = ($('inq-phone-cc') && $('inq-phone-cc').value || '').trim();
+        const phoneLocal = ($('inq-phone') && $('inq-phone').value || '').replace(/\D/g, '');
+        const usersRaw = ($('inq-users') && $('inq-users').value || '').trim();
+        const message = ($('inq-message') && $('inq-message').value || '').trim();
+
+        if (!name || !org || !email || !phoneLocal) {
+          inqMsg(T('inq_err_required') || 'أكمل الحقول المطلوبة', 'err');
+          return;
+        }
+
+        const payload = {
+          full_name: name,
+          org_name: org,
+          email: email,
+          phone: phoneCc + phoneLocal,
+          message: message || null,
+          locale: (window.SaaSI18n && SaaSI18n.lang) || 'ar',
+          source: 'login'
+        };
+        if (usersRaw) payload.expected_users = usersRaw;
+
+        if (btn) btn.disabled = true;
+        inqMsg(T('inq_sending') || 'جاري الإرسال…', '');
+
+        try {
+          if (!window.SaaSSalesInquiry) {
+            throw new Error('network');
+          }
+          const result = await SaaSSalesInquiry.submit(payload);
+          if (!result.success) {
+            const key = result.messageKey || 'inq_err_generic';
+            inqMsg(T(key) || T('inq_err_generic'), 'err');
+            return;
+          }
+          inqMsg(T('inq_success') || 'تم إرسال طلبك. سيتواصل معك فريق الدعم في أسرع وقت.', 'ok');
+          form.reset();
+          if (window.SaaSCountryCodes && $('inq-phone-cc')) {
+            SaaSCountryCodes.fillSelect($('inq-phone-cc'), '+20');
+          }
+        } catch (err) {
+          inqMsg(T('inq_err_network') || 'تعذّر الإرسال. تحقق من الاتصال وحاول مرة أخرى.', 'err');
+        } finally {
+          if (btn) btn.disabled = false;
+        }
+      });
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
-      if (window.SaaSI18n) SaaSI18n.init(() => {
+      const boot = () => {
         if (window.SaaSBrand && SaaSBrand.applySocialMeta) {
           SaaSBrand.applySocialMeta({ title: document.title });
         }
@@ -182,10 +288,13 @@
           SaaSAuthFields.refreshLabels();
         }
         refreshContactAdminLink();
-      });
-      else if (window.SaaSBrand && SaaSBrand.applySocialMeta) SaaSBrand.applySocialMeta();
-      if (window.SaaSAuthFields) SaaSAuthFields.init();
-      refreshContactAdminLink();
+        if (window.SaaSCountryCodes && $('inq-phone-cc')) {
+          SaaSCountryCodes.refreshLabels($('inq-phone-cc'));
+        }
+        initSalesInquiryForm();
+      };
+      if (window.SaaSI18n) SaaSI18n.init(boot);
+      else boot();
     });
 
     (async () => {

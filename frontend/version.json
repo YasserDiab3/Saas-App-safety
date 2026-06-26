@@ -1,4 +1,4 @@
 {
-  "version": "2.2.53",
-  "message": "feat(login): contact admin via email and WhatsApp instead of signup"
+  "version": "2.2.55",
+  "message": "نموذج تواصل طلب حساب في صفحة الدخول"
 }
