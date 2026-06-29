@@ -328,6 +328,14 @@ const Users = {
                     </div>
                 </div>
                 <div class="card-body" style="padding-top: 1.5rem;">
+                    ${this._buildFormHTML(userData, isEdit, currentRole, deptOptions)}
+                </div>
+            </div>
+        `;
+    },
+
+    _buildFormHTML(userData, isEdit, currentRole, deptOptions) {
+        return `
                     <form id="user-form" novalidate>
                         <!-- Photo + Basic Info Row -->
                         <div class="form-section">
@@ -565,8 +573,6 @@ const Users = {
                             </button>
                         </div>
                     </form>
-                </div>
-            </div>
         `;
     },
 
@@ -829,7 +835,13 @@ const Users = {
             }
             const cancelBtn2 = document.getElementById('cancel-user-btn-2');
             if (cancelBtn2) {
-                cancelBtn2.addEventListener('click', () => this.showList());
+                cancelBtn2.addEventListener('click', () => {
+                    if (document.getElementById('user-form-modal')) {
+                        this._closeModal();
+                    } else {
+                        this.showList();
+                    }
+                });
             }
 
             this.setupPhotoPreview();
@@ -909,27 +921,33 @@ const Users = {
         });
     },
 
+    _closeModal() {
+        const modal = document.getElementById('user-form-modal');
+        if (modal) modal.remove();
+        if (this._escKeyHandler) {
+            document.removeEventListener('keydown', this._escKeyHandler);
+            this._escKeyHandler = null;
+        }
+        this.currentEditId = null;
+    },
+
     async showForm(userData = null) {
-        Utils.safeLog('🔧 عرض نموذج إضافة/تعديل مستخدم:', userData ? 'تعديل' : 'إضافة جديد');
+        Utils.safeLog('🔧 عرض نافذة إضافة/تعديل مستخدم:', userData ? 'تعديل' : 'إضافة جديد');
         this.currentEditId = userData?.id || null;
-        
-        // تحميل الصلاحيات التفصيلية الحالية + تطبيع صلاحيات المديولات الأساسية للنموذج
+
         this.currentDetailedPermissions = {};
         let normalizedBasePermissions = null;
 
         if (userData && userData.permissions) {
             let perms;
             try {
-                // استخدام Permissions.normalizePermissions إذا كان متاحاً
                 if (typeof Permissions !== 'undefined' && typeof Permissions.normalizePermissions === 'function') {
                     perms = Permissions.normalizePermissions(userData.permissions);
                 } else if (typeof userData.permissions === 'string') {
-                    // محاولة تحليل JSON
                     const trimmed = userData.permissions.trim();
                     if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
                         perms = JSON.parse(trimmed);
                     } else {
-                        // إذا لم يكن JSON، قد يكون نص عادي - نحاول تحويله إلى كائن
                         try {
                             const lines = trimmed.split('\n').filter(line => line.trim());
                             perms = {};
@@ -962,64 +980,95 @@ const Users = {
                 }
                 perms = {};
             }
-            
+
             if (!perms || typeof perms !== 'object' || Array.isArray(perms)) {
                 perms = {};
             }
-            
+
             const basePermissions = {};
             Object.keys(perms).forEach(key => {
                 const value = perms[key];
                 if (key.endsWith('Permissions') && typeof value === 'object' && !Array.isArray(value)) {
-                    // صلاحيات تفصيلية تُخزَّن في this.currentDetailedPermissions
                     this.currentDetailedPermissions[key] = value;
                 } else if (!key.endsWith('Permissions')) {
-                    // صلاحيات المديولات الأساسية (module -> true/false) تُستخدم لتهيئة Checkboxes
                     basePermissions[key] = value === true;
                 }
             });
 
             normalizedBasePermissions = basePermissions;
         }
-        
-        const content = document.getElementById('users-content');
-        if (content) {
-            const normalizedUserData = userData
-                ? {
-                    ...userData,
-                    // إذا كانت الصلاحيات محفوظة كنص JSON في AppState، نقوم بتمرير نسخة ككائن للنموذج
-                    permissions: normalizedBasePermissions
-                        ?? (userData.permissions && typeof userData.permissions === 'object' && !Array.isArray(userData.permissions)
-                            ? userData.permissions
-                            : {})
-                }
-                : null;
 
-            content.innerHTML = await this.renderForm(normalizedUserData);
-            this.applyModuleI18n(content);
-            this.setupEventListeners();
+        const normalizedUserData = userData
+            ? {
+                ...userData,
+                permissions: normalizedBasePermissions
+                    ?? (userData.permissions && typeof userData.permissions === 'object' && !Array.isArray(userData.permissions)
+                        ? userData.permissions
+                        : {})
+            }
+            : null;
 
-            // تحديث حالة الصلاحيات عند تغيير الدور
-            setTimeout(() => {
-                const roleSelect = document.getElementById('user-role');
-                if (roleSelect) {
-                    roleSelect.addEventListener('change', () => {
-                        this.updatePermissionsUI();
-                    });
-                }
+        const isEdit = !!userData;
+        const currentRole = userData?.role || '';
+        const deptOptions = this._getDepartmentOptions();
+        const formHTML = this._buildFormHTML(normalizedUserData, isEdit, currentRole, deptOptions);
 
-                // تهيئة أزرار تحديد/إلغاء الكل
-                this.setupSelectAllButtons();
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay';
+        modal.id = 'user-form-modal';
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width: 800px; max-height: 90vh; display: flex; flex-direction: column;">
+                <div class="modal-header">
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <div class="form-header-icon">
+                            <i class="fas fa-${isEdit ? 'edit' : 'user-plus'}"></i>
+                        </div>
+                        <div>
+                            <h2 class="modal-title" style="margin: 0; font-size: 1.25rem;">
+                                ${isEdit ? 'تعديل بيانات المستخدم' : 'إضافة مستخدم جديد'}
+                            </h2>
+                            <p style="font-size: 0.8rem; color: var(--text-tertiary); margin-top: 0.2rem;">
+                                ${isEdit ? 'تحديث معلومات وصلاحيات المستخدم' : 'إنشاء حساب مستخدم جديد وتحديد صلاحياته'}
+                            </p>
+                        </div>
+                    </div>
+                    <button type="button" class="modal-close" id="modal-close-btn">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body" style="overflow-y: auto; padding: 1.5rem;">
+                    ${formHTML}
+                </div>
+                <div class="modal-footer" style="padding: 0.75rem 1.5rem; display: flex; justify-content: flex-end; gap: 0.75rem;">
+                    <button type="button" class="btn-secondary" id="cancel-user-btn-modal">
+                        <i class="fas fa-times"></i> إلغاء
+                    </button>
+                </div>
+            </div>
+        `;
 
-                // تهيئة أزرار الصلاحيات التفصيلية
-                this.setupDetailedPermissionsButtons();
+        document.body.appendChild(modal);
+        this.applyModuleI18n(modal);
+        this.setupEventListeners();
 
-                // تحديث حالة الصلاحيات عند التحميل
-                this.updatePermissionsUI();
-            }, 100);
-        } else {
-            Utils.safeError(' لم يتم العثور على users-content');
-        }
+        // Close handlers
+        modal.querySelector('#modal-close-btn')?.addEventListener('click', () => this._closeModal());
+        modal.querySelector('#cancel-user-btn-modal')?.addEventListener('click', () => this._closeModal());
+        modal.addEventListener('click', (e) => { if (e.target === modal) this._closeModal(); });
+        this._escKeyHandler = (e) => { if (e.key === 'Escape') this._closeModal(); };
+        document.addEventListener('keydown', this._escKeyHandler);
+
+        setTimeout(() => {
+            const roleSelect = document.getElementById('user-role');
+            if (roleSelect) {
+                roleSelect.addEventListener('change', () => {
+                    this.updatePermissionsUI();
+                });
+            }
+            this.setupSelectAllButtons();
+            this.setupDetailedPermissionsButtons();
+            this.updatePermissionsUI();
+        }, 100);
     },
 
     updatePermissionsUI() {
@@ -1633,7 +1682,12 @@ const Users = {
                 submitBtn.innerHTML = originalText;
             }
             
-            this.showList();
+            if (document.getElementById('user-form-modal')) {
+                this.showList();
+                this._closeModal();
+            } else {
+                this.showList();
+            }
         } catch (error) {
             Loading.hide();
             Utils.safeError('خطأ في حفظ المستخدم:', error);

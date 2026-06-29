@@ -1,4 +1,4 @@
 {
-  "version": "2.2.84",
-  "message": "fix(saas): prevent data loss after page reload by fixing DataManager load timing and tenant cache scoping"
+  "version": "2.2.85",
+  "message": "feat(users): modern user form with CSS, role cards, password strength, photo upload"
 }
