@@ -1,4 +1,4 @@
 {
-  "version": "2.2.92",
-  "message": "fix: close dangling JSDoc causing contractor sync failure"
+  "version": "2.2.93",
+  "message": "feat: professional approval request form with success animation"
 }

@@ -9667,6 +9667,19 @@ const Contractors = {
             }
             
             if (!request) {
+                if (typeof window.DataManager !== 'undefined' && typeof window.DataManager.load === 'function') {
+                    try {
+                        await window.DataManager.load();
+                        if (requestCategory === 'deletion') {
+                            request = (AppState.appData.contractorDeletionRequests || []).find(r => r.id === requestId);
+                        } else {
+                            request = (AppState.appData.contractorApprovalRequests || []).find(r => r.id === requestId);
+                        }
+                    } catch (_e) { /* تجاهل */ }
+                }
+            }
+            
+            if (!request) {
                 throw new Error('الطلب غير موجود');
             }
             
@@ -9885,6 +9898,16 @@ const Contractors = {
         try {
             Loading.show();
             let request = (AppState.appData.contractorApprovalRequests || []).find(r => r.id === requestId);
+            
+            // ✅ محاولة إعادة تحميل البيانات من التخزين المحلي إذا لم يُعثر على الطلب
+            if (!request) {
+                if (typeof window.DataManager !== 'undefined' && typeof window.DataManager.load === 'function') {
+                    try {
+                        await window.DataManager.load();
+                        request = (AppState.appData.contractorApprovalRequests || []).find(r => r.id === requestId);
+                    } catch (_e) { /* تجاهل */ }
+                }
+            }
             
             // ✅ إصلاح مهم: إذا كان requestId يبدأ بـ "TEMP_"، الطلب لم يتم مزامنته بعد
             if (!request && requestId.startsWith('TEMP_')) {
@@ -10169,7 +10192,15 @@ const Contractors = {
 
         try {
             Loading.show();
-            const request = (AppState.appData.contractorApprovalRequests || []).find(r => r.id === requestId);
+            let request = (AppState.appData.contractorApprovalRequests || []).find(r => r.id === requestId);
+            if (!request) {
+                if (typeof window.DataManager !== 'undefined' && typeof window.DataManager.load === 'function') {
+                    try {
+                        await window.DataManager.load();
+                        request = (AppState.appData.contractorApprovalRequests || []).find(r => r.id === requestId);
+                    } catch (_e) { /* تجاهل */ }
+                }
+            }
             if (!request) {
                 Loading.hide();
                 Notification.error('طلب الاعتماد غير موجود');
