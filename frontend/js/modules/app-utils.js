@@ -2905,7 +2905,7 @@ const DEFAULT_COMPANY_NAME = '';
 
 const AppState = {
     /** fallback فقط — المصدر الرسمي: frontend/version.json (يُحدَّث عبر saas-version.js) */
-    appVersion: '2.2.87',
+    appVersion: '2.2.88',
     /** نص اختياري لرسالة التحديث (ملخص التغييرات). إن تُركت فارغة يُستخدم النص الافتراضي. */
     updateMessage: '',
     debugMode: false,
@@ -8126,6 +8126,12 @@ const I18n = {
             'settings.tabs.circuit': 'دائرة الموافقة',
             'settings.tabs.help': 'مركز المساعدة',
             'settings.tabs.logs': 'السجلات والرصد',
+            'settings.tabs.privacy': 'الخصوصية والكوكيز',
+            'settings.privacy.subtitle': 'إدارة تفضيلات الخصوصية والكوكيز للمؤسسة',
+            'settings.privacy.cookiePrefs': 'تفضيلات الكوكيز الحالية',
+            'settings.privacy.manageCookies': 'إدارة الكوكيز',
+            'settings.privacy.policy': 'سياسة الكوكيز',
+            'settings.privacy.consentHistory': 'سجل الموافقات',
             
             'settings.company.title': 'بيانات الشركة والهوية',
             'settings.company.subtitle': 'معلومات الشركة والشعار والهوية البصرية',
@@ -8784,6 +8790,12 @@ const I18n = {
             'settings.tabs.circuit': 'Approval Circuit',
             'settings.tabs.help': 'Help Center',
             'settings.tabs.logs': 'Logs & Monitoring',
+            'settings.tabs.privacy': 'Privacy & Cookies',
+            'settings.privacy.subtitle': 'Manage privacy and cookie preferences for your organization',
+            'settings.privacy.cookiePrefs': 'Current Cookie Preferences',
+            'settings.privacy.manageCookies': 'Manage Cookies',
+            'settings.privacy.policy': 'Cookie Policy',
+            'settings.privacy.consentHistory': 'Consent History',
             
             'settings.company.title': 'Company Data & Identity',
             'settings.company.subtitle': 'Company information, logo, and visual identity settings',

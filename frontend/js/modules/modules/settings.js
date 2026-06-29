@@ -231,6 +231,10 @@ const Settings = {
                         <i class="fas fa-project-diagram ml-2"></i>
                         ${I18n.t('settings.tabs.circuit')}
                     </button>
+                    <button class="tab-btn" data-tab="privacy">
+                        <i class="fas fa-cookie-bite ml-2"></i>
+                        ${I18n.t('settings.tabs.privacy')}
+                    </button>
                     <button class="tab-btn" data-tab="logs" ${!isAdmin ? 'style="display:none;"' : ''}>
                         <i class="fas fa-history ml-2"></i>
                         ${I18n.t('settings.tabs.logs')}
@@ -1026,6 +1030,65 @@ const Settings = {
                 </div>
             </div>
 
+            <!-- Tab Content: الخصوصية والكوكيز -->
+            <div class="tab-content" id="tab-privacy">
+                <div class="settings-group mt-6">
+                    <div class="settings-group-header">
+                        <h2 class="settings-group-title">
+                            <i class="fas fa-cookie-bite text-amber-600 ml-2"></i>
+                            ${I18n.t('settings.tabs.privacy')}
+                        </h2>
+                        <p class="settings-group-subtitle">${I18n.t('settings.privacy.subtitle', 'إدارة تفضيلات الخصوصية والكوكيز للمؤسسة')}</p>
+                    </div>
+
+                    <!-- Cookie Status -->
+                    <div class="settings-group-content mt-4">
+                        <div class="content-card">
+                            <div class="card-header">
+                                <h2 class="card-title"><i class="fas fa-sliders ml-2"></i>${I18n.t('settings.privacy.cookiePrefs', 'تفضيلات الكوكيز الحالية')}</h2>
+                            </div>
+                            <div class="card-body">
+                                <div id="settings-cookie-status" class="hse-cookie-status mb-4">
+                                    <p class="text-sm text-gray-500">${I18n.t('common.loading', 'جاري التحميل...')}</p>
+                                </div>
+                                <button type="button" id="settings-cookie-manage-btn" class="btn-secondary btn-sm">
+                                    <i class="fas fa-sliders ml-1"></i>
+                                    ${I18n.t('settings.privacy.manageCookies', 'إدارة الكوكيز')}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cookie Policy -->
+                    <div class="settings-group-content mt-4">
+                        <div class="content-card">
+                            <div class="card-header">
+                                <h2 class="card-title"><i class="fas fa-file-contract ml-2"></i>${I18n.t('settings.privacy.policy', 'سياسة الكوكيز')}</h2>
+                            </div>
+                            <div class="card-body">
+                                <div id="settings-cookie-policy">
+                                    <p class="text-sm text-gray-500">${I18n.t('common.loading', 'جاري التحميل...')}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Consent History -->
+                    <div class="settings-group-content mt-4">
+                        <div class="content-card">
+                            <div class="card-header">
+                                <h2 class="card-title"><i class="fas fa-history ml-2"></i>${I18n.t('settings.privacy.consentHistory', 'سجل الموافقات')}</h2>
+                            </div>
+                            <div class="card-body">
+                                <div id="settings-cookie-history">
+                                    <p class="text-sm text-gray-500">${I18n.t('common.loading', 'جاري التحميل...')}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Tab Content: السجلات والمراقبة -->
             <div class="tab-content" id="tab-logs">
                 ${isAdmin ? `
@@ -1236,6 +1299,10 @@ const Settings = {
                         });
                     }
                 }
+                // تحميل بيانات الخصوصية والكوكيز عند فتح التبويب
+                if (targetTab === 'privacy') {
+                    Settings.loadPrivacyTab();
+                }
             });
         });
 
@@ -1254,6 +1321,81 @@ const Settings = {
                 tabButtons.forEach(btn => btn.classList.remove('active'));
                 correspondingButton.classList.add('active');
             }
+        }
+    },
+
+    async loadPrivacyTab() {
+        // Cookie status
+        const statusEl = document.getElementById('settings-cookie-status');
+        if (statusEl && window.CookieConsent && typeof CookieConsent.read === 'function') {
+            const consent = CookieConsent.read();
+            const cats = (consent && consent.categories) || {};
+            const chips = ['essential', 'functional', 'analytics', 'marketing'].map(id => {
+                const labels = {
+                    essential: I18n.t('cookie_cat_essential', 'أساسية'),
+                    functional: I18n.t('cookie_cat_functional', 'وظيفية'),
+                    analytics: I18n.t('cookie_cat_analytics', 'تحليلية'),
+                    marketing: I18n.t('cookie_cat_marketing', 'تسويقية')
+                };
+                const state = cats[id] ? I18n.t('module.profile.cookieOn', 'مفعّل') : I18n.t('module.profile.cookieOff', 'معطّل');
+                return `<span class="hse-cookie-chip ${cats[id] ? 'is-on' : ''}">${Utils.escapeHTML(labels[id] || id)}: ${Utils.escapeHTML(state)}</span>`;
+            }).join('');
+            statusEl.innerHTML = chips;
+        } else if (statusEl) {
+            statusEl.innerHTML = `<p class="text-sm text-gray-500">${I18n.t('common.noData', 'لا توجد بيانات')}</p>`;
+        }
+
+        // Manage cookies button
+        const manageBtn = document.getElementById('settings-cookie-manage-btn');
+        if (manageBtn && window.CookieConsent && typeof CookieConsent.openSettings === 'function') {
+            manageBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                CookieConsent.openSettings();
+            });
+        }
+
+        // Cookie policy
+        const policyEl = document.getElementById('settings-cookie-policy');
+        if (policyEl) {
+            try {
+                const { data, error } = await (window.SaaS?.client()?.rpc?.('api_get_cookie_policy', {}) || Promise.resolve({ data: null }));
+                if (!error && data && data.content) {
+                    const lang = window.SaaSI18n?.lang === 'en' ? 'en' : 'ar';
+                    const c = data.content[lang] || data.content.ar || {};
+                    policyEl.innerHTML = `
+                        <div class="text-sm text-gray-700 space-y-2">
+                            <p class="font-semibold">${Utils.escapeHTML(c.title || '')}</p>
+                            <p>${Utils.escapeHTML(c.body || I18n.t('common.noData', 'لا توجد بيانات'))}</p>
+                            <p class="text-xs text-gray-400 mt-2">${I18n.t('common.version', 'الإصدار')}: ${Utils.escapeHTML(data.version || '—')}</p>
+                        </div>`;
+                } else {
+                    policyEl.innerHTML = `<p class="text-sm text-gray-500">${I18n.t('common.noData', 'لا توجد بيانات')}</p>`;
+                }
+            } catch (_e) {
+                policyEl.innerHTML = `<p class="text-sm text-gray-500">${I18n.t('common.error', 'حدث خطأ')}</p>`;
+            }
+        }
+
+        // Consent history
+        const historyEl = document.getElementById('settings-cookie-history');
+        if (historyEl && window.CookieConsent && typeof CookieConsent.loadHistory === 'function') {
+            try {
+                const items = await CookieConsent.loadHistory(10);
+                if (items && items.length) {
+                    const rows = items.map(it => {
+                        const at = it.consent_at ? new Date(it.consent_at).toLocaleString() : '—';
+                        const act = Utils.escapeHTML(it.action || '—');
+                        return `<tr><td>${Utils.escapeHTML(at)}</td><td>${act}</td></tr>`;
+                    }).join('');
+                    historyEl.innerHTML = `<table class="hse-cookie-history-table"><thead><tr><th>${I18n.t('common.date', 'التاريخ')}</th><th>${I18n.t('common.action', 'الإجراء')}</th></tr></thead><tbody>${rows}</tbody></table>`;
+                } else {
+                    historyEl.innerHTML = `<p class="text-sm text-gray-500">${I18n.t('common.noData', 'لا توجد بيانات')}</p>`;
+                }
+            } catch (_e) {
+                historyEl.innerHTML = `<p class="text-sm text-gray-500">${I18n.t('common.error', 'حدث خطأ')}</p>`;
+            }
+        } else if (historyEl) {
+            historyEl.innerHTML = `<p class="text-sm text-gray-500">${I18n.t('common.noData', 'لا توجد بيانات')}</p>`;
         }
     },
 
