@@ -302,209 +302,284 @@ const Users = {
 
     async renderForm(userData = null) {
         const isEdit = !!userData;
+        const currentRole = userData?.role || '';
+        const deptOptions = this._getDepartmentOptions();
         return `
-            <div class="content-card">
-                <div class="card-header">
-                    <h2 class="card-title">
-                        <i class="fas fa-${isEdit ? 'edit' : 'user-plus'} ml-2" aria-hidden="true"></i>
-                        ${isEdit ? 'تعديل مستخدم' : 'إضافة مستخدم جديد'}
-                    </h2>
+            <div class="content-card modern-user-form">
+                <div class="card-header" style="border-bottom: 2px solid var(--border-color); padding-bottom: 1rem;">
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <div style="display: flex; align-items: center; gap: 0.75rem;">
+                            <div class="form-header-icon">
+                                <i class="fas fa-${isEdit ? 'edit' : 'user-plus'}"></i>
+                            </div>
+                            <div>
+                                <h2 class="card-title" style="margin: 0; font-size: 1.25rem;">
+                                    ${isEdit ? 'تعديل بيانات المستخدم' : 'إضافة مستخدم جديد'}
+                                </h2>
+                                <p style="font-size: 0.8rem; color: var(--text-tertiary); margin-top: 0.2rem;">
+                                    ${isEdit ? 'تحديث معلومات وصلاحيات المستخدم' : 'إنشاء حساب مستخدم جديد وتحديد صلاحياته'}
+                                </p>
+                            </div>
+                        </div>
+                        <button type="button" id="cancel-user-btn" class="btn-ghost" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem;">
+                            <i class="fas fa-times"></i>
+                            <span>إغلاق</span>
+                        </button>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <form id="user-form" class="space-y-6">
-                        <div class="grid grid-cols-2 gap-6">
-                            <div class="col-span-2">
-                                <label for="user-photo-input" class="block text-sm font-semibold text-gray-700 mb-2">
-                                    <i class="fas fa-image ml-2"></i>
-                                    صورة المستخدم
-                                </label>
-                                <div class="flex items-center gap-4">
-                                    <div class="w-24 h-24 rounded-full border-2 border-gray-300 overflow-hidden bg-gray-100 flex items-center justify-center">
-                                        <img id="user-photo-preview" src="${userData?.photo || ''}" alt="صورة المستخدم" style="width: 100%; height: 100%; object-fit: cover; display: ${userData?.photo ? 'block' : 'none'};">
-                                        <i id="user-photo-icon" class="fas fa-user text-3xl text-gray-400" style="display: ${userData?.photo ? 'none' : 'block'}"></i>
-                                    </div>
-                                    <div class="flex-1">
-                                        <input 
-                                            type="file" 
-                                            id="user-photo-input" 
-                                            accept="image/*"
-                                            class="form-input"
-                                            style="padding: 0.5rem;"
-                                        >
-                                        <p class="text-xs text-gray-500 mt-1">اضف صورة مربعة بحجم لا يتجاوز 2MB</p>
+                <div class="card-body" style="padding-top: 1.5rem;">
+                    <form id="user-form" novalidate>
+                        <!-- Photo + Basic Info Row -->
+                        <div class="form-section">
+                            <div class="form-section-title">
+                                <i class="fas fa-id-card"></i>
+                                المعلومات الأساسية
+                            </div>
+                            <div class="user-form-grid">
+                                <!-- Photo Upload -->
+                                <div class="photo-upload-cell">
+                                    <div class="photo-upload-wrapper" id="photo-drop-zone">
+                                        <div class="photo-preview-circle" id="photo-preview-circle">
+                                            <img id="user-photo-preview" src="${userData?.photo || ''}" alt="صورة المستخدم" style="width: 100%; height: 100%; object-fit: cover; display: ${userData?.photo ? 'block' : 'none'};">
+                                            <div class="photo-placeholder" id="photo-placeholder" style="display: ${userData?.photo ? 'none' : 'flex'};">
+                                                <i class="fas fa-camera"></i>
+                                                <span>إضافة صورة</span>
+                                            </div>
+                                            <div class="photo-overlay" id="photo-overlay">
+                                                <i class="fas fa-camera"></i>
+                                                <span>تغيير</span>
+                                            </div>
+                                        </div>
+                                        <input type="file" id="user-photo-input" accept="image/*" style="display: none;">
+                                        <p class="photo-hint">PNG, JPG — حد أقصى 2MB</p>
                                     </div>
                                 </div>
-                            </div>
-                            <div>
-                                <label for="user-name" class="block text-sm font-semibold text-gray-700 mb-2">
-                                    <i class="fas fa-user ml-2"></i>
-                                    الاسم الكامل *
-                                </label>
-                                <input 
-                                    type="text" 
-                                    id="user-name" 
-                                    name="name" 
-                                    required
-                                    class="form-input"
-                                    value="${userData?.name || ''}"
-                                    placeholder="أدخل الاسم الكامل"
-                                >
-                            </div>
 
-                            <div>
-                                <label for="user-email" class="block text-sm font-semibold text-gray-700 mb-2">
-                                    <i class="fas fa-envelope ml-2"></i>
-                                    البريد الإلكتروني *
-                                </label>
-                                <input 
-                                    type="email" 
-                                    id="user-email" 
-                                    name="email" 
-                                    autocomplete="email"
-                                    required
-                                    class="form-input"
-                                    value="${userData?.email || ''}"
-                                    placeholder="example@americana.com"
-                                    ${isEdit ? 'readonly' : ''}
-                                >
-                            </div>
+                                <!-- Name -->
+                                <div class="form-group">
+                                    <label class="form-label required" for="user-name">
+                                        <i class="fas fa-user"></i>
+                                        الاسم الكامل
+                                    </label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-user input-icon"></i>
+                                        <input type="text" id="user-name" name="name" required
+                                            class="form-input"
+                                            value="${Utils.escapeHTML(userData?.name || '')}"
+                                            placeholder="مثال: أحمد محمد"
+                                            autocomplete="name">
+                                    </div>
+                                    <div class="form-field-hint">الاسم كما سيظهر للمستخدمين الآخرين</div>
+                                </div>
 
-                            <div>
-                                <label for="user-password" class="block text-sm font-semibold text-gray-700 mb-2">
-                                    <i class="fas fa-key ml-2"></i>
-                                    كلمة المرور ${isEdit ? '(اتركه فارغاً للإبقاء على القديم)' : '*'}
-                                </label>
-                                <input 
-                                    type="password" 
-                                    id="user-password" 
-                                    name="password" 
-                                    autocomplete="current-password"
-                                    ${isEdit ? '' : 'required'}
-                                    class="form-input"
-                                    placeholder="••••••••"
-                                >
-                            </div>
+                                <!-- Email -->
+                                <div class="form-group">
+                                    <label class="form-label required" for="user-email">
+                                        <i class="fas fa-envelope"></i>
+                                        البريد الإلكتروني
+                                    </label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-envelope input-icon"></i>
+                                        <input type="email" id="user-email" name="email"
+                                            autocomplete="email" required
+                                            class="form-input"
+                                            value="${Utils.escapeHTML(userData?.email || '')}"
+                                            placeholder="user@company.com"
+                                            ${isEdit ? 'readonly' : ''}>
+                                        ${isEdit ? '<i class="fas fa-lock input-suffix" title="لا يمكن تغيير البريد بعد الإنشاء"></i>' : ''}
+                                    </div>
+                                    ${isEdit ? '<div class="form-field-hint">البريد الإلكتروني لا يمكن تعديله</div>' : '<div class="form-field-hint">سيستخدم البريد لتسجيل الدخول</div>'}
+                                </div>
 
-                            <div>
-                                <label for="user-role" class="block text-sm font-semibold text-gray-700 mb-2">
-                                    <i class="fas fa-user-tag ml-2"></i>
-                                    الدور *
-                                </label>
-                                <select id="user-role" name="role" required class="form-input">
-                                    <option value="">اختر الدور</option>
-                                    <option value="admin" ${userData?.role === 'admin' ? 'selected' : ''}>🔴 مدير النظام (System Administrator)</option>
-                                    <option value="safety_officer" ${userData?.role === 'safety_officer' ? 'selected' : ''}>🔵 مسئول السلامة (Safety Officer)</option>
-                                    <option value="user" ${userData?.role === 'user' ? 'selected' : ''}>🟢 مستخدم عادي (Regular User)</option>
-                                    <option value="read_only" ${userData?.role === 'read_only' ? 'selected' : ''}>🟣 قراءة فقط (Read Only)</option>
-                                </select>
-                            </div>
+                                <!-- Department -->
+                                <div class="form-group">
+                                    <label class="form-label required" for="user-department">
+                                        <i class="fas fa-building"></i>
+                                        القسم
+                                    </label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-building input-icon"></i>
+                                        <input type="text" id="user-department" name="department" required
+                                            class="form-input"
+                                            value="${Utils.escapeHTML(userData?.department || '')}"
+                                            placeholder="مثال: السلامة والصحة المهنية"
+                                            list="dept-list">
+                                        <datalist id="dept-list">
+                                            ${deptOptions.map(d => `<option value="${Utils.escapeHTML(d)}">`).join('')}
+                                        </datalist>
+                                    </div>
+                                    <div class="form-field-hint">اختر من القائمة أو أدخل قسماً جديداً</div>
+                                </div>
 
-                            <div>
-                                <label for="user-department" class="block text-sm font-semibold text-gray-700 mb-2">
-                                    <i class="fas fa-building ml-2"></i>
-                                    القسم *
-                                </label>
-                                <input 
-                                    type="text" 
-                                    id="user-department" 
-                                    name="department" 
-                                    required
-                                    class="form-input"
-                                    value="${userData?.department || ''}"
-                                    placeholder="أدخل القسم"
-                                >
-                            </div>
+                                <!-- Password -->
+                                <div class="form-group">
+                                    <label class="form-label ${isEdit ? '' : 'required'}" for="user-password">
+                                        <i class="fas fa-key"></i>
+                                        كلمة المرور
+                                        ${isEdit ? '<span class="text-muted">(اترك فارغاً للإبقاء)</span>' : ''}
+                                    </label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-key input-icon"></i>
+                                        <input type="password" id="user-password" name="password"
+                                            autocomplete="new-password"
+                                            ${isEdit ? '' : 'required'}
+                                            class="form-input"
+                                            placeholder="${isEdit ? '•••••••• أو اترك فارغاً' : '••••••••'}"
+                                            style="padding-left: 2.5rem; padding-right: 2.5rem;">
+                                        <button type="button" class="input-suffix-btn toggle-password-btn" tabindex="-1" aria-label="إظهار/إخفاء كلمة المرور">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                    <div class="password-strength-bar" id="password-strength-bar" style="display: none;">
+                                        <div class="password-strength-fill" id="password-strength-fill"></div>
+                                    </div>
+                                    <div class="password-strength-text" id="password-strength-text"></div>
+                                </div>
 
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">
-                                    <i class="fas fa-toggle-on ml-2"></i>
-                                    الحالة
-                                </label>
-                                <label class="flex items-center mt-2">
-                                    <input 
-                                        type="checkbox" 
-                                        id="user-active" 
-                                        name="active"
-                                        class="rounded border-gray-300 text-blue-600"
-                                        ${userData?.active !== false ? 'checked' : ''}
-                                    >
-                                    <span class="mr-2 text-sm text-gray-700">نشط</span>
-                                </label>
+                                <!-- Account Status -->
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        <i class="fas fa-toggle-on"></i>
+                                        حالة الحساب
+                                    </label>
+                                    <div class="toggle-switch-wrapper">
+                                        <label class="toggle-switch">
+                                            <input type="checkbox" id="user-active" name="active"
+                                                ${userData?.active !== false ? 'checked' : ''}>
+                                            <span class="toggle-slider"></span>
+                                        </label>
+                                        <span class="toggle-label" id="active-status-label">
+                                            ${userData?.active !== false ? 'نشط' : 'غير نشط'}
+                                        </span>
+                                    </div>
+                                    <div class="form-field-hint">تعطيل الحساب يمنع المستخدم من تسجيل الدخول</div>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="border-t pt-4 mt-4">
-                            <div class="flex items-center justify-between mb-3">
-                                <label class="block text-sm font-semibold text-gray-700">
-                                    <i class="fas fa-shield-alt ml-2"></i>
-                                    صلاحيات الوصول للوحدات
-                                </label>
-                                <div class="flex gap-2">
-                                    <button type="button" id="select-all-permissions-btn" class="text-xs px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition">
-                                        <i class="fas fa-check-double ml-1"></i>
+                        <!-- Role Selection -->
+                        <div class="form-section">
+                            <div class="form-section-title">
+                                <i class="fas fa-user-tag"></i>
+                                صلاحية الوصول
+                            </div>
+                            <div class="role-cards-grid">
+                                ${[
+            { value: 'admin', icon: 'fa-crown', color: '#dc2626', bg: 'rgba(220,38,38,0.08)', label: 'مدير النظام', desc: 'صلاحية كاملة — إدارة المستخدمين وجميع الوحدات' },
+            { value: 'safety_officer', icon: 'fa-hard-hat', color: '#2563eb', bg: 'rgba(37,99,235,0.08)', label: 'مسؤول السلامة', desc: 'إدارة تقارير السلامة والحوادث والمتابعة اليومية' },
+            { value: 'user', icon: 'fa-user-check', color: '#059669', bg: 'rgba(5,150,105,0.08)', label: 'مستخدم عادي', desc: 'إدخال البيانات والتقارير الأساسية' },
+            { value: 'read_only', icon: 'fa-eye', color: '#7c3aed', bg: 'rgba(124,58,237,0.08)', label: 'قراءة فقط', desc: 'عرض التقارير والبيانات بدون إمكانية تعديل' }
+        ].map(r => `
+                                    <label class="role-card ${currentRole === r.value ? 'selected' : ''}" data-role="${r.value}">
+                                        <input type="radio" name="user-role-radio" value="${r.value}" ${currentRole === r.value ? 'checked' : ''} style="display: none;">
+                                        <div class="role-card-icon" style="background: ${r.bg}; color: ${r.color};">
+                                            <i class="fas ${r.icon}"></i>
+                                        </div>
+                                        <div class="role-card-info">
+                                            <div class="role-card-title">${r.label}</div>
+                                            <div class="role-card-desc">${r.desc}</div>
+                                        </div>
+                                        <div class="role-card-check">
+                                            <i class="fas fa-check-circle" style="color: ${r.color};"></i>
+                                        </div>
+                                    </label>
+                                `).join('')}
+                            </div>
+                            <select id="user-role" name="role" style="display: none;">
+                                <option value="">اختر الدور</option>
+                                <option value="admin" ${currentRole === 'admin' ? 'selected' : ''}>مدير النظام</option>
+                                <option value="safety_officer" ${currentRole === 'safety_officer' ? 'selected' : ''}>مسؤول السلامة</option>
+                                <option value="user" ${currentRole === 'user' ? 'selected' : ''}>مستخدم عادي</option>
+                                <option value="read_only" ${currentRole === 'read_only' ? 'selected' : ''}>قراءة فقط</option>
+                            </select>
+                        </div>
+
+                        <!-- Module Permissions -->
+                        <div class="form-section">
+                            <div class="form-section-title" style="display: flex; align-items: center; justify-content: space-between;">
+                                <span>
+                                    <i class="fas fa-shield-alt"></i>
+                                    صلاحيات الوحدات
+                                </span>
+                                <div class="perms-actions" id="perms-actions">
+                                    <button type="button" id="select-all-permissions-btn" class="btn-xs btn-outline">
+                                        <i class="fas fa-check-double"></i>
                                         تحديد الكل
                                     </button>
-                                    <button type="button" id="deselect-all-permissions-btn" class="text-xs px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-600 transition">
-                                        <i class="fas fa-times ml-1"></i>
+                                    <button type="button" id="deselect-all-permissions-btn" class="btn-xs btn-outline">
+                                        <i class="fas fa-times"></i>
                                         إلغاء الكل
                                     </button>
                                 </div>
                             </div>
-                            <div class="grid grid-cols-2 md:grid-cols-3 gap-3" id="modules-permissions-container">
+                            <p class="form-field-hint" style="margin-top: -0.5rem; margin-bottom: 1rem;">
+                                <i class="fas fa-info-circle"></i>
+                                المدير لديه صلاحيات كاملة تلقائياً. المديولات ذات علامة <i class="fas fa-cog" style="font-size: 0.7rem;"></i> تدعم صلاحيات تفصيلية.
+                            </p>
+                            <div class="perms-grid" id="modules-permissions-container">
                                 ${MODULE_PERMISSIONS_CONFIG.map(module => {
             const hasPermission = userData?.permissions && userData.permissions[module.key] === true;
             const selectedRole = document.getElementById('user-role')?.value || userData?.role;
             const isAdmin = selectedRole === 'admin' || userData?.role === 'admin';
             const hasDetailedPerms = module.hasDetailedPermissions && MODULE_DETAILED_PERMISSIONS[module.key];
-            
             return `
-                                        <div class="module-permission-item ${hasDetailedPerms ? 'has-detailed' : ''}">
-                                            <label class="flex items-center p-2 border rounded hover:bg-gray-50 cursor-pointer ${isAdmin ? 'opacity-50 cursor-not-allowed' : ''}">
-                                                <input 
-                                                    type="checkbox" 
-                                                    class="user-permission-checkbox rounded border-gray-300 text-blue-600 mr-2" 
+                                    <label class="perm-toggle ${isAdmin ? 'perm-toggle-admin' : ''}">
+                                        <div class="perm-toggle-info">
+                                            <i class="fas ${module.icon} perm-toggle-icon"></i>
+                                            <span class="perm-toggle-label">${module.label}</span>
+                                            ${hasDetailedPerms && !isAdmin ? `
+                                                <button type="button" class="perm-detailed-btn"
+                                                    data-action="show-detailed-permissions"
                                                     data-module="${module.key}"
-                                                    ${hasPermission ? 'checked' : ''}
-                                                    ${isAdmin ? 'disabled' : ''}
-                                                    ${isAdmin ? 'title="المدير لديه صلاحيات كاملة"' : ''}
-                                                >
-                                                <i class="fas ${module.icon} ml-1 text-gray-600"></i>
-                                                <span class="text-sm text-gray-700">${module.label}</span>
-                                                ${hasDetailedPerms && !isAdmin ? `
-                                                    <button type="button" class="mr-auto text-blue-500 hover:text-blue-700" 
-                                                            data-action="show-detailed-permissions" 
-                                                            data-module="${module.key}"
-                                                            title="إدارة الصلاحيات التفصيلية">
-                                                        <i class="fas fa-cog text-xs"></i>
-                                                    </button>
-                                                ` : ''}
-                                            </label>
+                                                    title="صلاحيات تفصيلية">
+                                                    <i class="fas fa-cog"></i>
+                                                </button>
+                                            ` : ''}
                                         </div>
-                                    `;
+                                        <div class="toggle-switch" style="--toggle-active: var(--primary-color);">
+                                            <input type="checkbox"
+                                                class="user-permission-checkbox"
+                                                data-module="${module.key}"
+                                                ${hasPermission || isAdmin ? 'checked' : ''}
+                                                ${isAdmin ? 'disabled' : ''}>
+                                            <span class="toggle-slider"></span>
+                                        </div>
+                                    </label>
+                                `;
         }).join('')}
                             </div>
-                            <p class="text-xs text-gray-500 mt-2">
-                                <i class="fas fa-info-circle ml-1"></i>
-                                يمكنك تحديد الوحدات التي يمكن للمستخدم الوصول إليها. المدير لديه صلاحيات كاملة تلقائياً.
-                                <br>
-                                <i class="fas fa-cog ml-1 text-blue-500"></i>
-                                المديولات التي بها أيقونة الترس يمكن تخصيص صلاحيات تفصيلية لها.
-                            </p>
                         </div>
 
-                        <div class="flex items-center justify-end gap-4 pt-4 border-t">
-                            <button type="button" id="cancel-user-btn" class="btn-secondary">
+                        <!-- Form Actions -->
+                        <div class="form-actions">
+                            <button type="button" id="cancel-user-btn-2" class="btn-secondary" style="display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="fas fa-times"></i>
                                 إلغاء
                             </button>
-                            <button type="submit" class="btn-primary">
-                                <i class="fas fa-save ml-2" aria-hidden="true"></i>
-                                ${isEdit ? 'حفظ التعديلات' : 'إضافة مستخدم'}
+                            <button type="submit" class="btn-primary btn-submit" id="user-form-submit">
+                                <i class="fas fa-save"></i>
+                                <span id="submit-btn-text">${isEdit ? 'حفظ التعديلات' : 'إضافة المستخدم'}</span>
+                                <div class="btn-spinner" id="submit-spinner" style="display: none;">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                </div>
                             </button>
                         </div>
                     </form>
                 </div>
             </div>
         `;
+    },
+
+    _getDepartmentOptions() {
+        const depts = new Set();
+        if (Array.isArray(AppState.appData?.users)) {
+            AppState.appData.users.forEach(u => {
+                if (u.department) depts.add(u.department);
+            });
+        }
+        const common = ['السلامة والصحة المهنية', 'الإدارة', 'الهندسة', 'الإنتاج', 'الصيانة', 'الموارد البشرية', 'المالية', 'المشتريات', 'المستودعات', 'الأمن'];
+        common.forEach(d => depts.add(d));
+        return Array.from(depts).sort();
     },
 
     async loadUsersList() {
@@ -717,7 +792,6 @@ const Users = {
     },
 
     setupEventListeners() {
-        // إضافة مستخدم جديد
         setTimeout(() => {
             const addBtn = document.getElementById('add-user-btn');
             const addEmptyBtn = document.getElementById('add-user-empty-btn');
@@ -729,13 +803,11 @@ const Users = {
                 addEmptyBtn.addEventListener('click', () => this.showForm());
             }
 
-            // استيراد Excel
             const importExcelBtn = document.getElementById('import-excel-btn');
             if (importExcelBtn) {
                 importExcelBtn.addEventListener('click', () => this.showImportExcel());
             }
 
-            // البحث والتصفية
             const searchInput = document.getElementById('users-search');
             const filterRole = document.getElementById('users-filter-role');
 
@@ -746,7 +818,6 @@ const Users = {
                 filterRole.addEventListener('change', (e) => this.filterUsers(searchInput?.value, e.target.value));
             }
 
-            // نموذج المستخدم
             const userForm = document.getElementById('user-form');
             if (userForm) {
                 userForm.addEventListener('submit', (e) => this.handleSubmit(e));
@@ -756,9 +827,86 @@ const Users = {
             if (cancelBtn) {
                 cancelBtn.addEventListener('click', () => this.showList());
             }
+            const cancelBtn2 = document.getElementById('cancel-user-btn-2');
+            if (cancelBtn2) {
+                cancelBtn2.addEventListener('click', () => this.showList());
+            }
 
             this.setupPhotoPreview();
+            this.setupTogglePassword();
+            this.setupRoleCards();
+            this.setupToggleSwitch();
+            this.setupPasswordStrength();
         }, 100);
+    },
+
+    setupTogglePassword() {
+        const btn = document.querySelector('.toggle-password-btn');
+        const input = document.getElementById('user-password');
+        if (!btn || !input) return;
+        btn.addEventListener('click', () => {
+            const isPassword = input.type === 'password';
+            input.type = isPassword ? 'text' : 'password';
+            btn.querySelector('i').className = isPassword ? 'fas fa-eye-slash' : 'fas fa-eye';
+        });
+    },
+
+    setupRoleCards() {
+        document.querySelectorAll('.role-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const radio = card.querySelector('input[type="radio"]');
+                if (!radio) return;
+                radio.checked = true;
+                document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                const select = document.getElementById('user-role');
+                if (select) {
+                    select.value = radio.value;
+                    select.dispatchEvent(new Event('change'));
+                }
+            });
+        });
+    },
+
+    setupToggleSwitch() {
+        const checkbox = document.getElementById('user-active');
+        const label = document.getElementById('active-status-label');
+        if (!checkbox || !label) return;
+        checkbox.addEventListener('change', () => {
+            label.textContent = checkbox.checked ? 'نشط' : 'غير نشط';
+        });
+    },
+
+    setupPasswordStrength() {
+        const input = document.getElementById('user-password');
+        const bar = document.getElementById('password-strength-bar');
+        const fill = document.getElementById('password-strength-fill');
+        const text = document.getElementById('password-strength-text');
+        if (!input || !bar || !fill || !text) return;
+        input.addEventListener('input', () => {
+            const val = input.value;
+            if (!val) {
+                bar.style.display = 'none';
+                text.textContent = '';
+                return;
+            }
+            bar.style.display = 'block';
+            let score = 0;
+            if (val.length >= 6) score++;
+            if (val.length >= 10) score++;
+            if (/[A-Z]/.test(val)) score++;
+            if (/[a-z]/.test(val)) score++;
+            if (/[0-9]/.test(val)) score++;
+            if (/[^A-Za-z0-9]/.test(val)) score++;
+            const pct = Math.min((score / 6) * 100, 100);
+            fill.style.width = pct + '%';
+            const colors = ['#dc2626', '#dc2626', '#f59e0b', '#f59e0b', '#10b981', '#10b981', '#059669'];
+            const labels = ['', 'ضعيفة جداً', 'ضعيفة', 'متوسطة', 'جيدة', 'قوية', 'قوية جداً'];
+            const idx = Math.min(score, 6);
+            fill.style.background = colors[idx];
+            text.textContent = labels[idx];
+            text.style.color = colors[idx];
+        });
     },
 
     async showForm(userData = null) {
@@ -2078,20 +2226,33 @@ const Users = {
     setupPhotoPreview() {
         const photoInput = document.getElementById('user-photo-input');
         const preview = document.getElementById('user-photo-preview');
-        const icon = document.getElementById('user-photo-icon');
+        const placeholder = document.getElementById('photo-placeholder');
+        const dropZone = document.getElementById('photo-drop-zone');
 
-        if (photoInput && preview && icon) {
+        if (dropZone) {
+            dropZone.addEventListener('click', () => {
+                if (photoInput) photoInput.click();
+            });
+        }
+
+        if (photoInput) {
             photoInput.addEventListener('change', (e) => {
                 const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        preview.src = e.target.result;
-                        preview.style.display = 'block';
-                        icon.style.display = 'none';
-                    };
-                    reader.readAsDataURL(file);
+                if (!file) return;
+                if (file.size > 2 * 1024 * 1024) {
+                    Notification.error('حجم الصورة كبير جداً. الحد الأقصى 2MB');
+                    photoInput.value = '';
+                    return;
                 }
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    if (preview) {
+                        preview.src = ev.target.result;
+                        preview.style.display = 'block';
+                    }
+                    if (placeholder) placeholder.style.display = 'none';
+                };
+                reader.readAsDataURL(file);
             });
         }
     },

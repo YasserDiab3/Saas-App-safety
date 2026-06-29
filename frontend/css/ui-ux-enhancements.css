@@ -1377,5 +1377,469 @@ select.form-select option {
     white-space: nowrap;
 }
 
+/* =============================================
+   Users Module — Modern User Form
+   ============================================= */
+
+.modern-user-form {
+    max-width: 800px;
+    margin: 0 auto;
+    background: var(--ent-bg-card, #fff);
+    border-radius: var(--radius-xl, 16px);
+    box-shadow: var(--ent-shadow, 0 4px 6px -1px rgb(0 0 0 / 0.1));
+    overflow: hidden;
+}
+
+.form-header-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.form-section {
+    border-bottom: 1px solid var(--ent-border, #e2e8f0);
+    padding: 1.5rem 0;
+}
+
+.form-section:last-of-type {
+    border-bottom: none;
+}
+
+.form-section-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--ent-text-head, #1e293b);
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.form-section-title i {
+    color: var(--ent-accent, #2563eb);
+    font-size: 0.9rem;
+}
+
+.user-form-grid {
+    display: grid;
+    grid-template-columns: 140px 1fr 1fr;
+    gap: 1rem 1.5rem;
+    align-items: start;
+}
+
+.user-form-grid .form-group {
+    margin-bottom: 0;
+}
+
+.user-form-grid .photo-upload-cell {
+    grid-row: span 3;
+}
+
+@media (max-width: 768px) {
+    .user-form-grid {
+        grid-template-columns: 1fr;
+    }
+    .user-form-grid .photo-upload-cell {
+        grid-row: auto;
+    }
+}
+
+/* Photo Upload */
+.photo-upload-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.photo-preview-circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 3px dashed var(--ent-border, #e2e8f0);
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: var(--ent-bg-page, #f8fafc);
+}
+
+.photo-preview-circle:hover {
+    border-color: var(--ent-accent, #2563eb);
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+}
+
+.photo-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--ent-text-muted, #94a3b8);
+    font-size: 0.7rem;
+    gap: 0.25rem;
+}
+
+.photo-placeholder i {
+    font-size: 1.5rem;
+}
+
+.photo-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 0.7rem;
+    gap: 0.2rem;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.photo-preview-circle:hover .photo-overlay {
+    opacity: 1;
+}
+
+.photo-hint {
+    font-size: 0.65rem;
+    color: var(--ent-text-muted, #94a3b8);
+    text-align: center;
+    margin: 0;
+}
+
+/* Input with icon */
+.input-with-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-with-icon .form-input {
+    padding-left: 2.5rem;
+}
+
+.input-with-icon .input-icon {
+    position: absolute;
+    left: 0.85rem;
+    color: var(--ent-text-muted, #94a3b8);
+    font-size: 0.85rem;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.input-suffix {
+    position: absolute;
+    right: 0.85rem;
+    color: var(--ent-text-muted, #94a3b8);
+    font-size: 0.75rem;
+    pointer-events: none;
+}
+
+.input-suffix-btn {
+    position: absolute;
+    right: 0.4rem;
+    background: none;
+    border: none;
+    color: var(--ent-text-muted, #94a3b8);
+    cursor: pointer;
+    padding: 0.4rem;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.input-suffix-btn:hover {
+    background: var(--ent-bg-page, #f1f5f9);
+    color: var(--ent-text-body, #334155);
+}
+
+.form-field-hint {
+    font-size: 0.7rem;
+    color: var(--ent-text-muted, #94a3b8);
+    margin-top: 0.3rem;
+    line-height: 1.4;
+}
+
+/* Password Strength */
+.password-strength-bar {
+    height: 4px;
+    background: var(--ent-border, #e2e8f0);
+    border-radius: 2px;
+    margin-top: 0.5rem;
+    overflow: hidden;
+}
+
+.password-strength-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: all 0.3s ease;
+    width: 0%;
+}
+
+.password-strength-text {
+    font-size: 0.65rem;
+    color: var(--ent-text-muted, #94a3b8);
+    margin-top: 0.2rem;
+    min-height: 1em;
+}
+
+/* Toggle Switch */
+.toggle-switch-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-flex;
+    width: 44px;
+    height: 24px;
+    cursor: pointer;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: var(--ent-border, #cbd5e1);
+    border-radius: 24px;
+    transition: all 0.3s ease;
+}
+
+.toggle-slider::before {
+    content: '';
+    position: absolute;
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background: #fff;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.toggle-switch input:checked + .toggle-slider {
+    background: var(--toggle-active, #2563eb);
+}
+
+.toggle-switch input:checked + .toggle-slider::before {
+    transform: translateX(20px);
+}
+
+.toggle-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--ent-text-body, #334155);
+}
+
+/* Role Cards */
+.role-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.75rem;
+}
+
+.role-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 0.75rem;
+    border: 2px solid var(--ent-border, #e2e8f0);
+    border-radius: var(--radius-md, 10px);
+    cursor: pointer;
+    transition: all 0.25s ease;
+    background: var(--ent-bg-card, #fff);
+    text-align: center;
+}
+
+.role-card:hover {
+    border-color: var(--ent-accent, #2563eb);
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.08);
+    transform: translateY(-2px);
+}
+
+.role-card.selected {
+    border-color: var(--ent-accent, #2563eb);
+    background: rgba(37, 99, 235, 0.03);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.role-card-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.role-card-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.role-card-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--ent-text-head, #1e293b);
+}
+
+.role-card-desc {
+    font-size: 0.65rem;
+    color: var(--ent-text-muted, #64748b);
+    line-height: 1.4;
+}
+
+.role-card-check {
+    position: absolute;
+    top: 0.4rem;
+    right: 0.4rem;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    font-size: 1rem;
+}
+
+.role-card.selected .role-card-check {
+    opacity: 1;
+}
+
+/* Permissions Grid */
+.perms-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.5rem;
+}
+
+.perm-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.6rem 0.75rem;
+    border: 1px solid var(--ent-border, #e2e8f0);
+    border-radius: var(--radius-md, 8px);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: var(--ent-bg-card, #fff);
+    gap: 0.5rem;
+}
+
+.perm-toggle:hover {
+    border-color: var(--ent-accent, #2563eb);
+    background: rgba(37, 99, 235, 0.02);
+}
+
+.perm-toggle-admin {
+    opacity: 0.7;
+    cursor: not-allowed;
+    background: var(--ent-bg-page, #f8fafc);
+}
+
+.perm-toggle-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+    flex: 1;
+}
+
+.perm-toggle-icon {
+    font-size: 0.85rem;
+    color: var(--ent-accent, #2563eb);
+    width: 1.2rem;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.perm-toggle-label {
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--ent-text-body, #334155);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.perm-detailed-btn {
+    background: none;
+    border: none;
+    color: var(--ent-text-muted, #94a3b8);
+    cursor: pointer;
+    padding: 0.2rem 0.3rem;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+}
+
+.perm-detailed-btn:hover {
+    color: var(--ent-accent, #2563eb);
+    background: rgba(37, 99, 235, 0.08);
+}
+
+/* Form Actions */
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--ent-border, #e2e8f0);
+    margin-top: 0.5rem;
+}
+
+.btn-submit {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-spinner {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: inherit;
+    border-radius: inherit;
+}
+
+/* Perms actions row */
+.perms-actions {
+    display: flex;
+    gap: 0.4rem;
+}
+
+.btn-xs {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 6px;
+}
+
 /* ===== End of UI/UX Enhancements ===== */
 

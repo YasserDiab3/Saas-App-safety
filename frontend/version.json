@@ -1,4 +1,4 @@
 {
-  "version": "2.2.83",
-  "message": "feat(platform-console): polish inquiries table with job title column"
+  "version": "2.2.84",
+  "message": "fix(saas): prevent data loss after page reload by fixing DataManager load timing and tenant cache scoping"
 }
