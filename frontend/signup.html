@@ -204,6 +204,20 @@
       $('org-code').textContent = orgCode;
       showStep('step-done');
       msg(T('su_ok'), 'ok');
+      // non-blocking: set app_metadata.tenant_id so future JWTs carry it
+      setTenantMetadataInJwt(data.tenant_id).catch(function () {});
+    }
+
+    async function setTenantMetadataInJwt(tenantId) {
+      if (!tenantId) return;
+      var session = await SaaS.getSession();
+      if (!session || !session.access_token) return;
+      var url = (SAAS_CONFIG.supabaseUrl || '').replace(/\/+$/, '') + '/functions/v1/provision-set-tenant-metadata';
+      await fetch(url, {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + session.access_token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tenant_id: tenantId })
+      });
     }
 
     document.addEventListener('DOMContentLoaded', () => {

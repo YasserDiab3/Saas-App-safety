@@ -18,7 +18,7 @@ as $$
 declare
   v_uid      uuid := app.current_user_id();
   v_tenant   uuid;
-  v_trial    integer := 3;
+  v_trial    integer := 14;
   v_org_code text;
   v_terms    text := nullif(trim(p_terms_version), '');
 begin

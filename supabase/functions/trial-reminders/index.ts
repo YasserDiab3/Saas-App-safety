@@ -34,7 +34,7 @@ function emailContent(row: Row) {
       subject: `HSEHub 360 — تبقى يومان على انتهاء التجربة | ${row.tenant_name}`,
       html: `<div dir="rtl" style="font-family:Segoe UI,Tahoma,sans-serif;line-height:1.6">
         <p>مرحباً ${row.owner_name}،</p>
-        <p>تنتهي التجربة المجانية (3 أيام) لمؤسسة <strong>${row.tenant_name}</strong> خلال <strong>يومين</strong> (${end}).</p>
+        <p>تنتهي التجربة المجانية لمؤسسة <strong>${row.tenant_name}</strong> خلال <strong>يومين</strong> (${end}).</p>
         <p>اشترك في <strong>Pro</strong> أو <strong>Enterprise</strong> للاستفادة بالمنصّة الكاملة:</p>
         <p><a href="${billing}">عرض عروض الأسعار والاشتراك</a></p>
         <p><a href="${signup}">الدخول للنظام</a></p>

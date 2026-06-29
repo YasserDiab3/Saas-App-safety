@@ -1,4 +1,4 @@
 {
-  "version": "2.2.85",
-  "message": "feat(users): modern user form with CSS, role cards, password strength, photo upload"
+  "version": "2.2.86",
+  "message": "feat(users): open add/edit user form in modal popup"
 }

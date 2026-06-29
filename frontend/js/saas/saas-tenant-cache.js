@@ -72,10 +72,16 @@
         async prepareSession() {
             if (!isSaas()) return null;
             await global.SaaS.ready;
-            const client = global.SaaS.client();
-            if (!client) return null;
-            const { data, error } = await client.rpc('api_me');
-            const tid = (!error && data && data.tenant_id) ? data.tenant_id : null;
+            // try JWT app_metadata first (avoids api_me RPC)
+            let tid = global.SaaS && typeof global.SaaS.getTenantId === 'function'
+                ? await global.SaaS.getTenantId()
+                : null;
+            if (!tid) {
+                const client = global.SaaS.client();
+                if (!client) return null;
+                const { data, error } = await client.rpc('api_me');
+                tid = (!error && data && data.tenant_id) ? data.tenant_id : null;
+            }
             const prev = localStorage.getItem(MARKER);
             if (prev && tid && prev !== tid) {
                 clearTenantScopedData(prev);
