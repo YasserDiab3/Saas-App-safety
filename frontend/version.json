@@ -1,4 +1,4 @@
 {
-  "version": "2.2.86",
-  "message": "feat(users): open add/edit user form in modal popup"
+  "version": "2.2.87",
+  "message": "fix(signup): complete Option A flow — JWT tenant_id, 14-day trial, Edge Function"
 }
