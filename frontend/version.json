@@ -1,4 +1,4 @@
 {
-  "version": "2.2.81",
-  "message": "feat(sales-inquiry): add job title and reorder quote form fields"
+  "version": "2.2.83",
+  "message": "feat(platform-console): polish inquiries table with job title column"
 }

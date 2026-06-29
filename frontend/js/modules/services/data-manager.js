@@ -20,9 +20,6 @@ const DataManager = {
     },
 
     _lsGet(base) {
-        if (this._isSaasTenantMode() && (!window.SaaSTenantCache || !window.SaaSTenantCache.getTenantId())) {
-            return null;
-        }
         try {
             return localStorage.getItem(this._lsKey(base));
         } catch (_e) {

@@ -26,8 +26,12 @@
         return !!(global.SAAS_CONFIG && global.SAAS_CONFIG.useSupabaseBackend);
     }
 
+    function readMarkerTenantId() {
+        try { return localStorage.getItem(MARKER); } catch (_e) { return null; }
+    }
+
     function scopedKey(base, tenantId) {
-        const tid = tenantId || global.SaaSTenantCache._tenantId;
+        const tid = tenantId || global.SaaSTenantCache._tenantId || readMarkerTenantId();
         if (!isSaas() || !tid) return base;
         return `${base}:${tid}`;
     }

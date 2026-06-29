@@ -283,15 +283,12 @@
                 }
             }
             
-            // تحميل البيانات من localStorage (SaaS: يُؤجَّل حتى بعد التحقق من المستأجر)
-            const isSaasBackend = !!(window.SAAS_CONFIG && window.SAAS_CONFIG.useSupabaseBackend);
-            if (window.DataManager && window.DataManager.load && !isSaasBackend) {
+            // تحميل البيانات من localStorage فوراً (قبل _saasGate) لتجنّب فقدان cache
+            if (window.DataManager && window.DataManager.load) {
                 try {
-                    // ✅ مهم عند Reload: ننتظر تحميل البيانات المحلية لتجنّب صفحة بيضاء/جداول فارغة ثم ظهور البيانات لاحقاً
                     await window.DataManager.load();
                     this.updateLoader(55, 'تم تحميل البيانات المحلية');
 
-                    // 🧹 تنظيف أمني: إزالة أي حسابات افتراضية legacy من البيانات المحلية (إن وُجدت)
                     try {
                         if (typeof window.removeDefaultUsersIfNeeded === 'function') {
                             const cleanup = window.removeDefaultUsersIfNeeded({ persistRemote: false });
@@ -300,27 +297,22 @@
                             }
                         }
                     } catch (cleanupError) {
-                        // لا نكسر التحميل بسبب فشل cleanup
                         log('⚠️ تعذر تنفيذ تنظيف الحسابات الافتراضية legacy:', cleanupError);
                     }
 
-                    // ✅ تحسين: تحميل ذكي للبيانات حسب الصلاحيات (بدلاً من تحميل كل شيء)
-                    // هذا يقلل من وقت التحميل الأولي ويحسن الأداء
-                    if (typeof Permissions !== 'undefined' && typeof Permissions.getCurrentUserPermissions === 'function') {
+                    const isSaasBackend = !!(window.SAAS_CONFIG && window.SAAS_CONFIG.useSupabaseBackend);
+                    if (!isSaasBackend && typeof Permissions !== 'undefined' && typeof Permissions.getCurrentUserPermissions === 'function') {
                         try {
                             const userPermissions = Permissions.getCurrentUserPermissions();
                             await this.loadDataBasedOnPermissions(userPermissions);
                         } catch (error) {
                             log('⚠️ فشل تحميل البيانات الذكية، سيتم استخدام التحميل التقليدي:', error);
-                            // Fallback للتحميل التقليدي
                             await this.loadSharedDataFallback();
                         }
-                    } else {
-                        // Fallback للتحميل التقليدي إذا لم تكن الصلاحيات متوفرة
+                    } else if (!isSaasBackend) {
                         await this.loadSharedDataFallback();
                     }
 
-                    // ✅ إعدادات النماذج (المواقع / المصانع / الأماكن الفرعية) — انتظار ساري حتى لا تُفتح الواجهة قبل جاهزية القائمة
                     if (typeof Permissions !== 'undefined' && typeof Permissions.initFormSettingsState === 'function') {
                         try {
                             await Permissions.initFormSettingsState();
@@ -337,7 +329,7 @@
                         window.EnhancedLoader.addError('خطأ في تحميل البيانات المحلية');
                     }
                 }
-            } else if (isSaasBackend && typeof AppState !== 'undefined' && !AppState.appData) {
+            } else if (typeof AppState !== 'undefined' && !AppState.appData) {
                 AppState.appData = {};
             }
             
@@ -494,7 +486,7 @@
             }
             
             // التحقق من المستخدم المحفوظ واستعادة الجلسة عند إعادة تحميل الصفحة
-            this.checkAndRestoreSession();
+            await this.checkAndRestoreSession();
             
             this.updateLoader(100, 'تم التحميل بنجاح!');
             
