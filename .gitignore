@@ -39,3 +39,5 @@ supabase/scripts/.smoke-credentials.json
 supabase/scripts/.tenant-isolation-credentials.json
 supabase/scripts/.platform-admin-credentials.json
 sbp_*.txt
+
+.vercel

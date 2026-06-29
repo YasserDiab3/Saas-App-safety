@@ -8280,78 +8280,139 @@ const Contractors = {
     },
 
     /**
-     * عرض نموذج إرسال طلب الاعتماد
+     * عرض نموذج إرسال طلب الاعتماد — تصميم احترافي مميز
      */
     showApprovalRequestForm() {
         const modal = document.createElement('div');
-        modal.className = 'modal-overlay';
+        modal.className = 'modal-overlay approval-modal';
         modal.innerHTML = `
-            <div class="modal-content" style="max-width: 800px;">
-                <div class="modal-header">
-                    <h2 class="modal-title">
-                        <i class="fas fa-paper-plane ml-2"></i>
-                        إرسال طلب اعتماد مقاول أو مقدم خدمة
-                    </h2>
+            <div class="modal-content approval-modal-content">
+                <div class="approval-modal-header">
+                    <div class="approval-modal-icon">
+                        <i class="fas fa-file-signature"></i>
+                    </div>
+                    <div>
+                        <h2 class="approval-modal-title">إرسال طلب اعتماد</h2>
+                        <p class="approval-modal-subtitle">مقاول أو مقدم خدمة جديد</p>
+                    </div>
                     <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
-                <div class="modal-body">
-                    <form id="approval-request-form" class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">نوع الطلب *</label>
-                            <select id="approval-request-type" class="form-input" required>
-                                <option value="">اختر نوع الطلب</option>
-                                <option value="contractor">اعتماد مقاول جديد</option>
-                                <option value="supplier">اعتماد مورد جديد</option>
-                            </select>
+
+                <div class="approval-modal-steps">
+                    <div class="approval-step active"><span class="step-num">1</span> المعلومات الأساسية</div>
+                    <div class="approval-step"><span class="step-num">2</span> معلومات الاتصال</div>
+                    <div class="approval-step"><span class="step-num">3</span> المرفقات</div>
+                </div>
+
+                <div class="modal-body approval-modal-body">
+                    <form id="approval-request-form">
+                        <div class="approval-form-section">
+                            <div class="approval-section-header">
+                                <i class="fas fa-building"></i>
+                                <span>المعلومات الأساسية</span>
+                            </div>
+                            <div class="approval-form-grid">
+                                <div class="approval-field">
+                                    <label class="approval-field-label">نوع الطلب <span class="required-star">*</span></label>
+                                    <div class="approval-input-wrapper">
+                                        <i class="fas fa-tag input-icon"></i>
+                                        <select id="approval-request-type" class="approval-input" required>
+                                            <option value="">اختر نوع الطلب</option>
+                                            <option value="contractor">اعتماد مقاول جديد</option>
+                                            <option value="supplier">اعتماد مورد جديد</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="approval-field">
+                                    <label class="approval-field-label">اسم الشركة / المقاول <span class="required-star">*</span></label>
+                                    <div class="approval-input-wrapper">
+                                        <i class="fas fa-store input-icon"></i>
+                                        <input type="text" id="approval-request-company-name" class="approval-input" required placeholder="أدخل اسم الشركة أو المقاول">
+                                    </div>
+                                </div>
+                                <div class="approval-field">
+                                    <label class="approval-field-label">نوع الخدمة / النشاط <span class="required-star">*</span></label>
+                                    <div class="approval-input-wrapper">
+                                        <i class="fas fa-cogs input-icon"></i>
+                                        <input type="text" id="approval-request-service-type" class="approval-input" required placeholder="أدخل نوع الخدمة أو النشاط">
+                                    </div>
+                                </div>
+                                <div class="approval-field">
+                                    <label class="approval-field-label">رقم السجل التجاري / الترخيص</label>
+                                    <div class="approval-input-wrapper">
+                                        <i class="fas fa-certificate input-icon"></i>
+                                        <input type="text" id="approval-request-license" class="approval-input" placeholder="رقم السجل التجاري أو الترخيص">
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">اسم الشركة / المقاول *</label>
-                                <input type="text" id="approval-request-company-name" class="form-input" required placeholder="اسم الشركة أو المقاول">
+
+                        <div class="approval-form-section">
+                            <div class="approval-section-header">
+                                <i class="fas fa-address-card"></i>
+                                <span>معلومات الاتصال</span>
                             </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">نوع الخدمة / النشاط *</label>
-                                <input type="text" id="approval-request-service-type" class="form-input" required placeholder="نوع الخدمة أو النشاط">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">رقم السجل التجاري / الترخيص</label>
-                                <input type="text" id="approval-request-license" class="form-input" placeholder="رقم السجل التجاري أو الترخيص">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">الشخص المسؤول</label>
-                                <input type="text" id="approval-request-contact-person" class="form-input" placeholder="اسم الشخص المسؤول">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">رقم الهاتف</label>
-                                <input type="tel" id="approval-request-phone" class="form-input" placeholder="رقم الهاتف">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">البريد الإلكتروني</label>
-                                <input type="email" id="approval-request-email" class="form-input" placeholder="البريد الإلكتروني">
+                            <div class="approval-form-grid">
+                                <div class="approval-field">
+                                    <label class="approval-field-label">الشخص المسؤول</label>
+                                    <div class="approval-input-wrapper">
+                                        <i class="fas fa-user-tie input-icon"></i>
+                                        <input type="text" id="approval-request-contact-person" class="approval-input" placeholder="اسم الشخص المسؤول">
+                                    </div>
+                                </div>
+                                <div class="approval-field">
+                                    <label class="approval-field-label">رقم الهاتف</label>
+                                    <div class="approval-input-wrapper">
+                                        <i class="fas fa-phone-alt input-icon"></i>
+                                        <input type="tel" id="approval-request-phone" class="approval-input" placeholder="رقم الهاتف">
+                                    </div>
+                                </div>
+                                <div class="approval-field" style="grid-column: span 2;">
+                                    <label class="approval-field-label">البريد الإلكتروني</label>
+                                    <div class="approval-input-wrapper">
+                                        <i class="fas fa-envelope input-icon"></i>
+                                        <input type="email" id="approval-request-email" class="approval-input" placeholder="البريد الإلكتروني">
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">ملاحظات إضافية</label>
-                            <textarea id="approval-request-notes" class="form-input" rows="4" placeholder="أي معلومات إضافية قد تساعد في مراجعة الطلب"></textarea>
+
+                        <div class="approval-form-section">
+                            <div class="approval-section-header">
+                                <i class="fas fa-sticky-note"></i>
+                                <span>ملاحظات إضافية</span>
+                            </div>
+                            <div class="approval-field">
+                                <textarea id="approval-request-notes" class="approval-textarea" rows="4" placeholder="أي معلومات إضافية قد تساعد في مراجعة الطلب..."></textarea>
+                            </div>
                         </div>
-                        <div class="border-t pt-4">
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">
-                                <i class="fas fa-paperclip ml-2"></i>
-                                المرفقات
-                            </label>
-                            <input type="file" id="approval-request-attachments" class="form-input" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xls,.xlsx">
-                            <p class="text-xs text-gray-500 mt-1">يمكنك رفع ملفات متعددة (PDF, Word, Excel, صور). الحد الأقصى لحجم كل ملف 5MB.</p>
-                            <div id="approval-request-attachments-list" class="mt-3 space-y-2"></div>
+
+                        <div class="approval-form-section">
+                            <div class="approval-section-header">
+                                <i class="fas fa-paperclip"></i>
+                                <span>المرفقات</span>
+                            </div>
+                            <div class="approval-upload-zone" id="approval-upload-zone">
+                                <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                                <p class="upload-title">اسحب وأفلت الملفات هنا</p>
+                                <p class="upload-hint">أو انقر لاختيار الملفات</p>
+                                <input type="file" id="approval-request-attachments" class="approval-file-input" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xls,.xlsx">
+                                <p class="upload-desc">PDF, Word, Excel, صور — حد أقصى 5MB لكل ملف</p>
+                            </div>
+                            <div id="approval-request-attachments-list" class="approval-attachments-list"></div>
                         </div>
+
                         ${Permissions.isAdmin() ? `
-                        <div class="border-t pt-4">
-                            <div class="flex items-center justify-between mb-2">
-                                <label class="block text-sm font-semibold text-gray-700">
-                                    <i class="fas fa-cog ml-2"></i>
-                                    البنود المطلوبة الإضافية (للمدير فقط)
-                                </label>
+                        <div class="approval-form-section approval-admin-section">
+                            <div class="approval-section-header">
+                                <i class="fas fa-cog"></i>
+                                <span>البنود المطلوبة الإضافية</span>
+                                <span class="admin-badge">للمدير فقط</span>
+                            </div>
+                            <div class="flex items-center justify-between mb-3">
+                                <p class="text-sm text-gray-500">أضف بنوداً إضافية يجب على المقاول استيفاؤها</p>
                                 <button type="button" id="add-custom-field-btn" class="btn-secondary btn-sm">
                                     <i class="fas fa-plus ml-1"></i>
                                     إضافة بند
@@ -8360,11 +8421,14 @@ const Contractors = {
                             <div id="custom-fields-container" class="space-y-2"></div>
                         </div>
                         ` : ''}
-                        <div class="modal-footer">
-                            <button type="button" class="btn-secondary" id="approval-request-cancel-btn" onclick="this.closest('.modal-overlay').remove()">إلغاء</button>
-                            <button type="submit" class="btn-primary" id="approval-request-submit-btn">
-                                <i class="fas fa-paper-plane ml-2"></i>
-                                <span class="submit-text">إرسال الطلب</span>
+
+                        <div class="approval-form-footer">
+                            <button type="button" class="btn-secondary" id="approval-request-cancel-btn">إلغاء</button>
+                            <button type="submit" class="approval-submit-btn" id="approval-request-submit-btn">
+                                <span class="submit-text">
+                                    <i class="fas fa-paper-plane ml-2"></i>
+                                    إرسال الطلب
+                                </span>
                                 <span class="submitting-text" style="display: none;">
                                     <i class="fas fa-spinner fa-spin ml-2"></i>
                                     جاري الإرسال...
@@ -8374,112 +8438,55 @@ const Contractors = {
                     </form>
                 </div>
             </div>
+
+            <div class="approval-success-overlay" id="approval-success-overlay" style="display:none;">
+                <div class="approval-success-card">
+                    <div class="success-checkmark">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h3 class="success-title">تم إرسال الطلب بنجاح!</h3>
+                    <p class="success-desc">سيتم مراجعة طلبك والتواصل معك في أقرب وقت</p>
+                    <div class="success-spinner">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </div>
+                </div>
+            </div>
         `;
 
         document.body.appendChild(modal);
 
-        // إعداد معالجة المرفقات
-        const attachmentsInput = modal.querySelector('#approval-request-attachments');
-        const attachmentsList = modal.querySelector('#approval-request-attachments-list');
-        const attachments = [];
+        // تحريك خطوات التقدم عند التفاعل مع الحقول
+        this._initApprovalFormSteps(modal);
 
-        if (attachmentsInput && attachmentsList) {
-            attachmentsInput.addEventListener('change', (e) => {
-                const files = Array.from(e.target.files);
-                files.forEach(file => {
-                    if (file.size > 5 * 1024 * 1024) {
-                        Notification.warning(`الملف ${file.name} يتجاوز الحد الأقصى المسموح (5MB)`);
-                        return;
-                    }
-                    attachments.push(file);
-                    const fileItem = document.createElement('div');
-                    fileItem.className = 'flex items-center justify-between p-2 bg-gray-50 rounded border';
-                    fileItem.setAttribute('data-file-name', file.name);
-                    fileItem.innerHTML = `
-                        <div class="flex items-center gap-2">
-                            <i class="fas fa-file text-blue-600"></i>
-                            <span class="text-sm text-gray-700">${Utils.escapeHTML(file.name)}</span>
-                            <span class="text-xs text-gray-500">(${(file.size / 1024 / 1024).toFixed(2)} MB)</span>
-                        </div>
-                        <button type="button" class="text-red-600 hover:text-red-800 remove-attachment-btn">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    `;
-                    const removeBtn = fileItem.querySelector('.remove-attachment-btn');
-                    removeBtn.addEventListener('click', () => {
-                        const fileName = fileItem.getAttribute('data-file-name');
-                        const index = attachments.findIndex(f => f.name === fileName);
-                        if (index !== -1) {
-                            attachments.splice(index, 1);
-                        }
-                        fileItem.remove();
-                    });
-                    attachmentsList.appendChild(fileItem);
-                });
-                e.target.value = '';
-            });
-        }
+        // إعداد معالجة المرفقات مع drag & drop
+        const attachments = this._initApprovalFileUpload(modal);
 
         // إعداد الحقول المخصصة للمدير
-        if (Permissions.isAdmin()) {
-            const addCustomFieldBtn = modal.querySelector('#add-custom-field-btn');
-            const customFieldsContainer = modal.querySelector('#custom-fields-container');
-            let customFieldIndex = 0;
-
-            if (addCustomFieldBtn && customFieldsContainer) {
-                addCustomFieldBtn.addEventListener('click', () => {
-                    const fieldId = `custom-field-${customFieldIndex++}`;
-                    const fieldItem = document.createElement('div');
-                    fieldItem.className = 'flex items-center gap-2 p-2 bg-gray-50 rounded border';
-                    fieldItem.innerHTML = `
-                        <input type="text" class="form-input flex-1" placeholder="اسم البند المطلوب" data-field-id="${fieldId}">
-                        <select class="form-input" style="width: 120px;" data-field-type="${fieldId}">
-                            <option value="text">نص</option>
-                            <option value="document">مستند</option>
-                            <option value="checkbox">خانة اختيار</option>
-                        </select>
-                        <label class="flex items-center gap-1 text-sm">
-                            <input type="checkbox" data-field-required="${fieldId}">
-                            <span>إلزامي</span>
-                        </label>
-                        <button type="button" class="text-red-600 hover:text-red-800" onclick="this.parentElement.remove()">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    `;
-                    customFieldsContainer.appendChild(fieldItem);
-                });
-            }
-        }
+        this._initApprovalCustomFields(modal);
 
         const form = modal.querySelector('#approval-request-form');
         const submitBtn = modal.querySelector('#approval-request-submit-btn');
         const cancelBtn = modal.querySelector('#approval-request-cancel-btn');
-        let isSubmitting = false; // ✅ منع التكرار
-        
-        // ✅ التحقق من وجود form قبل إضافة event listener
+        let isSubmitting = false;
+
         if (!form) {
             Utils.safeWarn('⚠️ showApprovalRequestForm: form غير موجود');
             modal.remove();
             return;
         }
-        
+
         form.addEventListener('submit', (e) => {
             e.preventDefault();
-            
-            // ✅ التحقق من أن modal لا يزال موجوداً في DOM
             if (!modal || !document.contains(modal)) {
                 Utils.safeWarn('⚠️ submit: modal غير موجود أو تم حذفه');
                 return;
             }
-            
-            // ✅ منع التكرار - التحقق من حالة المعالجة
             if (isSubmitting) {
                 Utils.safeLog('⚠️ محاولة إرسال مكررة - تم تجاهلها');
                 return;
             }
-            
+
             this.submitApprovalRequest(modal, attachments, () => {
-                // ✅ Callback لتعطيل الزر - التحقق من وجود العناصر أولاً
                 isSubmitting = true;
                 if (submitBtn && document.contains(submitBtn)) {
                     submitBtn.disabled = true;
@@ -8492,7 +8499,6 @@ const Contractors = {
                     cancelBtn.disabled = true;
                 }
             }, () => {
-                // ✅ Callback لإعادة تفعيل الزر (في حالة الخطأ) - التحقق من وجود العناصر أولاً
                 isSubmitting = false;
                 if (submitBtn && document.contains(submitBtn)) {
                     submitBtn.disabled = false;
@@ -8507,8 +8513,154 @@ const Contractors = {
             });
         });
 
+        // إلغاء
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', () => { if (modal.parentNode) modal.remove(); });
+        }
+
+        // إغلاق بالنقر خارج المحتوى
         modal.addEventListener('click', (e) => {
             if (e.target === modal) modal.remove();
+        });
+    },
+
+    /**
+     * تهيئة تحريك خطوات التقدم
+     */
+    _initApprovalFormSteps(modal) {
+        const fields = modal.querySelectorAll('.approval-input, .approval-textarea');
+        const steps = modal.querySelectorAll('.approval-step');
+
+        if (!steps.length) return;
+
+        const checkStep = () => {
+            const company = modal.querySelector('#approval-request-company-name')?.value.trim();
+            const service = modal.querySelector('#approval-request-service-type')?.value.trim();
+            const type = modal.querySelector('#approval-request-type')?.value;
+            const contact = modal.querySelector('#approval-request-contact-person')?.value.trim();
+            const phone = modal.querySelector('#approval-request-phone')?.value.trim();
+            const email = modal.querySelector('#approval-request-email')?.value.trim();
+
+            steps.forEach((s, i) => s.classList.remove('active', 'completed'));
+            steps[0]?.classList.add('active');
+            if (company && service && type) {
+                steps[0]?.classList.add('completed');
+                steps[1]?.classList.add('active');
+            }
+            if (contact || phone || email) {
+                steps[1]?.classList.add('completed');
+                steps[2]?.classList.add('active');
+            }
+            const hasFiles = modal.querySelectorAll('#approval-request-attachments-list .approval-file-item').length > 0;
+            if (hasFiles) steps[2]?.classList.add('completed');
+        };
+
+        fields.forEach(f => f.addEventListener('input', checkStep));
+        fields.forEach(f => f.addEventListener('change', checkStep));
+
+        // مراقبة تغيير الملفات
+        const observer = new MutationObserver(checkStep);
+        const list = modal.querySelector('#approval-request-attachments-list');
+        if (list) observer.observe(list, { childList: true, subtree: true });
+    },
+
+    /**
+     * تهيئة رفع الملفات مع drag & drop
+     */
+    _initApprovalFileUpload(modal) {
+        const attachments = [];
+        const uploadZone = modal.querySelector('#approval-upload-zone');
+        const attachmentsInput = modal.querySelector('#approval-request-attachments');
+        const attachmentsList = modal.querySelector('#approval-request-attachments-list');
+
+        if (!attachmentsInput || !attachmentsList) return attachments;
+
+        const addFiles = (files) => {
+            Array.from(files).forEach(file => {
+                if (file.size > 5 * 1024 * 1024) {
+                    Notification.warning(`الملف ${file.name} يتجاوز الحد الأقصى المسموح (5MB)`);
+                    return;
+                }
+                if (attachments.some(f => f.name === file.name && f.size === file.size)) return;
+                attachments.push(file);
+
+                const ext = file.name.split('.').pop()?.toLowerCase() || 'file';
+                const iconMap = { pdf: 'fa-file-pdf', doc: 'fa-file-word', docx: 'fa-file-word', xls: 'fa-file-excel', xlsx: 'fa-file-excel', jpg: 'fa-file-image', jpeg: 'fa-file-image', png: 'fa-file-image' };
+                const icon = iconMap[ext] || 'fa-file';
+
+                const fileItem = document.createElement('div');
+                fileItem.className = 'approval-file-item';
+                fileItem.innerHTML = `
+                    <div class="approval-file-icon"><i class="fas ${icon}"></i></div>
+                    <div class="approval-file-info">
+                        <span class="approval-file-name">${Utils.escapeHTML(file.name)}</span>
+                        <span class="approval-file-size">${(file.size / 1024).toFixed(1)} KB</span>
+                    </div>
+                    <button type="button" class="approval-file-remove" title="إزالة">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                fileItem.querySelector('.approval-file-remove').addEventListener('click', () => {
+                    const idx = attachments.findIndex(f => f.name === file.name && f.size === file.size);
+                    if (idx !== -1) attachments.splice(idx, 1);
+                    fileItem.remove();
+                });
+                attachmentsList.appendChild(fileItem);
+            });
+        };
+
+        attachmentsInput.addEventListener('change', (e) => {
+            addFiles(e.target.files);
+            e.target.value = '';
+        });
+
+        // Drag & drop
+        if (uploadZone) {
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(evt => {
+                uploadZone.addEventListener(evt, (e) => { e.preventDefault(); e.stopPropagation(); });
+            });
+            uploadZone.addEventListener('dragenter', () => uploadZone.classList.add('dragover'));
+            uploadZone.addEventListener('dragover', () => uploadZone.classList.add('dragover'));
+            uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+            uploadZone.addEventListener('drop', (e) => {
+                uploadZone.classList.remove('dragover');
+                addFiles(e.dataTransfer.files);
+            });
+            uploadZone.addEventListener('click', () => attachmentsInput.click());
+        }
+
+        return attachments;
+    },
+
+    /**
+     * تهيئة الحقول المخصصة للمدير
+     */
+    _initApprovalCustomFields(modal) {
+        if (!Permissions.isAdmin()) return;
+        const addBtn = modal.querySelector('#add-custom-field-btn');
+        const container = modal.querySelector('#custom-fields-container');
+        if (!addBtn || !container) return;
+        let idx = 0;
+        addBtn.addEventListener('click', () => {
+            const fid = `cf-${idx++}`;
+            const el = document.createElement('div');
+            el.className = 'approval-custom-field';
+            el.innerHTML = `
+                <input type="text" class="approval-input flex-1" placeholder="اسم البند المطلوب" data-field-id="${fid}">
+                <select class="approval-input" style="width:110px;" data-field-type="${fid}">
+                    <option value="text">نص</option>
+                    <option value="document">مستند</option>
+                    <option value="checkbox">خانة اختيار</option>
+                </select>
+                <label class="approval-cfield-req">
+                    <input type="checkbox" data-field-required="${fid}">
+                    <span>إلزامي</span>
+                </label>
+                <button type="button" class="approval-file-remove" onclick="this.parentElement.remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            container.appendChild(el);
         });
     },
 
@@ -8614,17 +8766,20 @@ const Contractors = {
             
             AppState.appData.contractorApprovalRequests.push(requestData);
             
-            // ✅ إغلاق النموذج قبل DataManager.save() — الحفظ المحلي قد يكون ثقيلاً ويؤخر الإغلاق بصرياً
+            // ✅ عرض شاشة النجاح مع تأثير بصري
             try {
-                if (modal && modal.parentNode) {
-                    modal.remove();
+                const overlay = modal.querySelector('#approval-success-overlay');
+                if (overlay) {
+                    overlay.style.display = 'flex';
+                    // إخفاء محتوى النموذج
+                    const body = modal.querySelector('.approval-modal-body');
+                    if (body) body.style.display = 'none';
+                    const header = modal.querySelector('.approval-modal-header');
+                    if (header) header.style.display = 'none';
+                    const steps = modal.querySelector('.approval-modal-steps');
+                    if (steps) steps.style.display = 'none';
                 }
-            } catch (removeError) {
-                Utils.safeWarn('⚠️ خطأ في إزالة النموذج:', removeError);
-                if (modal && modal.parentNode) {
-                    modal.parentNode.removeChild(modal);
-                }
-            }
+            } catch (_e) { /* تجاهل */ }
 
             if (typeof window.DataManager !== 'undefined' && window.DataManager.save) {
                 window.DataManager.save();
@@ -8633,10 +8788,22 @@ const Contractors = {
             Utils.safeLog('✅ تم حفظ الطلب محلياً. ID مؤقت: ' + tempId);
             
             Loading.hide();
-            Notification.success('تم حفظ الطلب بنجاح. جاري المزامنة مع الخادم...');
             
-            // ✅ تحديث قائمة الطلبات مباشرة بعد الحفظ المحلي
-            this.refreshApprovalRequestsSection();
+            // ✅ إغلاق كامل بعد 1.8 ثانية مع رسالة نجاح
+            setTimeout(() => {
+                try {
+                    if (modal && modal.parentNode) {
+                        modal.remove();
+                    }
+                } catch (removeError) {
+                    Utils.safeWarn('⚠️ خطأ في إزالة النموذج:', removeError);
+                    if (modal && modal.parentNode) {
+                        modal.parentNode.removeChild(modal);
+                    }
+                }
+                Notification.success('✓ تم إرسال طلب الاعتماد بنجاح');
+                this.refreshApprovalRequestsSection();
+            }, 1800);
             
             // ✅ المزامنة مع Backend في الخلفية فقط (لا await — لا تغيير في بنية التطبيق)
             this.syncApprovalRequestToBackend(requestData, attachments, tempId).then(() => {

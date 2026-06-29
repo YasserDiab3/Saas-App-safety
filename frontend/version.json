@@ -1,4 +1,4 @@
 {
-  "version": "2.2.91",
+  "version": "2.2.92",
   "message": "fix: close dangling JSDoc causing contractor sync failure"
 }

@@ -1841,5 +1841,535 @@ select.form-select option {
     border-radius: 6px;
 }
 
+/* ===== Approval Request Form — Professional Design ===== */
+
+.approval-modal .approval-modal-content {
+    max-width: 820px;
+    border-radius: 20px;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.approval-modal .modal-overlay {
+    background: rgba(0, 0, 0, 0.6);
+}
+
+/* === Header === */
+.approval-modal-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem 2rem;
+    background: linear-gradient(135deg, #1e40af, #3b82f6);
+    color: #fff;
+    position: relative;
+}
+
+.approval-modal-header .modal-close {
+    color: rgba(255,255,255,0.7);
+    margin-right: auto;
+}
+.approval-modal-header .modal-close:hover {
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+}
+
+.approval-modal-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.approval-modal-title {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin: 0;
+    color: #fff;
+}
+
+.approval-modal-subtitle {
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.75);
+    margin: 2px 0 0;
+}
+
+/* === Steps === */
+.approval-modal-steps {
+    display: flex;
+    gap: 0;
+    padding: 0 2rem;
+    background: #f1f5f9;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.approval-step {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.85rem 1.25rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #94a3b8;
+    position: relative;
+    cursor: default;
+    transition: all 0.3s ease;
+}
+
+.approval-step .step-num {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #e2e8f0;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    transition: all 0.3s ease;
+}
+
+.approval-step.active {
+    color: #1e40af;
+}
+.approval-step.active .step-num {
+    background: #1e40af;
+    color: #fff;
+}
+
+.approval-step.completed {
+    color: #059669;
+}
+.approval-step.completed .step-num {
+    background: #059669;
+    color: #fff;
+}
+
+/* === Body === */
+.approval-modal-body {
+    padding: 1.5rem 2rem 1rem;
+}
+
+/* === Sections === */
+.approval-form-section {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+    transition: border-color 0.2s;
+}
+.approval-form-section:focus-within {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+}
+
+.approval-section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+.approval-section-header i {
+    color: #3b82f6;
+    font-size: 1rem;
+}
+
+.approval-section-header .admin-badge {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #d97706;
+    background: #fef3c7;
+    padding: 2px 8px;
+    border-radius: 20px;
+    margin-right: auto;
+}
+
+/* === Form Grid === */
+.approval-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.85rem;
+}
+
+/* === Field === */
+.approval-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.approval-field-label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #475569;
+}
+
+.required-star {
+    color: #ef4444;
+}
+
+/* === Input Wrapper === */
+.approval-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.approval-input-wrapper .input-icon {
+    position: absolute;
+    right: 12px;
+    color: #94a3b8;
+    font-size: 0.9rem;
+    pointer-events: none;
+    transition: color 0.2s;
+}
+
+.approval-input-wrapper:focus-within .input-icon {
+    color: #3b82f6;
+}
+
+.approval-input,
+.approval-textarea {
+    width: 100%;
+    padding: 0.65rem 0.85rem;
+    padding-right: 2.4rem;
+    border: 1.5px solid #d1d5db;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    color: #1e293b;
+    background: #fff;
+    transition: all 0.2s ease;
+    outline: none;
+    font-family: inherit;
+}
+
+.approval-textarea {
+    padding-right: 0.85rem;
+    resize: vertical;
+    min-height: 80px;
+}
+
+.approval-input:focus,
+.approval-textarea:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+}
+
+.approval-input::placeholder,
+.approval-textarea::placeholder {
+    color: #a0aec0;
+}
+
+select.approval-input {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: left 12px center;
+    padding-left: 2rem;
+    padding-right: 2.4rem;
+}
+
+/* === Upload Zone === */
+.approval-upload-zone {
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 2rem 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: #fafafa;
+}
+
+.approval-upload-zone:hover,
+.approval-upload-zone.dragover {
+    border-color: #3b82f6;
+    background: #eff6ff;
+}
+
+.approval-upload-zone .upload-icon {
+    font-size: 2.5rem;
+    color: #3b82f6;
+    margin-bottom: 0.5rem;
+}
+
+.approval-upload-zone .upload-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 0.25rem;
+}
+
+.approval-upload-zone .upload-hint {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin: 0 0 0.5rem;
+}
+
+.approval-upload-zone .upload-desc {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    margin: 0;
+}
+
+.approval-file-input {
+    display: none;
+}
+
+/* === File List === */
+.approval-attachments-list {
+    margin-top: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.approval-file-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0.85rem;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    animation: slideUp 0.2s ease;
+}
+
+.approval-file-icon {
+    width: 36px;
+    height: 36px;
+    background: #eff6ff;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #3b82f6;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.approval-file-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    min-width: 0;
+}
+
+.approval-file-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #1e293b;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.approval-file-size {
+    font-size: 0.72rem;
+    color: #94a3b8;
+}
+
+.approval-file-remove {
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: #fef2f2;
+    color: #ef4444;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+.approval-file-remove:hover {
+    background: #ef4444;
+    color: #fff;
+}
+
+/* === Footer === */
+.approval-form-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e2e8f0;
+    margin-top: 0.5rem;
+}
+
+.approval-submit-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.7rem 2rem;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 12px rgba(37,99,235,0.3);
+    gap: 0.25rem;
+}
+
+.approval-submit-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(37,99,235,0.4);
+}
+
+.approval-submit-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.approval-submit-btn:active {
+    transform: translateY(0);
+}
+
+/* === Admin Custom Fields === */
+.approval-custom-field {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    margin-bottom: 0.4rem;
+}
+.approval-custom-field .approval-input {
+    padding-right: 0.85rem;
+}
+
+.approval-cfield-req {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.78rem;
+    color: #475569;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+/* === Admin Section === */
+.approval-admin-section {
+    border-color: #fde68a;
+    background: #fffbeb;
+}
+.approval-admin-section .approval-section-header i {
+    color: #d97706;
+}
+
+/* === Success Overlay === */
+.approval-success-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.95);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    animation: fadeIn 0.35s ease;
+}
+
+.approval-success-card {
+    text-align: center;
+    padding: 2rem;
+}
+
+.success-checkmark {
+    font-size: 4rem;
+    color: #10b981;
+    margin-bottom: 1rem;
+    animation: successPop 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes successPop {
+    0% { transform: scale(0); opacity: 0; }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.success-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #065f46;
+    margin: 0 0 0.5rem;
+}
+
+.success-desc {
+    font-size: 0.95rem;
+    color: #6b7280;
+    margin: 0 0 1.5rem;
+}
+
+.success-spinner {
+    color: #3b82f6;
+    font-size: 1.2rem;
+    animation: pulse 1.5s ease infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+}
+
+/* === Responsive === */
+@media (max-width: 640px) {
+    .approval-form-grid {
+        grid-template-columns: 1fr;
+    }
+    .approval-modal-header {
+        padding: 1rem 1.25rem;
+        flex-wrap: wrap;
+    }
+    .approval-modal-steps {
+        padding: 0 1rem;
+        overflow-x: auto;
+    }
+    .approval-step {
+        font-size: 0.75rem;
+        padding: 0.6rem 0.75rem;
+        white-space: nowrap;
+    }
+    .approval-modal-body {
+        padding: 1rem 1.25rem;
+    }
+    .approval-form-section {
+        padding: 1rem;
+    }
+    .approval-form-footer {
+        flex-direction: column-reverse;
+        gap: 0.5rem;
+    }
+    .approval-submit-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    .approval-form-footer .btn-secondary {
+        width: 100%;
+    }
+}
+
 /* ===== End of UI/UX Enhancements ===== */
 
