@@ -9031,7 +9031,7 @@ const Contractors = {
     /**
      * عرض تفاصيل طلب الاعتماد أو الحذف
      */
-    viewApprovalRequest(requestId, requestCategory = 'approval') {
+    async viewApprovalRequest(requestId, requestCategory = 'approval') {
         this.ensureApprovalRequestsSetup();
         this.ensureDeletionRequestsSetup();
 
@@ -9040,6 +9040,20 @@ const Contractors = {
             request = (AppState.appData.contractorDeletionRequests || []).find(r => r.id === requestId);
         } else {
             request = (AppState.appData.contractorApprovalRequests || []).find(r => r.id === requestId);
+        }
+
+        if (!request) {
+            // ✅ محاولة إعادة تحميل البيانات من التخزين المحلي
+            if (typeof window.DataManager !== 'undefined' && typeof window.DataManager.load === 'function') {
+                try {
+                    await window.DataManager.load();
+                    if (requestCategory === 'deletion') {
+                        request = (AppState.appData.contractorDeletionRequests || []).find(r => r.id === requestId);
+                    } else {
+                        request = (AppState.appData.contractorApprovalRequests || []).find(r => r.id === requestId);
+                    }
+                } catch (_e) { /* ignore */ }
+            }
         }
 
         if (!request) {

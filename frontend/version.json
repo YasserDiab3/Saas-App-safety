@@ -1,4 +1,4 @@
 {
-  "version": "2.2.88",
-  "message": "fix: remove free plan module restriction for platform admin"
+  "version": "2.2.91",
+  "message": "fix: close dangling JSDoc causing contractor sync failure"
 }
