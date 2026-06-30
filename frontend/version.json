@@ -1,4 +1,4 @@
 {
-  "version": "2.2.101",
-  "message": "fix: CSP — add vercel.live + remove deprecated navigate-to"
+  "version": "2.2.102",
+  "message": "fix: dynamic __SW_REGISTER_QUERY — bump with each version"
 }

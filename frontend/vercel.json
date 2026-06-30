@@ -5,6 +5,7 @@
   "installCommand": "npm ci",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
+  "rootDirectory": "frontend",
   "rewrites": [
     {
       "source": "/",
