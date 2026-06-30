@@ -40,4 +40,8 @@ supabase/scripts/.tenant-isolation-credentials.json
 supabase/scripts/.platform-admin-credentials.json
 sbp_*.txt
 
+
+# Vercel
+
+# Vercel
 .vercel

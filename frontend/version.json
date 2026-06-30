@@ -1,4 +1,4 @@
 {
-  "version": "2.2.102",
-  "message": "fix: dynamic __SW_REGISTER_QUERY — bump with each version"
+  "version": "2.2.103",
+  "message": "fix: set rootDirectory in vercel.json"
 }
