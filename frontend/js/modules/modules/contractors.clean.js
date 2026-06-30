@@ -8757,6 +8757,16 @@ const Contractors = {
 
             if (onStart) onStart();
 
+            // ✅ إغلاق فوري للنموذج قبل أي عملية قد تفشل — ضماناً لاستجابة سريعة
+            try {
+                if (modal && modal.parentNode) {
+                    modal.remove();
+                }
+            } catch (removeError) {
+                Utils.safeWarn('⚠️ خطأ في إزالة النموذج:', removeError);
+            }
+            Notification.success('✓ تم إرسال طلب الاعتماد بنجاح');
+
             this.ensureApprovalRequestsSetup();
             
             // ✅ حفظ محلياً أولاً للاستجابة السريعة
@@ -8773,19 +8783,6 @@ const Contractors = {
             Utils.safeLog('✅ تم حفظ الطلب محلياً. ID مؤقت: ' + tempId);
             
             Loading.hide();
-            
-            // ✅ إغلاق فوري للنموذج مع رسالة نجاح
-            try {
-                if (modal && modal.parentNode) {
-                    modal.remove();
-                }
-            } catch (removeError) {
-                Utils.safeWarn('⚠️ خطأ في إزالة النموذج:', removeError);
-                if (modal && modal.parentNode) {
-                    modal.parentNode.removeChild(modal);
-                }
-            }
-            Notification.success('✓ تم إرسال طلب الاعتماد بنجاح');
             this.refreshApprovalRequestsSection();
             
             // ✅ المزامنة مع Backend في الخلفية فقط (لا await — لا تغيير في بنية التطبيق)
