@@ -1,4 +1,4 @@
 {
-  "version": "2.2.99",
-  "message": "feat: enforce org work email at signup (frontend+backend)"
+  "version": "2.2.100",
+  "message": "fix: close approval form before any async work"
 }
