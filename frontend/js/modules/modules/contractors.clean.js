@@ -9211,16 +9211,42 @@ const Contractors = {
 
         if (!request) {
             // ✅ محاولة إعادة تحميل البيانات من التخزين المحلي
-            if (typeof window.DataManager !== 'undefined' && typeof window.DataManager.load === 'function') {
-                try {
+            try {
+                if (typeof window.DataManager !== 'undefined' && typeof window.DataManager.load === 'function') {
                     await window.DataManager.load();
-                    if (requestCategory === 'deletion') {
-                        request = (AppState.appData.contractorDeletionRequests || []).find(r => r.id === requestId);
-                    } else {
-                        request = (AppState.appData.contractorApprovalRequests || []).find(r => r.id === requestId);
-                    }
-                } catch (_e) { /* ignore */ }
+                }
+            } catch (_e) { /* ignore */ }
+            if (requestCategory === 'deletion') {
+                request = (AppState.appData.contractorDeletionRequests || []).find(r => r.id === requestId);
+            } else {
+                request = (AppState.appData.contractorApprovalRequests || []).find(r => r.id === requestId);
             }
+        }
+
+        if (!request) {
+            // ✅ محاولة القراءة المباشرة من localStorage (تجاوز DataManager)
+            try {
+                const lsKey = (typeof window.SaaSTenantCache !== 'undefined' && window.SaaSTenantCache.scopedKey)
+                    ? window.SaaSTenantCache.scopedKey('hse_app_data')
+                    : 'hse_app_data';
+                const raw = localStorage.getItem(lsKey);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    const arr = parsed.contractorApprovalRequests || [];
+                    if (requestCategory === 'deletion') {
+                        const delArr = parsed.contractorDeletionRequests || [];
+                        request = delArr.find(r => r.id === requestId);
+                        if (request && !Array.isArray(AppState.appData.contractorDeletionRequests)) {
+                            AppState.appData.contractorDeletionRequests = delArr;
+                        }
+                    } else {
+                        request = arr.find(r => r.id === requestId);
+                        if (request && !Array.isArray(AppState.appData.contractorApprovalRequests)) {
+                            AppState.appData.contractorApprovalRequests = arr;
+                        }
+                    }
+                }
+            } catch (_e2) { /* ignore */ }
         }
 
         if (!request) {
@@ -9667,16 +9693,41 @@ const Contractors = {
             }
             
             if (!request) {
-                if (typeof window.DataManager !== 'undefined' && typeof window.DataManager.load === 'function') {
-                    try {
+                try {
+                    if (typeof window.DataManager !== 'undefined' && typeof window.DataManager.load === 'function') {
                         await window.DataManager.load();
-                        if (requestCategory === 'deletion') {
-                            request = (AppState.appData.contractorDeletionRequests || []).find(r => r.id === requestId);
-                        } else {
-                            request = (AppState.appData.contractorApprovalRequests || []).find(r => r.id === requestId);
-                        }
-                    } catch (_e) { /* تجاهل */ }
+                    }
+                } catch (_e) { /* تجاهل */ }
+                if (requestCategory === 'deletion') {
+                    request = (AppState.appData.contractorDeletionRequests || []).find(r => r.id === requestId);
+                } else {
+                    request = (AppState.appData.contractorApprovalRequests || []).find(r => r.id === requestId);
                 }
+            }
+            
+            if (!request) {
+                try {
+                    const lsKey = (typeof window.SaaSTenantCache !== 'undefined' && window.SaaSTenantCache.scopedKey)
+                        ? window.SaaSTenantCache.scopedKey('hse_app_data')
+                        : 'hse_app_data';
+                    const raw = localStorage.getItem(lsKey);
+                    if (raw) {
+                        const parsed = JSON.parse(raw);
+                        if (requestCategory === 'deletion') {
+                            const delArr = parsed.contractorDeletionRequests || [];
+                            request = delArr.find(r => r.id === requestId);
+                            if (request && !Array.isArray(AppState.appData.contractorDeletionRequests)) {
+                                AppState.appData.contractorDeletionRequests = delArr;
+                            }
+                        } else {
+                            const arr = parsed.contractorApprovalRequests || [];
+                            request = arr.find(r => r.id === requestId);
+                            if (request && !Array.isArray(AppState.appData.contractorApprovalRequests)) {
+                                AppState.appData.contractorApprovalRequests = arr;
+                            }
+                        }
+                    }
+                } catch (_e2) { /* ignore */ }
             }
             
             if (!request) {
@@ -9901,12 +9952,30 @@ const Contractors = {
             
             // ✅ محاولة إعادة تحميل البيانات من التخزين المحلي إذا لم يُعثر على الطلب
             if (!request) {
-                if (typeof window.DataManager !== 'undefined' && typeof window.DataManager.load === 'function') {
-                    try {
+                try {
+                    if (typeof window.DataManager !== 'undefined' && typeof window.DataManager.load === 'function') {
                         await window.DataManager.load();
-                        request = (AppState.appData.contractorApprovalRequests || []).find(r => r.id === requestId);
-                    } catch (_e) { /* تجاهل */ }
-                }
+                    }
+                } catch (_e) { /* تجاهل */ }
+                request = (AppState.appData.contractorApprovalRequests || []).find(r => r.id === requestId);
+            }
+            
+            // ✅ محاولة القراءة المباشرة من localStorage (تجاوز DataManager)
+            if (!request) {
+                try {
+                    const lsKey = (typeof window.SaaSTenantCache !== 'undefined' && window.SaaSTenantCache.scopedKey)
+                        ? window.SaaSTenantCache.scopedKey('hse_app_data')
+                        : 'hse_app_data';
+                    const raw = localStorage.getItem(lsKey);
+                    if (raw) {
+                        const parsed = JSON.parse(raw);
+                        const arr = parsed.contractorApprovalRequests || [];
+                        request = arr.find(r => r.id === requestId);
+                        if (request && !Array.isArray(AppState.appData.contractorApprovalRequests)) {
+                            AppState.appData.contractorApprovalRequests = arr;
+                        }
+                    }
+                } catch (_e2) { /* ignore */ }
             }
             
             // ✅ إصلاح مهم: إذا كان requestId يبدأ بـ "TEMP_"، الطلب لم يتم مزامنته بعد
@@ -10194,12 +10263,28 @@ const Contractors = {
             Loading.show();
             let request = (AppState.appData.contractorApprovalRequests || []).find(r => r.id === requestId);
             if (!request) {
-                if (typeof window.DataManager !== 'undefined' && typeof window.DataManager.load === 'function') {
-                    try {
+                try {
+                    if (typeof window.DataManager !== 'undefined' && typeof window.DataManager.load === 'function') {
                         await window.DataManager.load();
-                        request = (AppState.appData.contractorApprovalRequests || []).find(r => r.id === requestId);
-                    } catch (_e) { /* تجاهل */ }
-                }
+                    }
+                } catch (_e) { /* تجاهل */ }
+                request = (AppState.appData.contractorApprovalRequests || []).find(r => r.id === requestId);
+            }
+            if (!request) {
+                try {
+                    const lsKey = (typeof window.SaaSTenantCache !== 'undefined' && window.SaaSTenantCache.scopedKey)
+                        ? window.SaaSTenantCache.scopedKey('hse_app_data')
+                        : 'hse_app_data';
+                    const raw = localStorage.getItem(lsKey);
+                    if (raw) {
+                        const parsed = JSON.parse(raw);
+                        const arr = parsed.contractorApprovalRequests || [];
+                        request = arr.find(r => r.id === requestId);
+                        if (request && !Array.isArray(AppState.appData.contractorApprovalRequests)) {
+                            AppState.appData.contractorApprovalRequests = arr;
+                        }
+                    }
+                } catch (_e2) { /* ignore */ }
             }
             if (!request) {
                 Loading.hide();
