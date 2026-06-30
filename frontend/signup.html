@@ -137,6 +137,7 @@
   <script src="/js/saas/saas-auth-storage.js"></script>
   <script src="/js/saas/saas-auth-fields.js"></script>
   <script src="/js/saas/saas-signup-errors.js"></script>
+  <script src="/js/saas/saas-sales-inquiry.js"></script>
   <script src="/js/saas/saas-terms-modal.js"></script>
   <script src="/js/saas/saas-version.js" defer></script>
   <script>
@@ -182,6 +183,9 @@
       if (pwd !== pwd2) { msg(T('su_pwd_mismatch'), 'err'); return null; }
       if (!phoneCc) { msg(T('su_phone_required'), 'err'); return null; }
       if (phone.length < 7 || phone.length > 15) { msg(T('su_phone_invalid'), 'err'); return null; }
+      if (typeof window.SaaSSalesInquiry !== 'undefined' && !SaaSSalesInquiry.isOrganizationEmail(email)) {
+        msg(T('su_work_email'), 'err'); return null;
+      }
       if (!$('terms-accept').checked) {
         msg(T('su_terms_required'), 'err');
         openTermsIfNeeded();

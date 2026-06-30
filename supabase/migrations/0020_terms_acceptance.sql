@@ -21,6 +21,8 @@ declare
   v_trial    integer := 14;
   v_org_code text;
   v_terms    text := nullif(trim(p_terms_version), '');
+  v_email    text;
+  v_domain   text;
 begin
   if v_uid is null then
     raise exception 'not authenticated';
@@ -46,6 +48,12 @@ begin
      where tu.user_id = v_uid and tu.role = 'owner' and tu.status = 'active'
   ) then
     raise exception 'user already owns an organization';
+  end if;
+  -- Require organization work email (reject Gmail, Hotmail, etc.)
+  select email into v_email from auth.users where id = v_uid;
+  v_domain := split_part(coalesce(v_email, ''), '@', 2);
+  if v_domain = '' or app.is_consumer_email_domain(v_domain) then
+    raise exception 'organization work email required';
   end if;
 
   v_org_code := app.generate_org_code();

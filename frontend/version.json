@@ -1,4 +1,4 @@
 {
-  "version": "2.2.97",
-  "message": "fix: map addContractorApprovalRequest in SaaS adapter + clear _isPendingSync on error + immediate modal close"
+  "version": "2.2.98",
+  "message": "fix: handle approveContractorApprovalRequest in saas-adapter + action map for update/reject"
 }

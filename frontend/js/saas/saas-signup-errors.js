@@ -38,6 +38,9 @@
         if (/user already owns an organization/i.test(raw)) {
             return 'هذا الحساب يملك مؤسسة بالفعل — سجّل الدخول.';
         }
+        if (/organization work email required/i.test(raw)) {
+            return t('su_work_email', 'استخدم بريد المؤسسة الرسمي — وليس Gmail أو Hotmail.');
+        }
         if (/invalid login credentials|invalid email or password/i.test(raw)) {
             return 'بريد أو كلمة مرور غير صحيحة.';
         }
