@@ -55,7 +55,9 @@
         addUserTask:          { op: 'upsert', sheet: 'UserTasks', idFrom: 'id' },
         updateUserTask:       { op: 'patch',  sheet: 'UserTasks', idFrom: 'taskId', patchFrom: 'updateData' },
         deleteUserTask:       { op: 'delete', sheet: 'UserTasks', idFrom: 'taskId' },
-        addContractorApprovalRequest:       { op: 'upsert', sheet: 'ContractorApprovalRequests', idFrom: 'id' }
+        addContractorApprovalRequest:       { op: 'upsert', sheet: 'ContractorApprovalRequests', idFrom: 'id' },
+        updateContractorApprovalRequest:    { op: 'patch',  sheet: 'ContractorApprovalRequests', idFrom: 'requestId', patchFrom: 'updateData' },
+        rejectContractorApprovalRequest:    { op: 'patch',  sheet: 'ContractorApprovalRequests', idFrom: 'requestId' }
         // … extend incrementally. Unmapped CRUD falls through to convention.
     };
 
@@ -85,12 +87,59 @@
                 });
             case 'getUserTasksByUserId':
                 return wrapArray(await rpc('api_get_user_tasks', { p_user_id: data.userId || data.user_id }));
+            case 'approveContractorApprovalRequest': {
+                const { requestId, userData } = data || {};
+                if (!requestId) return { success: false, message: 'requestId مطلوب' };
+                // 1) قراءة الطلب
+                const all = await rpc('api_read_sheet', { p_sheet: 'ContractorApprovalRequests' });
+                if (all && all.success === false) return all;
+                const rows = Array.isArray(all) ? all : [];
+                const req = rows.find(r => String(r.id) === String(requestId));
+                if (!req) return { success: false, message: `طلب الاعتماد غير موجود في Backend (id=${requestId})` };
+                // 2) تكوين approvedEntity
+                const code = req.licenseNumber || req.code || `APR-${Date.now().toString(36).toUpperCase()}`;
+                const approvedEntity = {
+                    id: cryptoId(),
+                    companyName: req.companyName || '',
+                    serviceType: req.serviceType || '',
+                    entityType: req.requestType === 'contractor' ? 'contractor' : 'supplier',
+                    code,
+                    isoCode: code,
+                    contractorId: req.contractorId || req.id || '',
+                    requestId: req.id,
+                    status: 'active',
+                    approvedAt: new Date().toISOString(),
+                    approvedBy: (userData && userData.id) || '',
+                    approvedByName: (userData && userData.name) || '',
+                    createdAt: new Date().toISOString()
+                };
+                // 3) حفظ في ApprovedContractors
+                const upserted = await rpc('api_upsert', { p_sheet: 'ApprovedContractors', p_id: approvedEntity.id, p_data: approvedEntity });
+                if (upserted && upserted.success === false) return upserted;
+                // 4) تحديث حالة الطلب
+                const patch = await rpc('api_patch', {
+                    p_sheet: 'ContractorApprovalRequests',
+                    p_id: requestId,
+                    p_patch: { status: 'approved', approvedAt: approvedEntity.approvedAt, approvedBy: approvedEntity.approvedBy, approvedByName: approvedEntity.approvedByName, updatedAt: approvedEntity.approvedAt }
+                });
+                if (patch && patch.success === false) return patch;
+                // 5) البحث عن المقاول المرتبط
+                let contractor = null;
+                if (req.contractorId) {
+                    const cAll = await rpc('api_read_sheet', { p_sheet: 'Contractors' });
+                    if (cAll && cAll.success === false) return cAll;
+                    const cRows = Array.isArray(cAll) ? cAll : [];
+                    contractor = cRows.find(c => String(c.id) === String(req.contractorId)) || null;
+                }
+                return { success: true, approvedEntity, contractor, message: 'تم اعتماد الطلب بنجاح' };
+            }
         }
         return null;
     }
     const BUSINESS_ACTIONS = new Set([
         'addClinicVisit', 'updateClinicVisit', 'updateTaskCompletionRate',
-        'getUserTasksByUserId', 'getAllClinicVisits'
+        'getUserTasksByUserId', 'getAllClinicVisits',
+        'approveContractorApprovalRequest'
     ]);
 
     // convention fallback: getAllX / addX / updateX / deleteX
