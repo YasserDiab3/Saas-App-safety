@@ -18,6 +18,7 @@ const root = path.join(__dirname, '..');
 const versionPath = path.join(root, 'version.json');
 const utilsPath = path.join(root, 'js', 'modules', 'app-utils.js');
 const swPath = path.join(root, 'service-worker.js');
+const indexHtmlPath = path.join(root, 'index.html');
 
 const argv = process.argv.slice(2);
 const isCi = argv.includes('--ci');
@@ -60,14 +61,28 @@ if (nextUtils === utils) {
     fs.writeFileSync(utilsPath, nextUtils, 'utf8');
 }
 
+const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+const cacheVer = `hse-app-v${manifest.version}-${date}`;
+
 if (fs.existsSync(swPath)) {
-    const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-    const cacheVer = `hse-app-v${manifest.version}-${date}`;
     let sw = fs.readFileSync(swPath, 'utf8');
     const nextSw = sw.replace(/const CACHE_VERSION = '[^']*';/, `const CACHE_VERSION = '${cacheVer}';`);
     if (nextSw !== sw) {
         fs.writeFileSync(swPath, nextSw, 'utf8');
         console.log(`Updated service-worker CACHE_VERSION → ${cacheVer}`);
+    }
+}
+
+// تحديث __SW_REGISTER_QUERY في index.html لتغيير URL السيرفس ووركر مع كل إصدار
+if (fs.existsSync(indexHtmlPath)) {
+    let html = fs.readFileSync(indexHtmlPath, 'utf8');
+    const nextHtml = html.replace(
+        /const __SW_REGISTER_QUERY = "[^"]*";/,
+        `const __SW_REGISTER_QUERY = "v=${cacheVer}";`
+    );
+    if (nextHtml !== html) {
+        fs.writeFileSync(indexHtmlPath, nextHtml, 'utf8');
+        console.log(`Updated index.html __SW_REGISTER_QUERY → v=${cacheVer}`);
     }
 }
 

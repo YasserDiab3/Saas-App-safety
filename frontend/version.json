@@ -1,4 +1,4 @@
 {
-  "version": "2.2.100",
-  "message": "fix: close approval form before any async work"
+  "version": "2.2.101",
+  "message": "fix: CSP — add vercel.live + remove deprecated navigate-to"
 }
