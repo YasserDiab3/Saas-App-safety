@@ -1,4 +1,4 @@
 {
-  "version": "2.2.94",
-  "message": "fix: add DataManager.load fallback to approveRequest, rejectRequest, saveRequestChanges — same pattern as viewApprovalRequest"
+  "version": "2.2.95",
+  "message": "fix: direct localStorage fallback when DataManager.load fails for approval requests"
 }

@@ -8913,16 +8913,17 @@ const Contractors = {
                 actualTempId = tempId;
             }
             
-            // ✅ حذف tempId قبل الإرسال لضمان توليد ID جديد من Backend
-            delete requestData.id; // ✅ حذف tempId قبل الإرسال لضمان توليد ID جديد من Backend
-            delete requestData._isPendingSync; // ✅ حذف flag مؤقت أيضاً
+            // ✅ استخدام نسخة من requestData بدون ID للإرسال (عدم تغيير الأصل في المصفوفة)
+            const dataToSend = { ...requestData };
+            delete dataToSend.id;
+            delete dataToSend._isPendingSync;
             
             Utils.safeLog('🔄 إرسال الطلب إلى Backend بدون ID (tempId=' + actualTempId + ' سيتم استبداله بـ CAR_... من Backend)');
             
             // ✅ إرسال الطلب إلى Backend
                 const backendResult = await Backend.sendRequest({
                     action: 'addContractorApprovalRequest',
-                    data: requestData
+                    data: dataToSend
                 });
 
                 if (backendResult && backendResult.success) {
@@ -9201,6 +9202,13 @@ const Contractors = {
     async viewApprovalRequest(requestId, requestCategory = 'approval') {
         this.ensureApprovalRequestsSetup();
         this.ensureDeletionRequestsSetup();
+
+        // ✅ حماية: إذا كان requestId هو النص 'undefined' أو 'null' أو فارغ
+        if (!requestId || requestId === 'undefined' || requestId === 'null') {
+            Utils.safeWarn('⚠️ viewApprovalRequest: requestId غير صالح. requestId=' + JSON.stringify(requestId));
+            Notification.error('معرف الطلب غير صالح');
+            return;
+        }
 
         let request;
         if (requestCategory === 'deletion') {
@@ -9681,6 +9689,13 @@ const Contractors = {
             Notification.error('ليس لديك صلاحية لتعديل الطلبات');
             return;
         }
+
+        if (!requestId || requestId === 'undefined' || requestId === 'null') {
+            Utils.safeWarn('⚠️ saveRequestChanges: requestId غير صالح. requestId=' + JSON.stringify(requestId));
+            Notification.error('معرف الطلب غير صالح');
+            Loading.hide();
+            return;
+        }
         
         Loading.show();
         
@@ -9847,6 +9862,13 @@ const Contractors = {
     async approveRequest(requestId, requestCategory = 'approval') {
         if (!Permissions.isAdmin()) {
             Notification.error('ليس لديك صلاحية لاعتماد الطلبات');
+            return;
+        }
+
+        // ✅ حماية: إذا كان requestId هو النص 'undefined' أو 'null' أو فارغ
+        if (!requestId || requestId === 'undefined' || requestId === 'null') {
+            Utils.safeWarn('⚠️ approveRequest: requestId غير صالح. requestId=' + JSON.stringify(requestId));
+            Notification.error('معرف الطلب غير صالح');
             return;
         }
 
@@ -10202,6 +10224,13 @@ const Contractors = {
     async rejectRequest(requestId, requestCategory = 'approval') {
         if (!Permissions.isAdmin()) {
             Notification.error('ليس لديك صلاحية لرفض الطلبات');
+            return;
+        }
+
+        // ✅ حماية: إذا كان requestId هو النص 'undefined' أو 'null' أو فارغ
+        if (!requestId || requestId === 'undefined' || requestId === 'null') {
+            Utils.safeWarn('⚠️ rejectRequest: requestId غير صالح. requestId=' + JSON.stringify(requestId));
+            Notification.error('معرف الطلب غير صالح');
             return;
         }
 
