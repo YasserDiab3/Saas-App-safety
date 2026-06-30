@@ -1,4 +1,4 @@
 {
-  "version": "2.2.95",
-  "message": "fix: direct localStorage fallback when DataManager.load fails for approval requests"
+  "version": "2.2.96",
+  "message": "fix: prevent requestData.id mutation in sync — clone before delete"
 }

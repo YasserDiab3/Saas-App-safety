@@ -54,7 +54,8 @@
         // writes (UserTasks — already atomic via dedicated actions)
         addUserTask:          { op: 'upsert', sheet: 'UserTasks', idFrom: 'id' },
         updateUserTask:       { op: 'patch',  sheet: 'UserTasks', idFrom: 'taskId', patchFrom: 'updateData' },
-        deleteUserTask:       { op: 'delete', sheet: 'UserTasks', idFrom: 'taskId' }
+        deleteUserTask:       { op: 'delete', sheet: 'UserTasks', idFrom: 'taskId' },
+        addContractorApprovalRequest:       { op: 'upsert', sheet: 'ContractorApprovalRequests', idFrom: 'id' }
         // … extend incrementally. Unmapped CRUD falls through to convention.
     };
 

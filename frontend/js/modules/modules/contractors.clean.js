@@ -8766,21 +8766,6 @@ const Contractors = {
             
             AppState.appData.contractorApprovalRequests.push(requestData);
             
-            // ✅ عرض شاشة النجاح مع تأثير بصري
-            try {
-                const overlay = modal.querySelector('#approval-success-overlay');
-                if (overlay) {
-                    overlay.style.display = 'flex';
-                    // إخفاء محتوى النموذج
-                    const body = modal.querySelector('.approval-modal-body');
-                    if (body) body.style.display = 'none';
-                    const header = modal.querySelector('.approval-modal-header');
-                    if (header) header.style.display = 'none';
-                    const steps = modal.querySelector('.approval-modal-steps');
-                    if (steps) steps.style.display = 'none';
-                }
-            } catch (_e) { /* تجاهل */ }
-
             if (typeof window.DataManager !== 'undefined' && window.DataManager.save) {
                 window.DataManager.save();
             }
@@ -8789,21 +8774,19 @@ const Contractors = {
             
             Loading.hide();
             
-            // ✅ إغلاق كامل بعد 1.8 ثانية مع رسالة نجاح
-            setTimeout(() => {
-                try {
-                    if (modal && modal.parentNode) {
-                        modal.remove();
-                    }
-                } catch (removeError) {
-                    Utils.safeWarn('⚠️ خطأ في إزالة النموذج:', removeError);
-                    if (modal && modal.parentNode) {
-                        modal.parentNode.removeChild(modal);
-                    }
+            // ✅ إغلاق فوري للنموذج مع رسالة نجاح
+            try {
+                if (modal && modal.parentNode) {
+                    modal.remove();
                 }
-                Notification.success('✓ تم إرسال طلب الاعتماد بنجاح');
-                this.refreshApprovalRequestsSection();
-            }, 1800);
+            } catch (removeError) {
+                Utils.safeWarn('⚠️ خطأ في إزالة النموذج:', removeError);
+                if (modal && modal.parentNode) {
+                    modal.parentNode.removeChild(modal);
+                }
+            }
+            Notification.success('✓ تم إرسال طلب الاعتماد بنجاح');
+            this.refreshApprovalRequestsSection();
             
             // ✅ المزامنة مع Backend في الخلفية فقط (لا await — لا تغيير في بنية التطبيق)
             this.syncApprovalRequestToBackend(requestData, attachments, tempId).then(() => {
@@ -9052,6 +9035,7 @@ const Contractors = {
                 Utils.safeWarn('⚠️ فشل مزامنة طلب الاعتماد مع Backend، تم الحفظ محلياً فقط');
                 const tempIndex = AppState.appData.contractorApprovalRequests.findIndex(r => r.id === tempId);
                 if (tempIndex !== -1) {
+                    AppState.appData.contractorApprovalRequests[tempIndex]._isPendingSync = false;
                     AppState.appData.contractorApprovalRequests[tempIndex]._syncError = true;
                     AppState.appData.contractorApprovalRequests[tempIndex]._syncErrorMessage = backendResult?.message || 'فشل المزامنة';
                 }
@@ -9068,6 +9052,7 @@ const Contractors = {
             Utils.safeError('❌ خطأ في مزامنة طلب الاعتماد مع Backend:', error);
             const tempIndex = AppState.appData.contractorApprovalRequests.findIndex(r => r.id === tempId);
             if (tempIndex !== -1) {
+                AppState.appData.contractorApprovalRequests[tempIndex]._isPendingSync = false;
                 AppState.appData.contractorApprovalRequests[tempIndex]._syncError = true;
                 AppState.appData.contractorApprovalRequests[tempIndex]._syncErrorMessage = error.message || 'خطأ في المزامنة';
             }
@@ -10011,10 +9996,10 @@ const Contractors = {
             // ✅ إذا كان request موجود لكن ID يبدأ بـ "TEMP_"، الطلب لم يتم مزامنته بعد
             if (request && request.id && request.id.startsWith('TEMP_')) {
                 Loading.hide();
-                if (request._isPendingSync) {
-                    Notification.warning('الطلب لا يزال قيد المزامنة مع الخادم. يرجى الانتظار قليلاً ثم إعادة المحاولة.');
-                } else if (request._syncError) {
+                if (request._syncError) {
                     Notification.error('فشلت مزامنة الطلب مع الخادم. يرجى إعادة إرسال الطلب أولاً.');
+                } else if (request._isPendingSync) {
+                    Notification.warning('الطلب لا يزال قيد المزامنة مع الخادم. يرجى الانتظار قليلاً ثم إعادة المحاولة.');
                 } else {
                     Notification.warning('الطلب لم يتم مزامنته مع الخادم بعد. يرجى إعادة إرسال الطلب أولاً.');
                 }
