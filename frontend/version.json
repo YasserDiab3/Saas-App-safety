@@ -1,4 +1,4 @@
 {
-  "version": "2.2.119",
-  "message": "style(ppe): compact form - 36rem width, tighter spacing"
+  "version": "2.2.120",
+  "message": "chore: bump service worker version to v2.2.118"
 }
