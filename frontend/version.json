@@ -1,4 +1,4 @@
 {
-  "version": "2.2.105",
-  "message": "fix: map all 183 module actions in saas-adapter.js"
+  "version": "2.2.106",
+  "message": "fix: clear _stockLoadInflightPromise in clearCache so stock list refreshes after add"
 }

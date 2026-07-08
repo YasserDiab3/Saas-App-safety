@@ -680,6 +680,7 @@ const PPE = {
     async refreshActiveTab(options = {}) {
         try {
             const skipRemote = !!options.skipRemote;
+            console.log('[PPE DEBUG] refreshActiveTab called, activeTab:', this.state.activeTab);
             // ✅ مسح Cache لضمان تحميل البيانات الجديدة
             this.clearCache();
             
@@ -4366,6 +4367,7 @@ const PPE = {
     async renderStockControlTab() {
         try {
             const stockItems = await this.loadStockItems();
+            console.log('[PPE DEBUG] renderStockControlTab got', stockItems.length, 'items');
 
             const staleBanner = this.state.stockStaleWarningMsg
                 ? `<div role="status" class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 flex items-start gap-2">
@@ -4822,6 +4824,10 @@ const PPE = {
 
                     if (result && result.success) {
                         const stockItems = Array.isArray(result.data) ? result.data : [];
+                        console.log('[PPE DEBUG] _loadStockItemsInternal got', stockItems.length, 'items from server');
+                        if (stockItems.length > 0) {
+                            console.log('[PPE DEBUG] first item:', stockItems[0]);
+                        }
                         if (!AppState.appData.ppeStock) {
                             AppState.appData.ppeStock = [];
                         }
@@ -5036,6 +5042,7 @@ const PPE = {
 
                 if (typeof Backend !== 'undefined' && Backend.sendToAppsScript) {
                     const result = await Backend.sendToAppsScript('addOrUpdatePPEStockItem', stockData);
+                    console.log('[PPE DEBUG] addOrUpdatePPEStockItem result:', result);
                     if (result && result.success) {
                         // ✅ مسح Cache لتحديث البيانات في المرة القادمة
                         this.clearCache();
@@ -5046,8 +5053,9 @@ const PPE = {
                         
                         Notification.success(`تم ${isEdit ? 'تحديث' : 'إضافة'} الصنف بنجاح`);
                         
-                        // ✅ تحديث التبويب النشط فقط (أسرع من إعادة تحميل كامل)
-                        this.refreshActiveTab();
+                        // ✅ إعادة تحميل المخزون فوراً ثم تحديث الواجهة
+                        await this.loadStockItems(true);
+                        this.refreshStockListUI();
                         return; // منع Loading.hide() في finally
                     } else {
                         // ✅ عرض رسالة الخطأ من Backend (مثل "كود الصنف موجود")
@@ -5147,8 +5155,9 @@ const PPE = {
                     
                     Notification.success(`تم ${isEdit ? 'تحديث' : 'إضافة'} الصنف بنجاح`);
                     
-                    // ✅ تحديث التبويب النشط فقط
-                    this.refreshActiveTab();
+                    // ✅ إعادة تحميل المخزون فوراً ثم تحديث الواجهة
+                    await this.loadStockItems(true);
+                    this.refreshStockListUI();
                     return; // منع Loading.hide() في finally
                 }
             } catch (error) {
@@ -5275,8 +5284,9 @@ const PPE = {
                         
                         Notification.success('تم إضافة الحركة بنجاح');
                         
-                        // ✅ تحديث التبويب النشط فقط (أسرع من إعادة تحميل كامل)
-                        this.refreshActiveTab();
+                        // ✅ إعادة تحميل المخزون فوراً ثم تحديث الواجهة
+                        await this.loadStockItems(true);
+                        this.refreshStockListUI();
                         return; // منع Loading.hide() في finally
                     } else {
                         Notification.error(result?.message || 'حدث خطأ أثناء إضافة الحركة');
