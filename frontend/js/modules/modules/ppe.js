@@ -521,6 +521,7 @@ const PPE = {
         
         this.state.stockItemsCache = null;
         this.state.stockItemsCacheTime = null;
+        this._stockLoadInflightPromise = null;
         this.state.lastSyncTime = Date.now();
         Utils.safeLog('🔄 PPE: تم مسح Cache لتحديث البيانات');
     },
