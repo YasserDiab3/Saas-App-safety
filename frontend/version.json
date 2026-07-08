@@ -1,4 +1,4 @@
 {
-  "version": "2.2.110",
-  "message": "chore: version bump to v2.2.108"
+  "version": "2.2.111",
+  "message": "fix: extract explicit handlers into tryExplicitHandler to prevent convention resolver intercept"
 }
