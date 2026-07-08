@@ -1,4 +1,4 @@
 {
-  "version": "2.2.107",
-  "message": "fix: await loadStockItems after add to ensure stock list refreshes"
+  "version": "2.2.108",
+  "message": "chore: bump version to v2.2.106"
 }
