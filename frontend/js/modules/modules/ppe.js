@@ -13,6 +13,7 @@ const PPE = {
         ppeItemsListCache: null, // Cache لقائمة الأصناف في المنسدلة
         ppeItemsListCacheTime: null, // وقت تحديث قائمة الأصناف
         ppeItemsListCacheExpiry: 2 * 60 * 1000, // انتهاء صلاحية القائمة بعد دقيقتين
+        ppeItemsBalanceMap: null, // خريطة اسم الصنف → الرصيد
         ppeItemsOptionsHTML: '', // HTML options معاد استخدامه عند إضافة صفوف
         /** رسالة مختصرة عند تعذّر الجلب وبقاء المعروض من الكاش */
         stockStaleWarningMsg: '',
@@ -1673,24 +1674,21 @@ const PPE = {
                                 <span style="display: inline-flex; width: 1.75rem; height: 1.75rem; align-items: center; justify-content: center; border-radius: 50%; background: linear-gradient(135deg, #4338ca, #6366f1); color: #fff; font-size: 0.75rem; box-shadow: 0 2px 6px rgba(79,70,229,0.3);"><i class="fas fa-user"></i></span>
                                 <h3 class="text-sm font-bold" style="color: #1e293b; margin: 0;">بيانات الموظف</h3>
                             </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="md:col-span-2">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div class="md:col-span-1">
                                 <label class="block text-sm font-semibold text-gray-700 mb-2">${ut(t('module.ppe.label.employeeCode', 'الكود الوظيفي *'))}</label>
                                 <div class="relative">
                                     <input type="text" id="ppe-employee-code" required class="form-input pr-12"
                                         value="${Utils.escapeHTML(ppeData?.employeeCode || ppeData?.employeeNumber || '')}"
-                                        placeholder="${ut(t('module.ppe.searchEmployeeTitle', 'أدخل الكود الوظيفي أو امسح الباركود'))}" autocomplete="off">
+                                        placeholder="${ut(t('module.ppe.searchEmployeeTitle', 'أدخل الكود الوظيفي'))}" autocomplete="off">
                                     <button type="button" id="ppe-search-code-btn"
                                         class="absolute inset-y-0 left-0 flex items-center justify-center w-10 text-gray-500 hover:text-gray-700"
                                         title="${ut(t('module.ppe.searchEmployeeTitle', 'بحث عن الموظف'))}">
                                         <i class="fas fa-search"></i>
                                     </button>
                                     </div>
-                                <p class="text-xs text-gray-500 mt-1">
-                                    ${ut(t('module.ppe.hint.employeeCode', ''))}
-                                </p>
                                 </div>
-                            <div class="md:col-span-2">
+                            <div class="md:col-span-3">
                                 <label class="block text-sm font-semibold text-gray-700 mb-2">${ut(t('module.ppe.label.employeeName', 'اسم الموظف'))}</label>
                                 <div class="relative">
                                     <input type="text" id="ppe-employee-name" class="form-input"
@@ -1764,9 +1762,11 @@ const PPE = {
                                                 <select id="ppe-equipment-type" required class="form-input ppe-equipment-type w-full border-slate-200 focus:border-emerald-500 focus:ring-emerald-500 rounded-lg">
                                                     <option value="">${ut(t('module.ppe.equip.loading', 'جاري التحميل...'))}</option>
                                                 </select>
-                                                <p class="text-[11px] text-gray-400 mt-1">
-                                                    ${ut(t('module.ppe.hint.fromStock', ''))}
-                                                </p>
+                                                <div class="ppe-balance-display flex items-center gap-1 mt-1 text-[11px]" style="display: none;">
+                                                    <i class="fas fa-boxes text-slate-400"></i>
+                                                    <span class="text-slate-500">${ut(t('module.ppe.stock.balance', 'الرصيد'))}: </span>
+                                                    <span class="ppe-balance-value font-bold text-slate-700">0</span>
+                                                </div>
                                             </div>
                                             <div class="min-w-0">
                                                 <label class="block text-xs font-semibold text-gray-700 mb-1">
@@ -2118,6 +2118,8 @@ const PPE = {
                     this.loadPPEItemsForDropdown();
                 }
 
+                this._updateAllBalanceDisplays();
+
                 return newRow;
             };
 
@@ -2173,6 +2175,7 @@ const PPE = {
                 itemsContainer.addEventListener('change', (event) => {
                     if (event.target && event.target.classList && event.target.classList.contains('ppe-equipment-type')) {
                         refreshAllEligibilityRows();
+                        PPE._updateAllBalanceDisplays();
                     }
                 });
             }
@@ -2544,6 +2547,18 @@ const PPE = {
             const optionsHTML = equipmentTypeSelect.innerHTML;
             this.state.ppeItemsOptionsHTML = optionsHTML;
 
+            // حفظ خريطة الرصيد لكل صنف
+            this.state.ppeItemsBalanceMap = {};
+            items.forEach(item => {
+                const name = (item.itemName || '').trim();
+                if (name) {
+                    this.state.ppeItemsBalanceMap[name] = parseFloat(item.balance || 0);
+                }
+            });
+
+            // تحديث عرض الرصيد لجميع الصفوف
+            this._updateAllBalanceDisplays();
+
             // مزامنة نفس الخيارات مع جميع قوائم الأنواع في صفوف الأصناف
             const allSelects = document.querySelectorAll('.ppe-equipment-type');
             allSelects.forEach(select => {
@@ -2559,6 +2574,8 @@ const PPE = {
             // بدون بنود افتراضية: إن توفر لدينا HTML سابق استخدمه، وإلا أبقِ خيار "اختر النوع" فقط
             equipmentTypeSelect.innerHTML = this.state.ppeItemsOptionsHTML || '<option value="">اختر النوع</option>';
 
+            this._updateAllBalanceDisplays();
+
             const optionsHTML = equipmentTypeSelect.innerHTML;
             const allSelects = document.querySelectorAll('.ppe-equipment-type');
             allSelects.forEach(select => {
@@ -2570,6 +2587,23 @@ const PPE = {
                 }
             });
         }
+    },
+
+    _updateAllBalanceDisplays() {
+        const map = this.state.ppeItemsBalanceMap || {};
+        document.querySelectorAll('.ppe-item-row').forEach(row => {
+            const select = row.querySelector('.ppe-equipment-type');
+            const display = row.querySelector('.ppe-balance-display');
+            const valueEl = row.querySelector('.ppe-balance-value');
+            if (!select || !display || !valueEl) return;
+            const selected = (select.value || '').trim();
+            if (selected && map[selected] !== undefined) {
+                valueEl.textContent = map[selected].toFixed(0);
+                display.style.display = 'flex';
+            } else {
+                display.style.display = 'none';
+            }
+        });
     },
 
     async viewPPE(id) {
