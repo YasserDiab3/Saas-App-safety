@@ -12,7 +12,7 @@ const PPE = {
         stockCacheExpiry: 5 * 60 * 1000, // انتهاء صلاحية Cache بعد 5 دقائق
         ppeItemsListCache: null, // Cache لقائمة الأصناف في المنسدلة
         ppeItemsListCacheTime: null, // وقت تحديث قائمة الأصناف
-        ppeItemsListCacheExpiry: 30 * 60 * 1000, // انتهاء صلاحية القائمة بعد 30 دقيقة
+        ppeItemsListCacheExpiry: 2 * 60 * 1000, // انتهاء صلاحية القائمة بعد دقيقتين
         ppeItemsOptionsHTML: '', // HTML options معاد استخدامه عند إضافة صفوف
         /** رسالة مختصرة عند تعذّر الجلب وبقاء المعروض من الكاش */
         stockStaleWarningMsg: '',
@@ -1650,118 +1650,194 @@ const PPE = {
             branch: initialEmployee?.branch || ppeData?.employeeBranch || '',
             location: initialEmployee?.location || ppeData?.employeeLocation || ''
         };
+        const formatInfo = (value) => value ? Utils.escapeHTML(value) : '—';
         const t = (k, f) => this._t(k, f);
         const ut = (s) => Utils.escapeHTML(s);
         const stReceived = t('module.ppe.status.received', 'مستلم');
         const stPending = t('module.ppe.status.pending', 'قيد التسليم');
         modal.innerHTML = `
-            <div class="modal-content w-[min(100%,30rem)] max-w-[min(94vw,30rem)]" style="border-radius: 0.75rem; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.1);">
-                <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; padding: 0.75rem 1rem; text-align: center; position: relative; border-bottom: none;">
-                    <h2 class="modal-title" style="margin: 0; font-weight: 500; font-size: 0.95rem;">
-                        <i class="fas fa-clipboard-list ml-1.5" style="font-size: 0.85rem;"></i>
+            <div class="modal-content w-[min(100%,52rem)] max-w-[min(94vw,52rem)]" style="border-radius: 1rem; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+                <div class="modal-header" style="background: linear-gradient(135deg, #2563eb, #0d9488); color: #ffffff; text-align: center; position: relative; padding: 1.25rem 1.5rem;">
+                    <h2 class="modal-title" style="margin: 0 auto; font-weight: 700; letter-spacing: 0.03em;">
                         ${isEdit ? ut(t('module.ppe.title.editReceipt', 'تعديل استلام')) : ut(t('module.ppe.title.newReceipt', 'تسجيل استلام جديد'))}
                     </h2>
-                    <button class="modal-close" onclick="this.closest('.modal-overlay').remove()" style="position: absolute; left: 0.5rem; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.1); border: none; width: 1.5rem; height: 1.5rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;">
-                        <i class="fas fa-times" style="font-size: 0.65rem;"></i>
+                    <button class="modal-close" onclick="this.closest('.modal-overlay').remove()" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #ffffff; background: rgba(255,255,255,0.15); border: none; width: 2rem; height: 2rem; border-radius: 50%; display: flex; items-center: center; justify-content: center; transition: all 0.2s;">
+                        <i class="fas fa-times"></i>
                     </button>
                 </div>
-                <div class="modal-body" style="padding: 1rem;">
-                    <form id="ppe-form" class="space-y-2.5">
-                        <div class="flex gap-2">
-                            <div class="flex-1">
-                                <label class="block text-[10px] font-semibold text-gray-500 mb-0.5">${ut(t('module.ppe.label.employeeCode', 'كود الموظف'))}</label>
-                                <div class="relative">
-                                    <input type="text" id="ppe-employee-code" required class="form-input text-xs pr-7 h-[2rem]"
-                                        value="${Utils.escapeHTML(ppeData?.employeeCode || ppeData?.employeeNumber || '')}"
-                                        placeholder="كود الموظف" autocomplete="off">
-                                    <button type="button" id="ppe-search-code-btn"
-                                        class="absolute inset-y-0 left-0 flex items-center justify-center w-7 text-gray-300 hover:text-indigo-400"
-                                        title="بحث">
-                                        <i class="fas fa-search" style="font-size: 0.65rem;"></i>
-                                    </button>
-                                </div>
+                <div class="modal-body bg-gradient-to-b from-slate-50/70 to-white">
+                    <form id="ppe-form" class="space-y-5">
+                        <section class="rounded-xl border border-blue-200/70 bg-gradient-to-br from-blue-50/70 via-white to-cyan-50/50 p-4 shadow-sm">
+                            <div class="flex items-center gap-2 mb-3 text-blue-900">
+                                <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white"><i class="fas fa-user"></i></span>
+                                <h3 class="text-sm font-extrabold">بيانات الموظف</h3>
                             </div>
-                            <div class="flex-[2]">
-                                <label class="block text-[10px] font-semibold text-gray-500 mb-0.5">${ut(t('module.ppe.label.employeeName', 'الاسم'))}</label>
-                                <input type="text" id="ppe-employee-name" class="form-input text-xs h-[2rem]"
-                                    value="${Utils.escapeHTML(ppeData?.employeeName || '')}" placeholder="اسم الموظف" autocomplete="off">
-                                <div id="ppe-employee-dropdown" class="hse-lookup-dropdown absolute z-50 hidden w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-auto"></div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">${ut(t('module.ppe.label.employeeCode', 'الكود الوظيفي *'))}</label>
+                                <div class="relative">
+                                    <input type="text" id="ppe-employee-code" required class="form-input pr-12"
+                                        value="${Utils.escapeHTML(ppeData?.employeeCode || ppeData?.employeeNumber || '')}"
+                                        placeholder="${ut(t('module.ppe.searchEmployeeTitle', 'أدخل الكود الوظيفي أو امسح الباركود'))}" autocomplete="off">
+                                    <button type="button" id="ppe-search-code-btn"
+                                        class="absolute inset-y-0 left-0 flex items-center justify-center w-10 text-gray-500 hover:text-gray-700"
+                                        title="${ut(t('module.ppe.searchEmployeeTitle', 'بحث عن الموظف'))}">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                    </div>
+                                <p class="text-xs text-gray-500 mt-1">
+                                    ${ut(t('module.ppe.hint.employeeCode', ''))}
+                                </p>
+                                </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">${ut(t('module.ppe.label.employeeName', 'اسم الموظف'))}</label>
+                                <div class="relative">
+                                    <input type="text" id="ppe-employee-name" class="form-input"
+                                        value="${Utils.escapeHTML(ppeData?.employeeName || '')}"
+                                        placeholder="${ut(t('module.ppe.placeholder.employeeName', ''))}" autocomplete="off">
+                                    <div id="ppe-employee-dropdown" class="hse-lookup-dropdown absolute z-50 hidden w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto"></div>
+                            </div>
                             </div>
                         </div>
+                        </section>
 
                         <input type="hidden" id="ppe-employee-department" value="${Utils.escapeHTML(employeeInfo.department)}">
                         <input type="hidden" id="ppe-employee-position" value="${Utils.escapeHTML(employeeInfo.position)}">
                         <input type="hidden" id="ppe-employee-branch" value="${Utils.escapeHTML(employeeInfo.branch)}">
                         <input type="hidden" id="ppe-employee-location" value="${Utils.escapeHTML(employeeInfo.location)}">
 
-                        <div class="flex items-center justify-between">
-                            <span class="text-[10px] font-semibold text-gray-500">${ut(t('module.ppe.items.title', 'الأصناف'))}</span>
-                            <button type="button" id="ppe-add-item-btn" class="text-[10px] text-indigo-400 hover:text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-2 py-0.5 rounded transition-colors" style="font-weight: 500;">
-                                <i class="fas fa-plus ml-1" style="font-size: 0.55rem;"></i>${ut(t('module.ppe.items.addRow', 'إضافة'))}
-                            </button>
-                        </div>
-                        <div id="ppe-items-container" class="space-y-1">
-                            <div class="ppe-item-row border border-slate-200 rounded-md bg-white overflow-hidden">
-                                <div class="flex gap-1.5 p-2 items-end">
-                                    <div class="flex-1 min-w-0">
-                                        <select id="ppe-equipment-type" required class="form-input text-xs ppe-equipment-type w-full rounded border-slate-200 h-[1.85rem]">
-                                            <option value="">${ut(t('module.ppe.equip.loading', 'تحميل...'))}</option>
-                                        </select>
-                                    </div>
-                                    <div style="width: 4.5rem; flex-shrink: 0;">
-                                        <select class="form-input text-xs ppe-shoe-size w-full rounded border-slate-200 h-[1.85rem]">
-                                            <option value="">مقاس</option>
-                                            <option value="38" ${ppeData?.shoeSize === '38' || ppeData?.shoeSize === 38 ? 'selected' : ''}>38</option>
-                                            <option value="39" ${ppeData?.shoeSize === '39' || ppeData?.shoeSize === 39 ? 'selected' : ''}>39</option>
-                                            <option value="40" ${ppeData?.shoeSize === '40' || ppeData?.shoeSize === 40 ? 'selected' : ''}>40</option>
-                                            <option value="41" ${ppeData?.shoeSize === '41' || ppeData?.shoeSize === 41 ? 'selected' : ''}>41</option>
-                                            <option value="42" ${ppeData?.shoeSize === '42' || ppeData?.shoeSize === 42 ? 'selected' : ''}>42</option>
-                                            <option value="43" ${ppeData?.shoeSize === '43' || ppeData?.shoeSize === 43 ? 'selected' : ''}>43</option>
-                                            <option value="44" ${ppeData?.shoeSize === '44' || ppeData?.shoeSize === 44 ? 'selected' : ''}>44</option>
-                                            <option value="45" ${ppeData?.shoeSize === '45' || ppeData?.shoeSize === 45 ? 'selected' : ''}>45</option>
-                                            <option value="46" ${ppeData?.shoeSize === '46' || ppeData?.shoeSize === 46 ? 'selected' : ''}>46</option>
-                                            <option value="47" ${ppeData?.shoeSize === '47' || ppeData?.shoeSize === 47 ? 'selected' : ''}>47</option>
-                                            <option value="48" ${ppeData?.shoeSize === '48' || ppeData?.shoeSize === 48 ? 'selected' : ''}>48</option>
-                                        </select>
-                                    </div>
-                                    <div style="width: 4rem; flex-shrink: 0;">
-                                        <div class="flex items-center gap-0.5">
-                                            <input type="number" id="ppe-quantity" required class="form-input text-xs ppe-quantity w-full rounded border-slate-200 h-[1.85rem] text-center" min="1" value="${ppeData?.quantity || 1}">
-                                            <button type="button" class="ppe-remove-item hidden text-rose-200 hover:text-rose-400 transition-colors" style="background: none; border: none; cursor: pointer; padding: 0.1rem 0.15rem;">
-                                                <i class="fas fa-times" style="font-size: 0.6rem;"></i>
-                                            </button>
-                                        </div>
+                        <div class="rounded-xl border border-blue-100 bg-blue-50/30 p-4 shadow-sm">
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+                                <div class="bg-white/90 p-3 rounded-lg border border-blue-50/50 shadow-sm flex items-center gap-3">
+                                    <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-100 text-blue-600"><i class="fas fa-signature text-sm"></i></span>
+                                    <div class="min-w-0">
+                                        <p class="text-[11px] font-bold text-blue-700/70 mb-0.5">${ut(t('module.ppe.label.name', 'الاسم'))}</p>
+                                        <p id="ppe-employee-info-name" class="font-extrabold text-slate-800 truncate">${formatInfo(employeeInfo.name)}</p>
                                     </div>
                                 </div>
-                                <div class="ppe-eligibility-info hidden border-t border-slate-100 px-2 py-1.5 bg-slate-50/50 text-[10px]"></div>
+                                <div class="bg-white/90 p-3 rounded-lg border border-blue-50/50 shadow-sm flex items-center gap-3">
+                                    <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-cyan-100 text-cyan-600"><i class="fas fa-building text-sm"></i></span>
+                                    <div class="min-w-0">
+                                        <p class="text-[11px] font-bold text-cyan-700/70 mb-0.5">${ut(t('module.ppe.label.department', 'القسم'))}</p>
+                                        <p id="ppe-employee-info-department" class="font-extrabold text-slate-800 truncate">${formatInfo(employeeInfo.department)}</p>
+                                    </div>
+                                </div>
+                                <div class="bg-white/90 p-3 rounded-lg border border-blue-50/50 shadow-sm flex items-center gap-3">
+                                    <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600"><i class="fas fa-briefcase text-sm"></i></span>
+                                    <div class="min-w-0">
+                                        <p class="text-[11px] font-bold text-indigo-700/70 mb-0.5">${ut(t('module.ppe.label.position', 'المنصب'))}</p>
+                                        <p id="ppe-employee-info-position" class="font-extrabold text-slate-800 truncate">${formatInfo(employeeInfo.position)}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-xs text-slate-500 flex flex-wrap gap-4 mt-3 px-1">
+                                <span id="ppe-employee-info-branch" class="${employeeInfo.branch ? '' : 'hidden'} bg-slate-100 px-2 py-1 rounded-md font-medium">
+                                    ${employeeInfo.branch ? `<i class="fas fa-code-branch text-slate-400 ml-1"></i>${ut(t('module.ppe.label.branch', 'الفرع'))}: ${Utils.escapeHTML(employeeInfo.branch)}` : ''}
+                                </span>
+                                <span id="ppe-employee-info-location" class="${employeeInfo.location ? '' : 'hidden'} bg-slate-100 px-2 py-1 rounded-md font-medium">
+                                    ${employeeInfo.location ? `<i class="fas fa-map-marker-alt text-slate-400 ml-1"></i>${ut(t('module.ppe.label.location', 'الموقع'))}: ${Utils.escapeHTML(employeeInfo.location)}` : ''}
+                                </span>
                             </div>
                         </div>
 
-                        <div class="flex gap-2">
-                            <div class="flex-1">
-                                <label class="block text-[10px] font-semibold text-gray-500 mb-0.5">${ut(t('module.ppe.label.receiptDate', 'التاريخ'))}</label>
-                                <input type="date" id="ppe-receipt-date" required class="form-input text-xs h-[2rem]"
-                                    value="${ppeData?.receiptDate ? new Date(ppeData.receiptDate).toISOString().slice(0, 10) : ''}">
+                        <section class="rounded-xl border border-emerald-200/70 bg-gradient-to-br from-emerald-50/70 via-white to-teal-50/50 p-4 shadow-sm space-y-4">
+                            <div class="flex items-center gap-2 mb-1 text-emerald-900">
+                                <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-600 text-white"><i class="fas fa-boxes"></i></span>
+                                <h3 class="text-sm font-extrabold">الأصناف المستلمة</h3>
                             </div>
-                            <div class="flex-1">
-                                <label class="block text-[10px] font-semibold text-gray-500 mb-0.5">${ut(t('module.ppe.label.status', 'الحالة'))}</label>
-                                <select id="ppe-status" required class="form-input text-xs h-[2rem]">
-                                    <option value="مستلم" ${ppeData?.status === 'مستلم' ? 'selected' : ''}>${ut(stReceived)}</option>
-                                    <option value="قيد التسليم" ${ppeData?.status === 'قيد التسليم' ? 'selected' : ''}>${ut(stPending)}</option>
-                                </select>
+                        <div class="space-y-4">
+                            <div>
+                                <div class="flex items-center justify-between mb-2">
+                                    <h3 class="text-sm font-semibold text-gray-800">${ut(t('module.ppe.items.title', 'الأصناف المستلمة *'))}</h3>
+                                    <button type="button" id="ppe-add-item-btn" class="btn-secondary text-xs px-3 py-1">
+                                        <i class="fas fa-plus ml-1"></i>${ut(t('module.ppe.items.addRow', 'إضافة صنف آخر'))}
+                                    </button>
+                                </div>
+                                <div id="ppe-items-container" class="space-y-4">
+                                    <div class="ppe-item-row w-full rounded-xl border border-slate-200/90 bg-white shadow-sm ring-1 ring-slate-900/[0.04] overflow-hidden">
+                                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 items-end bg-slate-50/50">
+                                            <div class="min-w-0">
+                                                <label class="block text-xs font-semibold text-gray-700 mb-1">
+                                                    <i class="fas fa-shield-alt text-emerald-600 ml-1"></i>${ut(t('module.ppe.label.equipmentType', 'نوع المعدة *'))}
+                                                </label>
+                                                <select id="ppe-equipment-type" required class="form-input ppe-equipment-type w-full border-slate-200 focus:border-emerald-500 focus:ring-emerald-500 rounded-lg">
+                                                    <option value="">${ut(t('module.ppe.equip.loading', 'جاري التحميل...'))}</option>
+                                                </select>
+                                                <p class="text-[11px] text-gray-400 mt-1">
+                                                    ${ut(t('module.ppe.hint.fromStock', ''))}
+                                                </p>
+                                            </div>
+                                            <div class="min-w-0">
+                                                <label class="block text-xs font-semibold text-gray-700 mb-1">
+                                                    <i class="fas fa-shoe-prints text-blue-600 ml-1"></i>مقاس الحذاء (اختياري)
+                                                </label>
+                                                <select class="form-input ppe-shoe-size w-full border-slate-200 focus:border-blue-500 focus:ring-blue-500 rounded-lg">
+                                                    <option value="">اختر المقاس...</option>
+                                                    <option value="38" ${ppeData?.shoeSize === '38' || ppeData?.shoeSize === 38 ? 'selected' : ''}>38</option>
+                                                    <option value="39" ${ppeData?.shoeSize === '39' || ppeData?.shoeSize === 39 ? 'selected' : ''}>39</option>
+                                                    <option value="40" ${ppeData?.shoeSize === '40' || ppeData?.shoeSize === 40 ? 'selected' : ''}>40</option>
+                                                    <option value="41" ${ppeData?.shoeSize === '41' || ppeData?.shoeSize === 41 ? 'selected' : ''}>41</option>
+                                                    <option value="42" ${ppeData?.shoeSize === '42' || ppeData?.shoeSize === 42 ? 'selected' : ''}>42</option>
+                                                    <option value="43" ${ppeData?.shoeSize === '43' || ppeData?.shoeSize === 43 ? 'selected' : ''}>43</option>
+                                                    <option value="44" ${ppeData?.shoeSize === '44' || ppeData?.shoeSize === 44 ? 'selected' : ''}>44</option>
+                                                    <option value="45" ${ppeData?.shoeSize === '45' || ppeData?.shoeSize === 45 ? 'selected' : ''}>45</option>
+                                                    <option value="46" ${ppeData?.shoeSize === '46' || ppeData?.shoeSize === 46 ? 'selected' : ''}>46</option>
+                                                    <option value="47" ${ppeData?.shoeSize === '47' || ppeData?.shoeSize === 47 ? 'selected' : ''}>47</option>
+                                                    <option value="48" ${ppeData?.shoeSize === '48' || ppeData?.shoeSize === 48 ? 'selected' : ''}>48</option>
+                                                </select>
+                                            </div>
+                                            <div class="min-w-0">
+                                                <label class="block text-xs font-semibold text-gray-700 mb-1">
+                                                    <i class="fas fa-sort-numeric-up text-amber-600 ml-1"></i>${ut(t('module.ppe.label.qty', 'الكمية *'))}
+                                                </label>
+                                                <div class="flex items-center gap-2">
+                                                    <input type="number" id="ppe-quantity" required class="form-input ppe-quantity w-full border-slate-200 focus:border-amber-500 focus:ring-amber-500 rounded-lg min-w-0" min="1"
+                                                        value="${ppeData?.quantity || 1}" placeholder="${ut(t('module.ppe.table.quantity', 'الكمية'))}">
+                                                    <button type="button" class="btn-secondary ppe-remove-item hidden text-xs px-3 py-2 whitespace-nowrap shrink-0 rounded-lg border-rose-200 text-rose-600 hover:bg-rose-50">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="ppe-eligibility-info hidden border-t border-slate-100 p-4 pt-4 bg-white w-full min-w-0"></div>
+                                    </div>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">
+                                    ${ut(t('module.ppe.items.hint', ''))}
+                                </p>
+                            </div>
+
+                            <div class="pt-1 border-t border-emerald-100"></div>
+                            <div class="flex items-center gap-2 text-amber-900 mt-1">
+                                <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500 text-white"><i class="fas fa-calendar-check"></i></span>
+                                <h3 class="text-sm font-extrabold">تفاصيل الاستلام</h3>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-3 rounded-xl border border-amber-200/70 bg-gradient-to-br from-amber-50/70 to-white">
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">${ut(t('module.ppe.label.receiptDate', 'تاريخ الاستلام *'))}</label>
+                                    <input type="date" id="ppe-receipt-date" required class="form-input"
+                                        value="${ppeData?.receiptDate ? new Date(ppeData.receiptDate).toISOString().slice(0, 10) : ''}">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">${ut(t('module.ppe.label.status', 'الحالة *'))}</label>
+                                    <select id="ppe-status" required class="form-input">
+                                        <option value="مستلم" ${ppeData?.status === 'مستلم' ? 'selected' : ''}>${ut(stReceived)}</option>
+                                        <option value="قيد التسليم" ${ppeData?.status === 'قيد التسليم' ? 'selected' : ''}>${ut(stPending)}</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">${ut(t('module.ppe.label.notes', 'ملاحظات'))}</label>
+                                <textarea id="ppe-notes" class="form-input" rows="3"
+                                    placeholder="${ut(t('module.ppe.placeholder.notes', ''))}">${Utils.escapeHTML(ppeData?.notes || '')}</textarea>
                             </div>
                         </div>
-
-                        <div>
-                            <label class="block text-[10px] font-semibold text-gray-500 mb-0.5">${ut(t('module.ppe.label.notes', 'ملاحظات'))}</label>
-                            <textarea id="ppe-notes" class="form-input text-xs" rows="2" style="resize: none; min-height: 0;"
-                                placeholder="${ut(t('module.ppe.placeholder.notes', ''))}">${Utils.escapeHTML(ppeData?.notes || '')}</textarea>
-                        </div>
-
-                        <div class="flex items-center justify-end gap-1.5 pt-1.5" style="border-top: 1px solid #e2e8f0;">
-                            <button type="button" class="btn-secondary text-[11px] px-2.5 py-1" onclick="this.closest('.modal-overlay').remove()">${ut(t('module.common.cancel', 'إلغاء'))}</button>
-                            <button type="submit" class="text-[11px] px-3 py-1" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">
-                                <i class="fas fa-save ml-1" style="font-size: 0.65rem;"></i>${isEdit ? ut(t('module.common.saveChanges', 'حفظ')) : ut(t('module.ppe.btn.saveReceipt', 'تسجيل'))}
+                        </section>
+                        <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
+                            <button type="button" class="btn-secondary" onclick="this.closest('.modal-overlay').remove()">${ut(t('module.common.cancel', 'إلغاء'))}</button>
+                            <button type="submit" class="btn-primary">
+                                <i class="fas fa-save ml-2"></i>${isEdit ? ut(t('module.common.saveChanges', 'حفظ التعديلات')) : ut(t('module.ppe.btn.saveReceipt', 'تسجيل الاستلام'))}
                             </button>
                         </div>
                     </form>
@@ -1770,9 +1846,6 @@ const PPE = {
         `;
         document.body.appendChild(modal);
         this.applyModuleI18n(modal);
-
-        // Start loading equipment types immediately (no setTimeout delay)
-        this.loadPPEItemsForDropdown(ppeData?.equipmentType);
 
         // Setup employee code search and autocomplete for PPE form
         setTimeout(() => {
@@ -1784,14 +1857,50 @@ const PPE = {
             const positionInput = document.getElementById('ppe-employee-position');
             const branchInput = document.getElementById('ppe-employee-branch');
             const locationInput = document.getElementById('ppe-employee-location');
+            const infoName = document.getElementById('ppe-employee-info-name');
+            const infoDepartment = document.getElementById('ppe-employee-info-department');
+            const infoPosition = document.getElementById('ppe-employee-info-position');
+            const infoBranch = document.getElementById('ppe-employee-info-branch');
+            const infoLocation = document.getElementById('ppe-employee-info-location');
             const employees = AppState.appData.employees || [];
 
             const Lb = (k, f) => PPE._t(k, f);
+            const updateInfoDisplay = (info = {}) => {
+                if (infoName) infoName.textContent = info.name || '—';
+                if (infoDepartment) infoDepartment.textContent = info.department || '—';
+                if (infoPosition) infoPosition.textContent = info.position || '—';
+                if (infoBranch) {
+                    if (info.branch) {
+                        infoBranch.innerHTML = `<i class="fas fa-code-branch text-slate-400 ml-1"></i>${Lb('module.ppe.label.branch', 'الفرع')}: ${Utils.escapeHTML(info.branch)}`;
+                        infoBranch.classList.remove('hidden');
+                    } else {
+                        infoBranch.innerHTML = '';
+                        infoBranch.classList.add('hidden');
+                    }
+                }
+                if (infoLocation) {
+                    if (info.location) {
+                        infoLocation.innerHTML = `<i class="fas fa-map-marker-alt text-slate-400 ml-1"></i>${Lb('module.ppe.label.location', 'الموقع')}: ${Utils.escapeHTML(info.location)}`;
+                        infoLocation.classList.remove('hidden');
+                    } else {
+                        infoLocation.innerHTML = '';
+                        infoLocation.classList.add('hidden');
+                    }
+                }
+            };
+
             const applyEmployee = (employee, { notifySuccess = false, notifyFail = false } = {}) => {
                 if (!employee) {
                     if (notifyFail) {
                         Notification.warning(Lb('module.ppe.notify.employeeNotFound', 'لم يتم العثور على موظف بهذا الكود'));
                     }
+                    updateInfoDisplay({
+                        name: nameInput?.value?.trim() || '—',
+                        department: departmentInput?.value || '',
+                        position: positionInput?.value || '',
+                        branch: branchInput?.value || '',
+                        location: locationInput?.value || ''
+                    });
                     return false;
                 }
 
@@ -1804,6 +1913,14 @@ const PPE = {
                 if (positionInput) positionInput.value = employee.position || '';
                 if (branchInput) branchInput.value = employee.branch || '';
                 if (locationInput) locationInput.value = employee.location || '';
+
+                updateInfoDisplay({
+                    name: employee.name || '—',
+                    department: employee.department || '',
+                    position: employee.position || '',
+                    branch: employee.branch || '',
+                    location: employee.location || ''
+                });
 
                 if (notifySuccess) {
                     Notification.success(Lb('module.ppe.notify.employeeLoaded', 'تم جلب بيانات الموظف بنجاح'));
@@ -2019,6 +2136,9 @@ const PPE = {
                     });
                 }
             }
+
+            // Load PPE items list from stock and populate equipment type dropdown
+            this.loadPPEItemsForDropdown(ppeData?.equipmentType);
 
             // ===== استحقاق الاستلام: عرض آخر استلام والمدة وحالة الاستحقاق =====
             const receiptDateInput = document.getElementById('ppe-receipt-date');
