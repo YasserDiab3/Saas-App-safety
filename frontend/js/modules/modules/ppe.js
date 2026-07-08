@@ -1674,7 +1674,7 @@ const PPE = {
                                 <span style="display: inline-flex; width: 1.75rem; height: 1.75rem; align-items: center; justify-content: center; border-radius: 50%; background: linear-gradient(135deg, #4338ca, #6366f1); color: #fff; font-size: 0.75rem; box-shadow: 0 2px 6px rgba(79,70,229,0.3);"><i class="fas fa-user"></i></span>
                                 <h3 class="text-sm font-bold" style="color: #1e293b; margin: 0;">بيانات الموظف</h3>
                             </div>
-                        <div class="grid grid-cols-6 gap-4">
+                        <div class="grid grid-cols-8 gap-4">
                             <div class="col-span-1">
                                 <label class="block text-sm font-semibold text-gray-700 mb-2">${ut(t('module.ppe.label.employeeCode', 'الكود الوظيفي *'))}</label>
                                 <div class="relative">
@@ -1688,7 +1688,7 @@ const PPE = {
                                     </button>
                                     </div>
                                 </div>
-                            <div class="col-span-5">
+                            <div class="col-span-7">
                                 <label class="block text-sm font-semibold text-gray-700 mb-2">${ut(t('module.ppe.label.employeeName', 'اسم الموظف'))}</label>
                                 <div class="relative">
                                     <input type="text" id="ppe-employee-name" class="form-input"
