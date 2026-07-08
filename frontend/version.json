@@ -1,4 +1,4 @@
 {
-  "version": "2.2.106",
-  "message": "fix: clear _stockLoadInflightPromise in clearCache so stock list refreshes after add"
+  "version": "2.2.107",
+  "message": "fix: await loadStockItems after add to ensure stock list refreshes"
 }
