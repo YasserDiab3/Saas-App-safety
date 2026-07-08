@@ -1674,7 +1674,7 @@ const PPE = {
                                 <span style="display: inline-flex; width: 1.75rem; height: 1.75rem; align-items: center; justify-content: center; border-radius: 50%; background: linear-gradient(135deg, #4338ca, #6366f1); color: #fff; font-size: 0.75rem; box-shadow: 0 2px 6px rgba(79,70,229,0.3);"><i class="fas fa-user"></i></span>
                                 <h3 class="text-sm font-bold" style="color: #1e293b; margin: 0;">بيانات الموظف</h3>
                             </div>
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
                             <div class="md:col-span-1">
                                 <label class="block text-sm font-semibold text-gray-700 mb-2">${ut(t('module.ppe.label.employeeCode', 'الكود الوظيفي *'))}</label>
                                 <div class="relative">
@@ -1688,13 +1688,14 @@ const PPE = {
                                     </button>
                                     </div>
                                 </div>
-                            <div class="md:col-span-3">
+                            <div class="md:col-span-5">
                                 <label class="block text-sm font-semibold text-gray-700 mb-2">${ut(t('module.ppe.label.employeeName', 'اسم الموظف'))}</label>
                                 <div class="relative">
                                     <input type="text" id="ppe-employee-name" class="form-input"
                                         value="${Utils.escapeHTML(ppeData?.employeeName || '')}"
-                                        placeholder="${ut(t('module.ppe.placeholder.employeeName', ''))}" autocomplete="off">
-                                    <div id="ppe-employee-dropdown" class="hse-lookup-dropdown absolute z-50 hidden w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto"></div>
+                                        placeholder="${ut(t('module.ppe.placeholder.employeeName', ''))}" autocomplete="off"
+                                        style="font-size: 0.95rem; letter-spacing: 0.03em;">
+                                    <div id="ppe-employee-dropdown" class="hse-lookup-dropdown absolute z-50 hidden w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto" style="width: auto; min-width: 100%;"></div>
                             </div>
                             </div>
                         </div>
@@ -1754,8 +1755,8 @@ const PPE = {
                                 </div>
                                 <div id="ppe-items-container" class="space-y-4">
                                     <div class="ppe-item-row w-full border border-slate-200 rounded-lg bg-white overflow-hidden" style="box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
-                                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 items-end" style="background: linear-gradient(135deg, #fafcff, #f8fafc);">
-                                            <div class="min-w-0">
+                                        <div class="grid grid-cols-1 md:grid-cols-7 gap-3 p-3 items-end" style="background: linear-gradient(135deg, #fafcff, #f8fafc);">
+                                            <div class="min-w-0 md:col-span-3">
                                                 <label class="block text-xs font-semibold text-gray-700 mb-1">
                                                     <i class="fas fa-shield-alt text-emerald-600 ml-1"></i>${ut(t('module.ppe.label.equipmentType', 'نوع المعدة *'))}
                                                 </label>
@@ -1768,7 +1769,7 @@ const PPE = {
                                                     <span class="ppe-balance-value font-bold text-slate-700">0</span>
                                                 </div>
                                             </div>
-                                            <div class="min-w-0">
+                                            <div class="min-w-0 md:col-span-2">
                                                 <label class="block text-xs font-semibold text-gray-700 mb-1">
                                                     <i class="fas fa-shoe-prints text-emerald-600 ml-1"></i>مقاس الحذاء (اختياري)
                                                 </label>
@@ -1787,7 +1788,7 @@ const PPE = {
                                                     <option value="48" ${ppeData?.shoeSize === '48' || ppeData?.shoeSize === 48 ? 'selected' : ''}>48</option>
                                                 </select>
                                             </div>
-                                            <div class="min-w-0">
+                                            <div class="min-w-0 md:col-span-2">
                                                 <label class="block text-xs font-semibold text-gray-700 mb-1">
                                                     <i class="fas fa-sort-numeric-up text-amber-600 ml-1"></i>${ut(t('module.ppe.label.qty', 'الكمية *'))}
                                                 </label>

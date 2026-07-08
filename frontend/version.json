@@ -1,4 +1,4 @@
 {
-  "version": "2.2.121",
-  "message": "style(ppe): 900x1300 form, gold header, centered title/buttons, enhanced colors"
+  "version": "2.2.122",
+  "message": "feat(ppe): side-by-side code+name fields, show stock balance per item row"
 }
