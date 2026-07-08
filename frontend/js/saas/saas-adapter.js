@@ -222,6 +222,312 @@
         return WRITE_RE.test(action);
     }
 
+    async function tryExplicitHandler(action, data) {
+        if (action === 'getCompanySettings') {
+            const rows = await rpc('api_read_sheet', { p_sheet: 'CompanySettings' });
+            if (rows && rows.success === false) return rows;
+            const arr = Array.isArray(rows) ? rows : [];
+            const row = arr.find(r => String(r.id) === 'default') || arr[0] || {};
+            return { success: true, data: row };
+        }
+        if (action === 'saveCompanySettings') {
+            const id = 'default';
+            const payload = Object.assign({}, data || {}, { id });
+            return await rpc('api_upsert', { p_sheet: 'CompanySettings', p_id: id, p_data: payload });
+        }
+        if (action === 'getFormSettings') {
+            const rows = await rpc('api_read_sheet', { p_sheet: 'FormSettings' });
+            if (rows && rows.success === false) return rows;
+            const arr = Array.isArray(rows) ? rows : [];
+            const row = arr.find(r => String(r.id) === 'FORM-SETTINGS-1')
+                || arr.find(r => String(r.id) === 'default')
+                || arr[0] || {};
+            const parseField = (val, fallback) => {
+                if (Array.isArray(val)) return val;
+                if (typeof val === 'string' && val.trim()) { try { return JSON.parse(val); } catch (_e) { return fallback; } }
+                return fallback;
+            };
+            return { success: true, data: { sites: parseField(row.sites, []), departments: parseField(row.departments, []), safetyTeam: parseField(row.safetyTeam, []) } };
+        }
+        if (action === 'saveFormSettings') {
+            return await rpc('api_upsert', { p_sheet: 'FormSettings', p_id: String((data && data.id) || 'FORM-SETTINGS-1'), p_data: { id: String((data && data.id) || 'FORM-SETTINGS-1'), sites: Array.isArray(data && data.sites) ? data.sites : [], departments: Array.isArray(data && data.departments) ? data.departments : [], safetyTeam: Array.isArray(data && data.safetyTeam) ? data.safetyTeam : [], updatedAt: new Date().toISOString() } });
+        }
+        if (action === 'reportUserVersion') {
+            return await rpc('api_report_user_version', { p_payload: data || {} });
+        }
+        if (action === 'getHelpCenter') {
+            const res = await rpc('api_get_help_center', {});
+            if (res && res.success === false) return res;
+            return { success: true, data: (res && res.data) || res || {} };
+        }
+        if (action === 'saveHelpCenter') {
+            return await rpc('api_save_help_center', { p_data: data || {} });
+        }
+        if (action === 'updateMyProfile') {
+            return await rpc('api_update_my_profile', { p_patch: data.patch || data.updateData || data || {} });
+        }
+        if (action === 'updateUser') {
+            return await rpc('api_patch', { p_sheet: 'Users', p_id: data.userId || data.id, p_patch: data.updateData || data.patch || {} });
+        }
+        if (action === 'addUser') {
+            const payload = data || {}; const id = payload.id || cryptoId();
+            return await rpc('api_upsert', { p_sheet: 'Users', p_id: id, p_data: Object.assign({}, payload, { id }) });
+        }
+        if (action === 'getAllUserVersions') {
+            const latest = (data && data.latestVersion) ? String(data.latestVersion) : '';
+            const res = await rpc('api_list_user_versions', { p_latest_version: latest });
+            if (res && res.success === false) return res;
+            return { success: true, data: (res && Array.isArray(res.data)) ? res.data : [] };
+        }
+        if (action === 'getUserVersionStats') {
+            const latest = (data && data.latestVersion) ? String(data.latestVersion) : '';
+            const res = await rpc('api_user_version_stats', { p_latest_version: latest });
+            if (res && res.success === false) return res;
+            return Object.assign({ success: true }, res || {});
+        }
+        // ---- PPE actions ----
+        if (action === 'addOrUpdatePPEStockItem') {
+            const itemId = data.itemId || cryptoId();
+            return await rpc('api_upsert', { p_sheet: 'PPEStock', p_id: itemId, p_data: Object.assign({}, data, { itemId }) });
+        }
+        if (action === 'getAllPPEStockItems') {
+            return wrapArray(await rpc('api_read_sheet', { p_sheet: 'PPEStock' }));
+        }
+        if (action === 'getAllPPETransactions') {
+            return wrapArray(await rpc('api_read_sheet', { p_sheet: 'PPE_Transactions' }));
+        }
+        if (action === 'addPPE') {
+            const id = data.id || cryptoId();
+            return await rpc('api_upsert', { p_sheet: 'PPE', p_id: id, p_data: Object.assign({}, data, { id }) });
+        }
+        if (action === 'updatePPE') {
+            return await rpc('api_patch', { p_sheet: 'PPE', p_id: data.ppeId || data.id, p_patch: data.updateData || data });
+        }
+        if (action === 'deletePPE') {
+            return await rpc('api_delete', { p_sheet: 'PPE', p_id: data.ppeId || data.id });
+        }
+        if (action === 'getPPEItemsList') {
+            return wrapArray(await rpc('api_read_sheet', { p_sheet: 'PPEStock' }));
+        }
+        if (action === 'addPPETransaction') {
+            const id = data.id || cryptoId();
+            return await rpc('api_upsert', { p_sheet: 'PPE_Transactions', p_id: id, p_data: Object.assign({}, data, { id }) });
+        }
+        if (action === 'deletePPEStockItem') {
+            return await rpc('api_delete', { p_sheet: 'PPEStock', p_id: data.itemId || data.id });
+        }
+        // ---- Training / Employees / Contractors ----
+        if (action === 'deleteTraining') {
+            return await rpc('api_delete', { p_sheet: 'Training', p_id: data.trainingId || data.id });
+        }
+        if (action === 'deleteUser') {
+            return await rpc('api_delete', { p_sheet: 'Users', p_id: data.userId || data.id });
+        }
+        if (action === 'deactivateEmployee') {
+            return await rpc('api_patch', { p_sheet: 'Employees', p_id: data.employeeId || data.id, p_patch: { active: false, updatedAt: new Date().toISOString() } });
+        }
+        if (action === 'deleteEmployee') {
+            return await rpc('api_delete', { p_sheet: 'Employees', p_id: data.employeeId || data.id });
+        }
+        if (action === 'deleteApprovedContractor') {
+            return await rpc('api_delete', { p_sheet: 'ApprovedContractors', p_id: data.approvedContractorId || data.id });
+        }
+        if (action === 'updateApprovedContractor') {
+            return await rpc('api_patch', { p_sheet: 'ApprovedContractors', p_id: data.approvedContractorId || data.id, p_patch: data.updateData || data });
+        }
+        if (action === 'deleteContractor') {
+            return await rpc('api_delete', { p_sheet: 'Contractors', p_id: data.contractorId || data.id });
+        }
+        // ---- ISO / HSE ----
+        if (action === 'addHSEObjective') {
+            const id = data.id || cryptoId();
+            return await rpc('api_upsert', { p_sheet: 'HSEMonitoringPlans', p_id: id, p_data: Object.assign({}, data, { id, type: 'objective' }) });
+        }
+        if (action === 'addEnvironmentalAspect') {
+            const id = data.id || cryptoId();
+            return await rpc('api_upsert', { p_sheet: 'HSEMonitoringPlans', p_id: id, p_data: Object.assign({}, data, { id, type: 'environmental_aspect' }) });
+        }
+        if (action === 'addHSEAudit') {
+            const id = data.id || cryptoId();
+            return await rpc('api_upsert', { p_sheet: 'HSEMonitoringPlans', p_id: id, p_data: Object.assign({}, data, { id, type: 'audit' }) });
+        }
+        if (action === 'addHSENonConformity') {
+            const id = data.id || cryptoId();
+            return await rpc('api_upsert', { p_sheet: 'HSENonConformities', p_id: id, p_data: Object.assign({}, data, { id }) });
+        }
+        if (action === 'addHSECorrectiveAction') {
+            const id = data.id || cryptoId();
+            return await rpc('api_upsert', { p_sheet: 'HSENonConformities', p_id: id, p_data: Object.assign({}, data, { id, type: 'corrective_action' }) });
+        }
+        // ---- Incidents cleanup ----
+        if (action === 'cleanupIncidentsRegistry') {
+            const rows = await rpc('api_read_sheet', { p_sheet: 'Incidents' });
+            if (rows && rows.success === false) return rows;
+            return { success: true, removed: 0, kept: Array.isArray(rows) ? rows.length : 0 };
+        }
+        // ---- User Activity Log ----
+        if (action === 'getPublicIP') {
+            try { const resp = await fetch('https://api.ipify.org?format=json'); const json = await resp.json(); return { success: true, ip: json.ip, data: { ip: json.ip } }; }
+            catch (_e) { return { success: true, ip: '0.0.0.0', data: { ip: '0.0.0.0' } }; }
+        }
+        if (action === 'addUserActivityLog') {
+            const id = data.id || cryptoId();
+            return await rpc('api_upsert', { p_sheet: 'UserActivityLog', p_id: id, p_data: Object.assign({}, data, { id }) });
+        }
+        if (action === 'getAllUserActivityLogs') {
+            return wrapArray(await rpc('api_read_sheet', { p_sheet: 'UserActivityLog' }));
+        }
+        if (action === 'getDailyUserSessionActivityReport') {
+            const all = await rpc('api_read_sheet', { p_sheet: 'UserActivityLog' });
+            if (all && all.success === false) return all;
+            const arr = Array.isArray(all) ? all : [];
+            const dateStr = (data && data.date) || new Date().toISOString().slice(0, 10);
+            return { success: true, data: arr.filter(r => r && String(r.timestamp || r.createdAt || '').startsWith(dateStr)) };
+        }
+        // ---- Daily Observations PPT ----
+        if (action === 'getDailyObservationsPptTemplateId') {
+            const rows = await rpc('api_read_sheet', { p_sheet: 'CompanySettings' });
+            if (rows && rows.success === false) return rows;
+            const row = (Array.isArray(rows) ? rows : []).find(r => String(r.id) === 'default') || (Array.isArray(rows) ? rows[0] : {}) || {};
+            return { success: true, templateId: row.dailyObservationsPptTemplateId || null };
+        }
+        if (action === 'setDailyObservationsPptTemplateId') {
+            return await rpc('api_patch', { p_sheet: 'CompanySettings', p_id: 'default', p_patch: { dailyObservationsPptTemplateId: data.templateId || null, updatedAt: new Date().toISOString() } });
+        }
+        if (action === 'exportDailyObservationsPptReport') {
+            return { success: false, message: 'تصدير PPT يتطلب Edge Function — غير مفعّل حالياً' };
+        }
+        // ---- Password reset ----
+        if (action === 'resetUserPassword') {
+            return { success: false, message: 'إعادة تعيين كلمة المرور تتطلب Edge Function — يرجى استخدام لوحة التحكم في Supabase' };
+        }
+        // ---- AI features ----
+        if (action === 'processAIQuestion') {
+            return { success: false, message: 'المساعد الذكي يتطلب Edge Function — غير مفعّل حالياً' };
+        }
+        if (action === 'logAIQuestion') { return { success: true }; }
+        if (action === 'getSmartRecommendations') { return { success: true, recommendations: [] }; }
+        if (action === 'getEmployeeTrainingMatrix') {
+            return wrapArray(await rpc('api_read_sheet', { p_sheet: 'Training' }));
+        }
+        if (action === 'getPPEMatrix') {
+            return wrapArray(await rpc('api_read_sheet', { p_sheet: 'PPE' }));
+        }
+        // ---- File upload ----
+        if (action === 'uploadFileToDrive') {
+            return { success: false, message: 'رفع الملفات يتطلب Supabase Storage — غير مفعّل حالياً' };
+        }
+        // ---- Generic sheet operations ----
+        if (action === 'deleteFromSheet') {
+            return await rpc('api_delete', { p_sheet: data.sheetName, p_id: data.id || data.recordId });
+        }
+        if (action === 'testConnection') {
+            return { success: true, message: 'Supabase connected' };
+        }
+        // ---- Single-item reads ----
+        if (action === 'getTraining') {
+            return wrapObj(await rpc('api_read_sheet', { p_sheet: 'Training' }));
+        }
+        if (action === 'getSafetyTeamMember') {
+            return wrapObj(await rpc('api_read_sheet', { p_sheet: 'SafetyTeamMembers' }));
+        }
+        if (action === 'getEmployeeByCode') {
+            const rows = await rpc('api_read_sheet', { p_sheet: 'Employees' });
+            if (rows && rows.success === false) return rows;
+            const code = (data.code || data.employeeCode || '').toString().trim().toLowerCase();
+            const match = (Array.isArray(rows) ? rows : []).find(r => String(r.employeeCode || r.code || '').trim().toLowerCase() === code);
+            return { success: true, data: match || null };
+        }
+        if (action === 'getIssue') { return wrapObj(await rpc('api_read_sheet', { p_sheet: 'Incidents' })); }
+        if (action === 'getChangeRequest') { return wrapObj(await rpc('api_read_sheet', { p_sheet: 'ActionTrackingRegister' })); }
+        if (action === 'getObservation') { return wrapObj(await rpc('api_read_sheet', { p_sheet: 'DailyObservations' })); }
+        // ---- Approval / rejection ----
+        if (action === 'approveClinicVisitDeletion') {
+            return await rpc('api_patch', { p_sheet: 'ClinicVisits', p_id: data.visitId || data.id, p_patch: { status: 'approved', updatedAt: new Date().toISOString() } });
+        }
+        if (action === 'rejectClinicVisitDeletion') {
+            return await rpc('api_patch', { p_sheet: 'ClinicVisits', p_id: data.visitId || data.id, p_patch: { status: 'rejected', updatedAt: new Date().toISOString() } });
+        }
+        if (action === 'approveMedicationDeletion') {
+            return await rpc('api_patch', { p_sheet: 'Medications', p_id: data.medicationId || data.id, p_patch: { status: 'approved', updatedAt: new Date().toISOString() } });
+        }
+        if (action === 'rejectMedicationDeletion') {
+            return await rpc('api_patch', { p_sheet: 'Medications', p_id: data.medicationId || data.id, p_patch: { status: 'rejected', updatedAt: new Date().toISOString() } });
+        }
+        if (action === 'approveSupplyRequest') {
+            return await rpc('api_patch', { p_sheet: 'Notifications', p_id: data.requestId || data.id, p_patch: { status: 'approved', updatedAt: new Date().toISOString() } });
+        }
+        if (action === 'rejectSupplyRequest') {
+            return await rpc('api_patch', { p_sheet: 'Notifications', p_id: data.requestId || data.id, p_patch: { status: 'rejected', updatedAt: new Date().toISOString() } });
+        }
+        if (action === 'approveViolationApprovalRequest') {
+            return await rpc('api_patch', { p_sheet: 'Violations', p_id: data.violationId || data.id, p_patch: { status: 'approved', updatedAt: new Date().toISOString() } });
+        }
+        if (action === 'rejectViolationApprovalRequest') {
+            return await rpc('api_patch', { p_sheet: 'Violations', p_id: data.violationId || data.id, p_patch: { status: 'rejected', updatedAt: new Date().toISOString() } });
+        }
+        // ---- Settings / config ----
+        if (action === 'getActionTrackingSettings' || action === 'getSafetyHealthManagementSettings' || action === 'getViolationApprovalSettings') {
+            const rows = await rpc('api_read_sheet', { p_sheet: 'CompanySettings' });
+            if (rows && rows.success === false) return rows;
+            return { success: true, data: ((Array.isArray(rows) ? rows : []).find(r => String(r.id) === 'default') || (Array.isArray(rows) ? rows[0] : {}) || {}) };
+        }
+        if (action === 'saveViolationTypes' || action === 'updateViolationApprovalSettings' || action === 'updateLeaveTypes' || action === 'updateKPITargets') {
+            return await rpc('api_patch', { p_sheet: 'CompanySettings', p_id: 'default', p_patch: data });
+        }
+        if (action === 'getOrganizationalStructure') {
+            const rows = await rpc('api_read_sheet', { p_sheet: 'SafetyTeamMembers' });
+            if (rows && rows.success === false) return rows;
+            return { success: true, data: Array.isArray(rows) ? rows : [] };
+        }
+        if (action === 'saveOrganizationalStructure') {
+            return await rpc('api_replace_sheet', { p_sheet: 'SafetyTeamMembers', p_rows: data.members || data.data || [] });
+        }
+        // ---- Report / KPI ----
+        if (action === 'generateAttendanceReport' || action === 'generateSafetyTeamPerformanceReport' ||
+            action === 'calculateSafetyTeamKPIs' || action === 'getSafetyTeamKPIs' ||
+            action === 'getActionTrackingKPIs' || action === 'getChangeRequestStatistics' ||
+            action === 'getIssueStatistics' || action === 'getContractorDetailedAnalytics') {
+            return { success: true, data: {}, message: 'التقرير يتطلب Edge Function' };
+        }
+        // ---- Batch / complex ----
+        if (action === 'updateAttendanceStatuses') { return { success: true }; }
+        if (action === 'getJobDescription') {
+            const rows = await rpc('api_read_sheet', { p_sheet: 'SafetyTeamMembers' });
+            if (rows && rows.success === false) return rows;
+            const member = (Array.isArray(rows) ? rows : []).find(r => String(r.id) === String(data.memberId));
+            return { success: true, data: member || null };
+        }
+        if (action === 'getTrainingModuleBundle') {
+            const rows = await rpc('api_read_sheet', { p_sheet: 'Training' });
+            if (rows && rows.success === false) return rows;
+            const training = (Array.isArray(rows) ? rows : []).find(r => String(r.id) === String(data.trainingId || data.id));
+            return { success: true, data: training || null };
+        }
+        if (action === 'saveOrUpdateFireEquipmentAsset') {
+            const id = data.assetId || data.id || cryptoId();
+            return await rpc('api_upsert', { p_sheet: 'FireEquipmentAssets', p_id: id, p_data: Object.assign({}, data, { id }) });
+        }
+        if (action === 'saveTestReport') {
+            const id = data.id || cryptoId();
+            return await rpc('api_upsert', { p_sheet: 'SafetyPerformanceKPIs', p_id: id, p_data: Object.assign({}, data, { id }) });
+        }
+        if (action === 'migrateContractorVisits') {
+            return { success: true, message: 'الترحيل يتطلب Edge Function' };
+        }
+        if (action === 'getNextChangeRequestNumber') {
+            const rows = await rpc('api_read_sheet', { p_sheet: 'ActionTrackingRegister' });
+            const arr = Array.isArray(rows) ? rows : [];
+            const maxNum = arr.reduce((max, r) => {
+                const n = parseInt(String(r.requestNumber || r.number || '0').replace(/\D/g, ''), 10);
+                return isNaN(n) ? max : Math.max(max, n);
+            }, 0);
+            return { success: true, number: 'CR-' + String(maxNum + 1).padStart(4, '0') };
+        }
+
+        return undefined; // not handled here → let convention try
+    }
+
     async function handle(action, data) {
         data = data || {};
 
@@ -267,8 +573,11 @@
                 return await rpc('api_patch', { p_sheet: data.sheetName, p_id: data.recordId, p_patch: data.updateData || {} });
         }
 
+        // ---- explicit handlers (must run before convention to avoid intercept) ----
+        const explicitResult = await tryExplicitHandler(action, data);
+        if (explicitResult !== undefined) return explicitResult;
+
         // ---- mapped / convention named actions ----
-        // Skip convention for explicit business actions (they have custom RPCs)
         if (!BUSINESS_ACTIONS.has(action)) {
             const spec = ACTION_MAP[action] || resolveByConvention(action);
             if (spec) {
@@ -286,384 +595,6 @@
         if (BUSINESS_ACTIONS.has(action)) {
             const br = await handleBusiness(action, data);
             if (br) return br;
-        }
-
-        if (action === 'getCompanySettings') {
-            const rows = await rpc('api_read_sheet', { p_sheet: 'CompanySettings' });
-            if (rows && rows.success === false) return rows;
-            const arr = Array.isArray(rows) ? rows : [];
-            const row = arr.find(r => String(r.id) === 'default') || arr[0] || {};
-            return { success: true, data: row };
-        }
-        if (action === 'saveCompanySettings') {
-            const id = 'default';
-            const payload = Object.assign({}, data || {}, { id });
-            return await rpc('api_upsert', {
-                p_sheet: 'CompanySettings',
-                p_id: id,
-                p_data: payload
-            });
-        }
-
-        if (action === 'getFormSettings') {
-            const rows = await rpc('api_read_sheet', { p_sheet: 'FormSettings' });
-            if (rows && rows.success === false) return rows;
-            const arr = Array.isArray(rows) ? rows : [];
-            const row = arr.find(r => String(r.id) === 'FORM-SETTINGS-1')
-                || arr.find(r => String(r.id) === 'default')
-                || arr[0]
-                || {};
-            const parseField = (val, fallback) => {
-                if (Array.isArray(val)) return val;
-                if (typeof val === 'string' && val.trim()) {
-                    try { return JSON.parse(val); } catch (_e) { return fallback; }
-                }
-                return fallback;
-            };
-            return {
-                success: true,
-                data: {
-                    sites: parseField(row.sites, []),
-                    departments: parseField(row.departments, []),
-                    safetyTeam: parseField(row.safetyTeam, [])
-                }
-            };
-        }
-        if (action === 'saveFormSettings') {
-            const id = String((data && data.id) || 'FORM-SETTINGS-1');
-            const payload = {
-                id,
-                sites: Array.isArray(data && data.sites) ? data.sites : [],
-                departments: Array.isArray(data && data.departments) ? data.departments : [],
-                safetyTeam: Array.isArray(data && data.safetyTeam) ? data.safetyTeam : [],
-                updatedAt: new Date().toISOString()
-            };
-            return await rpc('api_upsert', {
-                p_sheet: 'FormSettings',
-                p_id: id,
-                p_data: payload
-            });
-        }
-
-        if (action === 'reportUserVersion') {
-            return await rpc('api_report_user_version', { p_payload: data || {} });
-        }
-        if (action === 'getHelpCenter') {
-            const res = await rpc('api_get_help_center', {});
-            if (res && res.success === false) return res;
-            return { success: true, data: (res && res.data) || res || {} };
-        }
-        if (action === 'saveHelpCenter') {
-            return await rpc('api_save_help_center', { p_data: data || {} });
-        }
-        if (action === 'updateMyProfile') {
-            return await rpc('api_update_my_profile', { p_patch: data.patch || data.updateData || data || {} });
-        }
-        if (action === 'updateUser') {
-            return await rpc('api_patch', {
-                p_sheet: 'Users',
-                p_id: data.userId || data.id,
-                p_patch: data.updateData || data.patch || {}
-            });
-        }
-        if (action === 'addUser') {
-            const payload = data || {};
-            const id = payload.id || cryptoId();
-            return await rpc('api_upsert', { p_sheet: 'Users', p_id: id, p_data: Object.assign({}, payload, { id }) });
-        }
-        if (action === 'getAllUserVersions') {
-            const latest = (data && data.latestVersion) ? String(data.latestVersion) : '';
-            const res = await rpc('api_list_user_versions', { p_latest_version: latest });
-            if (res && res.success === false) return res;
-            const rows = (res && Array.isArray(res.data)) ? res.data : [];
-            return { success: true, data: rows };
-        }
-        if (action === 'getUserVersionStats') {
-            const latest = (data && data.latestVersion) ? String(data.latestVersion) : '';
-            const res = await rpc('api_user_version_stats', { p_latest_version: latest });
-            if (res && res.success === false) return res;
-            return Object.assign({ success: true }, res || {});
-        }
-
-        // ---- PPE actions ----
-        if (action === 'addOrUpdatePPEStockItem') {
-            const itemId = data.itemId || cryptoId();
-            return await rpc('api_upsert', { p_sheet: 'PPEStock', p_id: itemId, p_data: Object.assign({}, data, { itemId }) });
-        }
-        if (action === 'getAllPPEStockItems') {
-            return wrapArray(await rpc('api_read_sheet', { p_sheet: 'PPEStock' }));
-        }
-        if (action === 'getAllPPETransactions') {
-            return wrapArray(await rpc('api_read_sheet', { p_sheet: 'PPE_Transactions' }));
-        }
-        if (action === 'addPPE') {
-            const id = data.id || cryptoId();
-            return await rpc('api_upsert', { p_sheet: 'PPE', p_id: id, p_data: Object.assign({}, data, { id }) });
-        }
-        if (action === 'updatePPE') {
-            return await rpc('api_patch', { p_sheet: 'PPE', p_id: data.ppeId || data.id, p_patch: data.updateData || data });
-        }
-        if (action === 'deletePPE') {
-            return await rpc('api_delete', { p_sheet: 'PPE', p_id: data.ppeId || data.id });
-        }
-        if (action === 'getPPEItemsList') {
-            return wrapArray(await rpc('api_read_sheet', { p_sheet: 'PPEStock' }));
-        }
-        if (action === 'addPPETransaction') {
-            const id = data.id || cryptoId();
-            return await rpc('api_upsert', { p_sheet: 'PPE_Transactions', p_id: id, p_data: Object.assign({}, data, { id }) });
-        }
-        if (action === 'deletePPEStockItem') {
-            return await rpc('api_delete', { p_sheet: 'PPEStock', p_id: data.itemId || data.id });
-        }
-
-        // ---- Training / Employees / Contractors ----
-        if (action === 'deleteTraining') {
-            return await rpc('api_delete', { p_sheet: 'Training', p_id: data.trainingId || data.id });
-        }
-        if (action === 'deleteUser') {
-            return await rpc('api_delete', { p_sheet: 'Users', p_id: data.userId || data.id });
-        }
-        if (action === 'deactivateEmployee') {
-            return await rpc('api_patch', { p_sheet: 'Employees', p_id: data.employeeId || data.id, p_patch: { active: false, updatedAt: new Date().toISOString() } });
-        }
-        if (action === 'deleteEmployee') {
-            return await rpc('api_delete', { p_sheet: 'Employees', p_id: data.employeeId || data.id });
-        }
-        if (action === 'deleteApprovedContractor') {
-            return await rpc('api_delete', { p_sheet: 'ApprovedContractors', p_id: data.approvedContractorId || data.id });
-        }
-        if (action === 'updateApprovedContractor') {
-            return await rpc('api_patch', { p_sheet: 'ApprovedContractors', p_id: data.approvedContractorId || data.id, p_patch: data.updateData || data });
-        }
-        if (action === 'deleteContractor') {
-            return await rpc('api_delete', { p_sheet: 'Contractors', p_id: data.contractorId || data.id });
-        }
-
-        // ---- ISO / HSE ----
-        if (action === 'addHSEObjective') {
-            const id = data.id || cryptoId();
-            return await rpc('api_upsert', { p_sheet: 'HSEMonitoringPlans', p_id: id, p_data: Object.assign({}, data, { id, type: 'objective' }) });
-        }
-        if (action === 'addEnvironmentalAspect') {
-            const id = data.id || cryptoId();
-            return await rpc('api_upsert', { p_sheet: 'HSEMonitoringPlans', p_id: id, p_data: Object.assign({}, data, { id, type: 'environmental_aspect' }) });
-        }
-        if (action === 'addHSEAudit') {
-            const id = data.id || cryptoId();
-            return await rpc('api_upsert', { p_sheet: 'HSEMonitoringPlans', p_id: id, p_data: Object.assign({}, data, { id, type: 'audit' }) });
-        }
-        if (action === 'addHSENonConformity') {
-            const id = data.id || cryptoId();
-            return await rpc('api_upsert', { p_sheet: 'HSENonConformities', p_id: id, p_data: Object.assign({}, data, { id }) });
-        }
-        if (action === 'addHSECorrectiveAction') {
-            const id = data.id || cryptoId();
-            return await rpc('api_upsert', { p_sheet: 'HSENonConformities', p_id: id, p_data: Object.assign({}, data, { id, type: 'corrective_action' }) });
-        }
-
-        // ---- Incidents cleanup ----
-        if (action === 'cleanupIncidentsRegistry') {
-            const rows = await rpc('api_read_sheet', { p_sheet: 'Incidents' });
-            if (rows && rows.success === false) return rows;
-            const arr = Array.isArray(rows) ? rows : [];
-            return { success: true, removed: 0, kept: arr.length };
-        }
-
-        // ---- User Activity Log ----
-        if (action === 'getPublicIP') {
-            try {
-                const resp = await fetch('https://api.ipify.org?format=json');
-                const json = await resp.json();
-                return { success: true, ip: json.ip, data: { ip: json.ip } };
-            } catch (_e) {
-                return { success: true, ip: '0.0.0.0', data: { ip: '0.0.0.0' } };
-            }
-        }
-        if (action === 'addUserActivityLog') {
-            const id = data.id || cryptoId();
-            return await rpc('api_upsert', { p_sheet: 'UserActivityLog', p_id: id, p_data: Object.assign({}, data, { id }) });
-        }
-        if (action === 'getAllUserActivityLogs') {
-            return wrapArray(await rpc('api_read_sheet', { p_sheet: 'UserActivityLog' }));
-        }
-        if (action === 'getDailyUserSessionActivityReport') {
-            const all = await rpc('api_read_sheet', { p_sheet: 'UserActivityLog' });
-            if (all && all.success === false) return all;
-            const arr = Array.isArray(all) ? all : [];
-            const dateStr = (data && data.date) || new Date().toISOString().slice(0, 10);
-            const filtered = arr.filter(r => r && String(r.timestamp || r.createdAt || '').startsWith(dateStr));
-            return { success: true, data: filtered };
-        }
-
-        // ---- Daily Observations PPT ----
-        if (action === 'getDailyObservationsPptTemplateId') {
-            const rows = await rpc('api_read_sheet', { p_sheet: 'CompanySettings' });
-            if (rows && rows.success === false) return rows;
-            const arr = Array.isArray(rows) ? rows : [];
-            const row = arr.find(r => String(r.id) === 'default') || arr[0] || {};
-            return { success: true, templateId: row.dailyObservationsPptTemplateId || null };
-        }
-        if (action === 'setDailyObservationsPptTemplateId') {
-            return await rpc('api_patch', {
-                p_sheet: 'CompanySettings', p_id: 'default',
-                p_patch: { dailyObservationsPptTemplateId: data.templateId || null, updatedAt: new Date().toISOString() }
-            });
-        }
-        if (action === 'exportDailyObservationsPptReport') {
-            return { success: false, message: 'تصدير PPT يتطلب Edge Function — غير مفعّل حالياً' };
-        }
-
-        // ---- Password reset (requires admin/Edge Function) ----
-        if (action === 'resetUserPassword') {
-            return { success: false, message: 'إعادة تعيين كلمة المرور تتطلب Edge Function — يرجى استخدام لوحة التحكم في Supabase' };
-        }
-
-        // ---- AI features (require Edge Function) ----
-        if (action === 'processAIQuestion') {
-            return { success: false, message: 'المساعد الذكي يتطلب Edge Function — غير مفعّل حالياً' };
-        }
-        if (action === 'logAIQuestion') {
-            return { success: true };
-        }
-        if (action === 'getSmartRecommendations') {
-            return { success: true, recommendations: [] };
-        }
-        if (action === 'getEmployeeTrainingMatrix') {
-            return wrapArray(await rpc('api_read_sheet', { p_sheet: 'Training' }));
-        }
-        if (action === 'getPPEMatrix') {
-            return wrapArray(await rpc('api_read_sheet', { p_sheet: 'PPE' }));
-        }
-
-        // ---- File upload (requires Edge Function / Storage) ----
-        if (action === 'uploadFileToDrive') {
-            return { success: false, message: 'رفع الملفات يتطلب Supabase Storage — غير مفعّل حالياً' };
-        }
-
-        // ---- Generic sheet operations ----
-        if (action === 'deleteFromSheet') {
-            return await rpc('api_delete', { p_sheet: data.sheetName, p_id: data.id || data.recordId });
-        }
-        if (action === 'testConnection') {
-            return { success: true, message: 'Supabase connected' };
-        }
-
-        // ---- Single-item reads with custom id field names ----
-        if (action === 'getTraining') {
-            return wrapObj(await rpc('api_read_sheet', { p_sheet: 'Training' }));
-        }
-        if (action === 'getSafetyTeamMember') {
-            return wrapObj(await rpc('api_read_sheet', { p_sheet: 'SafetyTeamMembers' }));
-        }
-        if (action === 'getEmployeeByCode') {
-            const rows = await rpc('api_read_sheet', { p_sheet: 'Employees' });
-            if (rows && rows.success === false) return rows;
-            const arr = Array.isArray(rows) ? rows : [];
-            const code = (data.code || data.employeeCode || '').toString().trim().toLowerCase();
-            const match = arr.find(r => String(r.employeeCode || r.code || '').trim().toLowerCase() === code);
-            return { success: true, data: match || null };
-        }
-        if (action === 'getIssue') {
-            return wrapObj(await rpc('api_read_sheet', { p_sheet: 'Incidents' }));
-        }
-        if (action === 'getChangeRequest') {
-            return wrapObj(await rpc('api_read_sheet', { p_sheet: 'ActionTrackingRegister' }));
-        }
-        if (action === 'getObservation') {
-            return wrapObj(await rpc('api_read_sheet', { p_sheet: 'DailyObservations' }));
-        }
-
-        // ---- Approval / rejection actions (status patch) ----
-        if (action === 'approveClinicVisitDeletion') {
-            return await rpc('api_patch', { p_sheet: 'ClinicVisits', p_id: data.visitId || data.id, p_patch: { status: 'approved', updatedAt: new Date().toISOString() } });
-        }
-        if (action === 'rejectClinicVisitDeletion') {
-            return await rpc('api_patch', { p_sheet: 'ClinicVisits', p_id: data.visitId || data.id, p_patch: { status: 'rejected', updatedAt: new Date().toISOString() } });
-        }
-        if (action === 'approveMedicationDeletion') {
-            return await rpc('api_patch', { p_sheet: 'Medications', p_id: data.medicationId || data.id, p_patch: { status: 'approved', updatedAt: new Date().toISOString() } });
-        }
-        if (action === 'rejectMedicationDeletion') {
-            return await rpc('api_patch', { p_sheet: 'Medications', p_id: data.medicationId || data.id, p_patch: { status: 'rejected', updatedAt: new Date().toISOString() } });
-        }
-        if (action === 'approveSupplyRequest') {
-            return await rpc('api_patch', { p_sheet: 'Notifications', p_id: data.requestId || data.id, p_patch: { status: 'approved', updatedAt: new Date().toISOString() } });
-        }
-        if (action === 'rejectSupplyRequest') {
-            return await rpc('api_patch', { p_sheet: 'Notifications', p_id: data.requestId || data.id, p_patch: { status: 'rejected', updatedAt: new Date().toISOString() } });
-        }
-        if (action === 'approveViolationApprovalRequest') {
-            return await rpc('api_patch', { p_sheet: 'Violations', p_id: data.violationId || data.id, p_patch: { status: 'approved', updatedAt: new Date().toISOString() } });
-        }
-        if (action === 'rejectViolationApprovalRequest') {
-            return await rpc('api_patch', { p_sheet: 'Violations', p_id: data.violationId || data.id, p_patch: { status: 'rejected', updatedAt: new Date().toISOString() } });
-        }
-
-        // ---- Settings / config reads ----
-        if (action === 'getActionTrackingSettings' || action === 'getSafetyHealthManagementSettings' || action === 'getViolationApprovalSettings') {
-            const rows = await rpc('api_read_sheet', { p_sheet: 'CompanySettings' });
-            if (rows && rows.success === false) return rows;
-            const arr = Array.isArray(rows) ? rows : [];
-            return { success: true, data: arr.find(r => String(r.id) === 'default') || arr[0] || {} };
-        }
-        if (action === 'saveViolationTypes' || action === 'updateViolationApprovalSettings' || action === 'updateLeaveTypes' || action === 'updateKPITargets') {
-            return await rpc('api_patch', { p_sheet: 'CompanySettings', p_id: 'default', p_patch: data });
-        }
-        if (action === 'getOrganizationalStructure') {
-            const rows = await rpc('api_read_sheet', { p_sheet: 'SafetyTeamMembers' });
-            if (rows && rows.success === false) return rows;
-            return { success: true, data: Array.isArray(rows) ? rows : [] };
-        }
-        if (action === 'saveOrganizationalStructure') {
-            return await rpc('api_replace_sheet', { p_sheet: 'SafetyTeamMembers', p_rows: data.members || data.data || [] });
-        }
-
-        // ---- Report / KPI / analytics (placeholder) ----
-        if (action === 'generateAttendanceReport' || action === 'generateSafetyTeamPerformanceReport' ||
-            action === 'calculateSafetyTeamKPIs' || action === 'getSafetyTeamKPIs' ||
-            action === 'getActionTrackingKPIs' || action === 'getChangeRequestStatistics' ||
-            action === 'getIssueStatistics' || action === 'getContractorDetailedAnalytics') {
-            return { success: true, data: {}, message: 'التقرير يتطلب Edge Function' };
-        }
-
-        // ---- Batch / complex updates ----
-        if (action === 'updateAttendanceStatuses') {
-            return { success: true };
-        }
-        if (action === 'getJobDescription') {
-            const rows = await rpc('api_read_sheet', { p_sheet: 'SafetyTeamMembers' });
-            if (rows && rows.success === false) return rows;
-            const arr = Array.isArray(rows) ? rows : [];
-            const member = arr.find(r => String(r.id) === String(data.memberId));
-            return { success: true, data: member || null };
-        }
-        if (action === 'getTrainingModuleBundle') {
-            const rows = await rpc('api_read_sheet', { p_sheet: 'Training' });
-            if (rows && rows.success === false) return rows;
-            const arr = Array.isArray(rows) ? rows : [];
-            const training = arr.find(r => String(r.id) === String(data.trainingId || data.id));
-            return { success: true, data: training || null };
-        }
-        if (action === 'saveOrUpdateFireEquipmentAsset') {
-            const id = data.assetId || data.id || cryptoId();
-            return await rpc('api_upsert', { p_sheet: 'FireEquipmentAssets', p_id: id, p_data: Object.assign({}, data, { id }) });
-        }
-        if (action === 'saveTestReport') {
-            const id = data.id || cryptoId();
-            return await rpc('api_upsert', { p_sheet: 'SafetyPerformanceKPIs', p_id: id, p_data: Object.assign({}, data, { id }) });
-        }
-        if (action === 'migrateContractorVisits') {
-            return { success: true, message: 'الترحيل يتطلب Edge Function' };
-        }
-        if (action === 'getNextChangeRequestNumber') {
-            const rows = await rpc('api_read_sheet', { p_sheet: 'ActionTrackingRegister' });
-            const arr = Array.isArray(rows) ? rows : [];
-            const maxNum = arr.reduce((max, r) => {
-                const n = parseInt(String(r.requestNumber || r.number || '0').replace(/\D/g, ''), 10);
-                return isNaN(n) ? max : Math.max(max, n);
-            }, 0);
-            return { success: true, number: 'CR-' + String(maxNum + 1).padStart(4, '0') };
         }
 
         return { success: false, message: `action غير معروف في محوّل SaaS: '${action}'`, _unmapped: true };

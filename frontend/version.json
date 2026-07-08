@@ -1,4 +1,4 @@
 {
-  "version": "2.2.109",
-  "message": "fix: await loadStockItems before refreshStockListUI to ensure new items appear immediately"
+  "version": "2.2.110",
+  "message": "chore: version bump to v2.2.108"
 }
