@@ -1656,21 +1656,21 @@ const PPE = {
         const stReceived = t('module.ppe.status.received', 'مستلم');
         const stPending = t('module.ppe.status.pending', 'قيد التسليم');
         modal.innerHTML = `
-            <div class="modal-content w-[min(100%,52rem)] max-w-[min(94vw,52rem)]" style="border-radius: 1rem; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
-                <div class="modal-header" style="background: linear-gradient(135deg, #2563eb, #0d9488); color: #ffffff; text-align: center; position: relative; padding: 1.25rem 1.5rem;">
-                    <h2 class="modal-title" style="margin: 0 auto; font-weight: 700; letter-spacing: 0.03em;">
+            <div class="modal-content w-[min(100%,52rem)] max-w-[min(94vw,52rem)]" style="border-radius: 0.875rem; overflow: hidden; box-shadow: 0 8px 40px rgba(0,0,0,0.12);">
+                <div class="modal-header" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: #ffffff; text-align: center; position: relative; padding: 1.25rem 1.5rem;">
+                    <h2 class="modal-title" style="margin: 0 auto; font-weight: 600; letter-spacing: 0.02em;">
                         ${isEdit ? ut(t('module.ppe.title.editReceipt', 'تعديل استلام')) : ut(t('module.ppe.title.newReceipt', 'تسجيل استلام جديد'))}
                     </h2>
-                    <button class="modal-close" onclick="this.closest('.modal-overlay').remove()" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #ffffff; background: rgba(255,255,255,0.15); border: none; width: 2rem; height: 2rem; border-radius: 50%; display: flex; items-center: center; justify-content: center; transition: all 0.2s;">
+                    <button class="modal-close" onclick="this.closest('.modal-overlay').remove()" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #94a3b8; background: rgba(255,255,255,0.08); border: none; width: 2rem; height: 2rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.2s; cursor: pointer;">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
-                <div class="modal-body bg-gradient-to-b from-slate-50/70 to-white">
+                <div class="modal-body" style="background: #ffffff;">
                     <form id="ppe-form" class="space-y-5">
-                        <section class="rounded-xl border border-blue-200/70 bg-gradient-to-br from-blue-50/70 via-white to-cyan-50/50 p-4 shadow-sm">
-                            <div class="flex items-center gap-2 mb-3 text-blue-900">
-                                <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white"><i class="fas fa-user"></i></span>
-                                <h3 class="text-sm font-extrabold">بيانات الموظف</h3>
+                        <section style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 0.75rem; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+                            <div class="flex items-center gap-2 mb-4" style="border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem;">
+                                <span style="display: inline-flex; width: 1.75rem; height: 1.75rem; align-items: center; justify-content: center; border-radius: 0.375rem; background: #1e293b; color: #fff; font-size: 0.8rem;"><i class="fas fa-user"></i></span>
+                                <h3 class="text-sm font-bold" style="color: #1e293b; margin: 0;">بيانات الموظف</h3>
                             </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="md:col-span-2">
@@ -1706,27 +1706,27 @@ const PPE = {
                         <input type="hidden" id="ppe-employee-branch" value="${Utils.escapeHTML(employeeInfo.branch)}">
                         <input type="hidden" id="ppe-employee-location" value="${Utils.escapeHTML(employeeInfo.location)}">
 
-                        <div class="rounded-xl border border-blue-100 bg-blue-50/30 p-4 shadow-sm">
+                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.75rem; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
-                                <div class="bg-white/90 p-3 rounded-lg border border-blue-50/50 shadow-sm flex items-center gap-3">
-                                    <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-100 text-blue-600"><i class="fas fa-signature text-sm"></i></span>
+                                <div style="background: #ffffff; padding: 0.875rem; border-radius: 0.5rem; border: 1px solid #f1f5f9; display: flex; align-items: center; gap: 0.75rem;">
+                                    <span style="display: inline-flex; width: 2.25rem; height: 2.25rem; flex-shrink: 0; align-items: center; justify-content: center; border-radius: 0.5rem; background: #eef2ff; color: #4f46e5;"><i class="fas fa-signature" style="font-size: 0.8rem;"></i></span>
                                     <div class="min-w-0">
-                                        <p class="text-[11px] font-bold text-blue-700/70 mb-0.5">${ut(t('module.ppe.label.name', 'الاسم'))}</p>
-                                        <p id="ppe-employee-info-name" class="font-extrabold text-slate-800 truncate">${formatInfo(employeeInfo.name)}</p>
+                                        <p class="text-[11px] font-bold" style="color: #6366f1; margin: 0 0 0.125rem 0;">${ut(t('module.ppe.label.name', 'الاسم'))}</p>
+                                        <p id="ppe-employee-info-name" class="font-extrabold text-slate-800 truncate" style="margin: 0;">${formatInfo(employeeInfo.name)}</p>
                                     </div>
                                 </div>
-                                <div class="bg-white/90 p-3 rounded-lg border border-blue-50/50 shadow-sm flex items-center gap-3">
-                                    <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-cyan-100 text-cyan-600"><i class="fas fa-building text-sm"></i></span>
+                                <div style="background: #ffffff; padding: 0.875rem; border-radius: 0.5rem; border: 1px solid #f1f5f9; display: flex; align-items: center; gap: 0.75rem;">
+                                    <span style="display: inline-flex; width: 2.25rem; height: 2.25rem; flex-shrink: 0; align-items: center; justify-content: center; border-radius: 0.5rem; background: #eef2ff; color: #4f46e5;"><i class="fas fa-building" style="font-size: 0.8rem;"></i></span>
                                     <div class="min-w-0">
-                                        <p class="text-[11px] font-bold text-cyan-700/70 mb-0.5">${ut(t('module.ppe.label.department', 'القسم'))}</p>
-                                        <p id="ppe-employee-info-department" class="font-extrabold text-slate-800 truncate">${formatInfo(employeeInfo.department)}</p>
+                                        <p class="text-[11px] font-bold" style="color: #6366f1; margin: 0 0 0.125rem 0;">${ut(t('module.ppe.label.department', 'القسم'))}</p>
+                                        <p id="ppe-employee-info-department" class="font-extrabold text-slate-800 truncate" style="margin: 0;">${formatInfo(employeeInfo.department)}</p>
                                     </div>
                                 </div>
-                                <div class="bg-white/90 p-3 rounded-lg border border-blue-50/50 shadow-sm flex items-center gap-3">
-                                    <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600"><i class="fas fa-briefcase text-sm"></i></span>
+                                <div style="background: #ffffff; padding: 0.875rem; border-radius: 0.5rem; border: 1px solid #f1f5f9; display: flex; align-items: center; gap: 0.75rem;">
+                                    <span style="display: inline-flex; width: 2.25rem; height: 2.25rem; flex-shrink: 0; align-items: center; justify-content: center; border-radius: 0.5rem; background: #eef2ff; color: #4f46e5;"><i class="fas fa-briefcase" style="font-size: 0.8rem;"></i></span>
                                     <div class="min-w-0">
-                                        <p class="text-[11px] font-bold text-indigo-700/70 mb-0.5">${ut(t('module.ppe.label.position', 'المنصب'))}</p>
-                                        <p id="ppe-employee-info-position" class="font-extrabold text-slate-800 truncate">${formatInfo(employeeInfo.position)}</p>
+                                        <p class="text-[11px] font-bold" style="color: #6366f1; margin: 0 0 0.125rem 0;">${ut(t('module.ppe.label.position', 'المنصب'))}</p>
+                                        <p id="ppe-employee-info-position" class="font-extrabold text-slate-800 truncate" style="margin: 0;">${formatInfo(employeeInfo.position)}</p>
                                     </div>
                                 </div>
                             </div>
@@ -1740,10 +1740,10 @@ const PPE = {
                             </div>
                         </div>
 
-                        <section class="rounded-xl border border-emerald-200/70 bg-gradient-to-br from-emerald-50/70 via-white to-teal-50/50 p-4 shadow-sm space-y-4">
-                            <div class="flex items-center gap-2 mb-1 text-emerald-900">
-                                <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-600 text-white"><i class="fas fa-boxes"></i></span>
-                                <h3 class="text-sm font-extrabold">الأصناف المستلمة</h3>
+                        <section style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 0.75rem; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+                            <div class="flex items-center gap-2 mb-4" style="border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem;">
+                                <span style="display: inline-flex; width: 1.75rem; height: 1.75rem; align-items: center; justify-content: center; border-radius: 0.375rem; background: #1e293b; color: #fff; font-size: 0.8rem;"><i class="fas fa-boxes"></i></span>
+                                <h3 class="text-sm font-bold" style="color: #1e293b; margin: 0;">الأصناف المستلمة</h3>
                             </div>
                         <div class="space-y-4">
                             <div>
@@ -1754,8 +1754,8 @@ const PPE = {
                                     </button>
                                 </div>
                                 <div id="ppe-items-container" class="space-y-4">
-                                    <div class="ppe-item-row w-full rounded-xl border border-slate-200/90 bg-white shadow-sm ring-1 ring-slate-900/[0.04] overflow-hidden">
-                                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 items-end bg-slate-50/50">
+                                    <div class="ppe-item-row w-full border border-slate-200 rounded-lg bg-white overflow-hidden" style="box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
+                                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 items-end" style="background: #f8fafc;">
                                             <div class="min-w-0">
                                                 <label class="block text-xs font-semibold text-gray-700 mb-1">
                                                     <i class="fas fa-shield-alt text-emerald-600 ml-1"></i>${ut(t('module.ppe.label.equipmentType', 'نوع المعدة *'))}
@@ -1807,12 +1807,12 @@ const PPE = {
                                 </p>
                             </div>
 
-                            <div class="pt-1 border-t border-emerald-100"></div>
-                            <div class="flex items-center gap-2 text-amber-900 mt-1">
-                                <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500 text-white"><i class="fas fa-calendar-check"></i></span>
-                                <h3 class="text-sm font-extrabold">تفاصيل الاستلام</h3>
+                            <div style="border-top: 1px solid #e2e8f0; padding-top: 1rem;">
+                            <div class="flex items-center gap-2 mb-3" style="border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem;">
+                                <span style="display: inline-flex; width: 1.75rem; height: 1.75rem; align-items: center; justify-content: center; border-radius: 0.375rem; background: #1e293b; color: #fff; font-size: 0.8rem;"><i class="fas fa-calendar-check"></i></span>
+                                <h3 class="text-sm font-bold" style="color: #1e293b; margin: 0;">تفاصيل الاستلام</h3>
                             </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-3 rounded-xl border border-amber-200/70 bg-gradient-to-br from-amber-50/70 to-white">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-sm font-semibold text-gray-700 mb-2">${ut(t('module.ppe.label.receiptDate', 'تاريخ الاستلام *'))}</label>
                                     <input type="date" id="ppe-receipt-date" required class="form-input"
@@ -1827,7 +1827,7 @@ const PPE = {
                                 </div>
                             </div>
 
-                            <div>
+                            <div class="mt-4">
                                 <label class="block text-sm font-semibold text-gray-700 mb-2">${ut(t('module.ppe.label.notes', 'ملاحظات'))}</label>
                                 <textarea id="ppe-notes" class="form-input" rows="3"
                                     placeholder="${ut(t('module.ppe.placeholder.notes', ''))}">${Utils.escapeHTML(ppeData?.notes || '')}</textarea>

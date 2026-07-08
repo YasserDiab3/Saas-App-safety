@@ -1,4 +1,4 @@
 {
-  "version": "2.2.114",
-  "message": "refactor(ppe): 30rem form with immediate dropdown load"
+  "version": "2.2.115",
+  "message": "revert(ppe): restore original receipt form design"
 }
