@@ -1,4 +1,4 @@
 {
-  "version": "2.2.122",
-  "message": "feat(ppe): side-by-side code+name fields, show stock balance per item row"
+  "version": "2.2.123",
+  "message": "style(ppe): widen name field (5/6), widen equipment type, shrink shoe/qty"
 }
