@@ -1,4 +1,4 @@
 {
-  "version": "2.2.103",
-  "message": "fix: set rootDirectory in vercel.json"
+  "version": "2.2.104",
+  "message": "revert: remove rootDirectory from vercel.json + delete .vercel dir"
 }

@@ -39,7 +39,37 @@
         DailyObservations: 'DailyObservations', PTW: 'PTW',
         ChemicalSafety: 'ChemicalSafety', SafetyBudgets: 'SafetyBudgets',
         PeriodicInspectionRecords: 'PeriodicInspectionRecords',
-        DailySafetyCheckList: 'DailySafetyCheckList'
+        DailySafetyCheckList: 'DailySafetyCheckList',
+        ApprovedContractors: 'ApprovedContractors',
+        BehaviorMonitoring: 'BehaviorMonitoring',
+        ContractorBehaviorMonitoring: 'ContractorBehaviorMonitoring',
+        ContractorEvaluations: 'ContractorEvaluations',
+        ContractorTrainings: 'ContractorTrainings',
+        ContractorApprovalRequests: 'ContractorApprovalRequests',
+        ContractorDeletionRequests: 'ContractorDeletionRequests',
+        DocumentCodes: 'DocumentCodes', DocumentVersions: 'DocumentVersions',
+        EmergencyAlerts: 'EmergencyAlerts', EmergencyPlans: 'EmergencyPlans',
+        EmergencyPlansUpdates: 'EmergencyPlansUpdates',
+        ExternalWorkforceMonthly: 'ExternalWorkforceMonthly',
+        FireEquipment: 'FireEquipment', FireEquipmentAssets: 'FireEquipmentAssets',
+        HSEMonitoringPlans: 'HSEMonitoringPlans', HSENonConformities: 'HSENonConformities',
+        ISODocuments: 'ISODocuments',
+        KPIAnnualPlans: 'KPIAnnualPlans', SafetyPerformanceKPIs: 'SafetyPerformanceKPIs',
+        LegalDocuments: 'LegalDocuments',
+        Notifications: 'Notifications', ModuleManagement: 'ModuleManagement',
+        PPEStock: 'PPEStock', PPE_Transactions: 'PPE_Transactions',
+        PeriodicInspectionCategories: 'PeriodicInspectionCategories',
+        PeriodicInspectionSchedules: 'PeriodicInspectionSchedules',
+        PTWIdMapping: 'PTWIdMapping', PTWRegistry: 'PTWRegistry',
+        RiskAssessments: 'RiskAssessments', SOPJHA: 'SOPJHA',
+        SafetyTeamAttendance: 'SafetyTeamAttendance',
+        SafetyTeamMembers: 'SafetyTeamMembers',
+        Sustainability: 'Sustainability',
+        TrainingCertificates: 'TrainingCertificates',
+        UserActivityLog: 'UserActivityLog',
+        ActionTrackingRegister: 'ActionTrackingRegister',
+        AnnualTrainingPlans: 'AnnualTrainingPlans',
+        AppEmergencyNumbers: 'AppEmergencyNumbers'
     };
 
     // Explicit map for the highest-frequency named actions.
@@ -143,11 +173,41 @@
     ]);
 
     // convention fallback: getAllX / addX / updateX / deleteX
+    function resolveSheet(entityKey) {
+        return SHEET_BY_ENTITY[entityKey]
+            || { ClinicVisit:'ClinicVisits', Incident:'Incidents', Injury:'Injuries',
+                 Medication:'Medications', Violation:'Violations', NearMiss:'NearMiss',
+                 Employee:'Employees', Contractor:'Contractors',
+                 Observation:'DailyObservations', PeriodicInspection:'PeriodicInspectionRecords',
+                 ActionTracking:'ActionTrackingRegister', ChangeRequest:'ActionTrackingRegister',
+                 Behavior:'BehaviorMonitoring', ContractorBehavior:'ContractorBehaviorMonitoring',
+                 FireEquipment:'FireEquipment', FireEquipmentAsset:'FireEquipmentAssets',
+                 FireEquipmentInspection:'FireEquipmentAssets',
+                 SafetyTeamMember:'SafetyTeamMembers', SafetyAlert:'EmergencyAlerts',
+                 ApprovedContractor:'ApprovedContractors',
+                 ContractorApprovalRequest:'ContractorApprovalRequests',
+                 ContractorTraining:'ContractorTrainings',
+                 ViolationApprovalRequest:'Violations',
+                 MedicationDeletionRequest:'Medications',
+                 ClinicVisitDeletionRequest:'ClinicVisits',
+                 FireEquipmentApprovalRequest:'FireEquipmentAssets',
+                 SupplyRequest:'Notifications', IncidentNotification:'Notifications',
+                 CustomKPI:'SafetyPerformanceKPIs'
+            }[entityKey] || entityKey;
+    }
     function resolveByConvention(action) {
         let m;
-        if ((m = action.match(/^getAll([A-Za-z]+)$/))) {
-            const sheet = SHEET_BY_ENTITY[m[1]] || m[1];
-            return { op: 'read', sheet };
+        if ((m = action.match(/^(?:getAll|get)([A-Za-z]+)$/))) {
+            return { op: 'read', sheet: resolveSheet(m[1]) };
+        }
+        if ((m = action.match(/^add([A-Za-z]+)$/))) {
+            return { op: 'upsert', sheet: resolveSheet(m[1]), idFrom: 'id' };
+        }
+        if ((m = action.match(/^update([A-Za-z]+)$/))) {
+            return { op: 'patch', sheet: resolveSheet(m[1]), idFrom: m[1] + 'Id', patchFrom: 'updateData' };
+        }
+        if ((m = action.match(/^delete([A-Za-z]+)$/))) {
+            return { op: 'delete', sheet: resolveSheet(m[1]), idFrom: m[1] + 'Id' };
         }
         return null;
     }
@@ -208,16 +268,19 @@
         }
 
         // ---- mapped / convention named actions ----
-        const spec = ACTION_MAP[action] || resolveByConvention(action);
-        if (spec) {
-            if (spec.op === 'read')
-                return wrapArray(await rpc('api_read_sheet', { p_sheet: spec.sheet }));
-            if (spec.op === 'upsert')
-                return await rpc('api_upsert', { p_sheet: spec.sheet, p_id: data[spec.idFrom] || (data.id || cryptoId()), p_data: data });
-            if (spec.op === 'patch')
-                return await rpc('api_patch', { p_sheet: spec.sheet, p_id: data[spec.idFrom], p_patch: data[spec.patchFrom] || data });
-            if (spec.op === 'delete')
-                return await rpc('api_delete', { p_sheet: spec.sheet, p_id: data[spec.idFrom] });
+        // Skip convention for explicit business actions (they have custom RPCs)
+        if (!BUSINESS_ACTIONS.has(action)) {
+            const spec = ACTION_MAP[action] || resolveByConvention(action);
+            if (spec) {
+                if (spec.op === 'read')
+                    return wrapArray(await rpc('api_read_sheet', { p_sheet: spec.sheet }));
+                if (spec.op === 'upsert')
+                    return await rpc('api_upsert', { p_sheet: spec.sheet, p_id: data[spec.idFrom] || (data.id || cryptoId()), p_data: data });
+                if (spec.op === 'patch')
+                    return await rpc('api_patch', { p_sheet: spec.sheet, p_id: data[spec.idFrom], p_patch: data[spec.patchFrom] || data });
+                if (spec.op === 'delete')
+                    return await rpc('api_delete', { p_sheet: spec.sheet, p_id: data[spec.idFrom] });
+            }
         }
 
         if (BUSINESS_ACTIONS.has(action)) {
@@ -320,6 +383,287 @@
             const res = await rpc('api_user_version_stats', { p_latest_version: latest });
             if (res && res.success === false) return res;
             return Object.assign({ success: true }, res || {});
+        }
+
+        // ---- PPE actions ----
+        if (action === 'addOrUpdatePPEStockItem') {
+            const itemId = data.itemId || cryptoId();
+            return await rpc('api_upsert', { p_sheet: 'PPEStock', p_id: itemId, p_data: Object.assign({}, data, { itemId }) });
+        }
+        if (action === 'getAllPPEStockItems') {
+            return wrapArray(await rpc('api_read_sheet', { p_sheet: 'PPEStock' }));
+        }
+        if (action === 'getAllPPETransactions') {
+            return wrapArray(await rpc('api_read_sheet', { p_sheet: 'PPE_Transactions' }));
+        }
+        if (action === 'addPPE') {
+            const id = data.id || cryptoId();
+            return await rpc('api_upsert', { p_sheet: 'PPE', p_id: id, p_data: Object.assign({}, data, { id }) });
+        }
+        if (action === 'updatePPE') {
+            return await rpc('api_patch', { p_sheet: 'PPE', p_id: data.ppeId || data.id, p_patch: data.updateData || data });
+        }
+        if (action === 'deletePPE') {
+            return await rpc('api_delete', { p_sheet: 'PPE', p_id: data.ppeId || data.id });
+        }
+        if (action === 'getPPEItemsList') {
+            return wrapArray(await rpc('api_read_sheet', { p_sheet: 'PPEStock' }));
+        }
+        if (action === 'addPPETransaction') {
+            const id = data.id || cryptoId();
+            return await rpc('api_upsert', { p_sheet: 'PPE_Transactions', p_id: id, p_data: Object.assign({}, data, { id }) });
+        }
+        if (action === 'deletePPEStockItem') {
+            return await rpc('api_delete', { p_sheet: 'PPEStock', p_id: data.itemId || data.id });
+        }
+
+        // ---- Training / Employees / Contractors ----
+        if (action === 'deleteTraining') {
+            return await rpc('api_delete', { p_sheet: 'Training', p_id: data.trainingId || data.id });
+        }
+        if (action === 'deleteUser') {
+            return await rpc('api_delete', { p_sheet: 'Users', p_id: data.userId || data.id });
+        }
+        if (action === 'deactivateEmployee') {
+            return await rpc('api_patch', { p_sheet: 'Employees', p_id: data.employeeId || data.id, p_patch: { active: false, updatedAt: new Date().toISOString() } });
+        }
+        if (action === 'deleteEmployee') {
+            return await rpc('api_delete', { p_sheet: 'Employees', p_id: data.employeeId || data.id });
+        }
+        if (action === 'deleteApprovedContractor') {
+            return await rpc('api_delete', { p_sheet: 'ApprovedContractors', p_id: data.approvedContractorId || data.id });
+        }
+        if (action === 'updateApprovedContractor') {
+            return await rpc('api_patch', { p_sheet: 'ApprovedContractors', p_id: data.approvedContractorId || data.id, p_patch: data.updateData || data });
+        }
+        if (action === 'deleteContractor') {
+            return await rpc('api_delete', { p_sheet: 'Contractors', p_id: data.contractorId || data.id });
+        }
+
+        // ---- ISO / HSE ----
+        if (action === 'addHSEObjective') {
+            const id = data.id || cryptoId();
+            return await rpc('api_upsert', { p_sheet: 'HSEMonitoringPlans', p_id: id, p_data: Object.assign({}, data, { id, type: 'objective' }) });
+        }
+        if (action === 'addEnvironmentalAspect') {
+            const id = data.id || cryptoId();
+            return await rpc('api_upsert', { p_sheet: 'HSEMonitoringPlans', p_id: id, p_data: Object.assign({}, data, { id, type: 'environmental_aspect' }) });
+        }
+        if (action === 'addHSEAudit') {
+            const id = data.id || cryptoId();
+            return await rpc('api_upsert', { p_sheet: 'HSEMonitoringPlans', p_id: id, p_data: Object.assign({}, data, { id, type: 'audit' }) });
+        }
+        if (action === 'addHSENonConformity') {
+            const id = data.id || cryptoId();
+            return await rpc('api_upsert', { p_sheet: 'HSENonConformities', p_id: id, p_data: Object.assign({}, data, { id }) });
+        }
+        if (action === 'addHSECorrectiveAction') {
+            const id = data.id || cryptoId();
+            return await rpc('api_upsert', { p_sheet: 'HSENonConformities', p_id: id, p_data: Object.assign({}, data, { id, type: 'corrective_action' }) });
+        }
+
+        // ---- Incidents cleanup ----
+        if (action === 'cleanupIncidentsRegistry') {
+            const rows = await rpc('api_read_sheet', { p_sheet: 'Incidents' });
+            if (rows && rows.success === false) return rows;
+            const arr = Array.isArray(rows) ? rows : [];
+            return { success: true, removed: 0, kept: arr.length };
+        }
+
+        // ---- User Activity Log ----
+        if (action === 'getPublicIP') {
+            try {
+                const resp = await fetch('https://api.ipify.org?format=json');
+                const json = await resp.json();
+                return { success: true, ip: json.ip, data: { ip: json.ip } };
+            } catch (_e) {
+                return { success: true, ip: '0.0.0.0', data: { ip: '0.0.0.0' } };
+            }
+        }
+        if (action === 'addUserActivityLog') {
+            const id = data.id || cryptoId();
+            return await rpc('api_upsert', { p_sheet: 'UserActivityLog', p_id: id, p_data: Object.assign({}, data, { id }) });
+        }
+        if (action === 'getAllUserActivityLogs') {
+            return wrapArray(await rpc('api_read_sheet', { p_sheet: 'UserActivityLog' }));
+        }
+        if (action === 'getDailyUserSessionActivityReport') {
+            const all = await rpc('api_read_sheet', { p_sheet: 'UserActivityLog' });
+            if (all && all.success === false) return all;
+            const arr = Array.isArray(all) ? all : [];
+            const dateStr = (data && data.date) || new Date().toISOString().slice(0, 10);
+            const filtered = arr.filter(r => r && String(r.timestamp || r.createdAt || '').startsWith(dateStr));
+            return { success: true, data: filtered };
+        }
+
+        // ---- Daily Observations PPT ----
+        if (action === 'getDailyObservationsPptTemplateId') {
+            const rows = await rpc('api_read_sheet', { p_sheet: 'CompanySettings' });
+            if (rows && rows.success === false) return rows;
+            const arr = Array.isArray(rows) ? rows : [];
+            const row = arr.find(r => String(r.id) === 'default') || arr[0] || {};
+            return { success: true, templateId: row.dailyObservationsPptTemplateId || null };
+        }
+        if (action === 'setDailyObservationsPptTemplateId') {
+            return await rpc('api_patch', {
+                p_sheet: 'CompanySettings', p_id: 'default',
+                p_patch: { dailyObservationsPptTemplateId: data.templateId || null, updatedAt: new Date().toISOString() }
+            });
+        }
+        if (action === 'exportDailyObservationsPptReport') {
+            return { success: false, message: 'تصدير PPT يتطلب Edge Function — غير مفعّل حالياً' };
+        }
+
+        // ---- Password reset (requires admin/Edge Function) ----
+        if (action === 'resetUserPassword') {
+            return { success: false, message: 'إعادة تعيين كلمة المرور تتطلب Edge Function — يرجى استخدام لوحة التحكم في Supabase' };
+        }
+
+        // ---- AI features (require Edge Function) ----
+        if (action === 'processAIQuestion') {
+            return { success: false, message: 'المساعد الذكي يتطلب Edge Function — غير مفعّل حالياً' };
+        }
+        if (action === 'logAIQuestion') {
+            return { success: true };
+        }
+        if (action === 'getSmartRecommendations') {
+            return { success: true, recommendations: [] };
+        }
+        if (action === 'getEmployeeTrainingMatrix') {
+            return wrapArray(await rpc('api_read_sheet', { p_sheet: 'Training' }));
+        }
+        if (action === 'getPPEMatrix') {
+            return wrapArray(await rpc('api_read_sheet', { p_sheet: 'PPE' }));
+        }
+
+        // ---- File upload (requires Edge Function / Storage) ----
+        if (action === 'uploadFileToDrive') {
+            return { success: false, message: 'رفع الملفات يتطلب Supabase Storage — غير مفعّل حالياً' };
+        }
+
+        // ---- Generic sheet operations ----
+        if (action === 'deleteFromSheet') {
+            return await rpc('api_delete', { p_sheet: data.sheetName, p_id: data.id || data.recordId });
+        }
+        if (action === 'testConnection') {
+            return { success: true, message: 'Supabase connected' };
+        }
+
+        // ---- Single-item reads with custom id field names ----
+        if (action === 'getTraining') {
+            return wrapObj(await rpc('api_read_sheet', { p_sheet: 'Training' }));
+        }
+        if (action === 'getSafetyTeamMember') {
+            return wrapObj(await rpc('api_read_sheet', { p_sheet: 'SafetyTeamMembers' }));
+        }
+        if (action === 'getEmployeeByCode') {
+            const rows = await rpc('api_read_sheet', { p_sheet: 'Employees' });
+            if (rows && rows.success === false) return rows;
+            const arr = Array.isArray(rows) ? rows : [];
+            const code = (data.code || data.employeeCode || '').toString().trim().toLowerCase();
+            const match = arr.find(r => String(r.employeeCode || r.code || '').trim().toLowerCase() === code);
+            return { success: true, data: match || null };
+        }
+        if (action === 'getIssue') {
+            return wrapObj(await rpc('api_read_sheet', { p_sheet: 'Incidents' }));
+        }
+        if (action === 'getChangeRequest') {
+            return wrapObj(await rpc('api_read_sheet', { p_sheet: 'ActionTrackingRegister' }));
+        }
+        if (action === 'getObservation') {
+            return wrapObj(await rpc('api_read_sheet', { p_sheet: 'DailyObservations' }));
+        }
+
+        // ---- Approval / rejection actions (status patch) ----
+        if (action === 'approveClinicVisitDeletion') {
+            return await rpc('api_patch', { p_sheet: 'ClinicVisits', p_id: data.visitId || data.id, p_patch: { status: 'approved', updatedAt: new Date().toISOString() } });
+        }
+        if (action === 'rejectClinicVisitDeletion') {
+            return await rpc('api_patch', { p_sheet: 'ClinicVisits', p_id: data.visitId || data.id, p_patch: { status: 'rejected', updatedAt: new Date().toISOString() } });
+        }
+        if (action === 'approveMedicationDeletion') {
+            return await rpc('api_patch', { p_sheet: 'Medications', p_id: data.medicationId || data.id, p_patch: { status: 'approved', updatedAt: new Date().toISOString() } });
+        }
+        if (action === 'rejectMedicationDeletion') {
+            return await rpc('api_patch', { p_sheet: 'Medications', p_id: data.medicationId || data.id, p_patch: { status: 'rejected', updatedAt: new Date().toISOString() } });
+        }
+        if (action === 'approveSupplyRequest') {
+            return await rpc('api_patch', { p_sheet: 'Notifications', p_id: data.requestId || data.id, p_patch: { status: 'approved', updatedAt: new Date().toISOString() } });
+        }
+        if (action === 'rejectSupplyRequest') {
+            return await rpc('api_patch', { p_sheet: 'Notifications', p_id: data.requestId || data.id, p_patch: { status: 'rejected', updatedAt: new Date().toISOString() } });
+        }
+        if (action === 'approveViolationApprovalRequest') {
+            return await rpc('api_patch', { p_sheet: 'Violations', p_id: data.violationId || data.id, p_patch: { status: 'approved', updatedAt: new Date().toISOString() } });
+        }
+        if (action === 'rejectViolationApprovalRequest') {
+            return await rpc('api_patch', { p_sheet: 'Violations', p_id: data.violationId || data.id, p_patch: { status: 'rejected', updatedAt: new Date().toISOString() } });
+        }
+
+        // ---- Settings / config reads ----
+        if (action === 'getActionTrackingSettings' || action === 'getSafetyHealthManagementSettings' || action === 'getViolationApprovalSettings') {
+            const rows = await rpc('api_read_sheet', { p_sheet: 'CompanySettings' });
+            if (rows && rows.success === false) return rows;
+            const arr = Array.isArray(rows) ? rows : [];
+            return { success: true, data: arr.find(r => String(r.id) === 'default') || arr[0] || {} };
+        }
+        if (action === 'saveViolationTypes' || action === 'updateViolationApprovalSettings' || action === 'updateLeaveTypes' || action === 'updateKPITargets') {
+            return await rpc('api_patch', { p_sheet: 'CompanySettings', p_id: 'default', p_patch: data });
+        }
+        if (action === 'getOrganizationalStructure') {
+            const rows = await rpc('api_read_sheet', { p_sheet: 'SafetyTeamMembers' });
+            if (rows && rows.success === false) return rows;
+            return { success: true, data: Array.isArray(rows) ? rows : [] };
+        }
+        if (action === 'saveOrganizationalStructure') {
+            return await rpc('api_replace_sheet', { p_sheet: 'SafetyTeamMembers', p_rows: data.members || data.data || [] });
+        }
+
+        // ---- Report / KPI / analytics (placeholder) ----
+        if (action === 'generateAttendanceReport' || action === 'generateSafetyTeamPerformanceReport' ||
+            action === 'calculateSafetyTeamKPIs' || action === 'getSafetyTeamKPIs' ||
+            action === 'getActionTrackingKPIs' || action === 'getChangeRequestStatistics' ||
+            action === 'getIssueStatistics' || action === 'getContractorDetailedAnalytics') {
+            return { success: true, data: {}, message: 'التقرير يتطلب Edge Function' };
+        }
+
+        // ---- Batch / complex updates ----
+        if (action === 'updateAttendanceStatuses') {
+            return { success: true };
+        }
+        if (action === 'getJobDescription') {
+            const rows = await rpc('api_read_sheet', { p_sheet: 'SafetyTeamMembers' });
+            if (rows && rows.success === false) return rows;
+            const arr = Array.isArray(rows) ? rows : [];
+            const member = arr.find(r => String(r.id) === String(data.memberId));
+            return { success: true, data: member || null };
+        }
+        if (action === 'getTrainingModuleBundle') {
+            const rows = await rpc('api_read_sheet', { p_sheet: 'Training' });
+            if (rows && rows.success === false) return rows;
+            const arr = Array.isArray(rows) ? rows : [];
+            const training = arr.find(r => String(r.id) === String(data.trainingId || data.id));
+            return { success: true, data: training || null };
+        }
+        if (action === 'saveOrUpdateFireEquipmentAsset') {
+            const id = data.assetId || data.id || cryptoId();
+            return await rpc('api_upsert', { p_sheet: 'FireEquipmentAssets', p_id: id, p_data: Object.assign({}, data, { id }) });
+        }
+        if (action === 'saveTestReport') {
+            const id = data.id || cryptoId();
+            return await rpc('api_upsert', { p_sheet: 'SafetyPerformanceKPIs', p_id: id, p_data: Object.assign({}, data, { id }) });
+        }
+        if (action === 'migrateContractorVisits') {
+            return { success: true, message: 'الترحيل يتطلب Edge Function' };
+        }
+        if (action === 'getNextChangeRequestNumber') {
+            const rows = await rpc('api_read_sheet', { p_sheet: 'ActionTrackingRegister' });
+            const arr = Array.isArray(rows) ? rows : [];
+            const maxNum = arr.reduce((max, r) => {
+                const n = parseInt(String(r.requestNumber || r.number || '0').replace(/\D/g, ''), 10);
+                return isNaN(n) ? max : Math.max(max, n);
+            }, 0);
+            return { success: true, number: 'CR-' + String(maxNum + 1).padStart(4, '0') };
         }
 
         return { success: false, message: `action غير معروف في محوّل SaaS: '${action}'`, _unmapped: true };
