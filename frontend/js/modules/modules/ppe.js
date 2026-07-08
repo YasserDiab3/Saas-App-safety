@@ -1656,8 +1656,8 @@ const PPE = {
         const stReceived = t('module.ppe.status.received', 'مستلم');
         const stPending = t('module.ppe.status.pending', 'قيد التسليم');
         modal.innerHTML = `
-            <div class="modal-content w-[min(100%,42rem)] max-w-[min(94vw,42rem)]" style="border-radius: 0.875rem; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.15), 0 4px 16px rgba(0,0,0,0.06);">
-                <div class="modal-header" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #ffffff; text-align: center; position: relative; padding: 1.25rem 1.5rem; border-bottom: 2px solid #c7a25c;">
+            <div class="modal-content w-[min(100%,36rem)] max-w-[min(94vw,36rem)]" style="border-radius: 0.875rem; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.15), 0 4px 16px rgba(0,0,0,0.06);">
+                <div class="modal-header" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #ffffff; text-align: center; position: relative; padding: 1rem 1.25rem; border-bottom: 2px solid #c7a25c;">
                     <h2 class="modal-title" style="margin: 0 auto; font-weight: 600; letter-spacing: 0.02em;">
                         ${isEdit ? ut(t('module.ppe.title.editReceipt', 'تعديل استلام')) : ut(t('module.ppe.title.newReceipt', 'تسجيل استلام جديد'))}
                     </h2>
@@ -1666,9 +1666,9 @@ const PPE = {
                     </button>
                 </div>
                 <div class="modal-body" style="background: #ffffff;">
-                    <form id="ppe-form" class="space-y-5">
-                        <section style="background: #ffffff; border: 1px solid #e2e8f0; border-left: 4px solid #6366f1; border-radius: 0.75rem; padding: 1.25rem; box-shadow: 0 1px 4px rgba(0,0,0,0.04);">
-                            <div class="flex items-center gap-2 mb-4" style="border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem;">
+                    <form id="ppe-form" class="space-y-4">
+                        <section style="background: #ffffff; border: 1px solid #e2e8f0; border-left: 4px solid #6366f1; border-radius: 0.75rem; padding: 1rem; box-shadow: 0 1px 4px rgba(0,0,0,0.04);">
+                            <div class="flex items-center gap-2 mb-3" style="border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
                                 <span style="display: inline-flex; width: 1.75rem; height: 1.75rem; align-items: center; justify-content: center; border-radius: 50%; background: linear-gradient(135deg, #4f46e5, #6366f1); color: #fff; font-size: 0.75rem;"><i class="fas fa-user"></i></span>
                                 <h3 class="text-sm font-bold" style="color: #1e293b; margin: 0;">بيانات الموظف</h3>
                             </div>
@@ -1706,8 +1706,8 @@ const PPE = {
                         <input type="hidden" id="ppe-employee-branch" value="${Utils.escapeHTML(employeeInfo.branch)}">
                         <input type="hidden" id="ppe-employee-location" value="${Utils.escapeHTML(employeeInfo.location)}">
 
-                        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-left: 4px solid #6366f1; border-radius: 0.75rem; padding: 1.25rem; box-shadow: 0 1px 4px rgba(0,0,0,0.04);">
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+                        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-left: 4px solid #6366f1; border-radius: 0.75rem; padding: 1rem; box-shadow: 0 1px 4px rgba(0,0,0,0.04);">
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
                                 <div style="background: #f8fafc; padding: 0.875rem; border-radius: 0.5rem; border: 1px solid #eef2f6; display: flex; align-items: center; gap: 0.75rem; box-shadow: 0 1px 2px rgba(0,0,0,0.02);">
                                     <span style="display: inline-flex; width: 2.25rem; height: 2.25rem; flex-shrink: 0; align-items: center; justify-content: center; border-radius: 0.5rem; background: linear-gradient(135deg, #eef2ff, #e0e7ff); color: #4f46e5;"><i class="fas fa-signature" style="font-size: 0.8rem;"></i></span>
                                     <div class="min-w-0">
@@ -1740,8 +1740,8 @@ const PPE = {
                             </div>
                         </div>
 
-                        <section style="background: #ffffff; border: 1px solid #e2e8f0; border-left: 4px solid #10b981; border-radius: 0.75rem; padding: 1.25rem; box-shadow: 0 1px 4px rgba(0,0,0,0.04);">
-                            <div class="flex items-center gap-2 mb-4" style="border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem;">
+                        <section style="background: #ffffff; border: 1px solid #e2e8f0; border-left: 4px solid #10b981; border-radius: 0.75rem; padding: 1rem; box-shadow: 0 1px 4px rgba(0,0,0,0.04);">
+                            <div class="flex items-center gap-2 mb-3" style="border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
                                 <span style="display: inline-flex; width: 1.75rem; height: 1.75rem; align-items: center; justify-content: center; border-radius: 50%; background: linear-gradient(135deg, #059669, #10b981); color: #fff; font-size: 0.75rem;"><i class="fas fa-boxes"></i></span>
                                 <h3 class="text-sm font-bold" style="color: #1e293b; margin: 0;">الأصناف المستلمة</h3>
                             </div>
@@ -1755,7 +1755,7 @@ const PPE = {
                                 </div>
                                 <div id="ppe-items-container" class="space-y-4">
                                     <div class="ppe-item-row w-full border border-slate-200 rounded-lg bg-white overflow-hidden" style="box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
-                                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 items-end" style="background: #f8fafc;">
+                                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 items-end" style="background: #f8fafc;">
                                             <div class="min-w-0">
                                                 <label class="block text-xs font-semibold text-gray-700 mb-1">
                                                     <i class="fas fa-shield-alt text-emerald-600 ml-1"></i>${ut(t('module.ppe.label.equipmentType', 'نوع المعدة *'))}
@@ -1808,11 +1808,11 @@ const PPE = {
                             </div>
 
                             <div style="border-top: 1px solid #e2e8f0; padding-top: 1rem;">
-                            <div class="flex items-center gap-2 mb-3" style="border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem;">
+                            <div class="flex items-center gap-2 mb-2" style="border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
                                 <span style="display: inline-flex; width: 1.75rem; height: 1.75rem; align-items: center; justify-content: center; border-radius: 50%; background: linear-gradient(135deg, #d97706, #f59e0b); color: #fff; font-size: 0.75rem;"><i class="fas fa-calendar-check"></i></span>
                                 <h3 class="text-sm font-bold" style="color: #1e293b; margin: 0;">تفاصيل الاستلام</h3>
                             </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div>
                                     <label class="block text-sm font-semibold text-gray-700 mb-2">${ut(t('module.ppe.label.receiptDate', 'تاريخ الاستلام *'))}</label>
                                     <input type="date" id="ppe-receipt-date" required class="form-input"
@@ -1834,7 +1834,7 @@ const PPE = {
                             </div>
                         </div>
                         </section>
-                        <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
+                        <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-200">
                             <button type="button" class="btn-secondary" onclick="this.closest('.modal-overlay').remove()">${ut(t('module.common.cancel', 'إلغاء'))}</button>
                             <button type="submit" class="btn-primary">
                                 <i class="fas fa-save ml-2"></i>${isEdit ? ut(t('module.common.saveChanges', 'حفظ التعديلات')) : ut(t('module.ppe.btn.saveReceipt', 'تسجيل الاستلام'))}
