@@ -1,4 +1,4 @@
 {
-  "version": "2.2.126",
-  "message": "fix(permissions): guard delete actions behind admin check"
+  "version": "2.2.127",
+  "message": "fix(permissions): guard delete/edit in 12 modules"
 }

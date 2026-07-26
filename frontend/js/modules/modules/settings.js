@@ -231,7 +231,7 @@ const Settings = {
                         <i class="fas fa-project-diagram ml-2"></i>
                         ${I18n.t('settings.tabs.circuit')}
                     </button>
-                    <button class="tab-btn" data-tab="privacy">
+                    <button class="tab-btn" data-tab="privacy" ${!isAdmin ? 'style="display:none;"' : ''}>
                         <i class="fas fa-cookie-bite ml-2"></i>
                         ${I18n.t('settings.tabs.privacy')}
                     </button>
@@ -1031,6 +1031,7 @@ const Settings = {
             </div>
 
             <!-- Tab Content: الخصوصية والكوكيز -->
+            ${isAdmin ? `
             <div class="tab-content" id="tab-privacy">
                 <div class="settings-group mt-6">
                     <div class="settings-group-header">
@@ -1088,6 +1089,7 @@ const Settings = {
                     </div>
                 </div>
             </div>
+            ` : ''}
 
             <!-- Tab Content: السجلات والمراقبة -->
             <div class="tab-content" id="tab-logs">
@@ -1299,8 +1301,8 @@ const Settings = {
                         });
                     }
                 }
-                // تحميل بيانات الخصوصية والكوكيز عند فتح التبويب
-                if (targetTab === 'privacy') {
+                // تحميل بيانات الخصوصية والكوكيز عند فتح التبويب (للمدير فقط)
+                if (targetTab === 'privacy' && this.isCurrentUserAdmin()) {
                     Settings.loadPrivacyTab();
                 }
             });
