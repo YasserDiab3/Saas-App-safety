@@ -62,6 +62,15 @@ const SafetyHealthManagement = {
         // إذا لم يكن مفعلاً ولا توجد بيانات محلية
         return 'الخادم السحابي غير مفعّل. يرجى تفعيله من الإعدادات';
     },
+
+    isCurrentUserAdmin() {
+        if (typeof Permissions !== 'undefined' && typeof Permissions.isCurrentUserAdmin === 'function') {
+            return Permissions.isCurrentUserAdmin();
+        }
+        const role = (AppState.currentUser?.role || '').toLowerCase();
+        return role === 'admin' || role === 'مدير' || role === 'مدير النظام' || role === 'system-admin' || role === 'system-manager';
+    },
+
     // حد أقصى لزمن تحميل التبويبات (2 ثانية) ثم عرض واجهة فوراً مع استكمال التحميل في الخلفية
     LOAD_TIMEOUT_MS: 2000,
     // تحسينات الأداء: Cache و Debounce
@@ -113,8 +122,12 @@ const SafetyHealthManagement = {
                         <p class="text-xs text-gray-500">${Utils.escapeHTML(item.positionLevel || '')}</p>
                     </div>
                     <div class="flex gap-2">
+                        ${this.isCurrentUserAdmin() ? `
                         <button onclick="SafetyHealthManagement.editStructure('${item.id}')" class="btn-icon btn-icon-primary"><i class="fas fa-edit"></i></button>
+                        ` : ''}
+                        ${this.isCurrentUserAdmin() ? `
                         <button onclick="SafetyHealthManagement.deleteStructure('${item.id}')" class="btn-icon btn-icon-danger"><i class="fas fa-trash"></i></button>
+                        ` : ''}
                     </div>
                 </div>
             </div>
@@ -1224,9 +1237,11 @@ const SafetyHealthManagement = {
                     <button onclick="SafetyHealthManagement.showMemberForm(${JSON.stringify(member).replace(/"/g, '&quot;')})" class="btn-secondary btn-sm" title="تعديل">
                         <i class="fas fa-edit"></i>
                     </button>
+                    ${this.isCurrentUserAdmin() ? `
                     <button onclick="SafetyHealthManagement.deleteMember('${member.id}')" class="btn-danger btn-sm" title="حذف">
                         <i class="fas fa-trash"></i>
                     </button>
+                    ` : ''}
                 </div>
             </div>
         `).join('');
@@ -1612,6 +1627,12 @@ const SafetyHealthManagement = {
     },
 
     async deleteMember(memberId) {
+        if (!this.isCurrentUserAdmin()) {
+            if (typeof Notification !== 'undefined' && Notification.error) {
+                Notification.error('ليس لديك صلاحية للحذف. هذه الميزة متاحة لمدير النظام فقط.');
+            }
+            return;
+        }
         if (!memberId) {
             Notification.error('معرف العضو غير صحيح');
             return;
@@ -1712,12 +1733,16 @@ const SafetyHealthManagement = {
                             <p class="text-xs text-gray-500">${Utils.escapeHTML(item.positionLevel || '')}</p>
                         </div>
                         <div class="flex gap-2">
+                            ${this.isCurrentUserAdmin() ? `
                             <button onclick="SafetyHealthManagement.editStructure('${item.id}')" class="btn-icon btn-icon-primary">
                                 <i class="fas fa-edit"></i>
                             </button>
+                            ` : ''}
+                            ${this.isCurrentUserAdmin() ? `
                             <button onclick="SafetyHealthManagement.deleteStructure('${item.id}')" class="btn-icon btn-icon-danger">
                                 <i class="fas fa-trash"></i>
                             </button>
+                            ` : ''}
                         </div>
                     </div>
                 </div>
@@ -2132,6 +2157,12 @@ const SafetyHealthManagement = {
     },
 
     async deleteStructure(id) {
+        if (!this.isCurrentUserAdmin()) {
+            if (typeof Notification !== 'undefined' && Notification.error) {
+                Notification.error('ليس لديك صلاحية للحذف. هذه الميزة متاحة لمدير النظام فقط.');
+            }
+            return;
+        }
         if (!confirm('هل أنت متأكد من حذف هذا المنصب؟\n\nهذه العملية لا يمكن التراجع عنها.')) return;
 
         try {
@@ -3318,12 +3349,16 @@ const SafetyHealthManagement = {
                                         </div>
                                     </div>
                                     <div class="flex gap-2">
+                                        ${this.isCurrentUserAdmin() ? `
                                         <button onclick="SafetyHealthManagement.editTask('${task.id}')" class="btn-icon btn-icon-primary">
                                             <i class="fas fa-edit"></i>
                                         </button>
+                                        ` : ''}
+                                        ${this.isCurrentUserAdmin() ? `
                                         <button onclick="SafetyHealthManagement.deleteTask('${task.id}')" class="btn-icon btn-icon-danger">
                                             <i class="fas fa-trash"></i>
                                         </button>
+                                        ` : ''}
                                     </div>
                                 </div>
                             </div>
@@ -3490,6 +3525,12 @@ const SafetyHealthManagement = {
     },
 
     async deleteTask(taskId) {
+        if (!this.isCurrentUserAdmin()) {
+            if (typeof Notification !== 'undefined' && Notification.error) {
+                Notification.error('ليس لديك صلاحية للحذف. هذه الميزة متاحة لمدير النظام فقط.');
+            }
+            return;
+        }
         if (!confirm('هل أنت متأكد من حذف هذه المهمة؟')) {
             return;
         }
@@ -5294,12 +5335,16 @@ const SafetyHealthManagement = {
                                 </div>
                             </div>
                             <div class="flex gap-2">
+                                ${this.isCurrentUserAdmin() ? `
                                 <button onclick="SafetyHealthManagement.editCustomKPI('${kpi.id || index}')" class="btn-icon btn-icon-primary" title="تعديل">
                                     <i class="fas fa-edit"></i>
                                 </button>
+                                ` : ''}
+                                ${this.isCurrentUserAdmin() ? `
                                 <button onclick="SafetyHealthManagement.deleteCustomKPI('${kpi.id || index}')" class="btn-icon btn-icon-danger" title="حذف">
                                     <i class="fas fa-trash"></i>
                                 </button>
+                                ` : ''}
                             </div>
                         </div>
                     </div>
@@ -5509,6 +5554,12 @@ const SafetyHealthManagement = {
     },
 
     async deleteCustomKPI(kpiId) {
+        if (!this.isCurrentUserAdmin()) {
+            if (typeof Notification !== 'undefined' && Notification.error) {
+                Notification.error('ليس لديك صلاحية للحذف. هذه الميزة متاحة لمدير النظام فقط.');
+            }
+            return;
+        }
         // التحقق من حالة الخادم السحابي قبل محاولة الحذف
         if (!this.isGoogleAppsScriptEnabled()) {
             Notification.warning('الخادم السحابي غير مفعّل. لا يمكن حذف المؤشر');
@@ -5921,12 +5972,16 @@ const SafetyHealthManagement = {
                                     ${record.notes ? `<p class="text-xs text-gray-500 mt-2">${Utils.escapeHTML(record.notes)}</p>` : ''}
                                 </div>
                                 <div class="flex gap-2">
+                                    ${this.isCurrentUserAdmin() ? `
                                     <button onclick="SafetyHealthManagement.editAttendance('${record.id}')" class="btn-icon btn-icon-primary">
                                         <i class="fas fa-edit"></i>
                                     </button>
+                                    ` : ''}
+                                    ${this.isCurrentUserAdmin() ? `
                                     <button onclick="SafetyHealthManagement.deleteAttendance('${record.id}')" class="btn-icon btn-icon-danger">
                                         <i class="fas fa-trash"></i>
                                     </button>
+                                    ` : ''}
                                 </div>
                             </div>
                         </div>
@@ -6005,12 +6060,16 @@ const SafetyHealthManagement = {
                                     ${leave.approvedBy ? `<p class="text-xs text-gray-500 mt-1">معتمد من: ${Utils.escapeHTML(leave.approvedBy)}</p>` : ''}
                                 </div>
                                 <div class="flex gap-2">
+                                    ${this.isCurrentUserAdmin() ? `
                                     <button onclick="SafetyHealthManagement.editLeave('${leave.id}')" class="btn-icon btn-icon-primary">
                                         <i class="fas fa-edit"></i>
                                     </button>
+                                    ` : ''}
+                                    ${this.isCurrentUserAdmin() ? `
                                     <button onclick="SafetyHealthManagement.deleteLeave('${leave.id}')" class="btn-icon btn-icon-danger">
                                         <i class="fas fa-trash"></i>
                                     </button>
+                                    ` : ''}
                                 </div>
                             </div>
                         </div>
@@ -6311,6 +6370,12 @@ const SafetyHealthManagement = {
     },
 
     async deleteAttendance(attendanceId) {
+        if (!this.isCurrentUserAdmin()) {
+            if (typeof Notification !== 'undefined' && Notification.error) {
+                Notification.error('ليس لديك صلاحية للحذف. هذه الميزة متاحة لمدير النظام فقط.');
+            }
+            return;
+        }
         if (!confirm('هل أنت متأكد من حذف سجل الحضور هذا؟')) {
             return;
         }
@@ -6809,6 +6874,12 @@ const SafetyHealthManagement = {
     },
 
     async deleteLeave(leaveId) {
+        if (!this.isCurrentUserAdmin()) {
+            if (typeof Notification !== 'undefined' && Notification.error) {
+                Notification.error('ليس لديك صلاحية للحذف. هذه الميزة متاحة لمدير النظام فقط.');
+            }
+            return;
+        }
         if (!confirm('هل أنت متأكد من حذف هذه الإجازة؟')) {
             return;
         }

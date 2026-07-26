@@ -6,6 +6,14 @@
 const ISO = {
     currentTab: 'overview',
 
+    isCurrentUserAdmin() {
+        if (typeof Permissions !== 'undefined' && typeof Permissions.isCurrentUserAdmin === 'function') {
+            return Permissions.isCurrentUserAdmin();
+        }
+        const role = (AppState.currentUser?.role || '').toLowerCase();
+        return role === 'admin' || role === 'مدير' || role === 'مدير النظام' || role === 'system-admin' || role === 'system-manager';
+    },
+
     async load() {
         // Add language change listener
         if (!this._languageChangeListenerAdded) {
@@ -2203,15 +2211,19 @@ const ISO = {
                                                 <td><span class="badge badge-${code.status === 'نشط' ? 'success' : 'warning'}">${Utils.escapeHTML(code.status || '')}</span></td>
                                                 <td>${code.createdAt ? Utils.formatDate(code.createdAt) : '-'}</td>
                                                 <td>
+                                                    ${this.isCurrentUserAdmin() ? `
                                                     <button onclick="ISO.editDocumentCode('${code.id}')" class="btn-icon btn-icon-info" title="تعديل">
                                                         <i class="fas fa-edit"></i>
                                                     </button>
+                                                    ` : ''}
                                                     <button onclick="ISO.viewDocumentVersions('${code.id}')" class="btn-icon btn-icon-success" title="عرض الإصدارات">
                                                         <i class="fas fa-list"></i>
                                                     </button>
+                                                    ${this.isCurrentUserAdmin() ? `
                                                     <button onclick="ISO.deleteDocumentCode('${code.id}')" class="btn-icon btn-icon-danger" title="حذف">
                                                         <i class="fas fa-trash"></i>
                                                     </button>
+                                                    ` : ''}
                                                 </td>
                                             </tr>
                                         `).join('')}
@@ -2276,12 +2288,14 @@ const ISO = {
                                                         </span>
                                                     </td>
                                                     <td>
-                                                        <button onclick="ISO.editDocumentVersion('${version.id}')" class="btn-icon btn-icon-info" title="تعديل">
-                                                            <i class="fas fa-edit"></i>
-                                                        </button>
-                                                        <button onclick="ISO.reissueDocument('${version.id}')" class="btn-icon btn-icon-warning" title="إعادة إصدار">
-                                                            <i class="fas fa-redo"></i>
-                                                        </button>
+                                                    ${this.isCurrentUserAdmin() ? `
+                                                    <button onclick="ISO.editDocumentVersion('${version.id}')" class="btn-icon btn-icon-info" title="تعديل">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    ` : ''}
+                                                    <button onclick="ISO.reissueDocument('${version.id}')" class="btn-icon btn-icon-warning" title="إعادة إصدار">
+                                                        <i class="fas fa-redo"></i>
+                                                    </button>
                                                     </td>
                                                 </tr>
                                             `;
@@ -2777,6 +2791,12 @@ const ISO = {
     },
 
     async deleteDocumentCode(id) {
+        if (!this.isCurrentUserAdmin()) {
+            if (typeof Notification !== 'undefined' && Notification.error) {
+                Notification.error('ليس لديك صلاحية للحذف. هذه الميزة متاحة لمدير النظام فقط.');
+            }
+            return;
+        }
         const item = await this.getDocumentCodeById(id);
         const label = item ? (item.code || item.documentName || id) : id;
         if (!confirm('هل أنت متأكد من حذف الكود "' + label + '"؟ سيتم حذف جميع الإصدارات المرتبطة به.')) {
@@ -3014,10 +3034,12 @@ const ISO = {
                                             </td>
                                             <td>${Utils.escapeHTML(v.notes || '-')}</td>
                                             <td>
+                                                ${this.isCurrentUserAdmin() ? `
                                                 <button onclick="ISO.editDocumentVersion('${v.id}'); this.closest('.modal-overlay').remove();" 
                                                     class="btn-icon btn-icon-info" title="تعديل">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
+                                                ` : ''}
                                             </td>
                                         </tr>
                                     `).join('')}

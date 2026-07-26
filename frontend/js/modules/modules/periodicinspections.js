@@ -1028,12 +1028,14 @@ const PeriodicInspections = {
                                                     <button onclick="PeriodicInspections.viewInspection('${inspection.id}')" class="btn-icon btn-icon-info hover:scale-110 transition-transform" title="عرض التفاصيل">
                                                         <i class="fas fa-eye"></i>
                                                     </button>
+                                                    ${this.isCurrentUserAdmin() ? `
                                                     <button onclick="PeriodicInspections.editInspection('${inspection.id}')" class="btn-icon btn-icon-primary hover:scale-110 transition-transform" title="تعديل">
                                                         <i class="fas fa-edit"></i>
                                                     </button>
                                                     <button onclick="PeriodicInspections.deleteInspection('${inspection.id}')" class="btn-icon btn-icon-danger hover:scale-110 transition-transform" title="حذف">
                                                         <i class="fas fa-trash"></i>
                                                     </button>
+                                                    ` : ''}
                                                 </div>
                                             </td>
                                         </tr>
@@ -2190,12 +2192,14 @@ const PeriodicInspections = {
                                         </div>
                                     </div>
                                     <div class="flex gap-2">
+                                        ${this.isCurrentUserAdmin() ? `
                                         <button onclick="PeriodicInspections.editTemplate('${template.id}')" class="btn-icon btn-icon-primary" title="تعديل">
                                             <i class="fas fa-edit"></i>
                                         </button>
                                         <button onclick="PeriodicInspections.deleteTemplate('${template.id}')" class="btn-icon btn-icon-danger" title="حذف">
                                             <i class="fas fa-trash"></i>
                                         </button>
+                                        ` : ''}
                                     </div>
                                 </div>
                                 <div class="mt-3 pt-3 border-t border-gray-200">
@@ -2398,6 +2402,10 @@ const PeriodicInspections = {
     },
 
     deleteTemplate(templateId) {
+        if (!this.isCurrentUserAdmin()) {
+            Notification.error('ليس لديك صلاحية للحذف. هذه الميزة متاحة لمدير النظام فقط.');
+            return;
+        }
         const template = this.INSPECTION_TEMPLATES[templateId];
         if (!template) return;
 
@@ -2809,6 +2817,10 @@ const PeriodicInspections = {
     },
 
     async deleteInspection(id) {
+        if (!this.isCurrentUserAdmin()) {
+            Notification.error('ليس لديك صلاحية للحذف. هذه الميزة متاحة لمدير النظام فقط.');
+            return;
+        }
         if (!confirm('هل أنت متأكد من حذف هذا الفحص الدوري؟')) return;
 
         const inspections = AppState.appData.periodicInspections || [];
@@ -3624,7 +3636,9 @@ const PeriodicInspections = {
                         <button type="button" class="btn-icon btn-icon-info ml-2" onclick="PeriodicInspections.showDailySafetyCheckListView('${Utils.escapeHTML(r.id)}')" title="${t('module.periodic.dsc.action.view', 'عرض')}"><i class="fas fa-eye"></i></button>
                         <button type="button" class="btn-icon btn-icon-success ml-2" onclick="PeriodicInspections.exportDailySafetyCheckListRecord('${Utils.escapeHTML(r.id)}')" title="${t('module.periodic.dsc.action.downloadPdf', 'تحميل PDF')}"><i class="fas fa-file-pdf"></i></button>
                         <button type="button" class="btn-icon btn-icon-primary" onclick="PeriodicInspections.showDailySafetyCheckListForm('${Utils.escapeHTML(r.id)}')" title="${t('module.periodic.dsc.action.edit', 'تعديل')}"><i class="fas fa-edit"></i></button>
+                        ${this.isCurrentUserAdmin() ? `
                         <button type="button" class="btn-icon btn-icon-danger" onclick="PeriodicInspections.deleteDailySafetyCheckListRecord('${Utils.escapeHTML(r.id)}')" title="${t('module.periodic.dsc.action.delete', 'حذف')}"><i class="fas fa-trash"></i></button>
+                        ` : ''}
                     </td>
                 </tr>`;
             }).join('');
@@ -5474,6 +5488,10 @@ const PeriodicInspections = {
     },
 
     async deleteDailySafetyCheckListRecord(id) {
+        if (!this.isCurrentUserAdmin()) {
+            Notification.error('ليس لديك صلاحية للحذف. هذه الميزة متاحة لمدير النظام فقط.');
+            return;
+        }
         if (!confirm('هل أنت متأكد من حذف هذا السجل؟')) return;
         this.getDailySafetyCheckListRecords();
         const list = AppState.appData.dailySafetyCheckList;

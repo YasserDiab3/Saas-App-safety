@@ -29,6 +29,14 @@ const LegalDocuments = {
         return photoData.trim() || null;
     },
 
+    isCurrentUserAdmin() {
+        if (typeof Permissions !== 'undefined' && typeof Permissions.isCurrentUserAdmin === 'function') {
+            return Permissions.isCurrentUserAdmin();
+        }
+        const role = (AppState.currentUser?.role || '').toLowerCase();
+        return role === 'admin' || role === 'مدير' || role === 'مدير النظام' || role === 'system-admin' || role === 'system-manager';
+    },
+
     async load() {
         // Add language change listener
         if (!this._languageChangeListenerAdded) {
@@ -864,12 +872,16 @@ const LegalDocuments = {
                                         <button onclick="LegalDocuments.exportPDF('${doc.id}')" class="btn-icon btn-icon-success" title="تصدير PDF">
                                             <i class="fas fa-file-pdf"></i>
                                         </button>
+                                        ${this.isCurrentUserAdmin() ? `
                                         <button onclick="LegalDocuments.editDocument('${doc.id}')" class="btn-icon btn-icon-primary" title="تعديل">
                                             <i class="fas fa-edit"></i>
                                         </button>
+                                        ` : ''}
+                                        ${this.isCurrentUserAdmin() ? `
                                         <button onclick="LegalDocuments.deleteDocument('${doc.id}')" class="btn-icon btn-icon-danger" title="حذف">
                                             <i class="fas fa-trash"></i>
                                         </button>
+                                        ` : ''}
                                     </div>
                                 </td>
                             </tr>
@@ -1377,6 +1389,12 @@ const LegalDocuments = {
     },
 
     async deleteDocument(id) {
+        if (!this.isCurrentUserAdmin()) {
+            if (typeof Notification !== 'undefined' && Notification.error) {
+                Notification.error('ليس لديك صلاحية للحذف. هذه الميزة متاحة لمدير النظام فقط.');
+            }
+            return;
+        }
         if (!confirm('هل أنت متأكد من حذف هذا المستند؟')) return;
         Loading.show();
         try {
@@ -1733,12 +1751,16 @@ const LegalDocuments = {
                                     </td>
                                     <td>
                                         <div class="flex items-center gap-2">
+                                            ${this.isCurrentUserAdmin() ? `
                                             <button onclick="LegalDocuments.editInventoryItem('${item.id}')" class="btn-icon btn-icon-primary" title="تعديل">
                                                 <i class="fas fa-edit"></i>
                                             </button>
+                                        ` : ''}
+                                        ${this.isCurrentUserAdmin() ? `
                                             <button onclick="LegalDocuments.deleteInventoryItem('${item.id}')" class="btn-icon btn-icon-danger" title="حذف">
                                                 <i class="fas fa-trash"></i>
                                             </button>
+                                        ` : ''}
                                         </div>
                                     </td>
                                 </tr>
@@ -1894,6 +1916,12 @@ const LegalDocuments = {
     },
 
     async deleteInventoryItem(id) {
+        if (!this.isCurrentUserAdmin()) {
+            if (typeof Notification !== 'undefined' && Notification.error) {
+                Notification.error('ليس لديك صلاحية للحذف. هذه الميزة متاحة لمدير النظام فقط.');
+            }
+            return;
+        }
         if (!confirm('هل أنت متأكد من حذف هذا السجل؟')) return;
         Loading.show();
         try {

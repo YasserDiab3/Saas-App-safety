@@ -106,6 +106,14 @@ const PPE = {
         return s || '—';
     },
 
+    isCurrentUserAdmin() {
+        if (typeof Permissions !== 'undefined' && typeof Permissions.isCurrentUserAdmin === 'function') {
+            return Permissions.isCurrentUserAdmin();
+        }
+        const role = (AppState.currentUser?.role || '').toLowerCase();
+        return role === 'admin' || role === 'مدير' || role === 'مدير النظام' || role === 'system-admin' || role === 'system-manager';
+    },
+
     isStatusReceived(status) {
         return String(status || '').trim() === 'مستلم';
     },
@@ -417,12 +425,15 @@ const PPE = {
                                     <button onclick="PPE.exportPDF('${idJs}')" class="btn-icon btn-icon-success" title="${esc(pdfT)}">
                                         <i class="fas fa-file-pdf"></i>
                                     </button>
+${this.isCurrentUserAdmin() ? `
                                     <button onclick="PPE.showPPEForm(${JSON.stringify(item).replace(/"/g, '&quot;')});" class="btn-icon btn-icon-primary" title="${esc(editTitle)}">
                                         <i class="fas fa-edit"></i>
                                     </button>
+` : ''}${this.isCurrentUserAdmin() ? `
                                     <button onclick="PPE.deletePPE('${idJs}')" class="btn-icon btn-icon-danger" title="${esc(delTitle)}">
                                         <i class="fas fa-trash"></i>
                                     </button>
+` : ''}
                                 </div>
                             </td>
                         </tr>`;
@@ -657,12 +668,15 @@ const PPE = {
                                     <td>${Utils.escapeHTML(item.supplier || '')}</td>
                                     <td>
                                         <div class="flex items-center gap-2">
+${this.isCurrentUserAdmin() ? `
                                             <button onclick="PPE.editStockItem('${item.itemId}')" class="btn-icon btn-icon-warning" title="${ut(t('module.common.edit', 'تعديل'))}">
                                                 <i class="fas fa-edit"></i>
                                             </button>
+` : ''}${this.isCurrentUserAdmin() ? `
                                             <button onclick="PPE.deleteStockItem('${item.itemId}')" class="btn-icon btn-icon-danger" title="${ut(t('module.ppe.btn.deleteItem', 'حذف'))}">
                                                 <i class="fas fa-trash"></i>
                                             </button>
+` : ''}
                                         </div>
                                     </td>
                                 </tr>
@@ -2692,12 +2706,15 @@ const PPE = {
                     <button class="btn-success" onclick="PPE.exportPDF('${idJs}');">
                         <i class="fas fa-file-pdf ml-2"></i>${ut(t('module.kpi.exportPDF', 'تصدير PDF'))}
                     </button>
+${this.isCurrentUserAdmin() ? `
                     <button class="btn-primary" onclick="PPE.showPPEForm(${JSON.stringify(item).replace(/"/g, '&quot;')}); this.closest('.modal-overlay').remove();">
                         <i class="fas fa-edit ml-2"></i>${ut(t('module.common.edit', 'تعديل'))}
                     </button>
+` : ''}${this.isCurrentUserAdmin() ? `
                     <button class="btn-danger" onclick="PPE.deletePPE('${idJs}'); this.closest('.modal-overlay').remove();">
                         <i class="fas fa-trash ml-2"></i>${ut(t('module.ppe.btn.deleteReceipt', 'حذف'))}
                     </button>
+` : ''}
                 </div>
             </div>
         `;
@@ -2709,6 +2726,12 @@ const PPE = {
     },
 
     async deletePPE(id) {
+        if (!this.isCurrentUserAdmin()) {
+            if (typeof Notification !== 'undefined' && Notification.error) {
+                Notification.error('ليس لديك صلاحية للحذف. هذه الميزة متاحة لمدير النظام فقط.');
+            }
+            return;
+        }
         if (!id) {
             Notification.error(this._t('module.ppe.notify.idMissing', 'معرف الاستلام غير موجود'));
             return;
@@ -4650,18 +4673,21 @@ const PPE = {
                                             </td>
                                             <td>
                                                 <div class="flex items-center gap-2">
+${this.isCurrentUserAdmin() ? `
                                                     <button onclick="PPE.showStockItemForm('${item.itemId}')" class="btn-icon btn-icon-primary" title="${ut(t('module.common.edit', 'تعديل'))}">
                                                         <i class="fas fa-edit"></i>
                                                     </button>
-                                                    <button onclick="PPE.showStockTransactions('${item.itemId}')" class="btn-icon btn-icon-info" title="${ut(t('module.ppe.btn.transactions', 'الحركات'))}">
+` : ''}                                                    <button onclick="PPE.showStockTransactions('${item.itemId}')" class="btn-icon btn-icon-info" title="${ut(t('module.ppe.btn.transactions', 'الحركات'))}">
                                                         <i class="fas fa-list"></i>
                                                     </button>
                                                     <button onclick="PPE.showTransactionForm('${item.itemId}')" class="btn-icon btn-icon-success" title="${ut(t('module.ppe.btn.addMovement', 'إضافة حركة'))}">
                                                         <i class="fas fa-plus"></i>
                                                     </button>
+${this.isCurrentUserAdmin() ? `
                                                     <button onclick="PPE.deleteStockItem('${item.itemId}')" class="btn-icon btn-icon-danger" title="${ut(t('module.ppe.btn.deleteItem', 'حذف الصنف'))}">
                                                         <i class="fas fa-trash"></i>
                                                     </button>
+` : ''}
                                                 </div>
                                             </td>
                                         </tr>
@@ -5611,6 +5637,12 @@ const PPE = {
     },
 
     async deleteStockItem(itemId) {
+        if (!this.isCurrentUserAdmin()) {
+            if (typeof Notification !== 'undefined' && Notification.error) {
+                Notification.error('ليس لديك صلاحية للحذف. هذه الميزة متاحة لمدير النظام فقط.');
+            }
+            return;
+        }
         if (!itemId) {
             Notification.error('معرف الصنف غير موجود');
             return;

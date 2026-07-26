@@ -1,4 +1,4 @@
 {
-  "version": "2.2.125",
-  "message": "style(ppe): widen name field to col-span-7, code col-span-1"
+  "version": "2.2.126",
+  "message": "fix(permissions): guard delete actions behind admin check"
 }

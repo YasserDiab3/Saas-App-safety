@@ -133,6 +133,14 @@ const ChemicalSafety = {
     _chemicalDataLoadPromise: null,
     _chemicalBackendFetchOk: false,
 
+    isCurrentUserAdmin() {
+        if (typeof Permissions !== 'undefined' && typeof Permissions.isCurrentUserAdmin === 'function') {
+            return Permissions.isCurrentUserAdmin();
+        }
+        const role = (AppState.currentUser?.role || '').toLowerCase();
+        return role === 'admin' || role === 'مدير' || role === 'مدير النظام' || role === 'system-admin' || role === 'system-manager';
+    },
+
     /**
      * تحميل الموديول
      */
@@ -665,14 +673,18 @@ const ChemicalSafety = {
                                                 class="btn-icon btn-icon-primary hover:scale-110 transition-transform" title="عرض التفاصيل">
                                                 <i class="fas fa-eye"></i>
                                             </button>
+                                            ${this.isCurrentUserAdmin() ? `
                                             <button onclick="ChemicalSafety.editChemical('${chemical.id}')" 
                                                 class="btn-icon btn-icon-info hover:scale-110 transition-transform" title="تعديل">
                                                 <i class="fas fa-edit"></i>
                                             </button>
+                                            ` : ''}
+                                            ${this.isCurrentUserAdmin() ? `
                                             <button onclick="ChemicalSafety.deleteChemical('${chemical.id}')" 
                                                 class="btn-icon btn-icon-danger hover:scale-110 transition-transform" title="حذف">
                                                 <i class="fas fa-trash"></i>
                                             </button>
+                                            ` : ''}
                                         </div>
                                     </td>
                                 </tr>
@@ -2664,6 +2676,12 @@ const ChemicalSafety = {
      * حذف مادة
      */
     async deleteChemical(id) {
+        if (!this.isCurrentUserAdmin()) {
+            if (typeof Notification !== 'undefined' && Notification.error) {
+                Notification.error('ليس لديك صلاحية للحذف. هذه الميزة متاحة لمدير النظام فقط.');
+            }
+            return;
+        }
         const chemical = AppState.appData.chemicalRegister.find(c => c.id === id);
         if (!chemical) {
             Notification.error('المادة غير موجودة');

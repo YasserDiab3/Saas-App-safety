@@ -4,6 +4,14 @@
  */
 // ===== Emergency Module (تنبيهات الطوارئ) =====
 const Emergency = {
+    isCurrentUserAdmin() {
+        if (typeof Permissions !== 'undefined' && typeof Permissions.isCurrentUserAdmin === 'function') {
+            return Permissions.isCurrentUserAdmin();
+        }
+        const role = (AppState.currentUser?.role || '').toLowerCase();
+        return role === 'admin' || role === 'مدير' || role === 'مدير النظام' || role === 'system-admin' || role === 'system-manager';
+    },
+
     state: {
         filters: {
             search: '',
@@ -735,9 +743,11 @@ const Emergency = {
                                         <button class="btn-icon btn-icon-info" title="عرض التفاصيل" onclick="Emergency.viewPlan('${plan.id}')">
                                             <i class="fas fa-eye"></i>
                                         </button>
+${this.isCurrentUserAdmin() ? `
                                         <button class="btn-icon btn-icon-primary" title="تعديل" onclick="Emergency.showPlanForm(${JSON.stringify(plan).replace(/"/g, '&quot;')})">
                                             <i class="fas fa-edit"></i>
                                         </button>
+` : ''}
                                     </div>
                                 </td>
                             </tr>
@@ -1009,10 +1019,11 @@ const Emergency = {
                             </button>
                         ` : ''}
                         ${alert.status !== 'مغلق' ? `
+${this.isCurrentUserAdmin() ? `
                             <button class="btn-icon btn-icon-primary" title="إغلاق التنبيه" onclick="Emergency.resolveAlert('${alert.id}')">
                                 <i class="fas fa-flag-checkered"></i>
                             </button>
-                        ` : ''}
+` : ''}                        ` : ''}
                     </div>
                 </td>
             </tr>

@@ -64,6 +64,14 @@ const BehaviorMonitoring = {
         'أخرى'
     ],
 
+    isCurrentUserAdmin() {
+        if (typeof Permissions !== 'undefined' && typeof Permissions.isCurrentUserAdmin === 'function') {
+            return Permissions.isCurrentUserAdmin();
+        }
+        const role = (AppState.currentUser?.role || '').toLowerCase();
+        return role === 'admin' || role === 'مدير' || role === 'مدير النظام' || role === 'system-admin' || role === 'system-manager';
+    },
+
     // الحصول على قائمة المواقع (المصانع) من الإعدادات (نفس نمط Training/Clinic)
     getSiteOptions() {
         try {
@@ -1801,9 +1809,11 @@ const BehaviorMonitoring = {
                     </div>
                 </div>
                 <div class="bhm-detail-footer">
+                    ${this.isCurrentUserAdmin() ? `
                     <button type="button" class="btn-primary" onclick="BehaviorMonitoring.editBehavior('${behavior.id}'); this.closest('.modal-overlay').remove();">
                         <i class="fas fa-pen ml-2"></i>تعديل
                     </button>
+                    ` : ''}
                     <button type="button" class="btn-secondary" onclick="BehaviorMonitoring.printReport('${behavior.id}');">
                         <i class="fas fa-print ml-2"></i>طباعة
                     </button>
@@ -2154,7 +2164,9 @@ const BehaviorMonitoring = {
                                 <td class="text-center">
                                     <div class="flex items-center justify-center gap-2 flex-wrap">
                                         <button type="button" onclick="BehaviorMonitoring.viewContractorBehavior('${b.id}')" class="btn-icon btn-icon-primary" title="عرض"><i class="fas fa-eye"></i></button>
+                                        ${this.isCurrentUserAdmin() ? `
                                         <button type="button" onclick="BehaviorMonitoring.editContractorBehavior('${b.id}')" class="btn-icon btn-icon-warning" title="تعديل"><i class="fas fa-edit"></i></button>
+                                        ` : ''}
                                         <button type="button" onclick="BehaviorMonitoring.exportContractorPDF('${b.id}')" class="btn-icon btn-icon-success" title="تصدير PDF"><i class="fas fa-file-pdf"></i></button>
                                         <button type="button" onclick="BehaviorMonitoring.printContractorReport('${b.id}')" class="btn-icon btn-icon-info" title="طباعة"><i class="fas fa-print"></i></button>
                                     </div>
@@ -2666,7 +2678,9 @@ const BehaviorMonitoring = {
                     </div>
                 </div>
                 <div class="bhm-detail-footer">
+                    ${this.isCurrentUserAdmin() ? `
                     <button type="button" class="btn-primary" onclick="BehaviorMonitoring.editContractorBehavior('${b.id}'); this.closest('.modal-overlay').remove();"><i class="fas fa-pen ml-2"></i>تعديل</button>
+                    ` : ''}
                     <button type="button" class="btn-secondary" onclick="BehaviorMonitoring.printContractorReport('${b.id}')"><i class="fas fa-print ml-2"></i>طباعة</button>
                     <button type="button" class="btn-secondary" onclick="BehaviorMonitoring.exportContractorPDF('${b.id}')"><i class="fas fa-file-pdf ml-2"></i>PDF</button>
                     <button type="button" class="btn-secondary" onclick="this.closest('.modal-overlay').remove()">إغلاق</button>

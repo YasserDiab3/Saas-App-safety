@@ -799,10 +799,10 @@ const ActionTrackingRegister = {
                                         </a>
                                     </div>
                                 </div>
-                                <button onclick="ActionTrackingRegister.editEntry('${action.id}')" class="btn-icon btn-icon-info" title="تعديل">
-                                    <i class="fas fa-edit"></i>
-                                </button>
                                 ${this.isAdmin() ? `
+                                    <button onclick="ActionTrackingRegister.editEntry('${action.id}')" class="btn-icon btn-icon-info" title="تعديل">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
                                     <button onclick="ActionTrackingRegister.deleteEntry('${action.id}')" class="btn-icon btn-icon-danger" title="حذف">
                                         <i class="fas fa-trash"></i>
                                     </button>
@@ -919,10 +919,10 @@ const ActionTrackingRegister = {
                                                     </a>
                                                 </div>
                                             </div>
-                                            <button onclick="ActionTrackingRegister.editEntry('${action.id}')" class="btn-icon btn-icon-info" title="تعديل">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
                                             ${this.isAdmin() ? `
+                                                <button onclick="ActionTrackingRegister.editEntry('${action.id}')" class="btn-icon btn-icon-info" title="تعديل">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
                                                 <button onclick="ActionTrackingRegister.deleteEntry('${action.id}')" class="btn-icon btn-icon-danger" title="حذف">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
@@ -1519,6 +1519,10 @@ const ActionTrackingRegister = {
     },
 
     async deleteEntry(id) {
+        if (!this.isAdmin()) {
+            Notification.error('ليس لديك صلاحية للحذف. هذه الميزة متاحة للمدير فقط.');
+            return;
+        }
         if (!confirm('هل أنت متأكد من حذف هذا الإجراء؟')) return;
 
         Loading.show();

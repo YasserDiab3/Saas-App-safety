@@ -6488,6 +6488,10 @@ const PTW = {
      * حذف التصريح من السجل (لمدير النظام فقط)
      */
     async deletePermitFromRegistry(permitId) {
+        if (!this.isAdmin()) {
+            Notification.error('ليس لديك صلاحية للحذف. هذه الميزة متاحة للمدير فقط.');
+            return;
+        }
         if (AppState.currentUser?.role !== 'admin') {
             Notification.error(this._t('module.ptw.notify.cannotDeletePerm', 'غير مصرح لك بحذف التصاريح'));
             return;
@@ -8986,6 +8990,10 @@ const PTW = {
      * حذف تصريح يدوي من السجل
      */
     async deleteManualPermitEntry(entryId) {
+        if (!this.isAdmin()) {
+            Notification.error('ليس لديك صلاحية للحذف. هذه الميزة متاحة للمدير فقط.');
+            return;
+        }
         if (!confirm(this._t('module.ptw.notify.deleteManualPermConfirm', 'هل أنت متأكد من حذف هذا التصريح اليدوي؟\nسيتم حذفه نهائياً من السجل.'))) return;
 
         try {
@@ -13304,6 +13312,10 @@ const PTW = {
 
 
     async deletePTW(id) {
+        if (!this.isAdmin()) {
+            Notification.error('ليس لديك صلاحية للحذف. هذه الميزة متاحة للمدير فقط.');
+            return;
+        }
         if (!confirm(this._t('module.ptw.notify.deletePtwShort', 'هل أنت متأكد من حذف هذا التصريح؟'))) return;
         Loading.show();
         try {
@@ -13982,12 +13994,14 @@ const PTW = {
                                 <button onclick="PTW.exportPDF('${item.id}')" class="btn-icon btn-icon-success" title="تصدير PDF">
                                     <i class="fas fa-file-pdf"></i>
                                 </button>
+                                ${this.isAdmin() ? `
                                 <button onclick="PTW.editPTW('${item.id}')" class="btn-icon btn-icon-primary" title="تعديل">
                                     <i class="fas fa-edit"></i>
                                 </button>
                                 <button onclick="PTW.deletePTW('${item.id}')" class="btn-icon btn-icon-danger" title="حذف">
                                     <i class="fas fa-trash"></i>
                                 </button>
+                                ` : ''}
                             </div>
                         </td>
                     </tr>
@@ -15342,6 +15356,10 @@ const PTW = {
      * حذف تحليل
      */
     async deleteAnalysis(analysisId) {
+        if (!this.isAdmin()) {
+            Notification.error('ليس لديك صلاحية للحذف. هذه الميزة متاحة للمدير فقط.');
+            return;
+        }
         if (!confirm(this._t('module.ptw.notify.deleteAnalysisConfirm', 'هل أنت متأكد من حذف هذا التحليل؟'))) {
             return;
         }

@@ -3885,11 +3885,13 @@ const Contractors = {
                                                                 ${index === categoryReqs.length - 1 ? 'disabled' : ''}>
                                                                 <i class="fas fa-arrow-down"></i>
                                                             </button>
+                                                            ${Permissions.isAdmin() ? `
                                                             <button onclick="Contractors.deleteRequirement('${req.id}')" 
                                                                 class="btn-icon btn-icon-danger" 
                                                                 title="حذف">
                                                                 <i class="fas fa-trash"></i>
                                                             </button>
+                                                            ` : ''}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -7098,11 +7100,13 @@ const Contractors = {
                                             ${index === requirements.length - 1 ? 'disabled' : ''}>
                                             <i class="fas fa-arrow-down"></i>
                                         </button>
+                                        ${Permissions.isAdmin() ? `
                                         <button onclick="Contractors.deleteRequirement('${req.id}')" 
                                             class="btn-icon btn-icon-danger" 
                                             title="حذف">
                                             <i class="fas fa-trash"></i>
                                         </button>
+                                        ` : ''}
                                     </div>
                                 </div>
                             </div>
@@ -7244,11 +7248,13 @@ const Contractors = {
                             title="نقل لأسفل">
                             <i class="fas fa-arrow-down"></i>
                         </button>
+                        ${Permissions.isAdmin() ? `
                         <button onclick="Contractors.deleteRequirement('${newId}')" 
                             class="btn-icon btn-icon-danger" 
                             title="حذف">
                             <i class="fas fa-trash"></i>
                         </button>
+                        ` : ''}
                     </div>
                 </div>
             </div>
@@ -7448,6 +7454,10 @@ const Contractors = {
      * حذف اشتراط
      */
     deleteRequirement(reqId) {
+        if (typeof Permissions !== 'undefined' && typeof Permissions.isAdmin === 'function' && !Permissions.isAdmin()) {
+            Notification.error('ليس لديك صلاحية للحذف. هذه الميزة متاحة لمدير النظام فقط.');
+            return;
+        }
         if (!confirm('هل أنت متأكد من حذف هذا الاشتراط؟')) return;
 
         const list = document.getElementById('requirements-list');

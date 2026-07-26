@@ -1,5 +1,13 @@
 // ===== SOP-JHA Module (تعليمات السلامة SOP-JHA) =====
 const SOPJHA = {
+    isCurrentUserAdmin() {
+        if (typeof Permissions !== 'undefined' && typeof Permissions.isCurrentUserAdmin === 'function') {
+            return Permissions.isCurrentUserAdmin();
+        }
+        const role = (AppState.currentUser?.role || '').toLowerCase();
+        return role === 'admin' || role === 'مدير' || role === 'مدير النظام' || role === 'system-admin' || role === 'system-manager';
+    },
+
     async load() {
         // Add language change listener
         if (!this._languageChangeListenerAdded) {
@@ -275,12 +283,15 @@ const SOPJHA = {
                                         <button onclick="SOPJHA.exportPDF('${item.id}')" class="btn-icon btn-icon-success" title="تصدير PDF">
                                             <i class="fas fa-file-pdf"></i>
                                         </button>
+${this.isCurrentUserAdmin() ? `
                                         <button onclick="SOPJHA.editSOPJHA('${item.id}')" class="btn-icon btn-icon-primary" title="تعديل">
                                             <i class="fas fa-edit"></i>
                                         </button>
+` : ''}${this.isCurrentUserAdmin() ? `
                                         <button onclick="SOPJHA.deleteSOPJHA('${item.id}')" class="btn-icon btn-icon-danger" title="حذف">
                                             <i class="fas fa-trash"></i>
                                         </button>
+` : ''}
                                     </div>
                                 </td>
                             </tr>
@@ -565,6 +576,12 @@ const SOPJHA = {
     },
 
     async deleteSOPJHA(id) {
+        if (!this.isCurrentUserAdmin()) {
+            if (typeof Notification !== 'undefined' && Notification.error) {
+                Notification.error('ليس لديك صلاحية للحذف. هذه الميزة متاحة لمدير النظام فقط.');
+            }
+            return;
+        }
         if (!confirm('هل أنت متأكد من حذف هذه التعليمات؟')) return;
         
         Loading.show();
