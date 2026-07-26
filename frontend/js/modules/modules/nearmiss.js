@@ -56,6 +56,14 @@ const NearMiss = {
         }
     },
 
+    isCurrentUserAdmin() {
+        if (typeof Permissions !== 'undefined' && typeof Permissions.isCurrentUserAdmin === 'function') {
+            return Permissions.isCurrentUserAdmin();
+        }
+        const role = (AppState.currentUser?.role || '').toLowerCase();
+        return role === 'admin' || role === 'مدير' || role === 'مدير النظام' || role === 'system-admin' || role === 'system-manager';
+    },
+
     state: {
         filters: {
             search: '',
@@ -635,9 +643,11 @@ const NearMiss = {
                                         <button class="btn-icon btn-icon-primary" data-action="edit-nearmiss" data-id="${item.id}" title="تعديل">
                                             <i class="fas fa-edit"></i>
                                         </button>
+                                        ${this.isCurrentUserAdmin() ? `
                                         <button class="btn-icon btn-icon-danger" data-action="delete-nearmiss" data-id="${item.id}" title="حذف">
                                             <i class="fas fa-trash"></i>
                                         </button>
+                                        ` : ''}
                                     </div>
                                 </td>
                             </tr>
@@ -1543,6 +1553,10 @@ const NearMiss = {
     },
 
     async deleteNearMiss(id) {
+        if (!this.isCurrentUserAdmin()) {
+            Notification.error('ليس لديك صلاحية لحذف الحوادث الوشيكة. هذه الميزة متاحة لمدير النظام فقط.');
+            return;
+        }
         if (!id) return;
         const record = AppState.appData.nearmiss.find((item) => item.id === id);
         if (!record) {

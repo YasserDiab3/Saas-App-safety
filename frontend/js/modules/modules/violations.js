@@ -265,6 +265,14 @@ const Violations = {
         return false;
     },
 
+    isCurrentUserAdmin() {
+        if (typeof Permissions !== 'undefined' && typeof Permissions.isCurrentUserAdmin === 'function') {
+            return Permissions.isCurrentUserAdmin();
+        }
+        const role = (AppState.currentUser?.role || '').toLowerCase();
+        return role === 'admin' || role === 'مدير' || role === 'مدير النظام' || role === 'system-admin' || role === 'system-manager';
+    },
+
     /**
      * فحص بوابة الاعتماد قبل الحفظ
      * يُرجع { requiresApproval: boolean, settings }
@@ -1399,9 +1407,11 @@ const Violations = {
                                             <button type="button" onclick='Violations.exportPDF(${this._escapeIdForHandler(violation.id)})' style="width: 36px; height: 36px; border-radius: 8px; border: none; background: linear-gradient(135deg, #10b981, #059669); color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; box-shadow: 0 2px 6px rgba(16,185,129,0.3);" title="تصدير PDF">
                                                 <i class="fas fa-file-pdf"></i>
                                             </button>
+                                            ${this.isCurrentUserAdmin() ? `
                                             <button type="button" onclick='Violations.deleteViolation(${this._escapeIdForHandler(violation.id)})' style="width: 36px; height: 36px; border-radius: 8px; border: none; background: linear-gradient(135deg, #ef4444, #dc2626); color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; box-shadow: 0 2px 6px rgba(239,68,68,0.3);" title="حذف">
                                                 <i class="fas fa-trash"></i>
                                             </button>
+                                            ` : ''}
                                         </div>
                                     </td>
                                 </tr>
@@ -1930,9 +1940,11 @@ const Violations = {
                                     <button type="button" onclick='Violations.showViolationForm(${this._escapeIdForHandler(violation.id)})' class="btn-icon btn-icon-warning" title="تعديل">
                                         <i class="fas fa-edit"></i>
                                     </button>
+                                    ${this.isCurrentUserAdmin() ? `
                                     <button type="button" onclick='Violations.deleteViolation(${this._escapeIdForHandler(violation.id)})' class="btn-icon btn-icon-danger" title="حذف">
                                         <i class="fas fa-trash"></i>
                                     </button>
+                                    ` : ''}
                                 </div>
                             </td>
                         </tr>
@@ -1989,9 +2001,11 @@ const Violations = {
                                     <button type="button" onclick='Violations.showViolationForm(${this._escapeIdForHandler(violation.id)})' class="btn-icon btn-icon-warning" title="تعديل">
                                         <i class="fas fa-edit"></i>
                                     </button>
+                                    ${this.isCurrentUserAdmin() ? `
                                     <button type="button" onclick='Violations.deleteViolation(${this._escapeIdForHandler(violation.id)})' class="btn-icon btn-icon-danger" title="حذف">
                                         <i class="fas fa-trash"></i>
                                     </button>
+                                    ` : ''}
                                 </div>
                             </td>
                         </tr>
@@ -2323,6 +2337,12 @@ const Violations = {
     },
 
     async deleteViolation(id) {
+        if (!this.isCurrentUserAdmin()) {
+            if (typeof Utils !== 'undefined' && Utils.showToast) {
+                Utils.showToast('ليس لديك صلاحية لحذف المخالفات. هذه الميزة متاحة لمدير النظام فقط.', 'error');
+            }
+            return;
+        }
         if (!id) {
             if (typeof Utils !== 'undefined' && Utils.showToast) {
                 Utils.showToast('معرف المخالفة غير موجود', 'error');

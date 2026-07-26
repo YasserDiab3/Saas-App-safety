@@ -119,11 +119,11 @@ const Employees = {
     canEditOrDelete() {
         const user = AppState.currentUser;
         if (!user) return false;
-        
+        if (typeof Permissions !== 'undefined' && typeof Permissions.isCurrentUserAdmin === 'function') {
+            return Permissions.isCurrentUserAdmin();
+        }
         const role = (user.role || '').toLowerCase();
-        
-        // فقط المدير لديه صلاحيات التعديل والحذف
-        return role === 'admin';
+        return role === 'admin' || role === 'مدير' || role === 'مدير النظام';
     },
 
     /**
@@ -133,11 +133,11 @@ const Employees = {
     canAddOrImport() {
         const user = AppState.currentUser;
         if (!user) return false;
-        
+        if (typeof Permissions !== 'undefined' && typeof Permissions.isCurrentUserAdmin === 'function') {
+            return Permissions.isCurrentUserAdmin();
+        }
         const role = (user.role || '').toLowerCase();
-        
-        // فقط المدير لديه صلاحيات الإضافة والاستيراد
-        return role === 'admin';
+        return role === 'admin' || role === 'مدير' || role === 'مدير النظام';
     },
 
     getEmployeesDetailedPermissionsState() {

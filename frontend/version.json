@@ -1,4 +1,4 @@
 {
-  "version": "2.2.124",
-  "message": "fix(ppe): force horizontal code+name layout, remove stacked fallback"
+  "version": "2.2.125",
+  "message": "style(ppe): widen name field to col-span-7, code col-span-1"
 }

@@ -3581,6 +3581,7 @@ const Incidents = {
                                                             <i class="fas fa-times"></i>
                                                         </button>
                                                     ` : ''}
+                                                    ${this.isAdmin() ? `
                                                     <button 
                                                         onclick="if(confirm('هل أنت متأكد من حذف هذا الحادث؟')) { Incidents.deleteIncident('${incident.id}'); }" 
                                                         class="btn-icon btn-icon-danger" 
@@ -3588,6 +3589,7 @@ const Incidents = {
                                                     >
                                                         <i class="fas fa-trash"></i>
                                                     </button>
+                                                    ` : ''}
                                                 </div>
                                             </td>
                                         </tr>
