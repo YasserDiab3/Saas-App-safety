@@ -7,6 +7,20 @@ const HSE = {
     currentView: 'dashboard', // dashboard, audits, non-conformities, corrective-actions, objectives, risk-assessments
     currentTab: 'dashboard',
 
+    t(key, fallback) {
+        if (window.i18n && window.i18n.t) return window.i18n.t(key, fallback);
+        return fallback;
+    },
+    applyModuleI18n(root) {
+        const i18nCore = (window.AppI18n && typeof window.AppI18n.applyI18n === 'function')
+            ? window.AppI18n
+            : ((window.I18n && typeof window.I18n.applyI18n === 'function') ? window.I18n : null);
+        if (!i18nCore) return;
+        const target = root || document.getElementById('hse-section') || document;
+        i18nCore.applyI18n(target);
+        i18nCore.applyLiteralTranslations(target);
+    },
+
     async load() {
         // Add language change listener
         if (!this._languageChangeListenerAdded) {
@@ -46,12 +60,12 @@ const HSE = {
                 } else {
                     console.warn('⚠️ خطأ في تحميل محتوى الواجهة:', error);
                 }
-                content = `
+                    content = `
                     <div class="section-header">
                         <div>
                             <h1 class="section-title">
                                 <i class="fas fa-user-shield ml-3"></i>
-                                إدارة السلامة والصحة المهنية (HSE)
+                                ${this.t('module.hse.title', 'إدارة السلامة والصحة المهنية (HSE)')}
                             </h1>
                         </div>
                     </div>
@@ -63,7 +77,7 @@ const HSE = {
                                         <div style="height: 100%; background: linear-gradient(90deg, #3b82f6, #2563eb, #3b82f6); background-size: 200% 100%; border-radius: 3px; animation: loadingProgress 1.5s ease-in-out infinite;"></div>
                                     </div>
                                 </div>
-                                <p class="text-gray-500 mb-4">جاري تحميل البيانات...</p>
+                                <p class="text-gray-500 mb-4">${this.t('module.hse.loading_data', 'جاري تحميل البيانات...')}</p>
                             </div>
                         </div>
                     </div>
@@ -94,10 +108,10 @@ const HSE = {
                     <div class="card-body">
                         <div class="empty-state">
                             <i class="fas fa-exclamation-triangle text-yellow-500 text-4xl mb-4"></i>
-                            <p class="text-gray-500 mb-4">حدث خطأ أثناء تحميل البيانات</p>
+                            <p class="text-gray-500 mb-4">${this.t('module.hse.load_error', 'حدث خطأ أثناء تحميل البيانات')}</p>
                             <button onclick="HSE.load()" class="btn-primary">
                                 <i class="fas fa-redo ml-2"></i>
-                                إعادة المحاولة
+                                ${this.t('module.hse.retry', 'إعادة المحاولة')}
                             </button>
                         </div>
                     </div>
@@ -107,24 +121,25 @@ const HSE = {
     },
 
     async render() {
+        const t = (k, fb) => this.t(k, fb);
         return `
             <div class="section-header">
                 <div class="flex items-center justify-between flex-wrap gap-4">
                     <div>
                         <h1 class="section-title">
                             <i class="fas fa-user-shield ml-3"></i>
-                            إدارة السلامة والصحة المهنية (HSE)
+                            ${t('module.hse.title', 'إدارة السلامة والصحة المهنية (HSE)')}
                         </h1>
-                        <p class="section-subtitle">إدارة شاملة لأنشطة السلامة والصحة المهنية والبيئة</p>
+                        <p class="section-subtitle">${t('module.hse.subtitle', 'إدارة شاملة لأنشطة السلامة والصحة المهنية والبيئة')}</p>
                     </div>
                     <div class="flex gap-2">
                         <button id="hse-export-excel-btn" class="btn-success">
                             <i class="fas fa-file-excel ml-2"></i>
-                            تصدير Excel
+                            ${t('module.hse.export_excel', 'تصدير Excel')}
                         </button>
                         <button id="hse-export-pdf-btn" class="btn-secondary">
                             <i class="fas fa-file-pdf ml-2"></i>
-                            تصدير PDF
+                            ${t('module.hse.export_pdf', 'تصدير PDF')}
                         </button>
                     </div>
                 </div>
@@ -135,27 +150,27 @@ const HSE = {
                 <div class="flex items-center gap-2 border-b border-gray-200" style="border-bottom: 2px solid #e5e7eb; flex-wrap: nowrap; overflow-x: auto; overflow-y: visible; min-width: 0; width: 100%; max-width: 100%; box-sizing: border-box;">
                     <button class="hse-tab-btn active" data-tab="dashboard" onclick="HSE.switchTab('dashboard')" style="padding: 12px 20px; border: none; background: transparent; color: #6b7280; font-weight: 500; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.3s; flex-shrink: 0; min-width: fit-content; white-space: nowrap; width: auto; max-width: none;">
                         <i class="fas fa-chart-pie ml-2"></i>
-                        لوحة التحكم
+                        ${t('module.hse.tab_dashboard', 'لوحة التحكم')}
                     </button>
                     <button class="hse-tab-btn" data-tab="audits" onclick="HSE.switchTab('audits')" style="padding: 12px 20px; border: none; background: transparent; color: #6b7280; font-weight: 500; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.3s; flex-shrink: 0; min-width: fit-content; white-space: nowrap; width: auto; max-width: none;">
                         <i class="fas fa-clipboard-check ml-2"></i>
-                        التدقيقات
+                        ${t('module.hse.tab_audits', 'التدقيقات')}
                     </button>
                     <button class="hse-tab-btn" data-tab="non-conformities" onclick="HSE.switchTab('non-conformities')" style="padding: 12px 20px; border: none; background: transparent; color: #6b7280; font-weight: 500; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.3s; flex-shrink: 0; min-width: fit-content; white-space: nowrap; width: auto; max-width: none;">
                         <i class="fas fa-exclamation-triangle ml-2"></i>
-                        عدم المطابقة
+                        ${t('module.hse.tab_non_conformities', 'عدم المطابقة')}
                     </button>
                     <button class="hse-tab-btn" data-tab="corrective-actions" onclick="HSE.switchTab('corrective-actions')" style="padding: 12px 20px; border: none; background: transparent; color: #6b7280; font-weight: 500; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.3s; flex-shrink: 0; min-width: fit-content; white-space: nowrap; width: auto; max-width: none;">
                         <i class="fas fa-tools ml-2"></i>
-                        الإجراءات التصحيحية
+                        ${t('module.hse.tab_corrective_actions', 'الإجراءات التصحيحية')}
                     </button>
                     <button class="hse-tab-btn" data-tab="objectives" onclick="HSE.switchTab('objectives')" style="padding: 12px 20px; border: none; background: transparent; color: #6b7280; font-weight: 500; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.3s; flex-shrink: 0; min-width: fit-content; white-space: nowrap; width: auto; max-width: none;">
                         <i class="fas fa-bullseye ml-2"></i>
-                        الأهداف
+                        ${t('module.hse.tab_objectives', 'الأهداف')}
                     </button>
                     <button class="hse-tab-btn" data-tab="risk-assessments" onclick="HSE.switchTab('risk-assessments')" style="padding: 12px 20px; border: none; background: transparent; color: #6b7280; font-weight: 500; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.3s; flex-shrink: 0; min-width: fit-content; white-space: nowrap; width: auto; max-width: none;">
                         <i class="fas fa-shield-alt ml-2"></i>
-                        تقييمات المخاطر
+                        ${t('module.hse.tab_risk_assessments', 'تقييمات المخاطر')}
                     </button>
                 </div>
                 <style>
@@ -180,7 +195,7 @@ const HSE = {
                                     <div style="height: 100%; background: linear-gradient(90deg, #3b82f6, #2563eb, #3b82f6); background-size: 200% 100%; border-radius: 3px; animation: loadingProgress 1.5s ease-in-out infinite;"></div>
                                 </div>
                             </div>
-                            <p class="text-gray-500">جاري تحميل لوحة المعلومات...</p>
+                            <p class="text-gray-500">${t('module.hse.loading_dashboard', 'جاري تحميل لوحة المعلومات...')}</p>
                         </div>
                     </div>
                 </div>
@@ -200,10 +215,10 @@ const HSE = {
                             <div class="card-body">
                                 <div class="empty-state">
                                     <i class="fas fa-exclamation-triangle text-yellow-500 text-4xl mb-4"></i>
-                                    <p class="text-gray-500 mb-4">حدث خطأ في تحميل البيانات</p>
+                                    <p class="text-gray-500 mb-4">${this.t('module.hse.load_error', 'حدث خطأ في تحميل البيانات')}</p>
                                     <button onclick="HSE.load()" class="btn-primary">
                                         <i class="fas fa-redo ml-2"></i>
-                                        إعادة المحاولة
+                                        ${this.t('module.hse.retry', 'إعادة المحاولة')}
                                     </button>
                                 </div>
                             </div>
@@ -272,6 +287,7 @@ const HSE = {
     },
 
     async renderDashboard() {
+        const t = (k, fb) => this.t(k, fb);
         const audits = AppState.appData?.hseAudits || [];
         const nonConformities = AppState.appData?.hseNonConformities || [];
         const correctiveActions = AppState.appData?.hseCorrectiveActions || [];
@@ -293,7 +309,7 @@ const HSE = {
                     <div class="card-body">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm text-gray-600 mb-1">التدقيقات</p>
+                                <p class="text-sm text-gray-600 mb-1">${t('module.hse.audits', 'التدقيقات')}</p>
                                 <p class="text-2xl font-bold text-blue-600">${audits.length}</p>
                             </div>
                             <div class="bg-blue-100 rounded-full p-4">
@@ -306,7 +322,7 @@ const HSE = {
                     <div class="card-body">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm text-gray-600 mb-1">عدم المطابقة</p>
+                                <p class="text-sm text-gray-600 mb-1">${t('module.hse.non_conformities', 'عدم المطابقة')}</p>
                                 <p class="text-2xl font-bold text-red-600">${nonConformities.length}</p>
                             </div>
                             <div class="bg-red-100 rounded-full p-4">
@@ -319,7 +335,7 @@ const HSE = {
                     <div class="card-body">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm text-gray-600 mb-1">الإجراءات التصحيحية</p>
+                                <p class="text-sm text-gray-600 mb-1">${t('module.hse.corrective_actions', 'الإجراءات التصحيحية')}</p>
                                 <p class="text-2xl font-bold text-yellow-600">${correctiveActions.length}</p>
                             </div>
                             <div class="bg-yellow-100 rounded-full p-4">
@@ -332,7 +348,7 @@ const HSE = {
                     <div class="card-body">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm text-gray-600 mb-1">الأهداف</p>
+                                <p class="text-sm text-gray-600 mb-1">${t('module.hse.objectives', 'الأهداف')}</p>
                                 <p class="text-2xl font-bold text-green-600">${objectives.length}</p>
                             </div>
                             <div class="bg-green-100 rounded-full p-4">
@@ -345,7 +361,7 @@ const HSE = {
                     <div class="card-body">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm text-gray-600 mb-1">تقييمات المخاطر</p>
+                                <p class="text-sm text-gray-600 mb-1">${t('module.hse.risk_assessments', 'تقييمات المخاطر')}</p>
                                 <p class="text-2xl font-bold text-purple-600">${riskAssessments.length}</p>
                             </div>
                             <div class="bg-purple-100 rounded-full p-4">
@@ -362,36 +378,36 @@ const HSE = {
                     <div class="card-header bg-yellow-50">
                         <h2 class="card-title text-yellow-800">
                             <i class="fas fa-clock ml-2"></i>
-                            الإجراءات قيد التنفيذ
+                            ${t('module.hse.pending_actions', 'الإجراءات قيد التنفيذ')}
                         </h2>
                     </div>
                     <div class="card-body">
                         <p class="text-3xl font-bold text-yellow-600">${pendingActions}</p>
-                        <p class="text-sm text-gray-600 mt-2">من إجمالي ${correctiveActions.length} إجراء</p>
+                        <p class="text-sm text-gray-600 mt-2">${t('module.hse.of_total', 'من إجمالي')} ${correctiveActions.length} ${t('module.hse.action', 'إجراء')}</p>
                     </div>
                 </div>
                 <div class="content-card">
                     <div class="card-header bg-green-50">
                         <h2 class="card-title text-green-800">
                             <i class="fas fa-check-circle ml-2"></i>
-                            الإجراءات المكتملة
+                            ${t('module.hse.completed_actions', 'الإجراءات المكتملة')}
                         </h2>
                     </div>
                     <div class="card-body">
                         <p class="text-3xl font-bold text-green-600">${completedActions}</p>
-                        <p class="text-sm text-gray-600 mt-2">من إجمالي ${correctiveActions.length} إجراء</p>
+                        <p class="text-sm text-gray-600 mt-2">${t('module.hse.of_total', 'من إجمالي')} ${correctiveActions.length} ${t('module.hse.action', 'إجراء')}</p>
                     </div>
                 </div>
                 <div class="content-card">
                     <div class="card-header bg-red-50">
                         <h2 class="card-title text-red-800">
                             <i class="fas fa-exclamation-circle ml-2"></i>
-                            الإجراءات المتأخرة
+                            ${t('module.hse.overdue_actions', 'الإجراءات المتأخرة')}
                         </h2>
                     </div>
                     <div class="card-body">
                         <p class="text-3xl font-bold text-red-600">${overdueActions}</p>
-                        <p class="text-sm text-gray-600 mt-2">يحتاج متابعة عاجلة</p>
+                        <p class="text-sm text-gray-600 mt-2">${t('module.hse.urgent_followup', 'يحتاج متابعة عاجلة')}</p>
                     </div>
                 </div>
             </div>
@@ -401,7 +417,7 @@ const HSE = {
                 <div class="card-header">
                     <h2 class="card-title">
                         <i class="fas fa-history ml-2"></i>
-                        النشاط الأخير
+                        ${t('module.hse.recent_activity', 'النشاط الأخير')}
                     </h2>
                 </div>
                 <div class="card-body">
@@ -412,7 +428,7 @@ const HSE = {
                                     <div style="height: 100%; background: linear-gradient(90deg, #3b82f6, #2563eb, #3b82f6); background-size: 200% 100%; border-radius: 3px; animation: loadingProgress 1.5s ease-in-out infinite;"></div>
                                 </div>
                             </div>
-                            <p>جاري التحميل...</p>
+                            <p>${t('module.hse.loading', 'جاري التحميل...')}</p>
                         </div>
                     </div>
                 </div>
@@ -421,17 +437,18 @@ const HSE = {
     },
 
     async renderAudits() {
+        const t = (k, fb) => this.t(k, fb);
         return `
             <div class="content-card">
                 <div class="card-header">
                     <div class="flex items-center justify-between">
                         <h2 class="card-title">
                             <i class="fas fa-clipboard-check ml-2"></i>
-                            تدقيقات HSE
+                            ${t('module.hse.audits_title', 'تدقيقات HSE')}
                         </h2>
                         <button id="add-audit-btn" class="btn-primary">
                             <i class="fas fa-plus ml-2"></i>
-                            إضافة تدقيق جديد
+                            ${t('module.hse.add_audit', 'إضافة تدقيق جديد')}
                         </button>
                     </div>
                 </div>
@@ -443,7 +460,7 @@ const HSE = {
                                     <div style="height: 100%; background: linear-gradient(90deg, #3b82f6, #2563eb, #3b82f6); background-size: 200% 100%; border-radius: 3px; animation: loadingProgress 1.5s ease-in-out infinite;"></div>
                                 </div>
                             </div>
-                            <p>جاري التحميل...</p>
+                            <p>${t('module.hse.loading', 'جاري التحميل...')}</p>
                         </div>
                     </div>
                 </div>
@@ -452,17 +469,18 @@ const HSE = {
     },
 
     async renderNonConformities() {
+        const t = (k, fb) => this.t(k, fb);
         return `
             <div class="content-card">
                 <div class="card-header">
                     <div class="flex items-center justify-between">
                         <h2 class="card-title">
                             <i class="fas fa-exclamation-triangle ml-2"></i>
-                            عدم المطابقة HSE
+                            ${t('module.hse.nc_title', 'عدم المطابقة HSE')}
                         </h2>
                         <button id="add-non-conformity-btn" class="btn-primary">
                             <i class="fas fa-plus ml-2"></i>
-                            إضافة عدم مطابقة جديد
+                            ${t('module.hse.add_nc', 'إضافة عدم مطابقة جديد')}
                         </button>
                     </div>
                 </div>
@@ -474,7 +492,7 @@ const HSE = {
                                     <div style="height: 100%; background: linear-gradient(90deg, #3b82f6, #2563eb, #3b82f6); background-size: 200% 100%; border-radius: 3px; animation: loadingProgress 1.5s ease-in-out infinite;"></div>
                                 </div>
                             </div>
-                            <p>جاري التحميل...</p>
+                            <p>${t('module.hse.loading', 'جاري التحميل...')}</p>
                         </div>
                     </div>
                 </div>
@@ -483,17 +501,18 @@ const HSE = {
     },
 
     async renderCorrectiveActions() {
+        const t = (k, fb) => this.t(k, fb);
         return `
             <div class="content-card">
                 <div class="card-header">
                     <div class="flex items-center justify-between">
                         <h2 class="card-title">
                             <i class="fas fa-tools ml-2"></i>
-                            الإجراءات التصحيحية HSE
+                            ${t('module.hse.ca_title', 'الإجراءات التصحيحية HSE')}
                         </h2>
                         <button id="add-corrective-action-btn" class="btn-primary">
                             <i class="fas fa-plus ml-2"></i>
-                            إضافة إجراء تصحيحي جديد
+                            ${t('module.hse.add_ca', 'إضافة إجراء تصحيحي جديد')}
                         </button>
                     </div>
                 </div>
@@ -505,7 +524,7 @@ const HSE = {
                                     <div style="height: 100%; background: linear-gradient(90deg, #3b82f6, #2563eb, #3b82f6); background-size: 200% 100%; border-radius: 3px; animation: loadingProgress 1.5s ease-in-out infinite;"></div>
                                 </div>
                             </div>
-                            <p>جاري التحميل...</p>
+                            <p>${t('module.hse.loading', 'جاري التحميل...')}</p>
                         </div>
                     </div>
                 </div>
@@ -514,17 +533,18 @@ const HSE = {
     },
 
     async renderObjectives() {
+        const t = (k, fb) => this.t(k, fb);
         return `
             <div class="content-card">
                 <div class="card-header">
                     <div class="flex items-center justify-between">
                         <h2 class="card-title">
                             <i class="fas fa-bullseye ml-2"></i>
-                            أهداف HSE
+                            ${t('module.hse.obj_title', 'أهداف HSE')}
                         </h2>
                         <button id="add-objective-btn" class="btn-primary">
                             <i class="fas fa-plus ml-2"></i>
-                            إضافة هدف جديد
+                            ${t('module.hse.add_objective', 'إضافة هدف جديد')}
                         </button>
                     </div>
                 </div>
@@ -536,7 +556,7 @@ const HSE = {
                                     <div style="height: 100%; background: linear-gradient(90deg, #3b82f6, #2563eb, #3b82f6); background-size: 200% 100%; border-radius: 3px; animation: loadingProgress 1.5s ease-in-out infinite;"></div>
                                 </div>
                             </div>
-                            <p>جاري التحميل...</p>
+                            <p>${t('module.hse.loading', 'جاري التحميل...')}</p>
                         </div>
                     </div>
                 </div>
@@ -545,17 +565,18 @@ const HSE = {
     },
 
     async renderRiskAssessments() {
+        const t = (k, fb) => this.t(k, fb);
         return `
             <div class="content-card">
                 <div class="card-header">
                     <div class="flex items-center justify-between">
                         <h2 class="card-title">
                             <i class="fas fa-shield-alt ml-2"></i>
-                            تقييمات مخاطر HSE
+                            ${t('module.hse.ra_title', 'تقييمات مخاطر HSE')}
                         </h2>
                         <button id="add-risk-assessment-btn" class="btn-primary">
                             <i class="fas fa-plus ml-2"></i>
-                            إضافة تقييم مخاطر جديد
+                            ${t('module.hse.add_ra', 'إضافة تقييم مخاطر جديد')}
                         </button>
                     </div>
                 </div>
@@ -567,7 +588,7 @@ const HSE = {
                                     <div style="height: 100%; background: linear-gradient(90deg, #3b82f6, #2563eb, #3b82f6); background-size: 200% 100%; border-radius: 3px; animation: loadingProgress 1.5s ease-in-out infinite;"></div>
                                 </div>
                             </div>
-                            <p>جاري التحميل...</p>
+                            <p>${t('module.hse.loading', 'جاري التحميل...')}</p>
                         </div>
                     </div>
                 </div>
@@ -602,7 +623,7 @@ const HSE = {
             recentActivity.innerHTML = `
                 <div class="text-center text-gray-500 py-8">
                     <i class="fas fa-inbox text-4xl mb-2"></i>
-                    <p>لا توجد أنشطة حديثة</p>
+                    <p>${this.t('module.hse.no_recent_activity', 'لا توجد أنشطة حديثة')}</p>
                 </div>
             `;
             return;
@@ -611,7 +632,7 @@ const HSE = {
         recentActivity.innerHTML = allActivities.map(activity => {
             const date = new Date(activity.date || activity.createdAt);
             const dateStr = date.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' });
-            const title = activity.title || activity.description || activity.name || 'بدون عنوان';
+            const title = activity.title || activity.description || activity.name || this.t('module.hse.no_title', 'بدون عنوان');
 
             return `
                 <div class="flex items-center gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
@@ -637,18 +658,18 @@ const HSE = {
             container.innerHTML = `
                 <div class="text-center text-gray-500 py-8">
                     <i class="fas fa-inbox text-4xl mb-2"></i>
-                    <p>لا توجد تدقيقات مسجلة</p>
+                    <p>${this.t('module.hse.no_audits', 'لا توجد تدقيقات مسجلة')}</p>
                 </div>
             `;
             return;
         }
 
         container.innerHTML = audits.map(audit => {
-            const date = audit.date ? new Date(audit.date).toLocaleDateString('ar-SA') : 'غير محدد';
+            const date = audit.date ? new Date(audit.date).toLocaleDateString('ar-SA') : this.t('module.hse.unspecified', 'غير محدد');
             return `
                 <div class="p-4 bg-gray-50 rounded-lg">
-                    <h3 class="font-semibold text-gray-800">${Utils.escapeHTML(audit.title || audit.type || 'تدقيق')}</h3>
-                    <p class="text-sm text-gray-600 mt-2">التاريخ: ${date}</p>
+                    <h3 class="font-semibold text-gray-800">${Utils.escapeHTML(audit.title || audit.type || this.t('module.hse.audit', 'تدقيق'))}</h3>
+                    <p class="text-sm text-gray-600 mt-2">${this.t('module.hse.date', 'التاريخ')}: ${date}</p>
                 </div>
             `;
         }).join('');
@@ -664,18 +685,18 @@ const HSE = {
             container.innerHTML = `
                 <div class="text-center text-gray-500 py-8">
                     <i class="fas fa-inbox text-4xl mb-2"></i>
-                    <p>لا توجد حالات عدم مطابقة مسجلة</p>
+                    <p>${this.t('module.hse.no_nc', 'لا توجد حالات عدم مطابقة مسجلة')}</p>
                 </div>
             `;
             return;
         }
 
         container.innerHTML = nonConformities.map(nc => {
-            const date = nc.date ? new Date(nc.date).toLocaleDateString('ar-SA') : 'غير محدد';
+            const date = nc.date ? new Date(nc.date).toLocaleDateString('ar-SA') : this.t('module.hse.unspecified', 'غير محدد');
             return `
                 <div class="p-4 bg-gray-50 rounded-lg">
-                    <h3 class="font-semibold text-gray-800">${Utils.escapeHTML(nc.title || nc.description || 'عدم مطابقة')}</h3>
-                    <p class="text-sm text-gray-600 mt-2">التاريخ: ${date}</p>
+                    <h3 class="font-semibold text-gray-800">${Utils.escapeHTML(nc.title || nc.description || this.t('module.hse.nc', 'عدم مطابقة'))}</h3>
+                    <p class="text-sm text-gray-600 mt-2">${this.t('module.hse.date', 'التاريخ')}: ${date}</p>
                 </div>
             `;
         }).join('');

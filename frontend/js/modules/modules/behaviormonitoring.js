@@ -1094,7 +1094,12 @@ const BehaviorMonitoring = {
                 this.renderLogTable();
             };
 
-            search?.addEventListener('input', onAnyChange, { signal });
+            this._debouncedBehaviorFilterSearch = this._debouncedBehaviorFilterSearch || Utils.debounce(() => {
+                this.state.filters = this.state.filters || {};
+                this.state.filters.search = (search?.value || '').toString();
+                this.renderLogTable();
+            }, 300);
+            search?.addEventListener('input', this._debouncedBehaviorFilterSearch, { signal });
             type?.addEventListener('change', onAnyChange, { signal });
             rating?.addEventListener('change', onAnyChange, { signal });
             from?.addEventListener('change', onAnyChange, { signal });
@@ -1151,7 +1156,12 @@ const BehaviorMonitoring = {
                 this.renderContractorLogTable();
             };
 
-            search?.addEventListener('input', onAnyChange, { signal });
+            this._debouncedBhmcFilterSearch = this._debouncedBhmcFilterSearch || Utils.debounce(() => {
+                this.state.contractorFilters = this.state.contractorFilters || {};
+                this.state.contractorFilters.search = (search?.value || '').toString();
+                this.renderContractorLogTable();
+            }, 300);
+            search?.addEventListener('input', this._debouncedBhmcFilterSearch, { signal });
             type?.addEventListener('change', onAnyChange, { signal });
             rating?.addEventListener('change', onAnyChange, { signal });
             from?.addEventListener('change', onAnyChange, { signal });

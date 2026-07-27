@@ -2911,9 +2911,10 @@ ${this.isCurrentUserAdmin() ? `
         // Setup search
         const searchInput = document.getElementById('ppe-matrix-search');
         if (searchInput) {
-            searchInput.addEventListener('input', (e) => {
+            this._debouncedPPEMatrixSearch = this._debouncedPPEMatrixSearch || Utils.debounce((e) => {
                 this.filterPPEMatrix(e.target.value.trim());
-            });
+            }, 300);
+            searchInput.addEventListener('input', this._debouncedPPEMatrixSearch);
         }
 
         // Setup add matrix button

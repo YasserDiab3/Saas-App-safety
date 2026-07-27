@@ -5050,7 +5050,8 @@ const Incidents = {
                 const registryFilterDateTo = document.getElementById('incidents-registry-filter-date-to');
 
                 if (registrySearch && !registrySearch.dataset.listenerAdded) {
-                    registrySearch.addEventListener('input', () => this.applyRegistryFilters());
+                    this._debouncedRegistrySearch = this._debouncedRegistrySearch || Utils.debounce(() => this.applyRegistryFilters(), 250);
+                    registrySearch.addEventListener('input', this._debouncedRegistrySearch);
                     registrySearch.dataset.listenerAdded = 'true';
                 }
                 if (registryFilterStatus && !registryFilterStatus.dataset.listenerAdded) {
@@ -6068,7 +6069,8 @@ const Incidents = {
             const searchInput = document.getElementById('incidents-search');
             const filterStatus = document.getElementById('incidents-filter-status');
 
-            if (searchInput) searchInput.addEventListener('input', (e) => this.filterIncidents(e.target.value, filterStatus?.value));
+            this._debouncedIncidentsSearch = this._debouncedIncidentsSearch || Utils.debounce((e) => this.filterIncidents(e.target.value, filterStatus?.value), 250);
+            if (searchInput) searchInput.addEventListener('input', this._debouncedIncidentsSearch);
             if (filterStatus) filterStatus.addEventListener('change', (e) => this.filterIncidents(searchInput?.value, e.target.value));
 
             const form = document.getElementById('incident-form');
@@ -6140,7 +6142,8 @@ const Incidents = {
             const registryFilterDateTo = document.getElementById('incidents-registry-filter-date-to');
 
             if (registrySearch && !registrySearch.dataset.listenerAdded) {
-                registrySearch.addEventListener('input', () => this.applyRegistryFilters());
+                this._debouncedRegistrySearch2 = this._debouncedRegistrySearch2 || Utils.debounce(() => this.applyRegistryFilters(), 250);
+                registrySearch.addEventListener('input', this._debouncedRegistrySearch2);
                 registrySearch.dataset.listenerAdded = 'true';
             }
             if (registryFilterStatus && !registryFilterStatus.dataset.listenerAdded) {
@@ -9003,14 +9006,15 @@ const Incidents = {
             // إضافة البحث
             const searchInput = modal.querySelector('#investigation-incident-search');
             if (searchInput) {
-                searchInput.addEventListener('input', (e) => {
+                this._debouncedInvestigationSearch = this._debouncedInvestigationSearch || Utils.debounce((e) => {
                     const searchTerm = e.target.value.toLowerCase();
                     const rows = modal.querySelectorAll('#investigation-incidents-list tr');
                     rows.forEach(row => {
                         const text = row.textContent.toLowerCase();
                         row.style.display = text.includes(searchTerm) ? '' : 'none';
                     });
-                });
+                }, 250);
+                searchInput.addEventListener('input', this._debouncedInvestigationSearch);
             }
 
             // إغلاق عند النقر خارج المحتوى

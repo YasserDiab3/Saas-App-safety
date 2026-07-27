@@ -1414,7 +1414,7 @@ ${innerContent}
                                             <i class="fas fa-search ml-1 text-gray-400"></i> بحث شامل
                                         </label>
                                         <div class="relative">
-                                            <input type="text" id="search-filter-${type}" class="form-input w-full pr-10" placeholder="بحث في السجلات..." oninput="Sustainability.filterResourceTable('${type}')">
+                                            <input type="text" id="search-filter-${type}" class="form-input w-full pr-10" placeholder="بحث في السجلات...">
                                             <i class="fas fa-search absolute top-3 right-3 text-gray-400"></i>
                                         </div>
                                     </div>
@@ -1513,6 +1513,19 @@ ${innerContent}
                 </div>
             </div>
         `;
+    },
+
+    _bindResourceSearchListeners() {
+        if (!this._debouncedResourceSearch) {
+            this._debouncedResourceSearch = Utils.debounce((type) => {
+                this.filterResourceTable(type);
+            }, 300);
+        }
+        document.querySelectorAll('[id^="search-filter-"]').forEach(input => {
+            const type = input.id.replace('search-filter-', '');
+            input.removeEventListener('input', this._debouncedResourceSearch);
+            input.addEventListener('input', () => this._debouncedResourceSearch(type));
+        });
     },
 
     /**
@@ -4711,6 +4724,7 @@ ${innerContent}
                         const contentArea = document.getElementById('sustainability-content');
                         if (contentArea) {
                             contentArea.innerHTML = await this.renderContent();
+                            this._bindResourceSearchListeners();
                         }
                     }
                 }

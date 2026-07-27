@@ -6127,10 +6127,11 @@ SafetyPerformanceKPIs.bindChartScorecardControls = function () {
     }
 
     if (searchEl.dataset.bound !== 'true') {
-        searchEl.addEventListener('input', () => {
+        this._debouncedChartScorecardSearch = Utils.debounce(() => {
             this._chartScorecardUiState.search = searchEl.value || '';
             rerender();
-        });
+        }, 300);
+        searchEl.addEventListener('input', this._debouncedChartScorecardSearch);
         searchEl.dataset.bound = 'true';
     }
 

@@ -3,6 +3,10 @@
  * مصفوفة تقييم المخاطر - مدمجة واحترافية
  */
 const RiskMatrix = {
+    t(key, fallback) {
+        if (window.i18n && window.i18n.t) return window.i18n.t(key, fallback);
+        return fallback;
+    },
     /**
      * توليد مصفوفة تقييم المخاطر
      */
@@ -14,29 +18,30 @@ const RiskMatrix = {
         } = options;
 
         // مستويات مدمجة
+        const t = (k, fb) => this.t(k, fb);
         const likelihood = [
-            { value: 5, label: 'شبه مؤكد' },
-            { value: 4, label: 'محتمل جداً' },
-            { value: 3, label: 'محتمل' },
-            { value: 2, label: 'غير محتمل' },
-            { value: 1, label: 'نادر' }
+            { value: 5, label: t('module.riskmatrix.almost_certain', 'شبه مؤكد') },
+            { value: 4, label: t('module.riskmatrix.very_likely', 'محتمل جداً') },
+            { value: 3, label: t('module.riskmatrix.likely', 'محتمل') },
+            { value: 2, label: t('module.riskmatrix.unlikely', 'غير محتمل') },
+            { value: 1, label: t('module.riskmatrix.rare', 'نادر') }
         ];
 
         const consequence = [
-            { value: 1, label: 'ضئيلة' },
-            { value: 2, label: 'بسيطة' },
-            { value: 3, label: 'متوسطة' },
-            { value: 4, label: 'كبيرة' },
-            { value: 5, label: 'كارثية' }
+            { value: 1, label: t('module.riskmatrix.negligible', 'ضئيلة') },
+            { value: 2, label: t('module.riskmatrix.minor', 'بسيطة') },
+            { value: 3, label: t('module.riskmatrix.moderate', 'متوسطة') },
+            { value: 4, label: t('module.riskmatrix.major', 'كبيرة') },
+            { value: 5, label: t('module.riskmatrix.catastrophic', 'كارثية') }
         ];
 
         // حساب مستوى الخطر
         const getRiskLevel = (l, c) => {
             const score = l * c;
-            if (score >= 15) return { level: 'critical', label: 'حرج', color: '#fff', bg: 'linear-gradient(135deg, #dc2626 0%, #991b1b 100%)', border: '#991b1b' };
-            if (score >= 10) return { level: 'high', label: 'عالي', color: '#fff', bg: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)', border: '#ea580c' };
-            if (score >= 5) return { level: 'medium', label: 'متوسط', color: '#000', bg: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)', border: '#f59e0b' };
-            return { level: 'low', label: 'منخفض', color: '#fff', bg: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', border: '#059669' };
+            if (score >= 15) return { level: 'critical', label: t('module.riskmatrix.critical', 'حرج'), color: '#fff', bg: 'linear-gradient(135deg, #dc2626 0%, #991b1b 100%)', border: '#991b1b' };
+            if (score >= 10) return { level: 'high', label: t('module.riskmatrix.high', 'عالي'), color: '#fff', bg: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)', border: '#ea580c' };
+            if (score >= 5) return { level: 'medium', label: t('module.riskmatrix.medium', 'متوسط'), color: '#000', bg: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)', border: '#f59e0b' };
+            return { level: 'low', label: t('module.riskmatrix.low', 'منخفض'), color: '#fff', bg: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', border: '#059669' };
         };
 
         // HTML مدمج واحترافي
@@ -140,7 +145,7 @@ const RiskMatrix = {
                     <thead>
                         <tr>
                             <th class="corner">
-                                <div style="font-size: 0.65rem;">الاحتمالية</div>
+                                <div style="font-size: 0.65rem;">${t('module.riskmatrix.likelihood', 'الاحتمالية')}</div>
                                 <div style="font-size: 0.55rem; opacity: 0.8;">↓</div>
                             </th>
                             ${consequence.map(c => `
@@ -187,19 +192,19 @@ const RiskMatrix = {
                 <div class="risk-legend">
                     <div class="risk-legend-item">
                         <div class="risk-legend-color" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);"></div>
-                        <span style="color: #059669; font-weight: 700;">منخفض (1-4)</span>
+                        <span style="color: #059669; font-weight: 700;">${t('module.riskmatrix.low_range', 'منخفض (1-4)')}</span>
                     </div>
                     <div class="risk-legend-item">
                         <div class="risk-legend-color" style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);"></div>
-                        <span style="color: #d97706; font-weight: 700;">متوسط (5-9)</span>
+                        <span style="color: #d97706; font-weight: 700;">${t('module.riskmatrix.medium_range', 'متوسط (5-9)')}</span>
                     </div>
                     <div class="risk-legend-item">
                         <div class="risk-legend-color" style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);"></div>
-                        <span style="color: #ea580c; font-weight: 700;">عالي (10-14)</span>
+                        <span style="color: #ea580c; font-weight: 700;">${t('module.riskmatrix.high_range', 'عالي (10-14)')}</span>
                     </div>
                     <div class="risk-legend-item">
                         <div class="risk-legend-color" style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);"></div>
-                        <span style="color: #dc2626; font-weight: 700;">حرج (15-25)</span>
+                        <span style="color: #dc2626; font-weight: 700;">${t('module.riskmatrix.critical_range', 'حرج (15-25)')}</span>
                     </div>
                 </div>
             </div>
@@ -245,15 +250,15 @@ const RiskMatrix = {
             // تحديث حقل الملاحظات تلقائياً
             const notesTextarea = document.getElementById('ptw-risk-notes');
             if (notesTextarea) {
-                const riskInfo = `📊 تقييم المخاطر المحدد:
+                const riskInfo = `${this.t('module.riskmatrix.ptw_risk_header', '📊 تقييم المخاطر المحدد:')}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-• الاحتمالية: ${likelihoodLabel} (${likelihood})
-• العواقب: ${consequenceLabel} (${consequence})
-• النتيجة: ${score}
-• مستوى الخطر: ${levelLabel}
+${this.t('module.riskmatrix.likelihood_label', '• الاحتمالية')}: ${likelihoodLabel} (${likelihood})
+${this.t('module.riskmatrix.consequence_label', '• العواقب')}: ${consequenceLabel} (${consequence})
+${this.t('module.riskmatrix.score_label', '• النتيجة')}: ${score}
+${this.t('module.riskmatrix.risk_level_label', '• مستوى الخطر')}: ${levelLabel}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-ملاحظات إضافية:
+${this.t('module.riskmatrix.additional_notes', 'ملاحظات إضافية')}:
 `;
 
                 // إذا كان الحقل فارغاً أو يحتوي على تقييم سابق، استبدله
@@ -308,18 +313,18 @@ const RiskMatrix = {
             // تحديث حقل "شرح الخطر" تلقائياً
             const explanationTextarea = document.getElementById('investigation-risk-explanation');
             if (explanationTextarea) {
-                const riskExplanation = `📊 نتائج تقييم المخاطر للحادث:
+                const riskExplanation = `${this.t('module.riskmatrix.investigation_header', '📊 نتائج تقييم المخاطر للحادث:')}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-• الاحتمالية (Likelihood): ${likelihoodLabel} - المستوى ${likelihood}/5
-• الشدة/العواقب (Consequence): ${consequenceLabel} - المستوى ${consequence}/5
-• الدرجة الكلية للمخاطر: ${score} نقطة
-• مستوى الخطر المحدد: ${levelLabel}
+${this.t('module.riskmatrix.likelihood_detail', '• الاحتمالية (Likelihood)')}: ${likelihoodLabel} - ${this.t('module.riskmatrix.level', 'المستوى')} ${likelihood}/5
+${this.t('module.riskmatrix.consequence_detail', '• الشدة/العواقب (Consequence)')}: ${consequenceLabel} - ${this.t('module.riskmatrix.level', 'المستوى')} ${consequence}/5
+${this.t('module.riskmatrix.total_score', '• الدرجة الكلية للمخاطر')}: ${score} ${this.t('module.riskmatrix.points', 'نقطة')}
+${this.t('module.riskmatrix.determined_level', '• مستوى الخطر المحدد')}: ${levelLabel}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-التفسير والتوصيات:
+${this.t('module.riskmatrix.explanation_recommendations', 'التفسير والتوصيات')}:
 ${this.getRiskExplanationText(score, levelLabel, likelihoodLabel, consequenceLabel)}
 
-ملاحظات إضافية من المحقق:
+${this.t('module.riskmatrix.investigator_notes', 'ملاحظات إضافية من المحقق')}:
 `;
 
                 // إذا كان الحقل فارغاً أو يحتوي على تقييم سابق، استبدله
@@ -361,7 +366,7 @@ ${this.getRiskExplanationText(score, levelLabel, likelihoodLabel, consequenceLab
 
         // إشعار بصري
         if (typeof Notification !== 'undefined' && Notification.success) {
-            Notification.success(`تم تحديد مستوى الخطر: ${levelLabel} (${score})`);
+            Notification.success(`${this.t('module.riskmatrix.selected_risk', 'تم تحديد مستوى الخطر')}: ${levelLabel} (${score})`);
         }
 
         // Log للتطوير
@@ -393,17 +398,18 @@ ${this.getRiskExplanationText(score, levelLabel, likelihoodLabel, consequenceLab
      * الحصول على نص الشرح بناءً على مستوى الخطر
      */
     getRiskExplanationText(score, levelLabel, likelihoodLabel, consequenceLabel) {
+        const t = (k, fb) => this.t(k, fb);
         const explanations = {
-            'منخفض': `هذا الحادث يُصنف ضمن المخاطر المنخفضة (${score} نقاط)، حيث أن احتمالية حدوثه ${likelihoodLabel} والعواقب المحتملة ${consequenceLabel}. يُنصح بمراقبة الوضع واتخاذ إجراءات وقائية بسيطة لتجنب تكرار الحادث.`,
+            'منخفض': t('module.riskmatrix.explanation_low', `هذا الحادث يُصنف ضمن المخاطر المنخفضة (${score} نقاط)، حيث أن احتمالية حدوثه ${likelihoodLabel} والعواقب المحتملة ${consequenceLabel}. يُنصح بمراقبة الوضع واتخاذ إجراءات وقائية بسيطة لتجنب تكرار الحادث.`),
             
-            'متوسط': `هذا الحادث يُصنف ضمن المخاطر المتوسطة (${score} نقاط)، مما يعني أن احتمالية حدوثه ${likelihoodLabel} والعواقب المحتملة ${consequenceLabel}. يتطلب الأمر اتخاذ إجراءات تصحيحية واضحة ومتابعة دورية لضمان عدم تكرار الحادث أو تطوره إلى خطر أعلى.`,
+            'متوسط': t('module.riskmatrix.explanation_medium', `هذا الحادث يُصنف ضمن المخاطر المتوسطة (${score} نقاط)، مما يعني أن احتمالية حدوثه ${likelihoodLabel} والعواقب المحتملة ${consequenceLabel}. يتطلب الأمر اتخاذ إجراءات تصحيحية واضحة ومتابعة دورية لضمان عدم تكرار الحادث أو تطوره إلى خطر أعلى.`),
             
-            'عالي': `هذا الحادث يُصنف ضمن المخاطر العالية (${score} نقاط)، حيث أن احتمالية حدوثه ${likelihoodLabel} والعواقب المحتملة ${consequenceLabel}. يتطلب اتخاذ إجراءات عاجلة وشاملة، مع ضرورة تخصيص موارد كافية ومتابعة مكثفة من الإدارة العليا لمنع تكرار الحادث.`,
+            'عالي': t('module.riskmatrix.explanation_high', `هذا الحادث يُصنف ضمن المخاطر العالية (${score} نقاط)، حيث أن احتمالية حدوثه ${likelihoodLabel} والعواقب المحتملة ${consequenceLabel}. يتطلب اتخاذ إجراءات عاجلة وشاملة، مع ضرورة تخصيص موارد كافية ومتابعة مكثفة من الإدارة العليا لمنع تكرار الحادث.`),
             
-            'حرج': `هذا الحادث يُصنف ضمن المخاطر الحرجة (${score} نقاط)، وهو أعلى مستوى خطورة! احتمالية حدوثه ${likelihoodLabel} والعواقب ${consequenceLabel}. يتطلب تدخلاً فورياً وإيقاف أي أنشطة مشابهة حتى يتم معالجة جميع الأسباب الجذرية. يجب رفع التقرير للإدارة العليا فوراً مع خطة عمل شاملة.`
+            'حرج': t('module.riskmatrix.explanation_critical', `هذا الحادث يُصنف ضمن المخاطر الحرجة (${score} نقاط)، وهو أعلى مستوى خطورة! احتمالية حدوثه ${likelihoodLabel} والعواقب ${consequenceLabel}. يتطلب تدخلاً فورياً وإيقاف أي أنشطة مشابهة حتى يتم معالجة جميع الأسباب الجذرية. يجب رفع التقرير للإدارة العليا فوراً مع خطة عمل شاملة.`)
         };
         
-        return explanations[levelLabel] || 'يرجى مراجعة تقييم المخاطر واتخاذ الإجراءات المناسبة.';
+        return explanations[levelLabel] || t('module.riskmatrix.review_prompt', 'يرجى مراجعة تقييم المخاطر واتخاذ الإجراءات المناسبة.');
     }
 };
 

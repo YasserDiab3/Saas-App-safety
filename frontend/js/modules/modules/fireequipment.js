@@ -2152,7 +2152,8 @@ FireEquipment = {
                 // إزالة المستمعين السابقين
                 const newSearchInput = searchInput.cloneNode(true);
                 searchInput.parentNode.replaceChild(newSearchInput, searchInput);
-                newSearchInput.addEventListener('input', () => this.applyFilters());
+                this._debouncedFireAssetsSearch = this._debouncedFireAssetsSearch || Utils.debounce(() => this.applyFilters(), 250);
+                newSearchInput.addEventListener('input', this._debouncedFireAssetsSearch);
             }
 
             const typeSelect = document.getElementById('fire-assets-type');
@@ -6036,14 +6037,15 @@ FireEquipment = {
         if (searchInput) {
             const newSearchInput = searchInput.cloneNode(true);
             searchInput.parentNode.replaceChild(newSearchInput, searchInput);
-            newSearchInput.addEventListener('input', (e) => {
+            this._debouncedApprovalRequestsSearch = this._debouncedApprovalRequestsSearch || Utils.debounce((e) => {
                 const searchTerm = e.target.value.toLowerCase();
                 const rows = document.querySelectorAll('#approval-requests-table-body tr[data-request-id]');
                 rows.forEach(row => {
                     const text = row.textContent.toLowerCase();
                     row.style.display = text.includes(searchTerm) ? '' : 'none';
                 });
-            });
+            }, 250);
+            newSearchInput.addEventListener('input', this._debouncedApprovalRequestsSearch);
         }
 
         // زر التحديث

@@ -116,6 +116,15 @@ function generateISOCode(prefix, dataArray) {
 
 // ===== Chemical Safety Module =====
 const ChemicalSafety = {
+    t(key, fallback) {
+        const i18nCore = (window.AppI18n && typeof window.AppI18n.t === 'function')
+            ? window.AppI18n
+            : ((window.I18n && typeof window.I18n.t === 'function') ? window.I18n : null);
+        if (i18nCore) {
+            return i18nCore.t(key, null, fallback || key);
+        }
+        return fallback || key;
+    },
     currentEditId: null,
     filters: {
         search: '',
@@ -163,11 +172,11 @@ const ChemicalSafety = {
                     <div class="card-body">
                         <div class="empty-state">
                             <i class="fas fa-exclamation-triangle text-yellow-500 text-4xl mb-4"></i>
-                            <p class="text-gray-500 mb-2">تعذر تحميل السلامة الكيميائية</p>
-                            <p class="text-sm text-gray-400">AppState غير متوفر حالياً. جرّب تحديث الصفحة.</p>
+                            <p class="text-gray-500 mb-2">${this.t('module.chemicalsafety.load_error', 'تعذر تحميل السلامة الكيميائية')}</p>
+                            <p class="text-sm text-gray-400">${this.t('module.chemicalsafety.appstate_unavailable', 'AppState غير متوفر حالياً. جرّب تحديث الصفحة.')}</p>
                             <button onclick="location.reload()" class="btn-primary mt-4">
                                 <i class="fas fa-redo ml-2"></i>
-                                تحديث الصفحة
+                                ${this.t('module.chemicalsafety.refresh_page', 'تحديث الصفحة')}
                             </button>
                         </div>
                     </div>
@@ -188,13 +197,13 @@ const ChemicalSafety = {
                         <div>
                             <h1 class="section-title">
                                 <i class="fas fa-flask ml-3"></i>
-                                سجل المواد الكيميائية
+                                ${this.t('module.chemicalsafety.title', 'سجل المواد الكيميائية')}
                             </h1>
-                            <p class="section-subtitle">جاري التحميل...</p>
+                            <p class="section-subtitle">${this.t('module.chemicalsafety.loading', 'جاري التحميل...')}</p>
                         </div>
                         <button class="btn-primary" disabled>
                             <i class="fas fa-spinner fa-spin ml-2"></i>
-                            تحميل
+                            ${this.t('module.chemicalsafety.loading_btn', 'تحميل')}
                         </button>
                     </div>
                 </div>
@@ -207,7 +216,7 @@ const ChemicalSafety = {
                                         <div style="height: 100%; background: linear-gradient(90deg, #3b82f6, #2563eb, #3b82f6); background-size: 200% 100%; border-radius: 3px; animation: loadingProgress 1.5s ease-in-out infinite;"></div>
                                     </div>
                                 </div>
-                                <p class="text-gray-500">جاري تجهيز الواجهة...</p>
+                                <p class="text-gray-500">${this.t('module.chemicalsafety.preparing_ui', 'جاري تجهيز الواجهة...')}</p>
                             </div>
                         </div>
                     </div>
@@ -234,10 +243,10 @@ const ChemicalSafety = {
                         <div class="card-body">
                             <div class="empty-state">
                                 <i class="fas fa-exclamation-triangle text-yellow-500 text-4xl mb-4"></i>
-                                <p class="text-gray-500 mb-4">حدث خطأ في تحميل البيانات</p>
+                                <p class="text-gray-500 mb-4">${this.t('module.chemicalsafety.load_data_error', 'حدث خطأ في تحميل البيانات')}</p>
                                 <button onclick="ChemicalSafety.load()" class="btn-primary">
                                     <i class="fas fa-redo ml-2"></i>
-                                    إعادة المحاولة
+                                    ${this.t('module.chemicalsafety.retry', 'إعادة المحاولة')}
                                 </button>
                             </div>
                         </div>
@@ -251,13 +260,13 @@ const ChemicalSafety = {
                         <div>
                             <h1 class="section-title">
                                 <i class="fas fa-flask ml-3"></i>
-                                سجل المواد الكيميائية
+                                ${this.t('module.chemicalsafety.title', 'سجل المواد الكيميائية')}
                             </h1>
-                            <p class="section-subtitle">إدارة سجل المواد الكيميائية والمواد الخام</p>
+                            <p class="section-subtitle">${this.t('module.chemicalsafety.subtitle', 'إدارة سجل المواد الكيميائية والمواد الخام')}</p>
                         </div>
                         <button id="add-chemical-btn" class="btn-primary">
                             <i class="fas fa-plus ml-2"></i>
-                            إضافة مادة جديدة
+                            ${this.t('module.chemicalsafety.add_chemical', 'إضافة مادة جديدة')}
                         </button>
                     </div>
                 </div>
@@ -290,8 +299,8 @@ const ChemicalSafety = {
                         <div class="card-body">
                             <div class="empty-state">
                                 <i class="fas fa-exclamation-triangle text-yellow-500 text-4xl mb-4"></i>
-                                <p class="text-gray-500 mb-2">حدث خطأ أثناء تحميل البيانات</p>
-                                <p class="text-sm text-gray-400 mb-4">${error && error.message ? Utils.escapeHTML(error.message) : 'خطأ غير معروف'}</p>
+                                <p class="text-gray-500 mb-4">${this.t('module.chemicalsafety.load_data_error', 'حدث خطأ أثناء تحميل البيانات')}</p>
+                                <p class="text-sm text-gray-400 mb-4">${error && error.message ? Utils.escapeHTML(error.message) : this.t('module.chemicalsafety.unknown_error', 'خطأ غير معروف')}</p>
                                 <button onclick="ChemicalSafety.load()" class="btn-primary">
                                     <i class="fas fa-redo ml-2"></i>إعادة المحاولة
                                 </button>
@@ -426,10 +435,10 @@ const ChemicalSafety = {
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm font-medium text-gray-600 mb-1">
-                                <i class="fas fa-flask ml-2"></i>إجمالي المواد
+                                <i class="fas fa-flask ml-2"></i>${this.t('module.chemicalsafety.total_chemicals', 'إجمالي المواد')}
                             </p>
                             <p class="text-3xl font-bold text-blue-600">${stats.total}</p>
-                            <p class="text-xs text-gray-500 mt-1">مادة كيميائية مسجلة</p>
+                            <p class="text-xs text-gray-500 mt-1">${this.t('module.chemicalsafety.registered_chemical', 'مادة كيميائية مسجلة')}</p>
                         </div>
                         <div class="bg-blue-500 rounded-full p-4">
                             <i class="fas fa-flask text-white text-2xl"></i>
@@ -442,10 +451,10 @@ const ChemicalSafety = {
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm font-medium text-gray-600 mb-1">
-                                <i class="fas fa-exclamation-triangle ml-2"></i>المواد الخطرة
+                                <i class="fas fa-exclamation-triangle ml-2"></i>${this.t('module.chemicalsafety.hazardous_materials', 'المواد الخطرة')}
                             </p>
                             <p class="text-3xl font-bold text-red-600">${stats.hazardous}</p>
-                            <p class="text-xs text-gray-500 mt-1">${stats.hazardousPercentage}% من الإجمالي</p>
+                            <p class="text-xs text-gray-500 mt-1">${stats.hazardousPercentage}${this.t('module.chemicalsafety.percent_of_total', '% من الإجمالي')}</p>
                         </div>
                         <div class="bg-red-500 rounded-full p-4">
                             <i class="fas fa-exclamation-triangle text-white text-2xl"></i>
@@ -458,10 +467,10 @@ const ChemicalSafety = {
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm font-medium text-gray-600 mb-1">
-                                <i class="fas fa-shield-alt ml-2"></i>المواد الآمنة
+                                <i class="fas fa-shield-alt ml-2"></i>${this.t('module.chemicalsafety.safe_materials', 'المواد الآمنة')}
                             </p>
                             <p class="text-3xl font-bold text-green-600">${stats.safe}</p>
-                            <p class="text-xs text-gray-500 mt-1">مواد آمنة للاستخدام</p>
+                            <p class="text-xs text-gray-500 mt-1">${this.t('module.chemicalsafety.safe_for_use', 'مواد آمنة للاستخدام')}</p>
                         </div>
                         <div class="bg-green-500 rounded-full p-4">
                             <i class="fas fa-shield-alt text-white text-2xl"></i>
@@ -474,10 +483,10 @@ const ChemicalSafety = {
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm font-medium text-gray-600 mb-1">
-                                <i class="fas fa-file-pdf ml-2"></i>مواد مع MSDS
+                                <i class="fas fa-file-pdf ml-2"></i>${this.t('module.chemicalsafety.materials_with_msds', 'مواد مع MSDS')}
                             </p>
                             <p class="text-3xl font-bold text-purple-600">${stats.withMSDS}</p>
-                            <p class="text-xs text-gray-500 mt-1">${stats.withoutMSDS} بدون MSDS</p>
+                            <p class="text-xs text-gray-500 mt-1">${stats.withoutMSDS} ${this.t('module.chemicalsafety.without_msds', 'بدون MSDS')}</p>
                         </div>
                         <div class="bg-purple-500 rounded-full p-4">
                             <i class="fas fa-file-pdf text-white text-2xl"></i>
@@ -503,14 +512,14 @@ const ChemicalSafety = {
                     <div class="flex items-center justify-between flex-wrap gap-4">
                         <h2 class="card-title">
                             <i class="fas fa-list ml-2"></i>
-                            سجل المواد الكيميائية
+                            ${this.t('module.chemicalsafety.chemical_register', 'سجل المواد الكيميائية')}
                         </h2>
                         <div class="flex items-center gap-2">
                             <button id="export-pdf-btn" class="btn-secondary">
-                                <i class="fas fa-file-pdf ml-2"></i>تصدير PDF
+                                <i class="fas fa-file-pdf ml-2"></i>${this.t('module.chemicalsafety.export_pdf', 'تصدير PDF')}
                             </button>
                             <button id="export-excel-btn" class="btn-success">
-                                <i class="fas fa-file-excel ml-2"></i>تصدير Excel
+                                <i class="fas fa-file-excel ml-2"></i>${this.t('module.chemicalsafety.export_excel', 'تصدير Excel')}
                             </button>
                         </div>
                     </div>
@@ -520,7 +529,7 @@ const ChemicalSafety = {
                     <div class="bg-gray-50 p-4 rounded-lg mb-6">
                         <div class="flex items-center gap-2 mb-4">
                             <i class="fas fa-filter text-blue-600"></i>
-                            <h3 class="text-sm font-semibold text-gray-700">فلترة البحث</h3>
+                            <h3 class="text-sm font-semibold text-gray-700">${this.t('module.chemicalsafety.filter_search', 'فلترة البحث')}</h3>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                             <div>
@@ -528,21 +537,21 @@ const ChemicalSafety = {
                                     <i class="fas fa-search ml-1 text-gray-400"></i>بحث عام
                                 </label>
                                 <input type="text" id="search-filter" class="form-input" 
-                                    placeholder="بحث بالاسم، الكود..." value="${Utils.escapeHTML(this.filters.search)}">
+                                    placeholder="${this.t('module.chemicalsafety.search_placeholder', 'بحث بالاسم، الكود...')}" value="${Utils.escapeHTML(this.filters.search)}">
                             </div>
                             <div>
                                 <label class="block text-sm font-semibold text-gray-700 mb-2">
-                                    <i class="fas fa-building ml-1 text-gray-400"></i>القسم
+                                    <i class="fas fa-building ml-1 text-gray-400"></i>${this.t('module.chemicalsafety.department', 'القسم')}
                                 </label>
                                 <input type="text" id="department-filter" class="form-input" 
                                     placeholder="القسم" value="${Utils.escapeHTML(this.filters.department)}">
                             </div>
                             <div>
                                 <label class="block text-sm font-semibold text-gray-700 mb-2">
-                                    <i class="fas fa-shapes ml-1 text-gray-400"></i>الشكل الفيزيائي
+                                    <i class="fas fa-shapes ml-1 text-gray-400"></i>${this.t('module.chemicalsafety.physical_shape', 'الشكل الفيزيائي')}
                                 </label>
                                 <select id="physical-shape-filter" class="form-input">
-                                    <option value="">الكل</option>
+                                    <option value="">${this.t('module.chemicalsafety.all', 'الكل')}</option>
                                     ${PHYSICAL_SHAPES.map(shape => `
                                         <option value="${shape}" ${this.filters.physicalShape === shape ? 'selected' : ''}>
                                             ${shape}
@@ -552,15 +561,15 @@ const ChemicalSafety = {
                             </div>
                             <div>
                                 <label class="block text-sm font-semibold text-gray-700 mb-2">
-                                    <i class="fas fa-tags ml-1 text-gray-400"></i>التصنيف
+                                    <i class="fas fa-tags ml-1 text-gray-400"></i>${this.t('module.chemicalsafety.classification', 'التصنيف')}
                                 </label>
                                 <input type="text" id="classification-filter" class="form-input" 
-                                    placeholder="التصنيف" value="${Utils.escapeHTML(this.filters.classification)}">
+                                    placeholder="${this.t('module.chemicalsafety.classification_placeholder', 'التصنيف')}" value="${Utils.escapeHTML(this.filters.classification)}">
                             </div>
                         </div>
                         <div class="flex justify-end mt-4">
                             <button id="reset-filters-btn" class="btn-secondary btn-sm">
-                                <i class="fas fa-undo-alt ml-2"></i>إعادة تعيين الفلاتر
+                                <i class="fas fa-undo-alt ml-2"></i>${this.t('module.chemicalsafety.reset_filters', 'إعادة تعيين الفلاتر')}
                             </button>
                         </div>
                     </div>
@@ -594,10 +603,10 @@ const ChemicalSafety = {
             container.innerHTML = `
                 <div class="empty-state py-12">
                     <i class="fas fa-flask text-6xl text-gray-300 mb-4"></i>
-                    <p class="text-gray-500 text-lg mb-2">لا توجد مواد كيميائية مسجلة</p>
-                    <p class="text-gray-400 text-sm">ابدأ بإضافة مادة كيميائية جديدة</p>
+                    <p class="text-gray-500 text-lg mb-2">${this.t('module.chemicalsafety.no_chemicals', 'لا توجد مواد كيميائية مسجلة')}</p>
+                    <p class="text-gray-400 text-sm">${this.t('module.chemicalsafety.start_adding', 'ابدأ بإضافة مادة كيميائية جديدة')}</p>
                     <button onclick="ChemicalSafety.showForm()" class="btn-primary mt-4">
-                        <i class="fas fa-plus ml-2"></i>إضافة مادة جديدة
+                        <i class="fas fa-plus ml-2"></i>${this.t('module.chemicalsafety.add_chemical', 'إضافة مادة جديدة')}
                     </button>
                 </div>
             `;
@@ -609,16 +618,16 @@ const ChemicalSafety = {
                 <table class="data-table">
                     <thead class="bg-gradient-to-r from-blue-600 to-blue-700">
                         <tr>
-                            <th class="text-white">م</th>
-                            <th class="text-white">اسم المادة</th>
-                            <th class="text-white">الشكل الفيزيائي</th>
-                            <th class="text-white">الغرض من الاستخدام</th>
-                            <th class="text-white">القسم</th>
-                            <th class="text-white">التصنيف</th>
-                            <th class="text-white">الموقع/المخزن</th>
-                            <th class="text-white">الكمية/السنة</th>
-                            <th class="text-white">خطورة</th>
-                            <th class="text-white">الإجراءات</th>
+                            <th class="text-white">${this.t('module.chemicalsafety.no_short', 'م')}</th>
+                            <th class="text-white">${this.t('module.chemicalsafety.material_name', 'اسم المادة')}</th>
+                            <th class="text-white">${this.t('module.chemicalsafety.physical_shape', 'الشكل الفيزيائي')}</th>
+                            <th class="text-white">${this.t('module.chemicalsafety.purpose_of_use', 'الغرض من الاستخدام')}</th>
+                            <th class="text-white">${this.t('module.chemicalsafety.department', 'القسم')}</th>
+                            <th class="text-white">${this.t('module.chemicalsafety.classification', 'التصنيف')}</th>
+                            <th class="text-white">${this.t('module.chemicalsafety.location', 'الموقع/المخزن')}</th>
+                            <th class="text-white">${this.t('module.chemicalsafety.qty_per_year', 'الكمية/السنة')}</th>
+                            <th class="text-white">${this.t('module.chemicalsafety.hazard', 'خطورة')}</th>
+                            <th class="text-white">${this.t('module.chemicalsafety.actions', 'الإجراءات')}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -634,7 +643,7 @@ const ChemicalSafety = {
                                     <td>
                                         <div class="font-semibold text-gray-900">${Utils.escapeHTML(chemical.rmName || '')}</div>
                                         <div class="flex items-center gap-2 mt-1">
-                                            ${isHazardous ? '<span class="badge badge-danger text-xs"><i class="fas fa-exclamation-triangle ml-1"></i>خطير</span>' : ''}
+                                            ${isHazardous ? '<span class="badge badge-danger text-xs"><i class="fas fa-exclamation-triangle ml-1"></i>' + this.t('module.chemicalsafety.dangerous', 'خطير') + '</span>' : ''}
                                             ${hasMSDS ? '<span class="badge badge-info text-xs"><i class="fas fa-file-pdf ml-1"></i>MSDS</span>' : ''}
                                         </div>
                                     </td>
@@ -664,27 +673,27 @@ const ChemicalSafety = {
                                     </td>
                                     <td>
                                         ${isHazardous 
-                                            ? '<span class="badge badge-danger"><i class="fas fa-exclamation-triangle ml-1"></i>خطير</span>'
-                                            : '<span class="badge badge-success"><i class="fas fa-check-circle ml-1"></i>آمن</span>'}
+    ? '<span class="badge badge-danger"><i class="fas fa-exclamation-triangle ml-1"></i>' + this.t('module.chemicalsafety.dangerous', 'خطير') + '</span>'
+    : '<span class="badge badge-success"><i class="fas fa-check-circle ml-1"></i>' + this.t('module.chemicalsafety.safe', 'آمن') + '</span>'}
                                     </td>
                                     <td>
                                         <div class="flex items-center gap-2">
                                             <button onclick="ChemicalSafety.viewChemical('${chemical.id}')" 
-                                                class="btn-icon btn-icon-primary hover:scale-110 transition-transform" title="عرض التفاصيل">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                            ${this.isCurrentUserAdmin() ? `
-                                            <button onclick="ChemicalSafety.editChemical('${chemical.id}')" 
-                                                class="btn-icon btn-icon-info hover:scale-110 transition-transform" title="تعديل">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            ` : ''}
-                                            ${this.isCurrentUserAdmin() ? `
-                                            <button onclick="ChemicalSafety.deleteChemical('${chemical.id}')" 
-                                                class="btn-icon btn-icon-danger hover:scale-110 transition-transform" title="حذف">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                            ` : ''}
+    class="btn-icon btn-icon-primary hover:scale-110 transition-transform" title="${this.t('module.chemicalsafety.view_details', 'عرض التفاصيل')}">
+    <i class="fas fa-eye"></i>
+</button>
+${this.isCurrentUserAdmin() ? `
+<button onclick="ChemicalSafety.editChemical('${chemical.id}')" 
+    class="btn-icon btn-icon-info hover:scale-110 transition-transform" title="${this.t('module.chemicalsafety.edit', 'تعديل')}">
+    <i class="fas fa-edit"></i>
+</button>
+` : ''}
+${this.isCurrentUserAdmin() ? `
+<button onclick="ChemicalSafety.deleteChemical('${chemical.id}')" 
+    class="btn-icon btn-icon-danger hover:scale-110 transition-transform" title="${this.t('module.chemicalsafety.delete', 'حذف')}">
+    <i class="fas fa-trash"></i>
+</button>
+` : ''}
                                         </div>
                                     </td>
                                 </tr>
@@ -696,14 +705,14 @@ const ChemicalSafety = {
             <div class="mt-4 flex items-center justify-between bg-blue-50 p-3 rounded-lg">
                 <div class="text-sm text-gray-700">
                     <i class="fas fa-info-circle ml-1 text-blue-600"></i>
-                    <span class="font-semibold">إجمالي السجلات:</span> 
-                    <span class="text-blue-600 font-bold">${filtered.length}</span> من 
+                    <span class="font-semibold">${this.t('module.chemicalsafety.total_records', 'إجمالي السجلات:')}</span> 
+                    <span class="text-blue-600 font-bold">${filtered.length}</span> ${this.t('module.chemicalsafety.of', 'من')} 
                     <span class="text-gray-600">${chemicals.length}</span>
                 </div>
                 ${filtered.length < chemicals.length ? `
                     <div class="text-xs text-gray-500">
                         <i class="fas fa-filter ml-1"></i>
-                        يتم عرض ${filtered.length} سجل بعد التصفية
+                        ${this.t('module.chemicalsafety.showing_filtered', 'يتم عرض')} ${filtered.length} ${this.t('module.chemicalsafety.records_after_filter', 'سجل بعد التصفية')}
                     </div>
                 ` : ''}
             </div>
@@ -758,11 +767,12 @@ const ChemicalSafety = {
             const classFilter = document.getElementById('classification-filter');
             const resetBtn = document.getElementById('reset-filters-btn');
 
+            this._debouncedChemicalSearch = Utils.debounce(() => {
+                this.filters.search = searchFilter.value;
+                this.loadChemicalList();
+            }, 300);
             if (searchFilter && !signal.aborted) {
-                searchFilter.addEventListener('input', () => {
-                    this.filters.search = searchFilter.value;
-                    this.loadChemicalList();
-                }, { signal });
+                searchFilter.addEventListener('input', this._debouncedChemicalSearch, { signal });
             }
             if (deptFilter && !signal.aborted) {
                 deptFilter.addEventListener('input', () => {

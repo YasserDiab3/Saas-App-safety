@@ -3958,7 +3958,8 @@ const Contractors = {
 
         const approvedSearchInput = document.getElementById('approved-contractors-search');
         if (approvedSearchInput) {
-            approvedSearchInput.addEventListener('input', (event) => this.handleApprovedFilterChange('search', event.target.value || ''), { signal: activeSignal });
+            this._debouncedApprovedSearch = this._debouncedApprovedSearch || Utils.debounce((event) => this.handleApprovedFilterChange('search', event.target.value || ''), 250);
+            approvedSearchInput.addEventListener('input', this._debouncedApprovedSearch, { signal: activeSignal });
         }
 
         const approvedStatusSelect = document.getElementById('approved-contractors-status');
@@ -11833,10 +11834,11 @@ const Contractors = {
                 if (tbody) tbody.innerHTML = renderViolationRows(filtered);
                 if (countEl) countEl.textContent = String(filtered.length);
             };
-            [searchInput, personTypeSelect, typeSelect, severitySelect].forEach(el => {
+            const debouncedApplyViolationFilters = Utils.debounce(applyViolationFilters, 250);
+            if (searchInput) searchInput.addEventListener('input', debouncedApplyViolationFilters);
+            [personTypeSelect, typeSelect, severitySelect].forEach(el => {
                 if (!el) return;
-                const eventName = el.tagName === 'SELECT' ? 'change' : 'input';
-                el.addEventListener(eventName, applyViolationFilters);
+                el.addEventListener('change', applyViolationFilters);
             });
         };
 

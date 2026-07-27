@@ -3979,10 +3979,11 @@ const Clinic = {
         const exportExcelBtn = panel.querySelector('#sick-leave-export-excel-btn');
 
         if (searchInput) {
-            searchInput.addEventListener('input', (event) => {
+            this._debouncedSickLeaveSearch = this._debouncedSickLeaveSearch || Utils.debounce((event) => {
                 this.state.filters.sickLeave.search = event.target.value.trim();
                 this.renderSickLeaveTab();
-            });
+            }, 250);
+            searchInput.addEventListener('input', this._debouncedSickLeaveSearch);
         }
 
         if (departmentSelect) {
@@ -4515,10 +4516,11 @@ const Clinic = {
                 isComposing = false;
                 triggerSearch(event.target.value, event.target.selectionStart);
             });
-            searchInput.addEventListener('input', (event) => {
+            this._debouncedInjuriesSearch = this._debouncedInjuriesSearch || Utils.debounce((event) => {
                 if (isComposing) return;
                 triggerSearch(event.target.value, event.target.selectionStart);
-            });
+            }, 250);
+            searchInput.addEventListener('input', this._debouncedInjuriesSearch);
         }
 
         if (statusSelect) {
@@ -13515,14 +13517,15 @@ const Clinic = {
         // ربط الأحداث
         const searchInput = panel.querySelector('#dispensed-med-search');
         if (searchInput) {
-            searchInput.addEventListener('input', (e) => {
+            this._debouncedDispensedMedSearch = this._debouncedDispensedMedSearch || Utils.debounce((e) => {
                 const searchTerm = e.target.value.toLowerCase();
                 const tableRows = panel.querySelectorAll('tbody tr');
                 tableRows.forEach(row => {
                     const text = row.textContent.toLowerCase();
                     row.style.display = text.includes(searchTerm) ? '' : 'none';
                 });
-            });
+            }, 250);
+            searchInput.addEventListener('input', this._debouncedDispensedMedSearch);
         }
 
         const exportBtn = panel.querySelector('#export-dispensed-med-btn');

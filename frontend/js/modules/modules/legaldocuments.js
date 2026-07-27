@@ -4,6 +4,15 @@
  */
 // ===== Legal Documents Module (المستندات القانونية والتشريعية) =====
 const LegalDocuments = {
+    t(key, fallback) {
+        const i18nCore = (window.AppI18n && typeof window.AppI18n.t === 'function')
+            ? window.AppI18n
+            : ((window.I18n && typeof window.I18n.t === 'function') ? window.I18n : null);
+        if (i18nCore) {
+            return i18nCore.t(key, null, fallback || key);
+        }
+        return fallback || key;
+    },
     state: {
         activeTab: 'documents',
         filters: {
@@ -633,35 +642,31 @@ const LegalDocuments = {
 
         if (searchInput) {
             let isComposing = false;
-            const triggerSearch = (value, caretPos = null) => {
-                this.state.filters.documents.search = value || '';
-                if (this._legalDocsSearchDebounceTimer) {
-                    clearTimeout(this._legalDocsSearchDebounceTimer);
-                }
-                this._legalDocsSearchDebounceTimer = setTimeout(() => {
-                    this.loadLegalDocumentsList();
-                    requestAnimationFrame(() => {
-                        const newInput = document.getElementById('legal-docs-search');
-                        if (!newInput) return;
-                        newInput.focus();
-                        const pos = typeof caretPos === 'number' ? caretPos : newInput.value.length;
-                        try {
-                            newInput.setSelectionRange(pos, pos);
-                        } catch (e) { /* ignore */ }
-                    });
-                }, 120);
-            };
+
+            this._debouncedLegalDocSearch = Utils.debounce((caretPos) => {
+                this.state.filters.documents.search = document.getElementById('legal-docs-search')?.value || '';
+                this.loadLegalDocumentsList();
+                requestAnimationFrame(() => {
+                    const newInput = document.getElementById('legal-docs-search');
+                    if (!newInput) return;
+                    newInput.focus();
+                    const pos = typeof caretPos === 'number' ? caretPos : newInput.value.length;
+                    try {
+                        newInput.setSelectionRange(pos, pos);
+                    } catch (e) { /* ignore */ }
+                });
+            }, 300);
 
             searchInput.addEventListener('compositionstart', () => {
                 isComposing = true;
             });
             searchInput.addEventListener('compositionend', (event) => {
                 isComposing = false;
-                triggerSearch(event.target.value, event.target.selectionStart);
+                this._debouncedLegalDocSearch(event.target.selectionStart);
             });
             searchInput.addEventListener('input', (event) => {
                 if (isComposing) return;
-                triggerSearch(event.target.value, event.target.selectionStart);
+                this._debouncedLegalDocSearch(event.target.selectionStart);
             });
         }
 

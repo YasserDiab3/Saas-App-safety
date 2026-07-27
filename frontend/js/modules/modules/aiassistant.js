@@ -910,7 +910,8 @@ Object.assign(window.AIAssistant, {
             });
         };
 
-        searchInput.addEventListener('input', filterTable);
+        this._debouncedAiLogSearch = Utils.debounce(filterTable, 250);
+        searchInput.addEventListener('input', this._debouncedAiLogSearch);
         userFilter.addEventListener('change', filterTable);
 
         modal.addEventListener('click', (e) => {

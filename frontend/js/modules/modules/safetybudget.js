@@ -497,11 +497,12 @@ const SafetyBudget = {
         if (addExpenseBtn) {
             addExpenseBtn.addEventListener('click', () => this.showExpenseForm());
         }
+        this._debouncedExpensesSearch = Utils.debounce(() => this.loadExpensesList(), 300);
         if (expenseSearch) {
-            expenseSearch.addEventListener('input', () => this.loadExpensesList());
+            expenseSearch.addEventListener('input', this._debouncedExpensesSearch);
         }
         if (allSearch) {
-            allSearch.addEventListener('input', () => this.loadExpensesList());
+            allSearch.addEventListener('input', this._debouncedExpensesSearch);
         }
         if (expenseFilterCategory) {
             expenseFilterCategory.addEventListener('change', () => this.loadExpensesList());
@@ -1752,7 +1753,8 @@ const SafetyBudget = {
         const yearFilter = document.getElementById('opex-filter-year');
         const monthFilter = document.getElementById('opex-filter-month');
 
-        if (search) search.addEventListener('input', () => this.loadOPEXList());
+        this._debouncedOPEXSearch = Utils.debounce(() => this.loadOPEXList(), 300);
+        if (search) search.addEventListener('input', this._debouncedOPEXSearch);
         if (yearFilter) yearFilter.addEventListener('change', () => this.loadOPEXList());
         if (monthFilter) monthFilter.addEventListener('change', () => this.loadOPEXList());
     },
@@ -1940,7 +1942,8 @@ const SafetyBudget = {
         const yearFilter = document.getElementById('capex-filter-year');
         const monthFilter = document.getElementById('capex-filter-month');
 
-        if (search) search.addEventListener('input', () => this.loadCAPEXList());
+        this._debouncedCAPEXSearch = Utils.debounce(() => this.loadCAPEXList(), 300);
+        if (search) search.addEventListener('input', this._debouncedCAPEXSearch);
         if (yearFilter) yearFilter.addEventListener('change', () => this.loadCAPEXList());
         if (monthFilter) monthFilter.addEventListener('change', () => this.loadCAPEXList());
     },
@@ -2920,10 +2923,11 @@ SafetyBudget.setupPurchaseOrderEventListeners = function () {
     const poStatus = document.getElementById('purchase-order-po-status-filter');
     const year = document.getElementById('purchase-order-year-filter');
 
-    if (search) search.addEventListener('input', rerender);
+    this._debouncedPurchaseOrderSearch = Utils.debounce(rerender, 300);
+    if (search) search.addEventListener('input', this._debouncedPurchaseOrderSearch);
     if (prStatus) prStatus.addEventListener('change', rerender);
     if (poStatus) poStatus.addEventListener('change', rerender);
-    if (year) year.addEventListener('input', rerender);
+    if (year) year.addEventListener('input', this._debouncedPurchaseOrderSearch);
 };
 
 SafetyBudget.getFilteredPurchaseOrders = function () {

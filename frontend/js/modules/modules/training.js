@@ -1472,11 +1472,11 @@ const Training = {
 
         const search = document.getElementById('contractor-analytics-search');
         if (search) {
-            search.addEventListener('input', (e) => {
-                state.search = String(e.target.value || '');
-                // تحديث خفيف بدون فقد التركيز
+            this._debouncedContractorAnalyticsSearch = Utils.debounce(() => {
+                state.search = String(search.value || '');
                 this.refreshContractorAnalytics(monthFilter);
-            });
+            }, 300);
+            search.addEventListener('input', this._debouncedContractorAnalyticsSearch);
         }
 
         const tabContractor = document.getElementById('contractor-analytics-tab-contractor');
@@ -1923,7 +1923,13 @@ const Training = {
         wire('employee-analytics-sortdir', (e) => { state.sortDir = String(e.target.value || 'desc'); refresh(); });
 
         const search = document.getElementById('employee-analytics-search');
-        if (search) search.addEventListener('input', (e) => { state.search = String(e.target.value || ''); refresh(); });
+        if (search) {
+            this._debouncedEmployeeAnalyticsSearch = Utils.debounce((e) => {
+                state.search = String(e.target.value || '');
+                refresh();
+            }, 300);
+            search.addEventListener('input', this._debouncedEmployeeAnalyticsSearch);
+        }
 
         const tabTrainer = document.getElementById('employee-analytics-tab-trainer');
         if (tabTrainer) tabTrainer.addEventListener('click', () => { state.view = 'trainer'; state.drillKey = ''; refresh(); });
@@ -2224,7 +2230,13 @@ const Training = {
         wire('attendance-analytics-sortby', (e) => { state.sortBy = e.target.value || 'hours'; refresh(); });
         wire('attendance-analytics-sortdir', (e) => { state.sortDir = e.target.value || 'desc'; refresh(); });
         const search = document.getElementById('attendance-analytics-search');
-        if (search) search.addEventListener('input', (e) => { state.search = e.target.value || ''; refresh(); });
+        if (search) {
+            this._debouncedAttendanceAnalyticsSearch = Utils.debounce((e) => {
+                state.search = e.target.value || '';
+                refresh();
+            }, 300);
+            search.addEventListener('input', this._debouncedAttendanceAnalyticsSearch);
+        }
         const tabEmployee = document.getElementById('attendance-analytics-tab-employee');
         if (tabEmployee) tabEmployee.addEventListener('click', () => { state.view = 'employee'; state.drillKey = ''; refresh(); });
         const tabTopic = document.getElementById('attendance-analytics-tab-topic');
@@ -3041,7 +3053,11 @@ const Training = {
 
         const searchInput = document.getElementById('training-search');
         const statusFilter = document.getElementById('training-filter-status');
-        bindOnce(searchInput, 'input', (e) => this.filterItems(e.target.value, statusFilter?.value || ''));
+        this._debouncedTrainingSearch = this._debouncedTrainingSearch || Utils.debounce((e) => this.filterItems(e.target.value, statusFilter?.value || ''), 300);
+        if (!searchInput.dataset.bound) {
+            searchInput.addEventListener('input', this._debouncedTrainingSearch);
+            searchInput.dataset.bound = '1';
+        }
         bindOnce(statusFilter, 'change', (e) => this.filterItems(searchInput?.value || '', e.target.value));
 
         bindOnce(document.getElementById('view-training-matrix-btn'), 'click', () => this.showTrainingMatrix());
@@ -3051,7 +3067,12 @@ const Training = {
         bindOnce(document.getElementById('add-contractor-training-header-btn'), 'click', () => this.openContractorTrainingForm());
         bindOnce(document.getElementById('add-contractor-training-btn'), 'click', () => this.openContractorTrainingForm());
 
-        bindOnce(document.getElementById('contractor-training-search'), 'input', (e) => this.filterContractorTraining(e.target.value));
+        const contractorTrainingSearch = document.getElementById('contractor-training-search');
+        this._debouncedContractorTrainingSearch = this._debouncedContractorTrainingSearch || Utils.debounce((e) => this.filterContractorTraining(e.target.value), 300);
+        if (contractorTrainingSearch && !contractorTrainingSearch.dataset.bound) {
+            contractorTrainingSearch.addEventListener('input', this._debouncedContractorTrainingSearch);
+            contractorTrainingSearch.dataset.bound = '1';
+        }
         bindOnce(document.getElementById('export-contractor-training-excel-btn'), 'click', () => this.exportContractorTrainingExcel());
         bindOnce(document.getElementById('export-contractor-training-pdf-btn'), 'click', () => this.showContractorTrainingReportDialog());
 
@@ -3170,9 +3191,10 @@ const Training = {
         // Setup search
         const searchInput = document.getElementById('training-matrix-search');
         if (searchInput) {
-            searchInput.addEventListener('input', (e) => {
+            this._debouncedTrainingMatrixSearch = this._debouncedTrainingMatrixSearch || Utils.debounce((e) => {
                 this.filterTrainingMatrix(e.target.value.trim());
-            });
+            }, 300);
+            searchInput.addEventListener('input', this._debouncedTrainingMatrixSearch);
         }
         modal.querySelector('#manage-training-topics-btn')?.addEventListener('click', () => this.openTrainingTopicsManager());
         modal.querySelector('#matrix-annual-plan-btn')?.addEventListener('click', () => this.showAnnualPlanModal());
@@ -12172,7 +12194,8 @@ const Training = {
         // البحث
         const searchInput = document.getElementById('attendance-registry-search');
         if (searchInput) {
-            searchInput.oninput = () => this.loadAttendanceRegistry();
+            this._debouncedAttendanceRegistrySearch = this._debouncedAttendanceRegistrySearch || Utils.debounce(() => this.loadAttendanceRegistry(), 300);
+            searchInput.addEventListener('input', this._debouncedAttendanceRegistrySearch);
         }
         
         // فلتر المصنع

@@ -817,8 +817,11 @@ const Users = {
             const searchInput = document.getElementById('users-search');
             const filterRole = document.getElementById('users-filter-role');
 
+            this._debouncedUserSearch = Utils.debounce(() => {
+                this.filterUsers(searchInput?.value || '', filterRole?.value);
+            }, 300);
             if (searchInput) {
-                searchInput.addEventListener('input', (e) => this.filterUsers(e.target.value, filterRole?.value));
+                searchInput.addEventListener('input', this._debouncedUserSearch);
             }
             if (filterRole) {
                 filterRole.addEventListener('change', (e) => this.filterUsers(searchInput?.value, e.target.value));

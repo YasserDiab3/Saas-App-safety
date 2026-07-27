@@ -834,10 +834,13 @@ const UserActivityLog = {
         document.body.insertAdjacentHTML('beforeend', modalHTML);
 
         // ربط أحداث الفلاتر
+        this._debouncedActivityLogSearch = Utils.debounce(() => {
+            this.applyFilters();
+        }, 300);
         setTimeout(() => {
             const searchInput = document.getElementById('activity-log-search');
             if (searchInput) {
-                searchInput.addEventListener('input', () => this.applyFilters());
+                searchInput.addEventListener('input', this._debouncedActivityLogSearch);
             }
             
             const actionTypeSelect = document.getElementById('activity-log-action-type');

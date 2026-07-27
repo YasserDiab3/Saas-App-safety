@@ -11,6 +11,17 @@ const UserAIAssistant = {
         lastIntent: null,
         mentionedEntities: []
     },
+
+    t(key, fallback) {
+        const i18nCore = (window.AppI18n && typeof window.AppI18n.t === 'function')
+            ? window.AppI18n
+            : ((window.I18n && typeof window.I18n.t === 'function') ? window.I18n : null);
+        if (i18nCore) {
+            return i18nCore.t(key, null, fallback || key);
+        }
+        return fallback || key;
+    },
+
     // مراجع لتنظيف الموارد
     _smartAlertsInterval: null,
     _eventListenersAbortController: null,
@@ -47,19 +58,19 @@ const UserAIAssistant = {
                 <div class="section-header">
                     <h1 class="section-title">
                         <i class="fas fa-robot ml-3"></i>
-                        مساعد المستخدم الذكي
+                        ${this.t('module.useraiassistant.title', 'مساعد المستخدم الذكي')}
                     </h1>
-                    <p class="section-subtitle">مساعد ذكي متاح في جميع أنحاء التطبيق</p>
+                    <p class="section-subtitle">${this.t('module.useraiassistant.subtitle', 'مساعد ذكي متاح في جميع أنحاء التطبيق')}</p>
                 </div>
                 <div class="content-card">
                     <div class="card-body">
                         <div class="text-center py-8">
                             <i class="fas fa-comments text-6xl text-blue-500 mb-4"></i>
-                            <h3 class="text-xl font-semibold mb-2">المساعد الذكي متاح الآن</h3>
-                            <p class="text-gray-600 mb-4">يمكنك الوصول إلى المساعد الذكي من خلال الزر العائم في الزاوية السفلية اليمنى</p>
+                            <h3 class="text-xl font-semibold mb-2">${this.t('module.useraiassistant.available_title', 'المساعد الذكي متاح الآن')}</h3>
+                            <p class="text-gray-600 mb-4">${this.t('module.useraiassistant.available_desc', 'يمكنك الوصول إلى المساعد الذكي من خلال الزر العائم في الزاوية السفلية اليمنى')}</p>
                             <button onclick="UserAIAssistant.toggle()" class="btn-primary">
                                 <i class="fas fa-comment-dots ml-2"></i>
-                                فتح المساعد
+                                ${this.t('module.useraiassistant.open', 'فتح المساعد')}
                             </button>
                         </div>
                     </div>
@@ -75,17 +86,17 @@ const UserAIAssistant = {
                     <div class="section-header">
                         <h1 class="section-title">
                             <i class="fas fa-robot ml-3"></i>
-                            مساعد المستخدم الذكي
+                            ${this.t('module.useraiassistant.title', 'مساعد المستخدم الذكي')}
                         </h1>
                     </div>
                     <div class="content-card">
                         <div class="card-body">
                             <div class="empty-state">
                                 <i class="fas fa-exclamation-triangle text-yellow-500 text-4xl mb-4"></i>
-                                <p class="text-gray-500">حدث خطأ في تحميل الموديول</p>
+                                <p class="text-gray-500">${this.t('module.useraiassistant.load_error', 'حدث خطأ في تحميل الموديول')}</p>
                                 <button onclick="UserAIAssistant.load()" class="btn-primary mt-4">
                                     <i class="fas fa-redo ml-2"></i>
-                                    إعادة المحاولة
+                                    ${this.t('module.common.retry', 'إعادة المحاولة')}
                                 </button>
                             </div>
                         </div>
@@ -142,7 +153,7 @@ const UserAIAssistant = {
 
         // زر مسح المحادثة
         document.getElementById('user-ai-assistant-clear')?.addEventListener('click', () => {
-            if (confirm('هل تريد مسح المحادثة؟')) {
+            if (confirm(this.t('module.useraiassistant.confirm_clear', 'هل تريد مسح المحادثة؟'))) {
                 this.clearConversation();
             }
         });
@@ -243,7 +254,7 @@ const UserAIAssistant = {
                         // عرض التوصيات بعد رسالة الترحيب
                         setTimeout(() => {
                             const topRecommendations = recommendations.recommendations.slice(0, 3);
-                            let recommendationText = '💡 توصيات ذكية:\n\n';
+                            let recommendationText = '💡 ' + this.t('module.useraiassistant.smart_recommendations', 'توصيات ذكية') + ':\n\n';
 
                             topRecommendations.forEach((rec, index) => {
                                 const priorityIcon = {
@@ -295,7 +306,7 @@ const UserAIAssistant = {
                 messagesContainer.appendChild(welcomeMessage);
             } else {
                 // إضافة رسالة ترحيبية جديدة
-                this.addMessage('assistant', 'مرحباً! أنا مساعد النظام. كيف يمكنني مساعدتك اليوم؟');
+                this.addMessage('assistant', this.t('module.useraiassistant.welcome', 'مرحباً! أنا مساعد النظام. كيف يمكنني مساعدتك اليوم؟'));
             }
         }
 
@@ -350,7 +361,7 @@ const UserAIAssistant = {
 
         } catch (error) {
             this.hideLoading(loadingId);
-            this.addMessage('assistant', 'عذراً، حدث خطأ أثناء معالجة طلبك. يرجى المحاولة مرة أخرى.');
+            this.addMessage('assistant', this.t('module.useraiassistant.process_error', 'عذراً، حدث خطأ أثناء معالجة طلبك. يرجى المحاولة مرة أخرى.'));
             Utils.safeError('خطأ في معالجة الرسالة:', error);
         }
     },
@@ -373,7 +384,7 @@ const UserAIAssistant = {
         content.className = 'user-ai-message-content';
 
         // معالجة النص (دعم الأسطر المتعددة والتنسيق) — منع عرض رد فارغ
-        const displayText = (text !== undefined && text !== null && String(text).trim()) ? text : 'لم أتمكن من إرجاع رد. يرجى صياغة السؤال بشكل أوضح أو المحاولة لاحقاً.';
+        const displayText = (text !== undefined && text !== null && String(text).trim()) ? text : this.t('module.useraiassistant.no_response', 'لم أتمكن من إرجاع رد. يرجى صياغة السؤال بشكل أوضح أو المحاولة لاحقاً.');
         const textContent = this.formatMessageText(displayText);
         content.appendChild(textContent);
 
@@ -585,7 +596,7 @@ const UserAIAssistant = {
         } catch (error) {
             Utils.safeError('❌ خطأ في معالجة الرسالة:', error);
             return {
-                text: 'عذراً، حدث خطأ أثناء معالجة طلبك. يرجى المحاولة مرة أخرى.',
+                text: this.t('module.useraiassistant.process_error', 'عذراً، حدث خطأ أثناء معالجة طلبك. يرجى المحاولة مرة أخرى.'),
                 actions: []
             };
         }
@@ -621,7 +632,7 @@ const UserAIAssistant = {
 
                         // استخدام رد Backend AI
                         return {
-                            text: aiResponse.text || aiResponse.message || 'تمت المعالجة',
+                            text: aiResponse.text || aiResponse.message || this.t('module.common.processed', 'تمت المعالجة'),
                             data: aiResponse.data || null,
                             intent: aiResponse.intent || null,
                             module: aiResponse.module || null,
@@ -646,7 +657,7 @@ const UserAIAssistant = {
         } catch (error) {
             Utils.safeError('خطأ في معالجة الرسالة:', error);
             return {
-                text: 'عذراً، حدث خطأ أثناء معالجة طلبك. يرجى المحاولة مرة أخرى.',
+                text: this.t('module.useraiassistant.process_error', 'عذراً، حدث خطأ أثناء معالجة طلبك. يرجى المحاولة مرة أخرى.'),
                 actions: []
             };
         }
@@ -706,7 +717,14 @@ const UserAIAssistant = {
         const lowerMessage = message.toLowerCase();
 
         // استخراج أسماء الإدارات
-        const departments = ['إنتاج', 'صيانة', 'أمن', 'سلامة', 'إدارة', 'موارد بشرية'];
+        const departments = [
+            this.t('module.useraiassistant.dept.production', 'إنتاج'),
+            this.t('module.useraiassistant.dept.maintenance', 'صيانة'),
+            this.t('module.useraiassistant.dept.security', 'أمن'),
+            this.t('module.useraiassistant.dept.safety', 'سلامة'),
+            this.t('module.useraiassistant.dept.management', 'إدارة'),
+            this.t('module.useraiassistant.dept.hr', 'موارد بشرية')
+        ];
         departments.forEach(dept => {
             if (lowerMessage.includes(dept.toLowerCase())) {
                 if (!this.context.mentionedEntities.includes(dept)) {
@@ -773,22 +791,13 @@ const UserAIAssistant = {
         }
 
         // رد افتراضي محسّن
+        const defaultText = this.t('module.useraiassistant.default_help', 'أنا هنا لمساعدتك! يمكنك أن تسألني عن:\n\n• تحليل البيانات والإحصائيات\n• البحث في السجلات\n• العد والإحصائيات\n• التحقق من الحالة\n• التوصيات الذكية\n\nجرب أن تسألني:\n• "ما عدد الحوادث هذا الشهر؟"\n• "تحليل بيانات التدريب"\n• "ما حالة الميزانية؟"\n• "أعطني توصيات"');
         return {
-            text: 'أنا هنا لمساعدتك! يمكنك أن تسألني عن:\n\n' +
-                '• تحليل البيانات والإحصائيات\n' +
-                '• البحث في السجلات\n' +
-                '• العد والإحصائيات\n' +
-                '• التحقق من الحالة\n' +
-                '• التوصيات الذكية\n\n' +
-                'جرب أن تسألني:\n' +
-                '• "ما عدد الحوادث هذا الشهر؟"\n' +
-                '• "تحليل بيانات التدريب"\n' +
-                '• "ما حالة الميزانية؟"\n' +
-                '• "أعطني توصيات"',
+            text: defaultText,
             actions: [
-                { label: 'فتح الحوادث', icon: 'fas fa-exclamation-triangle', action: 'navigate', target: 'incidents' },
-                { label: 'فتح التدريب', icon: 'fas fa-graduation-cap', action: 'navigate', target: 'training' },
-                { label: 'فتح الميزانية', icon: 'fas fa-wallet', action: 'navigate', target: 'safety-budget' }
+                { label: this.t('module.useraiassistant.action.open_incidents', 'فتح الحوادث'), icon: 'fas fa-exclamation-triangle', action: 'navigate', target: 'incidents' },
+                { label: this.t('module.useraiassistant.action.open_training', 'فتح التدريب'), icon: 'fas fa-graduation-cap', action: 'navigate', target: 'training' },
+                { label: this.t('module.useraiassistant.action.open_budget', 'فتح الميزانية'), icon: 'fas fa-wallet', action: 'navigate', target: 'safety-budget' }
             ]
         };
     },
@@ -822,8 +831,8 @@ const UserAIAssistant = {
         return {
             text,
             actions: [
-                { label: 'فتح صفحة الحوادث', icon: 'fas fa-exclamation-triangle', action: 'navigate', target: 'incidents' },
-                { label: 'إضافة حادث جديد', icon: 'fas fa-plus', action: 'open', target: 'incidents' }
+                { label: this.t('module.useraiassistant.action.view_incidents', 'فتح صفحة الحوادث'), icon: 'fas fa-exclamation-triangle', action: 'navigate', target: 'incidents' },
+                { label: this.t('module.useraiassistant.action.add_incident', 'إضافة حادث جديد'), icon: 'fas fa-plus', action: 'open', target: 'incidents' }
             ]
         };
     },
@@ -849,8 +858,8 @@ const UserAIAssistant = {
         return {
             text,
             actions: [
-                { label: 'فتح صفحة التدريب', icon: 'fas fa-graduation-cap', action: 'navigate', target: 'training' },
-                { label: 'عرض التقارير', icon: 'fas fa-chart-bar', action: 'open', target: 'training' }
+                { label: this.t('module.useraiassistant.action.view_training', 'فتح صفحة التدريب'), icon: 'fas fa-graduation-cap', action: 'navigate', target: 'training' },
+                { label: this.t('module.useraiassistant.action.view_reports', 'عرض التقارير'), icon: 'fas fa-chart-bar', action: 'open', target: 'training' }
             ]
         };
     },
@@ -882,8 +891,8 @@ const UserAIAssistant = {
         return {
             text,
             actions: [
-                { label: 'فتح صفحة الميزانية', icon: 'fas fa-wallet', action: 'navigate', target: 'safety-budget' },
-                { label: 'عرض التفاصيل', icon: 'fas fa-eye', action: 'open', target: 'safety-budget' }
+                { label: this.t('module.useraiassistant.action.view_budget', 'فتح صفحة الميزانية'), icon: 'fas fa-wallet', action: 'navigate', target: 'safety-budget' },
+                { label: this.t('module.useraiassistant.action.view_details', 'عرض التفاصيل'), icon: 'fas fa-eye', action: 'open', target: 'safety-budget' }
             ]
         };
     },
@@ -921,8 +930,8 @@ const UserAIAssistant = {
         return {
             text,
             actions: [
-                { label: 'فتح صفحة التصاريح', icon: 'fas fa-id-card', action: 'navigate', target: 'ptw' },
-                { label: 'عرض التصاريح المنتهية', icon: 'fas fa-exclamation-circle', action: 'open', target: 'ptw' }
+                { label: this.t('module.useraiassistant.action.view_permits', 'فتح صفحة التصاريح'), icon: 'fas fa-id-card', action: 'navigate', target: 'ptw' },
+                { label: this.t('module.useraiassistant.action.view_expired_permits', 'عرض التصاريح المنتهية'), icon: 'fas fa-exclamation-circle', action: 'open', target: 'ptw' }
             ]
         };
     },
@@ -944,8 +953,8 @@ const UserAIAssistant = {
         return {
             text,
             actions: [
-                { label: 'فتح صفحة الفحوصات', icon: 'fas fa-clipboard-check', action: 'navigate', target: 'periodic-inspections' },
-                { label: 'عرض التفاصيل', icon: 'fas fa-eye', action: 'open', target: 'periodic-inspections' }
+                { label: this.t('module.useraiassistant.action.view_inspections', 'فتح صفحة الفحوصات'), icon: 'fas fa-clipboard-check', action: 'navigate', target: 'periodic-inspections' },
+                { label: this.t('module.useraiassistant.action.view_details', 'عرض التفاصيل'), icon: 'fas fa-eye', action: 'open', target: 'periodic-inspections' }
             ]
         };
     },
@@ -969,8 +978,8 @@ const UserAIAssistant = {
         return {
             text,
             actions: [
-                { label: 'فتح صفحة العيادة', icon: 'fas fa-hospital', action: 'navigate', target: 'clinic' },
-                { label: 'عرض السجلات', icon: 'fas fa-list', action: 'open', target: 'clinic' }
+                { label: this.t('module.useraiassistant.action.view_clinic', 'فتح صفحة العيادة'), icon: 'fas fa-hospital', action: 'navigate', target: 'clinic' },
+                { label: this.t('module.useraiassistant.action.view_records', 'عرض السجلات'), icon: 'fas fa-list', action: 'open', target: 'clinic' }
             ]
         };
     },
@@ -988,8 +997,8 @@ const UserAIAssistant = {
         return {
             text,
             actions: [
-                { label: 'فتح صفحة المؤشرات', icon: 'fas fa-gauge-high', action: 'navigate', target: 'safety-performance-kpis' },
-                { label: 'عرض التفاصيل', icon: 'fas fa-chart-line', action: 'open', target: 'safety-performance-kpis' }
+                { label: this.t('module.useraiassistant.action.view_kpis', 'فتح صفحة المؤشرات'), icon: 'fas fa-gauge-high', action: 'navigate', target: 'safety-performance-kpis' },
+                { label: this.t('module.useraiassistant.action.view_details', 'عرض التفاصيل'), icon: 'fas fa-chart-line', action: 'open', target: 'safety-performance-kpis' }
             ]
         };
     },
@@ -998,22 +1007,13 @@ const UserAIAssistant = {
      * معالجة سؤال المساعدة
      */
     handleHelpQuestion() {
-        const text = `مرحباً! أنا مساعد النظام وأنا هنا لمساعدتك.\n\nيمكنني مساعدتك في:\n\n` +
-            `• الإجابة على أسئلتك حول كيفية استخدام النظام\n` +
-            `• جلب البيانات من الموديولات المختلفة\n` +
-            `• تقديم اقتراحات وتنبيهات ذكية\n` +
-            `• توجيهك إلى الصفحات المطلوبة\n\n` +
-            `جرب أن تسألني عن:\n` +
-            `• "كيف أسجل حادث؟"\n` +
-            `• "ما عدد الحوادث هذا الشهر؟"\n` +
-            `• "ما حالة الميزانية؟"\n` +
-            `• "هل هناك تصاريح منتهية؟"`;
+        const text = this.t('module.useraiassistant.help_text', 'مرحباً! أنا مساعد النظام وأنا هنا لمساعدتك.\n\nيمكنني مساعدتك في:\n\n• الإجابة على أسئلتك حول كيفية استخدام النظام\n• جلب البيانات من الموديولات المختلفة\n• تقديم اقتراحات وتنبيهات ذكية\n• توجيهك إلى الصفحات المطلوبة\n\nجرب أن تسألني عن:\n• "كيف أسجل حادث؟"\n• "ما عدد الحوادث هذا الشهر؟"\n• "ما حالة الميزانية؟"\n• "هل هناك تصاريح منتهية؟"');
 
         return {
             text,
             actions: [
-                { label: 'فتح لوحة التحكم', icon: 'fas fa-dashboard', action: 'navigate', target: 'dashboard' },
-                { label: 'فتح الإعدادات', icon: 'fas fa-cog', action: 'navigate', target: 'settings' }
+                { label: this.t('module.useraiassistant.action.open_dashboard', 'فتح لوحة التحكم'), icon: 'fas fa-dashboard', action: 'navigate', target: 'dashboard' },
+                { label: this.t('module.useraiassistant.action.open_settings', 'فتح الإعدادات'), icon: 'fas fa-cog', action: 'navigate', target: 'settings' }
             ]
         };
     },

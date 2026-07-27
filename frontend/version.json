@@ -1,4 +1,4 @@
 {
-  "version": "2.2.128",
-  "message": "fix(settings): hide privacy tab from non-admin users"
+  "version": "2.2.129",
+  "message": "fix(auth): remove bootstrap admin backdoor, fix leaks, catches, i18n"
 }

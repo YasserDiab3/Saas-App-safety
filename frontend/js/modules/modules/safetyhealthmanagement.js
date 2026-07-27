@@ -976,7 +976,7 @@ const SafetyHealthManagement = {
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">البحث</label>
-                            <input type="text" id="filter-search" class="form-input" placeholder="اسم الموظف..." oninput="SafetyHealthManagement.applyFilters()">
+                            <input type="text" id="filter-search" class="form-input" placeholder="اسم الموظف...">
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">القسم</label>
@@ -1299,6 +1299,14 @@ const SafetyHealthManagement = {
                 const newExportBtn = exportExcelBtn.cloneNode(true);
                 exportExcelBtn.parentNode.replaceChild(newExportBtn, exportExcelBtn);
                 newExportBtn.addEventListener('click', () => this.exportAllToExcel());
+            }
+
+            this._debouncedFilterSearch = Utils.debounce(() => {
+                this.applyFilters();
+            }, 300);
+            const filterSearch = document.getElementById('filter-search');
+            if (filterSearch) {
+                filterSearch.addEventListener('input', this._debouncedFilterSearch);
             }
         });
     },

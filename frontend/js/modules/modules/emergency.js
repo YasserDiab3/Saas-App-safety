@@ -4,6 +4,15 @@
  */
 // ===== Emergency Module (تنبيهات الطوارئ) =====
 const Emergency = {
+    t(key, fallback) {
+        const i18nCore = (window.AppI18n && typeof window.AppI18n.t === 'function')
+            ? window.AppI18n
+            : ((window.I18n && typeof window.I18n.t === 'function') ? window.I18n : null);
+        if (i18nCore) {
+            return i18nCore.t(key, null, fallback || key);
+        }
+        return fallback || key;
+    },
     isCurrentUserAdmin() {
         if (typeof Permissions !== 'undefined' && typeof Permissions.isCurrentUserAdmin === 'function') {
             return Permissions.isCurrentUserAdmin();
@@ -505,12 +514,13 @@ const Emergency = {
             
             if (addPlanTabBtn) addPlanTabBtn.addEventListener('click', () => Emergency.showPlanForm());
 
+            Emergency._debouncedEmergencySearch = Utils.debounce(() => {
+                Emergency.state.filters.search = document.getElementById('emergency-search')?.value.trim() || '';
+                Emergency.renderAll();
+            }, 300);
             const searchInput = document.getElementById('emergency-search');
             if (searchInput) {
-                searchInput.addEventListener('input', (event) => {
-                    Emergency.state.filters.search = event.target.value.trim();
-                    Emergency.renderAll();
-                });
+                searchInput.addEventListener('input', Emergency._debouncedEmergencySearch);
             }
 
             const severitySelect = document.getElementById('emergency-filter-severity');

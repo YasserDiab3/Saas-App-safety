@@ -6567,7 +6567,8 @@ const PTW = {
         // البحث
         const searchInput = document.getElementById('registry-search');
         if (searchInput) {
-            searchInput.oninput = () => this.applyRegistryFilters();
+            this._debouncedRegistrySearch = this._debouncedRegistrySearch || Utils.debounce(() => this.applyRegistryFilters(), 300);
+            searchInput.addEventListener('input', this._debouncedRegistrySearch);
         }
 
         // فلتر الحالة
@@ -11520,7 +11521,8 @@ const PTW = {
             const filterDateFrom = document.getElementById('ptw-filter-date-from');
             const filterDateTo = document.getElementById('ptw-filter-date-to');
             const applyFilters = () => this.filterItems();
-            if (searchInput) searchInput.addEventListener('input', applyFilters);
+            this._debouncedPtwSearch = this._debouncedPtwSearch || Utils.debounce(() => this.filterItems(), 300);
+            if (searchInput) searchInput.addEventListener('input', this._debouncedPtwSearch);
             if (filterStatus) filterStatus.addEventListener('change', applyFilters);
             if (filterWorkType) filterWorkType.addEventListener('change', applyFilters);
             if (filterLocation) {

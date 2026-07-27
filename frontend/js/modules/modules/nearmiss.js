@@ -412,7 +412,8 @@ const NearMiss = {
 
         const searchInput = document.getElementById('nearmiss-filter-search');
         if (searchInput) {
-            searchInput.addEventListener('input', (event) => this.handleFilterChange('search', event.target.value));
+            this._debouncedNearmissSearch = this._debouncedNearmissSearch || Utils.debounce((event) => this.handleFilterChange('search', event.target.value), 250);
+            searchInput.addEventListener('input', this._debouncedNearmissSearch);
         }
 
         const typeSelect = document.getElementById('nearmiss-filter-type');

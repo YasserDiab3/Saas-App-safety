@@ -4503,13 +4503,16 @@ const PeriodicInspections = {
             updateFilterState();
             this.refreshCurrentTabContent();
         };
-        ['dsc-filter-search', 'dsc-filter-site', 'dsc-filter-inspector', 'dsc-filter-shift', 'dsc-filter-date-from', 'dsc-filter-date-to']
+        const debouncedOnFilterChange = Utils.debounce(onFilterChange, 250);
+        ['dsc-filter-site', 'dsc-filter-inspector', 'dsc-filter-shift', 'dsc-filter-date-from', 'dsc-filter-date-to']
             .forEach((id) => {
                 const el = document.getElementById(id);
                 if (!el) return;
                 const eventName = el.tagName === 'INPUT' && el.type === 'text' ? 'input' : 'change';
                 el.addEventListener(eventName, onFilterChange);
             });
+        const dscSearchEl = document.getElementById('dsc-filter-search');
+        if (dscSearchEl) dscSearchEl.addEventListener('input', debouncedOnFilterChange);
 
         const resetBtn = document.getElementById('dsc-filter-reset-btn');
         if (resetBtn) {

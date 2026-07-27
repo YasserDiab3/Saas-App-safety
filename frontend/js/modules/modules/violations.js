@@ -1650,11 +1650,11 @@ const Violations = {
 
         if (searchInput) {
             searchInput.value = this.currentFilters.search || '';
-            searchInput.oninput = () => {
+            this._debouncedViolationsSearch = this._debouncedViolationsSearch || Utils.debounce(() => {
                 this.currentFilters.search = searchInput.value || '';
-                // لا نعيد رسم الفلاتر أثناء الكتابة حتى لا يفقد الحقل التركيز.
                 this.refreshViolationsView({ skipFilterRerender: true });
-            };
+            }, 250);
+            searchInput.addEventListener('input', this._debouncedViolationsSearch);
         }
 
         if (personSelect) {
@@ -6214,7 +6214,8 @@ ${inner}
                 // إزالة event listeners القديمة
                 const newSearchInput = searchInput.cloneNode(true);
                 searchInput.parentNode.replaceChild(newSearchInput, searchInput);
-                newSearchInput.addEventListener('input', (e) => this.filterBlacklistTable(e.target.value));
+                this._debouncedBlacklistSearch = this._debouncedBlacklistSearch || Utils.debounce((e) => this.filterBlacklistTable(e.target.value), 250);
+                newSearchInput.addEventListener('input', this._debouncedBlacklistSearch);
             }
 
             // ✅ إضافة معالج زر التسجيل (مهم جداً)

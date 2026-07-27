@@ -230,10 +230,13 @@ const Help = {
     bindEvents(sectionEl) {
         const search = sectionEl.querySelector('#help-search-input');
         if (search) {
-            search.addEventListener('input', () => {
-                this.searchQuery = search.value;
-                this.renderContent(sectionEl);
-            });
+            if (!this._debouncedHelpSearch) {
+                this._debouncedHelpSearch = Utils.debounce((el) => {
+                    this.searchQuery = el ? el.value : '';
+                    this.renderContent(sectionEl);
+                }, 250);
+            }
+            search.addEventListener('input', () => this._debouncedHelpSearch(search));
         }
         sectionEl.querySelectorAll('.help-toc__link').forEach((btn) => {
             btn.addEventListener('click', () => {

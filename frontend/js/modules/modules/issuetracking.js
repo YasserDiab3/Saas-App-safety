@@ -135,8 +135,15 @@ const IssueTracking = {
      * إعداد مستمعي الأحداث
      */
     setupEventListeners() {
-        // سيتم إضافة event listeners عند الحاجة
+        const searchInput = document.getElementById('issue-search');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => IssueTracking.handleSearch(e.target.value));
+        }
     },
+    handleSearch: Utils.debounce(function(value) {
+        IssueTracking.state.filters.search = value;
+        IssueTracking.loadIssues();
+    }, 300),
 
     /**
      * عرض الفلاتر
@@ -153,7 +160,7 @@ const IssueTracking = {
                                 id="issue-search" 
                                 placeholder="ابحث في المشاكل..."
                                 class="form-input"
-                                oninput="IssueTracking.handleSearch(this.value)"
+
                             >
                         </div>
                         <div>
@@ -860,10 +867,7 @@ const IssueTracking = {
         }
     },
 
-    handleSearch(value) {
-        this.state.filters.search = value;
-        setTimeout(() => this.loadIssues(), 500);
-    },
+
 
     applyFilters() {
         this.loadIssues();

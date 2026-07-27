@@ -4,6 +4,15 @@
  */
 // ===== HSEHub 360 — HSE Management Module (نظام إدارة السلامة والصحة المهنية والبيئة) =====
 const ISO = {
+    t(key, fallback) {
+        const i18nCore = (window.AppI18n && typeof window.AppI18n.t === 'function')
+            ? window.AppI18n
+            : ((window.I18n && typeof window.I18n.t === 'function') ? window.I18n : null);
+        if (i18nCore) {
+            return i18nCore.t(key, null, fallback || key);
+        }
+        return fallback || key;
+    },
     currentTab: 'overview',
 
     isCurrentUserAdmin() {
@@ -116,9 +125,13 @@ const ISO = {
                     // تبويب مركز التكويد: عرض الهيكل فوراً ثم جلب البيانات في الخلفية (بدون إظهار رسالة مهلة مزعجة)
                     if (this.currentTab === 'coding-center') {
                         contentArea.innerHTML = await this.renderCodingCenter({ skipFetch: true });
+                        this._bindDocumentCodeSearch();
                         this.renderCodingCenter({ silentTimeout: true }).then(html => {
                             const area = document.getElementById('iso-content');
-                            if (area && this.currentTab === 'coding-center') area.innerHTML = html;
+                            if (area && this.currentTab === 'coding-center') {
+                                area.innerHTML = html;
+                                this._bindDocumentCodeSearch();
+                            }
                         }).catch(() => {});
                         return;
                     }
@@ -2180,8 +2193,7 @@ const ISO = {
                     <div class="card-body">
                         <div class="mb-4">
                             <input type="text" id="document-code-search" class="form-input" 
-                                placeholder="بحث في أكواد المستندات..." 
-                                onkeyup="ISO.filterDocumentCodes()">
+                                placeholder="بحث في أكواد المستندات...">
                         </div>
                         ${documentCodes.length === 0 ? `
                             <div class="empty-state">
@@ -3075,6 +3087,19 @@ const ISO = {
 
         // عرض نموذج لإصدار جديد
         this.showDocumentVersionForm(null, version.documentCodeId);
+    },
+
+    _bindDocumentCodeSearch() {
+        if (!this._debouncedDocCodeSearch) {
+            this._debouncedDocCodeSearch = Utils.debounce(() => {
+                this.filterDocumentCodes();
+            }, 250);
+        }
+        const input = document.getElementById('document-code-search');
+        if (input) {
+            input.removeEventListener('input', this._debouncedDocCodeSearch);
+            input.addEventListener('input', this._debouncedDocCodeSearch);
+        }
     },
 
     filterDocumentCodes() {

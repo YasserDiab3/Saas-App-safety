@@ -1006,9 +1006,12 @@ const ActionTrackingRegister = {
             if (settingsBtn) settingsBtn.addEventListener('click', () => this.switchView('settings'));
 
             // البحث والفلاتر
+            this._debouncedActionSearch = Utils.debounce(() => {
+                this.loadActionList();
+            }, 300);
             const searchInput = document.getElementById('action-search');
             if (searchInput) {
-                searchInput.addEventListener('input', () => this.loadActionList());
+                searchInput.addEventListener('input', this._debouncedActionSearch);
             }
 
             const typeFilter = document.getElementById('action-filter-type');
