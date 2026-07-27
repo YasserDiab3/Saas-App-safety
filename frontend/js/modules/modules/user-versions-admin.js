@@ -14,6 +14,11 @@ const UserVersionsAdmin = {
     _stats: null,
     _loading: false,
 
+    t(key, fallback) {
+        if (window.I18n && typeof window.I18n.t === 'function') return window.I18n.t(key, fallback);
+        return fallback || key;
+    },
+
     /** فتح اللوحة (modal) */
     async open() {
         // التحقق من الصلاحية
@@ -27,7 +32,7 @@ const UserVersionsAdmin = {
         })();
 
         if (!isAdmin) {
-            Notification.error('هذه الصفحة متاحة لمدير النظام فقط');
+            Notification.error(this.t('module.userVersions.adminOnly', 'هذه الصفحة متاحة لمدير النظام فقط'));
             return;
         }
 
@@ -40,9 +45,9 @@ const UserVersionsAdmin = {
                 <div class="modal-header" style="background: linear-gradient(135deg, #0F766E, #1E3A8A); color: #fff;">
                     <h2 class="modal-title" style="color: #fff;">
                         <i class="fas fa-code-branch ml-2"></i>
-                        متابعة إصدارات المستخدمين
+                        ${this.t('module.userVersions.title', 'متابعة إصدارات المستخدمين')}
                     </h2>
-                    <button class="modal-close" onclick="this.closest('.modal-overlay').remove()" title="إغلاق" style="color: #fff;">
+                    <button class="modal-close" onclick="this.closest('.modal-overlay').remove()" title="${this.t('module.userVersions.close', 'إغلاق')}" style="color: #fff;">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -51,14 +56,14 @@ const UserVersionsAdmin = {
                     <div class="flex items-center justify-between flex-wrap gap-2 mb-4">
                         <div class="text-sm text-slate-600">
                             <i class="fas fa-info-circle text-blue-600 ml-1"></i>
-                            الإصدار الأحدث المتاح: <strong dir="ltr">${Utils.escapeHTML(AppState.appVersion || '-')}</strong>
+                            ${this.t('module.userVersions.latestAvailable', 'الإصدار الأحدث المتاح:')} <strong dir="ltr">${Utils.escapeHTML(AppState.appVersion || '-')}</strong>
                         </div>
                         <div class="flex gap-2 flex-wrap">
                             <button id="uva-refresh-btn" class="btn-secondary">
-                                <i class="fas fa-sync-alt ml-2"></i>تحديث
+                                <i class="fas fa-sync-alt ml-2"></i>${this.t('module.userVersions.refresh', 'تحديث')}
                             </button>
                             <button id="uva-export-btn" class="btn-success">
-                                <i class="fas fa-file-excel ml-2"></i>تصدير Excel
+                                <i class="fas fa-file-excel ml-2"></i>${this.t('module.userVersions.exportExcel', 'تصدير Excel')}
                             </button>
                         </div>
                     </div>
@@ -67,7 +72,7 @@ const UserVersionsAdmin = {
                     <div id="uva-stats-container" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 mb-5">
                         <div class="text-center text-slate-400 col-span-full py-6">
                             <i class="fas fa-spinner fa-spin text-2xl"></i>
-                            <p class="mt-2 text-sm">جاري التحميل...</p>
+                            <p class="mt-2 text-sm">${this.t('module.userVersions.loading', 'جاري التحميل...')}</p>
                         </div>
                     </div>
 
@@ -117,7 +122,7 @@ const UserVersionsAdmin = {
             this._renderTable();
         } catch (error) {
             Utils.safeError('❌ خطأ في تحميل بيانات الإصدارات:', error);
-            Notification.error('فشل تحميل البيانات: ' + (error.message || error));
+            Notification.error(this.t('module.userVersions.loadFailed', 'فشل تحميل البيانات: ') + (error.message || error));
         } finally {
             this._loading = false;
         }
@@ -136,12 +141,12 @@ const UserVersionsAdmin = {
 
         // ✅ 6 كروت: إجمالي + 3 حالات (محدّث/قديم/لم يُسجَّل) + 2 نشاط
         const cards = [
-            { label: 'إجمالي المستخدمين', value: totalUsers,        icon: 'fa-users',                color: '#0F766E', bg: '#f0fdfa', border: '#99f6e4' },
-            { label: 'على الإصدار الأحدث', value: latestUsers,      icon: 'fa-circle-check',         color: '#047857', bg: '#ecfdf5', border: '#a7f3d0' },
-            { label: 'على إصدار قديم',     value: outdatedUsers,    icon: 'fa-triangle-exclamation', color: '#b91c1c', bg: '#fef2f2', border: '#fecaca' },
-            { label: 'لم يُسجَّل بعد',       value: notReportedUsers, icon: 'fa-user-clock',           color: '#b45309', bg: '#fffbeb', border: '#fde68a' },
-            { label: 'نشط آخر 24 ساعة',   value: activeLast24h,    icon: 'fa-bolt',                 color: '#7c3aed', bg: '#f5f3ff', border: '#ddd6fe' },
-            { label: 'نشط آخر 7 أيام',    value: activeLast7d,     icon: 'fa-calendar-week',        color: '#1E3A8A', bg: '#eef2ff', border: '#c7d2fe' },
+            { label: this.t('module.userVersions.totalUsers', 'إجمالي المستخدمين'), value: totalUsers,        icon: 'fa-users',                color: '#0F766E', bg: '#f0fdfa', border: '#99f6e4' },
+            { label: this.t('module.userVersions.latestUsers', 'على الإصدار الأحدث'), value: latestUsers,      icon: 'fa-circle-check',         color: '#047857', bg: '#ecfdf5', border: '#a7f3d0' },
+            { label: this.t('module.userVersions.outdatedUsers', 'على إصدار قديم'),     value: outdatedUsers,    icon: 'fa-triangle-exclamation', color: '#b91c1c', bg: '#fef2f2', border: '#fecaca' },
+            { label: this.t('module.userVersions.notRegistered', 'لم يُسجَّل بعد'),       value: notReportedUsers, icon: 'fa-user-clock',           color: '#b45309', bg: '#fffbeb', border: '#fde68a' },
+            { label: this.t('module.userVersions.active24h', 'نشط آخر 24 ساعة'),   value: activeLast24h,    icon: 'fa-bolt',                 color: '#7c3aed', bg: '#f5f3ff', border: '#ddd6fe' },
+            { label: this.t('module.userVersions.active7d', 'نشط آخر 7 أيام'),    value: activeLast7d,     icon: 'fa-calendar-week',        color: '#1E3A8A', bg: '#eef2ff', border: '#c7d2fe' },
         ];
 
         container.innerHTML = cards.map(c => `
@@ -179,17 +184,17 @@ const UserVersionsAdmin = {
             if (isNotReported) {
                 barColor = '#b45309';
                 bg = '#fffbeb';
-                badge = '<span style="background:#b45309;color:#fff;padding:2px 8px;border-radius:10px;font-size:0.65rem;font-weight:700;">لم يفتح التطبيق بعد</span>';
+                badge = `<span style="background:#b45309;color:#fff;padding:2px 8px;border-radius:10px;font-size:0.65rem;font-weight:700;">${this.t('module.userVersions.notOpenedYet', 'لم يفتح التطبيق بعد')}</span>`;
                 versionLabel = `<span style="font-weight:700;color:#1e293b;">⏳ ${Utils.escapeHTML(v.version)}</span>`;
             } else if (isLatest) {
                 barColor = '#047857';
                 bg = '#ecfdf5';
-                badge = '<span style="background:#047857;color:#fff;padding:2px 8px;border-radius:10px;font-size:0.65rem;font-weight:700;">الأحدث</span>';
+                badge = `<span style="background:#047857;color:#fff;padding:2px 8px;border-radius:10px;font-size:0.65rem;font-weight:700;">${this.t('module.userVersions.latest', 'الأحدث')}</span>`;
                 versionLabel = `<span style="font-family:monospace;font-weight:700;color:#1e293b;" dir="ltr">v${Utils.escapeHTML(v.version)}</span>`;
             } else {
                 barColor = '#dc2626';
                 bg = '#fef2f2';
-                badge = '<span style="background:#b91c1c;color:#fff;padding:2px 8px;border-radius:10px;font-size:0.65rem;font-weight:700;">قديم</span>';
+                badge = `<span style="background:#b91c1c;color:#fff;padding:2px 8px;border-radius:10px;font-size:0.65rem;font-weight:700;">${this.t('module.userVersions.outdated', 'قديم')}</span>`;
                 versionLabel = `<span style="font-family:monospace;font-weight:700;color:#1e293b;" dir="ltr">v${Utils.escapeHTML(v.version)}</span>`;
             }
             return `
@@ -200,7 +205,7 @@ const UserVersionsAdmin = {
                             ${badge}
                         </div>
                         <div style="font-size:0.85rem;color:#64748b;">
-                            <strong style="color:#1e293b;" dir="ltr">${v.count}</strong> مستخدم
+                            <strong style="color:#1e293b;" dir="ltr">${v.count}</strong> ${this.t('module.userVersions.user', 'مستخدم')}
                             <span style="color:#94a3b8;" dir="ltr">(${pct}%)</span>
                         </div>
                     </div>
@@ -215,7 +220,7 @@ const UserVersionsAdmin = {
             <div class="content-card" style="padding:14px 18px;">
                 <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
                     <i class="fas fa-chart-bar" style="color:#0F766E;"></i>
-                    <strong style="font-size:0.95rem;">توزيع المستخدمين على الإصدارات</strong>
+                    <strong style="font-size:0.95rem;">${this.t('module.userVersions.versionDistribution', 'توزيع المستخدمين على الإصدارات')}</strong>
                 </div>
                 ${rows}
             </div>
@@ -229,7 +234,7 @@ const UserVersionsAdmin = {
             container.innerHTML = `
                 <div class="empty-state" style="padding:30px;">
                     <i class="fas fa-inbox text-4xl text-gray-300 mb-2"></i>
-                    <p class="text-gray-500">لا توجد بيانات إصدارات بعد. ستظهر هنا بمجرد فتح المستخدمين للتطبيق.</p>
+                    <p class="text-gray-500">${this.t('module.userVersions.emptyState', 'لا توجد بيانات إصدارات بعد. ستظهر هنا بمجرد فتح المستخدمين للتطبيق.')}</p>
                 </div>
             `;
             return;
@@ -245,10 +250,10 @@ const UserVersionsAdmin = {
                 const min = Math.floor(diff / 60000);
                 const hour = Math.floor(diff / 3600000);
                 const day = Math.floor(diff / 86400000);
-                if (min < 1) return 'الآن';
-                if (min < 60) return `قبل ${min} د`;
-                if (hour < 24) return `قبل ${hour} س`;
-                if (day < 7) return `قبل ${day} يوم`;
+                if (min < 1) return this.t('module.userVersions.now', 'الآن');
+                if (min < 60) return `${this.t('module.userVersions.ago', 'قبل')} ${min} ${this.t('module.userVersions.minutesShort', 'د')}`;
+                if (hour < 24) return `${this.t('module.userVersions.ago', 'قبل')} ${hour} ${this.t('module.userVersions.hoursShort', 'س')}`;
+                if (day < 7) return `${this.t('module.userVersions.ago', 'قبل')} ${day} ${this.t('module.userVersions.daysShort', 'يوم')}`;
                 return d.toLocaleDateString('ar-EG', { year: 'numeric', month: 'short', day: 'numeric' });
             } catch (e) { return '—'; }
         };
@@ -260,19 +265,19 @@ const UserVersionsAdmin = {
             // ✅ 3 حالات: محدّث / قديم / لم يُسجَّل بعد
             let statusBadge, versionCell;
             if (!hasReport) {
-                statusBadge = '<span style="background:#fffbeb;color:#b45309;padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:700;">⏳ لم يُسجَّل</span>';
+                statusBadge = `<span style="background:#fffbeb;color:#b45309;padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:700;">⏳ ${this.t('module.userVersions.notRegisteredShort', 'لم يُسجَّل')}</span>`;
                 versionCell = '<span style="color:#94a3b8;font-size:0.85rem;">—</span>';
             } else if (r.isOutdated) {
-                statusBadge = '<span style="background:#fef2f2;color:#b91c1c;padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:700;">قديم</span>';
+                statusBadge = `<span style="background:#fef2f2;color:#b91c1c;padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:700;">${this.t('module.userVersions.outdated', 'قديم')}</span>`;
                 versionCell = `<span style="font-family:monospace;font-weight:700;color:#b91c1c;" dir="ltr">v${Utils.escapeHTML(r.currentVersion || '—')}</span>`;
             } else {
-                statusBadge = '<span style="background:#ecfdf5;color:#047857;padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:700;">محدّث</span>';
+                statusBadge = `<span style="background:#ecfdf5;color:#047857;padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:700;">${this.t('module.userVersions.upToDate', 'محدّث')}</span>`;
                 versionCell = `<span style="font-family:monospace;font-weight:700;color:#047857;" dir="ltr">v${Utils.escapeHTML(r.currentVersion || '—')}</span>`;
             }
 
             const platformIcon = r.isMobile ? 'fa-mobile-screen' : (r.platform ? 'fa-desktop' : 'fa-question-circle');
-            const platformText = r.platform || (hasReport ? '—' : 'غير معروف');
-            const lastSeenText = hasReport ? fmtDate(r.lastSeenAt) : '<span style="color:#94a3b8;">لم يفتح بعد</span>';
+            const platformText = r.platform || (hasReport ? '—' : this.t('module.userVersions.unknown', 'غير معروف'));
+            const lastSeenText = hasReport ? fmtDate(r.lastSeenAt) : `<span style="color:#94a3b8;">${this.t('module.userVersions.notOpenedYet', 'لم يفتح بعد')}</span>`;
             const sessionText = hasReport ? String(r.sessionCount || 0) : '<span style="color:#94a3b8;">0</span>';
 
             return `
@@ -300,7 +305,7 @@ const UserVersionsAdmin = {
                 <div style="padding:12px 16px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;">
                     <strong style="font-size:0.95rem;">
                         <i class="fas fa-list-ul" style="color:#0F766E;margin-inline-end:6px;"></i>
-                        تفاصيل المستخدمين
+                        ${this.t('module.userVersions.userDetails', 'تفاصيل المستخدمين')}
                     </strong>
                     <span style="background:#f0fdfa;color:#0F766E;padding:3px 10px;border-radius:12px;font-size:0.75rem;font-weight:700;" dir="ltr">${this._data.length}</span>
                 </div>
@@ -308,14 +313,14 @@ const UserVersionsAdmin = {
                     <table style="width:100%;border-collapse:collapse;font-size:0.85rem;">
                         <thead>
                             <tr style="background:#f8fafc;">
-                                <th style="padding:10px 12px;text-align:start;font-weight:700;color:#475569;white-space:nowrap;">المستخدم</th>
-                                <th style="padding:10px 12px;text-align:start;font-weight:700;color:#475569;">الدور</th>
-                                <th style="padding:10px 12px;text-align:start;font-weight:700;color:#475569;">القسم</th>
-                                <th style="padding:10px 12px;text-align:center;font-weight:700;color:#475569;">الإصدار</th>
-                                <th style="padding:10px 12px;text-align:center;font-weight:700;color:#475569;">الحالة</th>
-                                <th style="padding:10px 12px;text-align:center;font-weight:700;color:#475569;">آخر مشاهدة</th>
-                                <th style="padding:10px 12px;text-align:center;font-weight:700;color:#475569;">جلسات</th>
-                                <th style="padding:10px 12px;text-align:center;font-weight:700;color:#475569;">المنصة</th>
+                                <th style="padding:10px 12px;text-align:start;font-weight:700;color:#475569;white-space:nowrap;">${this.t('module.userVersions.user', 'المستخدم')}</th>
+                                <th style="padding:10px 12px;text-align:start;font-weight:700;color:#475569;">${this.t('module.userVersions.role', 'الدور')}</th>
+                                <th style="padding:10px 12px;text-align:start;font-weight:700;color:#475569;">${this.t('module.userVersions.department', 'القسم')}</th>
+                                <th style="padding:10px 12px;text-align:center;font-weight:700;color:#475569;">${this.t('module.userVersions.version', 'الإصدار')}</th>
+                                <th style="padding:10px 12px;text-align:center;font-weight:700;color:#475569;">${this.t('module.userVersions.status', 'الحالة')}</th>
+                                <th style="padding:10px 12px;text-align:center;font-weight:700;color:#475569;">${this.t('module.userVersions.lastSeen', 'آخر مشاهدة')}</th>
+                                <th style="padding:10px 12px;text-align:center;font-weight:700;color:#475569;">${this.t('module.userVersions.sessions', 'جلسات')}</th>
+                                <th style="padding:10px 12px;text-align:center;font-weight:700;color:#475569;">${this.t('module.userVersions.platform', 'المنصة')}</th>
                             </tr>
                         </thead>
                         <tbody>${rows}</tbody>
@@ -328,14 +333,31 @@ const UserVersionsAdmin = {
     /** تصدير الجدول إلى Excel (CSV بسيط) */
     exportToExcel() {
         if (!this._data || this._data.length === 0) {
-            Notification.warning('لا توجد بيانات للتصدير');
+            Notification.warning(this.t('module.userVersions.noDataToExport', 'لا توجد بيانات للتصدير'));
             return;
         }
 
-        const headers = ['الاسم', 'الإيميل', 'الدور', 'القسم', 'الإصدار الحالي', 'الإصدار الأول', 'الإصدار السابق', 'الحالة', 'آخر مشاهدة', 'أول مشاهدة', 'عدد الجلسات', 'عدد التقارير', 'المنصة', 'جوال؟', 'الحجم', 'اللغة'];
+        const headers = [
+            this.t('module.userVersions.exportName', 'الاسم'),
+            this.t('module.userVersions.exportEmail', 'الإيميل'),
+            this.t('module.userVersions.exportRole', 'الدور'),
+            this.t('module.userVersions.exportDepartment', 'القسم'),
+            this.t('module.userVersions.exportCurrentVersion', 'الإصدار الحالي'),
+            this.t('module.userVersions.exportFirstVersion', 'الإصدار الأول'),
+            this.t('module.userVersions.exportPreviousVersion', 'الإصدار السابق'),
+            this.t('module.userVersions.exportStatus', 'الحالة'),
+            this.t('module.userVersions.exportLastSeen', 'آخر مشاهدة'),
+            this.t('module.userVersions.exportFirstSeen', 'أول مشاهدة'),
+            this.t('module.userVersions.exportSessionCount', 'عدد الجلسات'),
+            this.t('module.userVersions.exportReportCount', 'عدد التقارير'),
+            this.t('module.userVersions.exportPlatform', 'المنصة'),
+            this.t('module.userVersions.exportIsMobile', 'جوال؟'),
+            this.t('module.userVersions.exportScreenSize', 'الحجم'),
+            this.t('module.userVersions.exportLanguage', 'اللغة')
+        ];
         const rows = this._data.map(r => {
             const hasReport = r.hasReport !== false;
-            const status = !hasReport ? 'لم يُسجَّل' : (r.isOutdated ? 'قديم' : 'محدّث');
+            const status = !hasReport ? this.t('module.userVersions.notRegisteredShort', 'لم يُسجَّل') : (r.isOutdated ? this.t('module.userVersions.outdated', 'قديم') : this.t('module.userVersions.upToDate', 'محدّث'));
             return [
                 r.userName || '',
                 r.userEmail || '',
@@ -350,7 +372,7 @@ const UserVersionsAdmin = {
                 r.sessionCount || 0,
                 r.reportCount || 0,
                 r.platform || '',
-                r.isMobile ? 'نعم' : 'لا',
+                r.isMobile ? this.t('module.userVersions.yes', 'نعم') : this.t('module.userVersions.no', 'لا'),
                 r.screenSize || '',
                 r.language || ''
             ];
@@ -372,7 +394,7 @@ const UserVersionsAdmin = {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        Notification.success('تم تصدير البيانات بنجاح');
+        Notification.success(this.t('module.userVersions.exportSuccess', 'تم تصدير البيانات بنجاح'));
     }
 };
 

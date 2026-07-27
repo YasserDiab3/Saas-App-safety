@@ -1,4 +1,4 @@
 {
-  "version": "2.2.129",
-  "message": "fix(auth): remove bootstrap admin backdoor, fix leaks, catches, i18n"
+  "version": "2.2.130",
+  "message": "fix(perf): add debouncing to 46 search inputs, partial i18n pass"
 }

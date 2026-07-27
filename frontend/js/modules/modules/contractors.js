@@ -174,6 +174,11 @@ const CONTRACTOR_APPROVAL_REQUIREMENTS_DEFAULT = [
 
 // ===== Contractors Module (إدارة المقاولين) =====
 const Contractors = {
+    _t(key, fallback) {
+        if (window.AppI18n && typeof window.AppI18n.t === 'function') return window.AppI18n.t(key, fallback);
+        if (window.I18n && typeof window.I18n.t === 'function') return window.I18n.t(key, fallback);
+        return fallback;
+    },
     currentTab: 'approval-request',
     _abortController: null, // ✅ للتحكم في إلغاء جميع event listeners
     _eventListeners: [], // ✅ تتبع جميع event listeners المُضافة

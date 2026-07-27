@@ -85,6 +85,12 @@ const Clinic = {
         }
     },
 
+    _t(key, fallback) {
+        if (window.AppI18n && typeof window.AppI18n.t === 'function') return window.AppI18n.t(key, fallback);
+        if (window.I18n && typeof window.I18n.t === 'function') return window.I18n.t(key, fallback);
+        return fallback;
+    },
+
     applyModuleI18n(root) {
         const i18nCore = (window.AppI18n && typeof window.AppI18n.applyI18n === 'function')
             ? window.AppI18n
@@ -2697,18 +2703,18 @@ const Clinic = {
                     <table class="data-table table-header-green">
                         <thead>
                             <tr>
-                                <th>اسم الدواء</th>
-                                <th>نوع الدواء</th>
-                                <th>الاستخدام</th>
-                                <th>تاريخ الشراء</th>
-                                <th>تاريخ انتهاء الصلاحية</th>
-                                <th>الحالة</th>
-                                <th>عدد الأيام المتبقية</th>
-                                <th class="text-center">الكمية</th>
-                                <th class="text-center">المنصرف</th>
-                                <th class="text-center">الرصيد</th>
-                                <th>بواسطة</th>
-                                <th class="text-center">الإجراءات</th>
+                                <th>${this._t('module.clinic.med_name', 'اسم الدواء')}</th>
+                                <th>${this._t('module.clinic.med_type', 'نوع الدواء')}</th>
+                                <th>${this._t('module.clinic.med_usage', 'الاستخدام')}</th>
+                                <th>${this._t('module.clinic.purchase_date', 'تاريخ الشراء')}</th>
+                                <th>${this._t('module.clinic.expiry_date', 'تاريخ انتهاء الصلاحية')}</th>
+                                <th>${this._t('module.clinic.med_status', 'الحالة')}</th>
+                                <th>${this._t('module.clinic.days_remaining', 'عدد الأيام المتبقية')}</th>
+                                <th class="text-center">${this._t('module.clinic.quantity', 'الكمية')}</th>
+                                <th class="text-center">${this._t('module.clinic.dispensed', 'المنصرف')}</th>
+                                <th class="text-center">${this._t('module.clinic.balance', 'الرصيد')}</th>
+                                <th>${this._t('module.clinic.dispensed_by', 'بواسطة')}</th>
+                                <th class="text-center">${this._t('module.clinic.actions', 'الإجراءات')}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -2724,7 +2730,7 @@ const Clinic = {
             <div class="flex flex-wrap items-center justify-between gap-3 mb-4" style="direction: rtl;">
                 <div class="flex items-center gap-2">
                     <h3 class="text-lg font-semibold" style="text-align: right; color: #1e293b;">
-                        <i class="fas fa-pills ml-2 text-green-600"></i>سجل الأدوية والمستلزمات الطبية
+                        <i class="fas fa-pills ml-2 text-green-600"></i>${this._t('module.clinic.med_record_title', 'سجل الأدوية والمستلزمات الطبية')}
                     </h3>
                 </div>
                 <div class="flex gap-2">
@@ -4357,25 +4363,25 @@ const Clinic = {
                     </table>
                 </div>
             `
-            : this.renderEmptyState('لا توجد إصابات طبية مسجلة.');
+                    : this.renderEmptyState(this._t('module.clinic.empty_injuries', 'لا توجد إصابات طبية مسجلة.'));
 
         panel.innerHTML = `
             <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
                 <div class="flex items-center gap-2 bg-gray-100 p-1 rounded-lg">
                     <button type="button" class="btn-${this.state.activeInjuryType === 'employees' ? 'primary' : 'secondary'} injury-person-tab-btn" data-tab="employees">
-                        الموظفين (${employeeCount})
+                        ${this._t('module.clinic.tab_employees', 'الموظفين')} (${employeeCount})
                     </button>
                     <button type="button" class="btn-${this.state.activeInjuryType === 'contractors' ? 'primary' : 'secondary'} injury-person-tab-btn" data-tab="contractors">
-                        المقاولين (${contractorCount})
+                        ${this._t('module.clinic.tab_contractors', 'المقاولين')} (${contractorCount})
                     </button>
                 </div>
                 <div class="flex items-center gap-2">
                     ${this.isCurrentUserAdmin() ? `
-                    <button type="button" class="btn-secondary" id="injuries-types-settings-btn" title="إدارة أنواع الإصابات (مدير النظام فقط)">
-                        <i class="fas fa-list-ul ml-2"></i>أنواع الإصابات
+                    <button type="button" class="btn-secondary" id="injuries-types-settings-btn" title="${this._t('module.clinic.manage_injury_types_title', 'إدارة أنواع الإصابات (مدير النظام فقط)')}">
+                        <i class="fas fa-list-ul ml-2"></i>${this._t('module.clinic.injury_types', 'أنواع الإصابات')}
                     </button>
-                    <button type="button" class="btn-secondary" id="injuries-body-parts-settings-btn" title="إدارة أماكن الإصابة بالجسم (مدير النظام فقط)">
-                        <i class="fas fa-user-injured ml-2"></i>أماكن الإصابة بالجسم
+                    <button type="button" class="btn-secondary" id="injuries-body-parts-settings-btn" title="${this._t('module.clinic.manage_body_parts_title', 'إدارة أماكن الإصابة بالجسم (مدير النظام فقط)')}">
+                        <i class="fas fa-user-injured ml-2"></i>${this._t('module.clinic.body_parts', 'أماكن الإصابة بالجسم')}
                     </button>
                     ` : ''}
                     <button type="button" class="btn-secondary" id="injuries-export-pdf-btn">
@@ -4392,60 +4398,60 @@ const Clinic = {
             <div class="visits-filters-row" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); padding: 16px 20px; margin: 0 -20px 14px -20px; width: calc(100% + 40px);">
                 <div class="filters-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; align-items: end;">
                     <div class="flex items-center gap-2 bg-gray-100 p-1 rounded-lg">
-                        <label class="filter-label" for="injuries-search">بحث</label>
+                        <label class="filter-label" for="injuries-search">${this._t('module.clinic.filter_search', 'بحث')}</label>
                         <div class="relative w-full">
                             <input type="text" id="injuries-search" class="form-input pr-10 filter-input" placeholder="بحث بالاسم أو الكود أو نوع الإصابة" value="${Utils.escapeHTML(filters.search || '')}">
                             <i class="fas fa-search absolute top-3 right-3 text-gray-400"></i>
                         </div>
                     </div>
                     <div class="filter-field">
-                        <label class="filter-label" for="injuries-status">الحالة</label>
+                        <label class="filter-label" for="injuries-status">${this._t('module.clinic.filter_status', 'الحالة')}</label>
                         <select id="injuries-status" class="form-input filter-input">
-                            <option value="all" ${filters.status === 'all' ? 'selected' : ''}>جميع الحالات</option>
-                            <option value="قيد المتابعة" ${filters.status === 'قيد المتابعة' ? 'selected' : ''}>قيد المتابعة</option>
-                            <option value="تم الشفاء" ${filters.status === 'تم الشفاء' ? 'selected' : ''}>تم الشفاء</option>
-                            <option value="مغلق" ${filters.status === 'مغلق' ? 'selected' : ''}>مغلق</option>
+                            <option value="all" ${filters.status === 'all' ? 'selected' : ''}>${this._t('module.clinic.filter_all_statuses', 'جميع الحالات')}</option>
+                            <option value="قيد المتابعة" ${filters.status === 'قيد المتابعة' ? 'selected' : ''}>${this._t('module.clinic.status_under_followup', 'قيد المتابعة')}</option>
+                            <option value="تم الشفاء" ${filters.status === 'تم الشفاء' ? 'selected' : ''}>${this._t('module.clinic.status_recovered', 'تم الشفاء')}</option>
+                            <option value="مغلق" ${filters.status === 'مغلق' ? 'selected' : ''}>${this._t('module.clinic.status_closed', 'مغلق')}</option>
                         </select>
                     </div>
                     <div class="filter-field">
-                        <label class="filter-label" for="injuries-type-filter">نوع الإصابة</label>
+                        <label class="filter-label" for="injuries-type-filter">${this._t('module.clinic.filter_injury_type', 'نوع الإصابة')}</label>
                         <select id="injuries-type-filter" class="form-input filter-input">
-                            <option value="all" ${(filters.injuryType || 'all') === 'all' ? 'selected' : ''}>جميع الأنواع</option>
+                            <option value="all" ${(filters.injuryType || 'all') === 'all' ? 'selected' : ''}>${this._t('module.clinic.filter_all_types', 'جميع الأنواع')}</option>
                             ${injuryTypes.map((type) => `
                                 <option value="${Utils.escapeHTML(type)}" ${(filters.injuryType || 'all') === type ? 'selected' : ''}>${Utils.escapeHTML(type)}</option>
                             `).join('')}
                         </select>
                     </div>
                     <div class="filter-field">
-                        <label class="filter-label" for="injuries-body-part-filter">مكان الإصابة (بالجسم)</label>
+                        <label class="filter-label" for="injuries-body-part-filter">${this._t('module.clinic.filter_body_part', 'مكان الإصابة (بالجسم)')}</label>
                         <select id="injuries-body-part-filter" class="form-input filter-input">
-                            <option value="all" ${(filters.injuryBodyPart || 'all') === 'all' ? 'selected' : ''}>جميع الأماكن</option>
+                            <option value="all" ${(filters.injuryBodyPart || 'all') === 'all' ? 'selected' : ''}>${this._t('module.clinic.filter_all_locations', 'جميع الأماكن')}</option>
                             ${injuryBodyParts.map((part) => `
                                 <option value="${Utils.escapeHTML(part)}" ${(filters.injuryBodyPart || 'all') === part ? 'selected' : ''}>${Utils.escapeHTML(part)}</option>
                             `).join('')}
                         </select>
                     </div>
                     <div class="filter-field">
-                        <label class="filter-label" for="injuries-department">الإدارة / القسم</label>
+                        <label class="filter-label" for="injuries-department">${this._t('module.clinic.filter_department', 'الإدارة / القسم')}</label>
                         <select id="injuries-department" class="form-input filter-input">
-                            <option value="">جميع الإدارات</option>
+                            <option value="">${this._t('module.clinic.filter_all_departments', 'جميع الإدارات')}</option>
                             ${departments.map((department) => `
                                 <option value="${Utils.escapeHTML(department)}" ${filters.department === department ? 'selected' : ''}>${Utils.escapeHTML(department)}</option>
                             `).join('')}
                         </select>
                     </div>
                     <div class="filter-field">
-                        <label class="filter-label" for="injuries-date-from">من تاريخ</label>
-                        <input type="date" id="injuries-date-from" class="form-input filter-input" value="${filters.dateFrom || ''}" title="من تاريخ">
+                        <label class="filter-label" for="injuries-date-from">${this._t('module.clinic.filter_date_from', 'من تاريخ')}</label>
+                        <input type="date" id="injuries-date-from" class="form-input filter-input" value="${filters.dateFrom || ''}" title="${this._t('module.clinic.filter_date_from', 'من تاريخ')}">
                     </div>
                     <div class="filter-field">
-                        <label class="filter-label" for="injuries-date-to">إلى تاريخ</label>
-                        <input type="date" id="injuries-date-to" class="form-input filter-input" value="${filters.dateTo || ''}" title="إلى تاريخ">
+                        <label class="filter-label" for="injuries-date-to">${this._t('module.clinic.filter_date_to', 'إلى تاريخ')}</label>
+                        <input type="date" id="injuries-date-to" class="form-input filter-input" value="${filters.dateTo || ''}" title="${this._t('module.clinic.filter_date_to', 'إلى تاريخ')}">
                     </div>
                     <div class="filter-field">
                         <button type="button" id="injuries-reset-filters" class="filter-reset-btn" style="width: 100%;">
                             <i class="fas fa-undo-alt"></i>
-                            إعادة تعيين الفلاتر
+                            ${this._t('module.clinic.filter_reset', 'إعادة تعيين الفلاتر')}
                         </button>
                     </div>
                 </div>
@@ -5334,7 +5340,7 @@ const Clinic = {
                 <div class="content-card" style="padding:0;overflow:hidden;">
                     <div style="padding:13px 18px 10px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;gap:8px;">
                         <i class="fas fa-user-circle" style="color:#3b82f6;"></i>
-                        <span style="font-weight:700;font-size:0.88rem;">الزيارات حسب نوع الشخص</span>
+                        <span style="font-weight:700;font-size:0.88rem;">${this._t('module.clinic.chart_visits_by_type', 'الزيارات حسب نوع الشخص')}</span>
                     </div>
                     <div style="padding:12px;position:relative;height:220px;">
                         <canvas id="clinic-chart-ptype"></canvas>
@@ -5344,7 +5350,7 @@ const Clinic = {
                 <div class="content-card" style="padding:0;overflow:hidden;">
                     <div style="padding:13px 18px 10px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;gap:8px;">
                         <i class="fas fa-chart-area" style="color:#8b5cf6;"></i>
-                        <span style="font-weight:700;font-size:0.88rem;">الاتجاه الزمني للزيارات (آخر 12 شهر)</span>
+                        <span style="font-weight:700;font-size:0.88rem;">${this._t('module.clinic.chart_visit_trend', 'الاتجاه الزمني للزيارات (آخر 12 شهر)')}</span>
                     </div>
                     <div style="padding:12px;position:relative;height:220px;">
                         <canvas id="clinic-chart-trend"></canvas>
@@ -5358,7 +5364,7 @@ const Clinic = {
                 <div class="content-card" style="padding:0;overflow:hidden;">
                     <div style="padding:13px 18px 10px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;gap:8px;">
                         <i class="fas fa-stethoscope" style="color:#0d9488;"></i>
-                        <span style="font-weight:700;font-size:0.88rem;">حسب سبب الزيارة (أعلى 10)</span>
+                        <span style="font-weight:700;font-size:0.88rem;">${this._t('module.clinic.chart_by_reason', 'حسب سبب الزيارة (أعلى 10)')}</span>
                     </div>
                     <div style="padding:12px;position:relative;height:280px;">
                         <canvas id="clinic-chart-reason"></canvas>
@@ -5368,7 +5374,7 @@ const Clinic = {
                 <div class="content-card" style="padding:0;overflow:hidden;">
                     <div style="padding:13px 18px 10px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;gap:8px;">
                         <i class="fas fa-building" style="color:#6366f1;"></i>
-                        <span style="font-weight:700;font-size:0.88rem;">حسب الإدارة (أعلى 8)</span>
+                        <span style="font-weight:700;font-size:0.88rem;">${this._t('module.clinic.chart_by_dept', 'حسب الإدارة (أعلى 8)')}</span>
                     </div>
                     <div style="padding:12px;position:relative;height:280px;">
                         <canvas id="clinic-chart-dept"></canvas>
@@ -5382,7 +5388,7 @@ const Clinic = {
                 <div class="content-card" style="padding:0;overflow:hidden;">
                     <div style="padding:13px 18px 10px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;gap:8px;">
                         <i class="fas fa-map-marker-alt" style="color:#f59e0b;"></i>
-                        <span style="font-weight:700;font-size:0.88rem;">حسب الموقع (أعلى 8)</span>
+                        <span style="font-weight:700;font-size:0.88rem;">${this._t('module.clinic.chart_by_location', 'حسب الموقع (أعلى 8)')}</span>
                     </div>
                     <div style="padding:12px;position:relative;height:280px;">
                         <canvas id="clinic-chart-loc"></canvas>
@@ -5392,7 +5398,7 @@ const Clinic = {
                 <div class="content-card" style="padding:0;overflow:hidden;">
                     <div style="padding:13px 18px 10px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;gap:8px;">
                         <i class="fas fa-notes-medical" style="color:#f97316;"></i>
-                        <span style="font-weight:700;font-size:0.88rem;">الإجازات المرضية حسب الحالة</span>
+                        <span style="font-weight:700;font-size:0.88rem;">${this._t('module.clinic.chart_sickleave_status', 'الإجازات المرضية حسب الحالة')}</span>
                     </div>
                     <div style="padding:12px;position:relative;height:280px;">
                         <canvas id="clinic-chart-sl-status"></canvas>
@@ -5406,7 +5412,7 @@ const Clinic = {
                 <div class="content-card" style="padding:0;overflow:hidden;">
                     <div style="padding:13px 18px 10px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;gap:8px;">
                         <i class="fas fa-user-injured" style="color:#ef4444;"></i>
-                        <span style="font-weight:700;font-size:0.88rem;">الإصابات حسب النوع</span>
+                        <span style="font-weight:700;font-size:0.88rem;">${this._t('module.clinic.chart_injuries_by_type', 'الإصابات حسب النوع')}</span>
                     </div>
                     <div style="padding:12px;position:relative;height:260px;">
                         <canvas id="clinic-chart-inj-type"></canvas>
@@ -5416,7 +5422,7 @@ const Clinic = {
                 <div class="content-card" style="padding:0;overflow:hidden;">
                     <div style="padding:13px 18px 10px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;gap:8px;">
                         <i class="fas fa-pills" style="color:#10b981;"></i>
-                        <span style="font-weight:700;font-size:0.88rem;">الأدوية حسب الحالة</span>
+                        <span style="font-weight:700;font-size:0.88rem;">${this._t('module.clinic.chart_meds_by_status', 'الأدوية حسب الحالة')}</span>
                     </div>
                     <div style="padding:12px;position:relative;height:260px;">
                         <canvas id="clinic-chart-med-status"></canvas>

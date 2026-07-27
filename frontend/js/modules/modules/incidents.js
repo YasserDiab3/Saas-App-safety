@@ -4,6 +4,11 @@
  */
 // ===== Incidents Module (الحوادث) =====
 const Incidents = {
+    _t(key, fallback) {
+        if (window.AppI18n && typeof window.AppI18n.t === 'function') return window.AppI18n.t(key, fallback);
+        if (window.I18n && typeof window.I18n.t === 'function') return window.I18n.t(key, fallback);
+        return fallback;
+    },
     currentEditId: null,
     currentAttachments: [],
     reportPreviewModalId: 'incident-report-preview-modal',

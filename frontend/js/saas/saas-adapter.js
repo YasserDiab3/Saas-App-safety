@@ -588,7 +588,7 @@
                 if (spec.op === 'patch')
                     return await rpc('api_patch', { p_sheet: spec.sheet, p_id: data[spec.idFrom], p_patch: data[spec.patchFrom] || data });
                 if (spec.op === 'delete')
-                    return await rpc('api_delete', { p_sheet: spec.sheet, p_id: data[spec.idFrom] });
+                    return await rpc('api_delete', { p_sheet: spec.sheet, p_id: data[spec.idFrom] || data[spec.idFrom.charAt(0).toLowerCase() + spec.idFrom.slice(1)] || data.id || data.recordId });
             }
         }
 
