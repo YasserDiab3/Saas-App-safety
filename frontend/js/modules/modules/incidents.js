@@ -3343,7 +3343,10 @@ const Incidents = {
 
             const preview = document.getElementById(previewId);
             if (preview) {
-                preview.innerHTML = `<img src="${base64}" style="max-width: 100%; max-height: 350px; border-radius: 4px; object-fit: contain; display: block;">`;
+                const img = document.createElement('img');
+                img.src = base64;
+                img.style.cssText = 'max-width: 100%; max-height: 350px; border-radius: 4px; object-fit: contain; display: block;';
+                preview.appendChild(img);
                 preview.style.display = 'block';
                 
                 // Hide the label placeholder

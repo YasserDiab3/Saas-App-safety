@@ -14,6 +14,16 @@ const NearMiss = {
     _i18nSectionObserver: null,
     _i18nBodyObserver: null,
 
+    t(key, fallback) {
+        const i18nCore = (window.AppI18n && typeof window.AppI18n.t === 'function')
+            ? window.AppI18n
+            : ((window.I18n && typeof window.I18n.t === 'function') ? window.I18n : null);
+        if (i18nCore) {
+            return i18nCore.t(key, null, fallback || key);
+        }
+        return fallback || key;
+    },
+
     applyModuleI18n(root) {
         const target = root || document;
         const i18nCore = (window.AppI18n && typeof window.AppI18n.applyI18n === 'function')
@@ -156,9 +166,9 @@ const NearMiss = {
                         <div>
                             <h1 class="section-title">
                                 <i class="fas fa-eye ml-3"></i>
-                                إدارة الحوادث الوشيكة
+                                ${this.t('module.nearmiss.title', 'إدارة الحوادث الوشيكة')}
                             </h1>
-                            <p class="section-subtitle">توثيق الملاحظات الطارئة وتعزيز معايير السلامة</p>
+                            <p class="section-subtitle">${this.t('module.nearmiss.subtitle', 'توثيق الملاحظات الطارئة وتعزيز معايير السلامة')}</p>
                         </div>
                         <div class="flex gap-2">
                             <button id="add-nearmiss-btn" class="btn-primary">

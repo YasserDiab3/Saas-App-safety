@@ -5,10 +5,16 @@
  * هذا الملف يحل محل app-modules.js بعد التقسيم
  */
 
-// 🔥 IMMEDIATE DEBUG - Log that this file is executing
-console.log('🔥🔥🔥 modules-loader.js IS EXECUTING NOW!');
-console.log('🔥 Document readyState:', document.readyState);
-console.log('🔥 Current time:', new Date().toISOString());
+// 🔥 IMMEDIATE DEBUG - Log that this file is executing (silent in production)
+if (typeof Utils !== 'undefined' && Utils.safeLog) {
+    Utils.safeLog('🔥🔥🔥 modules-loader.js IS EXECUTING NOW!');
+    Utils.safeLog('🔥 Document readyState:', document.readyState);
+    Utils.safeLog('🔥 Current time:', new Date().toISOString());
+} else if (typeof console !== 'undefined') {
+    console.log('🔥🔥🔥 modules-loader.js IS EXECUTING NOW!');
+    console.log('🔥 Document readyState:', document.readyState);
+    console.log('🔥 Current time:', new Date().toISOString());
+}
 
 // قائمة الموديولات المطلوب تحميلها (32 موديول)
 const MODULES_TO_LOAD = [

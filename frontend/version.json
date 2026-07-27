@@ -1,4 +1,4 @@
 {
-  "version": "2.2.127",
-  "message": "fix(permissions): guard delete/edit in 12 modules"
+  "version": "2.2.128",
+  "message": "fix(settings): hide privacy tab from non-admin users"
 }

@@ -97,18 +97,18 @@ const Employees = {
                 img.addEventListener('error', () => {
                     try {
                         if (photoKey) sessionStorage.setItem(this._photoFailKey(photoKey), Date.now().toString());
-                    } catch (e) { /* ignore */ }
+                    } catch (e) { Utils.safeWarn?.('employees: operation failed', e); }
 
                     try {
                         const parent = img.parentElement;
                         if (parent) {
                             parent.innerHTML = '<div class="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center"><i class="fas fa-user text-gray-400"></i></div>';
                         }
-                    } catch (e) { /* ignore */ }
+                    } catch (e) { Utils.safeWarn?.('employees: operation failed', e); }
                 }, { passive: true });
             });
         } catch (e) {
-            // ignore
+            Utils.safeWarn?.('employees: operation failed', e);
         }
     },
 
@@ -224,7 +224,7 @@ const Employees = {
                     }
                 }
             } catch (e) {
-                // ignore
+                Utils.safeWarn?.('employees: operation failed', e);
             }
         }
 
@@ -278,7 +278,7 @@ const Employees = {
                 return `${y}-${m}-${day}`;
             }
         } catch (e) {
-            // ignore
+            Utils.safeWarn?.('employees: operation failed', e);
         }
 
         return '';
@@ -2492,13 +2492,13 @@ const Employees = {
                             try {
                                 const key = (img.dataset.photoKey || '').trim();
                                 if (key) sessionStorage.setItem(this._photoFailKey(key), Date.now().toString());
-                            } catch (e) { /* ignore */ }
+                            } catch (e) { Utils.safeWarn?.('employees: operation failed', e); }
                             try {
                                 const parent = img.parentElement;
                                 if (parent) {
                                     parent.innerHTML = '<div class="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center"><i class="fas fa-user text-gray-400"></i></div>';
                                 }
-                            } catch (e2) { /* ignore */ }
+                            } catch (e2) { Utils.safeWarn?.('employees: operation failed', e2); }
                         }
                     });
                 }
@@ -2512,13 +2512,13 @@ const Employees = {
                             try {
                                 const key = (img.dataset.photoKey || '').trim();
                                 if (key) sessionStorage.setItem(this._photoFailKey(key), Date.now().toString());
-                            } catch (e) { /* ignore */ }
+                            } catch (e) { Utils.safeWarn?.('employees: operation failed', e); }
                             try {
                                 const parent = img.parentElement;
                                 if (parent) {
                                     parent.innerHTML = '<div class="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center"><i class="fas fa-user text-gray-400"></i></div>';
                                 }
-                            } catch (e2) { /* ignore */ }
+                            } catch (e2) { Utils.safeWarn?.('employees: operation failed', e2); }
                         }
                     });
                 }
@@ -4351,7 +4351,7 @@ const Employees = {
                         d.className = 'w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center mx-auto';
                         d.innerHTML = '<i class="fas fa-user text-5xl text-gray-400"></i>';
                         img.replaceWith(d);
-                    } catch (e) { /* ignore */ }
+                    } catch (e) { Utils.safeWarn?.('employees: operation failed', e); }
                 }
             });
         }
@@ -4728,13 +4728,13 @@ const Employees = {
                     try {
                         const key = (img.dataset.photoKey || '').trim();
                         if (key) sessionStorage.setItem(this._photoFailKey(key), Date.now().toString());
-                    } catch (e) { /* ignore */ }
+                    } catch (e) { Utils.safeWarn?.('employees: operation failed', e); }
                     try {
                         const parent = img.parentElement;
                         if (parent) {
                             parent.innerHTML = '<div class="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center"><i class="fas fa-user text-gray-400"></i></div>';
                         }
-                    } catch (e2) { /* ignore */ }
+                    } catch (e2) { Utils.safeWarn?.('employees: operation failed', e2); }
                 }
             });
         }

@@ -48,7 +48,7 @@ const BehaviorMonitoring = {
             if (typeof I18n !== 'undefined' && typeof I18n.t === 'function') {
                 return I18n.t(key, null, fallback != null ? String(fallback) : '');
             }
-        } catch (e) { /* ignore */ }
+        } catch (e) { Utils.safeWarn?.('behaviormonitoring: operation failed', e); }
         return fallback != null ? String(fallback) : key;
     },
 
@@ -1121,7 +1121,7 @@ const BehaviorMonitoring = {
                             try {
                                 img.onerror = null;
                                 img.removeAttribute('src');
-                            } catch (e) { /* ignore */ }
+                            } catch (e) { Utils.safeWarn?.('behaviormonitoring: operation failed', e); }
                         }
                     });
                 }
@@ -1451,7 +1451,7 @@ const BehaviorMonitoring = {
                 if (depEl && !depEl.value) depEl.value = emp.department || emp.employeeDepartment || '';
                 if (jobEl && !jobEl.value) jobEl.value = emp.job || emp.position || emp.title || '';
             } catch (e) {
-                // ignore
+                Utils.safeWarn?.('behaviormonitoring: operation failed', e);
             }
         };
         document.getElementById(`${uid}-employee-code`)?.addEventListener('blur', syncEmployeeMeta, { signal });
@@ -1540,7 +1540,7 @@ const BehaviorMonitoring = {
 
     async showForm(data = null) {
         if (typeof Permissions !== 'undefined' && Permissions.ensureFormSettingsState) {
-            try { await Permissions.ensureFormSettingsState(); } catch (e) { /* ignore */ }
+            try { await Permissions.ensureFormSettingsState(); } catch (e) { Utils.safeWarn?.('behaviormonitoring: operation failed', e); }
         }
         const modal = document.createElement('div');
         modal.className = 'modal-overlay';
@@ -1578,7 +1578,7 @@ const BehaviorMonitoring = {
                     try {
                         img.onerror = null;
                         img.src = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22150%22%3E%3Crect fill=%22%23f0f0f0%22 width=%22200%22 height=%22150%22/%3E%3Ctext fill=%22%23999%22 font-size=%2212%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22%3Eمعاينة%3C/text%3E%3C/svg%3E';
-                    } catch (e) { /* ignore */ }
+                    } catch (e) { Utils.safeWarn?.('behaviormonitoring: operation failed', e); }
                 }
             });
         }
@@ -1831,7 +1831,7 @@ const BehaviorMonitoring = {
                     try {
                         img.onerror = null;
                         img.src = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22%3E%3Crect fill=%22%23f0f0f0%22 width=%22400%22 height=%22300%22/%3E%3Ctext fill=%22%23999%22 font-family=%22sans-serif%22 font-size=%2216%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22%3Eلا توجد صورة%3C/text%3E%3C/svg%3E';
-                    } catch (e) { /* ignore */ }
+                    } catch (e) { Utils.safeWarn?.('behaviormonitoring: operation failed', e); }
                 }
             });
         }
@@ -2598,7 +2598,7 @@ const BehaviorMonitoring = {
 
     async showContractorForm(data = null) {
         if (typeof Permissions !== 'undefined' && Permissions.ensureFormSettingsState) {
-            try { await Permissions.ensureFormSettingsState(); } catch (e) { /* ignore */ }
+            try { await Permissions.ensureFormSettingsState(); } catch (e) { Utils.safeWarn?.('behaviormonitoring: operation failed', e); }
         }
         const modal = document.createElement('div');
         modal.className = 'modal-overlay bhmc-contractor-overlay';

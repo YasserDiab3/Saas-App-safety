@@ -347,16 +347,16 @@ window.UI = {
                 </td>
                 <td>
                     <div class="flex flex-wrap gap-2">
-                        <button class="btn-icon btn-icon-info" title="عرض التفاصيل" onclick="Emergency.viewAlert('${alert.id}')">
+                        <button class="btn-icon btn-icon-info" title="عرض التفاصيل" onclick="Emergency.viewAlert('${Utils.escapeHTML(String(alert.id))}')">
                             <i class="fas fa-eye"></i>
                         </button>
                         ${!alert.acknowledgedAt ? `
-                            <button class="btn-icon btn-icon-success" title="اعتماد التنبيه" onclick="Emergency.acknowledgeAlert('${alert.id}')">
+                            <button class="btn-icon btn-icon-success" title="اعتماد التنبيه" onclick="Emergency.acknowledgeAlert('${Utils.escapeHTML(String(alert.id))}')">
                                 <i class="fas fa-check"></i>
                             </button>
                         ` : ''}
                         ${alert.status !== 'مغلق' ? `
-                            <button class="btn-icon btn-icon-primary" title="إغلاق التنبيه" onclick="Emergency.resolveAlert('${alert.id}')">
+                            <button class="btn-icon btn-icon-primary" title="إغلاق التنبيه" onclick="Emergency.resolveAlert('${Utils.escapeHTML(String(alert.id))}')">
                                 <i class="fas fa-flag-checkered"></i>
                             </button>
                         ` : ''}
@@ -392,7 +392,7 @@ window.UI = {
                         <div class="text-xs text-gray-500 mt-1 flex items-center gap-2">
                             <span><i class="fas fa-user ml-1"></i>${Utils.escapeHTML(entry.actor || 'النظام')}</span>
                             <span><i class="fas fa-bolt ml-1"></i>${Utils.escapeHTML(entry.severity || '')}</span>
-                            <button class="text-blue-600 hover:text-blue-800" onclick="Emergency.viewAlert('${entry.alertId}')">عرض التنبيه</button>
+                            <button class="text-blue-600 hover:text-blue-800" onclick="Emergency.viewAlert('${Utils.escapeHTML(String(entry.alertId))}')">عرض التنبيه</button>
                         </div>
                     </div>
                 `).join('')}
@@ -664,13 +664,17 @@ window.UI = {
         this.attachAlertFormEnhancements(modal, data);
 
         const form = modal.querySelector('#alert-form');
-        form.addEventListener('submit', (e) => {
+        form.addEventListener('submit', function _alertFormSubmit(e) {
             e.preventDefault();
             this.handleAlertSubmit(data?.id || null, modal);
-        });
+            form.removeEventListener('submit', _alertFormSubmit);
+        }.bind(this));
 
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) modal.remove();
+        modal.addEventListener('click', function _modalBackdropClick(e) {
+            if (e.target === modal) {
+                modal.remove();
+                modal.removeEventListener('click', _modalBackdropClick);
+            }
         });
     },
 
@@ -934,8 +938,11 @@ window.UI = {
             this.handlePlanSubmit(data?.id || null, modal);
         });
 
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) modal.remove();
+        modal.addEventListener('click', function _modalBackdropClick(e) {
+            if (e.target === modal) {
+                modal.remove();
+                modal.removeEventListener('click', _modalBackdropClick);
+            }
         });
     },
 
@@ -1071,8 +1078,11 @@ window.UI = {
         `;
 
         document.body.appendChild(modal);
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) modal.remove();
+        modal.addEventListener('click', function _modalBackdropClick(e) {
+            if (e.target === modal) {
+                modal.remove();
+                modal.removeEventListener('click', _modalBackdropClick);
+            }
         });
     },
 
@@ -1130,8 +1140,11 @@ window.UI = {
         `;
 
         document.body.appendChild(modal);
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) modal.remove();
+        modal.addEventListener('click', function _modalBackdropClick(e) {
+            if (e.target === modal) {
+                modal.remove();
+                modal.removeEventListener('click', _modalBackdropClick);
+            }
         });
     },
 
@@ -1280,13 +1293,17 @@ window.UI = {
         this.attachAlertFormEnhancements(modal, data);
 
         const form = modal.querySelector('#alert-form');
-        form.addEventListener('submit', (e) => {
+        form.addEventListener('submit', function _alertFormSubmit(e) {
             e.preventDefault();
             this.handleAlertSubmit(data?.id || null, modal);
-        });
+            form.removeEventListener('submit', _alertFormSubmit);
+        }.bind(this));
 
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) modal.remove();
+        modal.addEventListener('click', function _modalBackdropClick(e) {
+            if (e.target === modal) {
+                modal.remove();
+                modal.removeEventListener('click', _modalBackdropClick);
+            }
         });
     },
 
@@ -1550,8 +1567,11 @@ window.UI = {
             this.handlePlanSubmit(data?.id || null, modal);
         });
 
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) modal.remove();
+        modal.addEventListener('click', function _modalBackdropClick(e) {
+            if (e.target === modal) {
+                modal.remove();
+                modal.removeEventListener('click', _modalBackdropClick);
+            }
         });
     },
 
@@ -1687,8 +1707,11 @@ window.UI = {
         `;
 
         document.body.appendChild(modal);
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) modal.remove();
+        modal.addEventListener('click', function _modalBackdropClick(e) {
+            if (e.target === modal) {
+                modal.remove();
+                modal.removeEventListener('click', _modalBackdropClick);
+            }
         });
     },
 
@@ -1746,8 +1769,11 @@ window.UI = {
         `;
 
         document.body.appendChild(modal);
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) modal.remove();
+        modal.addEventListener('click', function _modalBackdropClick(e) {
+            if (e.target === modal) {
+                modal.remove();
+                modal.removeEventListener('click', _modalBackdropClick);
+            }
         });
     },
 
@@ -2231,7 +2257,7 @@ window.UI = {
         }
         if (mainApp) mainApp.style.display = 'flex';
         document.body.classList.add('app-active');
-        try { window._hseAppVisible = true; } catch (e) {}
+        try { window._hseAppVisible = true; } catch (e) { Utils.safeWarn?.('app-ui: operation failed', e); }
         if (window.SaaSVersion && typeof window.SaaSVersion.checkInApp === 'function') {
             window.SaaSVersion.checkInApp().catch(() => {});
         }
@@ -2434,13 +2460,13 @@ window.UI = {
             try {
                 if (typeof localStorage !== 'undefined' && !localStorage.getItem(storageKey))
                     return false; // أول مرة لهذا المستخدم في هذا المتصفح — نعرض السياسة دائماً
-            } catch (e) {}
+            } catch (e) { Utils.safeWarn?.('app-ui: operation failed', e); }
             // مصدران: localStorage + المستخدم من الجلسة/قاعدة البيانات (لحساب تكرار كل 10 أيام)
             let seenAt = 0;
             try {
                 const localSeen = typeof localStorage !== 'undefined' && localStorage.getItem(storageKey);
                 if (localSeen) seenAt = Math.max(seenAt, parseTime(localSeen));
-            } catch (e) {}
+            } catch (e) { Utils.safeWarn?.('app-ui: operation failed', e); }
             const v = user.postLoginPolicySeenAt;
             if (v) seenAt = Math.max(seenAt, parseTime(v));
             const users = AppState.appData?.users;
@@ -2463,7 +2489,7 @@ window.UI = {
         const seenAt = new Date().toISOString();
         try {
             if (typeof localStorage !== 'undefined') localStorage.setItem(this._policyLastSeenKey(), seenAt);
-        } catch (e) {}
+        } catch (e) { Utils.safeWarn?.('app-ui: operation failed', e); }
         if (AppState.currentUser) AppState.currentUser.postLoginPolicySeenAt = seenAt;
         const users = AppState.appData?.users;
         if (Array.isArray(users)) {
@@ -2647,9 +2673,9 @@ window.UI = {
                 if (stuck && stuck.parentNode) stuck.remove();
                 document.documentElement.classList.remove('hse-post-login-overlay-active');
                 document.body.classList.remove('hse-post-login-overlay-active');
-            } catch (e) { /* ignore */ }
+            } catch (e) { Utils.safeWarn?.('app-ui: operation failed', e); }
             if (typeof onComplete === 'function') {
-                try { onComplete(); } catch (e) { /* ignore */ }
+                try { onComplete(); } catch (e) { Utils.safeWarn?.('app-ui: operation failed', e); }
             }
         }
     },
@@ -2683,7 +2709,7 @@ window.UI = {
         const sessionShownKey = 'hse_update_modal_shown_version';
         if (document.getElementById('hse-update-message-modal')) return;
         if (typeof sessionStorage !== 'undefined' && sessionStorage.getItem(sessionShownKey) === v) return;
-        try { if (typeof sessionStorage !== 'undefined') sessionStorage.setItem(sessionShownKey, v); } catch (e) {}
+        try { if (typeof sessionStorage !== 'undefined') sessionStorage.setItem(sessionShownKey, v); } catch (e) { Utils.safeWarn?.('app-ui: operation failed', e); }
         const message = (AppState.updateMessage && String(AppState.updateMessage).trim()) || 'تم إجراء تحديث على التطبيق. قد تتضمن التحديثات إضافات أو تحسينات جديدة. يرجى تحديث الصفحة للحصول على أحدث نسخة.';
         const safeMessage = (typeof Utils !== 'undefined' && Utils.escapeHTML) ? Utils.escapeHTML(message).replace(/\n/g, '<br>') : message.replace(/\n/g, '<br>');
         const safeVersion = (typeof Utils !== 'undefined' && Utils.escapeHTML) ? Utils.escapeHTML(v) : v;
@@ -2714,7 +2740,7 @@ window.UI = {
         }
 
         const onReload = () => {
-            try { if (typeof localStorage !== 'undefined') localStorage.setItem(storageKey, v); } catch (e) {}
+            try { if (typeof localStorage !== 'undefined') localStorage.setItem(storageKey, v); } catch (e) { Utils.safeWarn?.('app-ui: operation failed', e); }
             if (modal && modal.parentNode) modal.remove();
             window.location.reload();
         };
@@ -2725,7 +2751,7 @@ window.UI = {
         const btnLater = modal.querySelector('#hse-update-message-later');
         if (btnReload) btnReload.addEventListener('click', onReload);
         if (btnLater) btnLater.addEventListener('click', onLater);
-        modal.addEventListener('click', (e) => { if (e.target === modal) onLater(); });
+        modal.addEventListener('click', function _modalBackdropClick(e) { if (e.target === modal) { onLater(); modal.removeEventListener('click', _modalBackdropClick); } });
     },
 
     /**
@@ -2756,20 +2782,20 @@ window.UI = {
                 : '';
 
             if (!lastSeen) {
-                try { if (typeof localStorage !== 'undefined') localStorage.setItem(storageKey, serverVersion); } catch (e) {}
-                if (AppState && AppState.debugMode) console.log('🌐 [UpdateNotif] أول فحص خادم — تخزين ' + serverVersion);
+                try { if (typeof localStorage !== 'undefined') localStorage.setItem(storageKey, serverVersion); } catch (e) { Utils.safeWarn?.('app-ui: operation failed', e); }
+                if (AppState && AppState.debugMode && typeof Utils !== 'undefined' && !Utils.isProduction()) console.log('🌐 [UpdateNotif] أول فحص خادم — تخزين ' + serverVersion);
                 return;
             }
 
             if (typeof this._compareVersions !== 'function') return;
             const cmp = this._compareVersions(serverVersion, lastSeen);
             if (cmp <= 0) {
-                if (AppState && AppState.debugMode) {
-                    console.log('🌐 [UpdateNotif] خادم=' + serverVersion + ' lastSeen=' + lastSeen + ' (cmp=' + cmp + ') — لا تغيير');
-                }
+            if (AppState && AppState.debugMode && typeof Utils !== 'undefined' && !Utils.isProduction()) {
+                console.log('🌐 [UpdateNotif] خادم=' + serverVersion + ' lastSeen=' + lastSeen + ' (cmp=' + cmp + ') — لا تغيير');
+            }
                 return;
             }
-            if (AppState && AppState.debugMode) {
+            if (AppState && AppState.debugMode && typeof Utils !== 'undefined' && !Utils.isProduction()) {
                 console.log('🌐 [UpdateNotif] خادم=' + serverVersion + ' أحدث من lastSeen=' + lastSeen + ' — عرض المودال');
             }
             this._showUpdateModal(serverVersion);
@@ -2790,41 +2816,45 @@ window.UI = {
         try {
             window.__forceUpdateNotification = function () {
                 const v = (AppState && AppState.appVersion) ? String(AppState.appVersion).trim() : '1.0.0';
-                try { sessionStorage.removeItem('hse_update_modal_shown_version'); } catch (e) {}
+                try { sessionStorage.removeItem('hse_update_modal_shown_version'); } catch (e) { Utils.safeWarn?.('app-ui: operation failed', e); }
                 self._showUpdateModal(v);
             };
             window.__resetUpdateNotification = function () {
-                try { localStorage.removeItem('hse_last_seen_version'); } catch (e) {}
-                try { sessionStorage.removeItem('hse_update_modal_shown_version'); } catch (e) {}
-                console.log('✅ تم تصفير حالة إشعار التحديث. أعد تحميل الصفحة لرؤيته.');
+                try { localStorage.removeItem('hse_last_seen_version'); } catch (e) { Utils.safeWarn?.('app-ui: operation failed', e); }
+                try { sessionStorage.removeItem('hse_update_modal_shown_version'); } catch (e) { Utils.safeWarn?.('app-ui: operation failed', e); }
+                if (typeof Utils !== 'undefined' && !Utils.isProduction()) {
+                    console.log('✅ تم تصفير حالة إشعار التحديث. أعد تحميل الصفحة لرؤيته.');
+                }
             };
             window.__whyNoUpdateNotification = function () {
                 const cur = (AppState && AppState.appVersion) || '(غير محدد)';
                 const lastSeen = (typeof localStorage !== 'undefined') ? (localStorage.getItem('hse_last_seen_version') || '(فارغ)') : '(localStorage غير متاح)';
                 const shownInSession = (typeof sessionStorage !== 'undefined') ? (sessionStorage.getItem('hse_update_modal_shown_version') || '(لم يظهر هذه الجلسة)') : '(sessionStorage غير متاح)';
                 const cmp = (typeof self._compareVersions === 'function' && lastSeen !== '(فارغ)') ? self._compareVersions(cur, lastSeen) : 'N/A';
-                console.log('━━━━ تشخيص إشعار التحديث ━━━━');
-                console.log('الإصدار الحالي (appVersion)        : ' + cur);
-                console.log('آخر إصدار رآه المستخدم (lastSeen) : ' + lastSeen);
-                console.log('عُرِض في هذه الجلسة                  : ' + shownInSession);
-                console.log('مقارنة (current vs lastSeen)        : ' + cmp + ' (1=أحدث، 0=نفس الإصدار، -1=أقدم)');
-                console.log('');
-                if (lastSeen === '(فارغ)') {
-                    console.log('📌 السبب: أول زيارة → النظام لا يُظهر المودال (يُخزّن الإصدار للمستقبل فقط)');
-                } else if (cmp === 0) {
-                    console.log('📌 السبب: lastSeen = current → المستخدم رأى هذا الإصدار من قبل (طبيعي)');
-                } else if (cmp < 0) {
-                    console.log('📌 السبب: lastSeen أحدث من current → JS قديم في الكاش! أعد التحميل بـ Ctrl+Shift+R');
-                } else if (shownInSession === cur) {
-                    console.log('📌 السبب: تم عرض المودال في هذه الجلسة وأُغلِق → فتح تبويب جديد سيُعيد المحاولة');
-                } else {
-                    console.log('✅ يجب أن يظهر المودال — انتظر 800ms بعد تسجيل الدخول.');
+                if (typeof Utils !== 'undefined' && !Utils.isProduction()) {
+                    console.log('━━━━ تشخيص إشعار التحديث ━━━━');
+                    console.log('الإصدار الحالي (appVersion)        : ' + cur);
+                    console.log('آخر إصدار رآه المستخدم (lastSeen) : ' + lastSeen);
+                    console.log('عُرِض في هذه الجلسة                  : ' + shownInSession);
+                    console.log('مقارنة (current vs lastSeen)        : ' + cmp + ' (1=أحدث، 0=نفس الإصدار، -1=أقدم)');
+                    console.log('');
+                    if (lastSeen === '(فارغ)') {
+                        console.log('📌 السبب: أول زيارة → النظام لا يُظهر المودال (يُخزّن الإصدار للمستقبل فقط)');
+                    } else if (cmp === 0) {
+                        console.log('📌 السبب: lastSeen = current → المستخدم رأى هذا الإصدار من قبل (طبيعي)');
+                    } else if (cmp < 0) {
+                        console.log('📌 السبب: lastSeen أحدث من current → JS قديم في الكاش! أعد التحميل بـ Ctrl+Shift+R');
+                    } else if (shownInSession === cur) {
+                        console.log('📌 السبب: تم عرض المودال في هذه الجلسة وأُغلِق → فتح تبويب جديد سيُعيد المحاولة');
+                    } else {
+                        console.log('✅ يجب أن يظهر المودال — انتظر 800ms بعد تسجيل الدخول.');
+                    }
+                    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                    console.log('💡 لاختبار العرض فوراً: __forceUpdateNotification()');
+                    console.log('💡 لتصفير الحالة: __resetUpdateNotification() ثم refresh');
                 }
-                console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-                console.log('💡 لاختبار العرض فوراً: __forceUpdateNotification()');
-                console.log('💡 لتصفير الحالة: __resetUpdateNotification() ثم refresh');
             };
-        } catch (e) { /* ignore */ }
+        } catch (e) { Utils.safeWarn?.('app-ui: operation failed', e); }
     },
 
     /**
@@ -2846,7 +2876,7 @@ window.UI = {
             const storageKey = 'hse_last_seen_version';
             const lastSeen = (typeof localStorage !== 'undefined' && localStorage.getItem(storageKey)) ? String(localStorage.getItem(storageKey)).trim() : '';
             if (!lastSeen) {
-                try { localStorage.setItem(storageKey, currentVersion); } catch (e) {}
+                try { localStorage.setItem(storageKey, currentVersion); } catch (e) { Utils.safeWarn?.('app-ui: operation failed', e); }
                 if (AppState && AppState.debugMode) console.log('🔔 [UpdateNotif] أول زيارة — تخزين الإصدار ' + currentVersion + ' بدون عرض المودال');
                 return;
             }
@@ -2904,7 +2934,7 @@ window.UI = {
                     mainApp.style.display = 'flex';
                 }
             }
-        } catch (e) { /* ignore */ }
+        } catch (e) { Utils.safeWarn?.('app-ui: operation failed', e); }
     },
 
     /**
@@ -2914,7 +2944,7 @@ window.UI = {
     clearPostLoginOverlayLock() {
         try {
             this.cleanupStaleStartupLayers();
-        } catch (e) { /* ignore */ }
+        } catch (e) { Utils.safeWarn?.('app-ui: operation failed', e); }
     },
 
     /**
@@ -2933,18 +2963,18 @@ window.UI = {
                         Loading.hide();
                         this.cleanupStaleStartupLayers();
                     }
-                } catch (e) { /* ignore */ }
+                } catch (e) { Utils.safeWarn?.('app-ui: operation failed', e); }
             };
-        } catch (e) { /* ignore */ }
+        } catch (e) { Utils.safeWarn?.('app-ui: operation failed', e); }
         try {
             window.addEventListener('pageshow', () => {
                 try {
                     if (typeof UI !== 'undefined' && typeof UI.cleanupStaleStartupLayers === 'function') {
                         UI.cleanupStaleStartupLayers();
                     }
-                } catch (e) { /* ignore */ }
+                } catch (e) { Utils.safeWarn?.('app-ui: operation failed', e); }
             });
-        } catch (e) { /* ignore */ }
+        } catch (e) { Utils.safeWarn?.('app-ui: operation failed', e); }
         const tick = () => {
             try {
                 if (typeof AppState === 'undefined' || !AppState.currentUser) return;
@@ -2972,12 +3002,15 @@ window.UI = {
                         }
                     }
                 }
-            } catch (e) { /* ignore */ }
+            } catch (e) { Utils.safeWarn?.('app-ui: operation failed', e); }
         };
         setInterval(tick, 2500);
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible') tick();
-        });
+        if (!this._visibilityTickHandler) {
+            this._visibilityTickHandler = () => {
+                if (document.visibilityState === 'visible') tick();
+            };
+            document.addEventListener('visibilitychange', this._visibilityTickHandler);
+        }
     },
 
     _hasAuthOwnedInitialDataFlow() {
@@ -3173,7 +3206,7 @@ window.UI = {
         [5000, 8000].forEach((delayMs) => {
             setTimeout(() => {
                 if (typeof Permissions !== 'undefined' && typeof Permissions.updateNavigation === 'function') {
-                    try { Permissions.updateNavigation(); } catch (e) { /* ignore */ }
+                    try { Permissions.updateNavigation(); } catch (e) { Utils.safeWarn?.('app-ui: operation failed', e); }
                 }
             }, delayMs);
         });
@@ -3217,9 +3250,12 @@ window.UI = {
             };
             setTimeout(runServerVersionCheck, 2000);
             setInterval(runServerVersionCheck, 5 * 60 * 1000);
-            document.addEventListener('visibilitychange', () => {
-                if (document.visibilityState === 'visible') runServerVersionCheck();
-            });
+            if (!this._visibilityVersionHandler) {
+                this._visibilityVersionHandler = () => {
+                    if (document.visibilityState === 'visible') runServerVersionCheck();
+                };
+                document.addEventListener('visibilitychange', this._visibilityVersionHandler);
+            }
             // ✅ تثبيت أدوات التشخيص/الاختبار على window
             if (typeof this._installUpdateNotificationDevHelpers === 'function') {
                 this._installUpdateNotificationDevHelpers();
@@ -3267,10 +3303,10 @@ window.UI = {
                 const ok = Permissions.checkBeforeShow(sectionToShow, true);
                 if (!ok) {
                     sectionToShow = 'dashboard';
-                    try { sessionStorage.setItem('hse_current_section', 'dashboard'); } catch (e) { /* ignore */ }
+                    try { sessionStorage.setItem('hse_current_section', 'dashboard'); } catch (e) { Utils.safeWarn?.('app-ui: operation failed', e); }
                 }
             }
-        } catch (e) { /* ignore */ }
+        } catch (e) { Utils.safeWarn?.('app-ui: operation failed', e); }
 
         // ✅ تحديث AppState.currentSection قبل عرض القسم لضمان التزامن
         AppState.currentSection = sectionToShow;
@@ -3280,7 +3316,7 @@ window.UI = {
             if (sectionToShow && typeof window.location !== 'undefined') {
                 window.location.hash = sectionToShow;
             }
-        } catch (e) { /* ignore */ }
+        } catch (e) { Utils.safeWarn?.('app-ui: operation failed', e); }
 
         Utils.safeLog('📂 استعادة القسم:', {
             savedSection,
@@ -3437,7 +3473,7 @@ window.UI = {
                     // تحديث القائمة الجانبية خارج المسار الحرج
                     if (typeof Permissions !== 'undefined' && typeof Permissions.updateNavigation === 'function') {
                         setTimeout(() => {
-                            try { Permissions.updateNavigation(); } catch (e) {}
+                            try { Permissions.updateNavigation(); } catch (e) { Utils.safeWarn?.('app-ui: operation failed', e); }
                         }, 0);
                     }
                 }
@@ -3898,7 +3934,7 @@ window.UI = {
         const newWidth = shouldCollapse ? '84px' : '280px';
         try {
             document.documentElement.style.setProperty('--sidebar-width', newWidth);
-        } catch (e) { /* ignore */ }
+        } catch (e) { Utils.safeWarn?.('app-ui: operation failed', e); }
 
         const collapseToggle = document.getElementById('sidebar-collapse-toggle');
         if (collapseToggle) {
@@ -3935,7 +3971,7 @@ window.UI = {
         const newWidth = shouldCollapse ? '84px' : '280px';
         try {
             document.documentElement.style.setProperty('--sidebar-width', newWidth);
-        } catch (e) { /* ignore */ }
+        } catch (e) { Utils.safeWarn?.('app-ui: operation failed', e); }
 
         const collapseToggle = document.getElementById('sidebar-collapse-toggle');
         if (collapseToggle) {
@@ -3959,7 +3995,7 @@ window.UI = {
             const topbar = document.querySelector('.mobile-topbar');
             const topbarHeight = topbar ? Math.round(topbar.getBoundingClientRect().height) : 0;
             header.style.top = (topbarHeight > 0 ? topbarHeight : 0) + 'px';
-        } catch (e) { /* ignore */ }
+        } catch (e) { Utils.safeWarn?.('app-ui: operation failed', e); }
 
         const isRTL = (document.documentElement.dir || document.body?.dir || 'rtl') === 'rtl';
 
@@ -4229,7 +4265,7 @@ window.UI = {
                     if (storedRecord) storedRecord.photo = photoUrl;
                     if (AppState.currentUser) AppState.currentUser.photo = photoUrl;
                     if (typeof window.DataManager !== 'undefined' && window.DataManager.save) {
-                        try { window.DataManager.save(); } catch (e) { /* ignore */ }
+                        try { window.DataManager.save(); } catch (e) { Utils.safeWarn?.('app-ui: operation failed', e); }
                     }
                     if (typeof Auth !== 'undefined' && Auth.updateUserSession) Auth.updateUserSession();
                     self.updateUserProfilePhoto();
@@ -4615,8 +4651,11 @@ window.UI = {
             }
         });
 
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) modal.remove();
+        modal.addEventListener('click', function _modalBackdropClick(e) {
+            if (e.target === modal) {
+                modal.remove();
+                modal.removeEventListener('click', _modalBackdropClick);
+            }
         });
     },
 
@@ -4693,8 +4732,11 @@ window.UI = {
 
         document.body.appendChild(modal);
 
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) modal.remove();
+        modal.addEventListener('click', function _modalBackdropClick(e) {
+            if (e.target === modal) {
+                modal.remove();
+                modal.removeEventListener('click', _modalBackdropClick);
+            }
         });
     },
 
@@ -4822,8 +4864,11 @@ window.UI = {
 
         // منع إغلاق النموذج إذا كان أول تسجيل دخول
         if (!isFirstLogin) {
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) modal.remove();
+            modal.addEventListener('click', function _modalBackdropClick(e) {
+                if (e.target === modal) {
+                    modal.remove();
+                    modal.removeEventListener('click', _modalBackdropClick);
+                }
             });
         }
 
@@ -6163,7 +6208,7 @@ window.UI = {
                             document.head.appendChild(style);
                         }
                     }
-                } catch (e) { /* ignore */ }
+                } catch (e) { Utils.safeWarn?.('app-ui: operation failed', e); }
 
                 // إغلاق القائمة الجانبية فوراً
                 const sidebar = document.querySelector('.sidebar');
@@ -6607,7 +6652,7 @@ window.UI = {
                         const maxAttempts = 8;
                         const tryLoad = () => {
                             if (typeof PeriodicInspections !== 'undefined' && PeriodicInspections.load) {
-                                try { PeriodicInspections.load(); } catch (e) {}
+                                try { PeriodicInspections.load(); } catch (e) { Utils.safeWarn?.('app-ui: operation failed', e); }
                                 return true;
                             }
                             return false;
@@ -6656,7 +6701,7 @@ window.UI = {
                         const maxAttempts = 8;
                         const tryLoad = () => {
                             if (typeof PPE !== 'undefined' && PPE.load) {
-                                try { PPE.load(); } catch (e) {}
+                                try { PPE.load(); } catch (e) { Utils.safeWarn?.('app-ui: operation failed', e); }
                                 return true;
                             }
                             return false;
@@ -6752,7 +6797,7 @@ window.UI = {
                         const maxAttempts = 8;
                         const tryLoad = () => {
                             if (typeof Violations !== 'undefined' && Violations.load) {
-                                try { Violations.load(); } catch (e) {}
+                                try { Violations.load(); } catch (e) { Utils.safeWarn?.('app-ui: operation failed', e); }
                                 return true;
                             }
                             return false;
@@ -7689,7 +7734,7 @@ window.UI = {
             const previousTimer = this._addNavIconsTimers[sectionName];
             if (previousTimer) clearTimeout(previousTimer);
             this._addNavIconsTimers[sectionName] = setTimeout(() => {
-                try { this.addNavigationIcons(section, sectionName); } catch (e) {}
+                try { this.addNavigationIcons(section, sectionName); } catch (e) { Utils.safeWarn?.('app-ui: operation failed', e); }
                 this._addNavIconsTimers[sectionName] = null;
             }, 60);
         } else {
@@ -9534,7 +9579,7 @@ window.UI = {
                                             Violations.switchTab('approval-requests');
                                         }
                                     }, 300);
-                                } catch (e) { /* ignore */ }
+                                } catch (e) { Utils.safeWarn?.('app-ui: operation failed', e); }
                             }
                         });
                     });
@@ -9815,7 +9860,7 @@ window.UI = {
                     if (typeof window !== 'undefined' && window.Auth && typeof window.Auth.handleUsersSyncSuccess === 'function') {
                         window.Auth.handleUsersSyncSuccess();
                     }
-                } catch (e) { /* ignore */ }
+                } catch (e) { Utils.safeWarn?.('app-ui: operation failed', e); }
             } else if (typeof Backend.syncUsers === 'function') {
                 // استخدام syncUsers كبديل إذا لم يكن syncData متاحاً
                 syncResult = await Backend.syncUsers(true); // force = true
@@ -9823,7 +9868,7 @@ window.UI = {
                     if (typeof window !== 'undefined' && window.Auth && typeof window.Auth.handleUsersSyncSuccess === 'function') {
                         window.Auth.handleUsersSyncSuccess();
                     }
-                } catch (e) { /* ignore */ }
+                } catch (e) { Utils.safeWarn?.('app-ui: operation failed', e); }
             } else {
                 // محاولة قراءة مباشرة من ورقة البيانات عبر التكامل (كبديل أخير)
                 if (typeof Backend.readFromSheets === 'function') {

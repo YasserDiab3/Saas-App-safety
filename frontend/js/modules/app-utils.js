@@ -727,13 +727,13 @@ const Permissions = {
                     try {
                         var M = window[names[i]];
                         if (M && typeof M.refreshSiteDropdowns === 'function') M.refreshSiteDropdowns();
-                    } catch (e2) { /* ignore */ }
+                    } catch (e2) { Utils.safeWarn?.('app-utils: operation failed', e2); }
                 }
                 if (clonedSites.length > 0 && typeof Utils !== 'undefined' && Utils.safeLog) {
                     Utils.safeLog('✅ تم إطلاق حدث formSettingsUpdated وتحديث قوائم المصنع/الموقع');
                 }
             }
-        } catch (e) { /* ignore */ }
+        } catch (e) { Utils.safeWarn?.('app-utils: operation failed', e); }
 
         return this.formSettingsState;
     },
@@ -2905,7 +2905,7 @@ const DEFAULT_COMPANY_NAME = '';
 
 const AppState = {
     /** fallback فقط — المصدر الرسمي: frontend/version.json (يُحدَّث عبر saas-version.js) */
-    appVersion: '2.2.127',
+    appVersion: '2.2.128',
     /** نص اختياري لرسالة التحديث (ملخص التغييرات). إن تُركت فارغة يُستخدم النص الافتراضي. */
     updateMessage: '',
     debugMode: false,
@@ -3079,7 +3079,7 @@ const AppState = {
             AppState.backendConfig.maps = { ...AppState.backendConfig.maps, ...parsed.maps };
         }
         localStorage.setItem('hse_backend_config', JSON.stringify({ maps: AppState.backendConfig.maps || {} }));
-    } catch (e) { /* ignore */ }
+    } catch (e) { Utils.safeWarn?.('app-utils: operation failed', e); }
 })();
 
 // ===== Utility Functions =====
@@ -3647,7 +3647,7 @@ const Utils = {
             const data = await res.json();
             if (data && data.success && data.dataUri) return String(data.dataUri);
         } catch (e) {
-            /* ignore */
+            Utils.safeWarn?.('app-utils: operation failed', e);
         }
         return null;
     },
@@ -3679,14 +3679,14 @@ const Utils = {
                         img.src = dataUri;
                         try {
                             if (img.dataset.photoUrl !== undefined) img.dataset.photoUrl = dataUri;
-                        } catch (e2) { /* ignore */ }
+                        } catch (e2) { Utils.safeWarn?.('app-utils: operation failed', e2); }
                     } else if (onFetchFail) {
                         onFetchFail(img);
                     }
                 });
             });
         } catch (e) {
-            /* ignore */
+            Utils.safeWarn?.('app-utils: operation failed', e);
         }
     },
 
@@ -5869,11 +5869,11 @@ const Loading = {
             if (isAppActive && isGenericMessage) {
                 return;
             }
-        } catch (e) { /* ignore */ }
+        } catch (e) { Utils.safeWarn?.('app-utils: operation failed', e); }
 
         try {
             window._hseLoadingSince = Date.now();
-        } catch (e) { /* ignore */ }
+        } catch (e) { Utils.safeWarn?.('app-utils: operation failed', e); }
 
         this.normalizeOverlayPresentation(overlay, true);
         this.currentMessage = message;
@@ -5948,7 +5948,7 @@ const Loading = {
         }
         try {
             delete window._hseLoadingSince;
-        } catch (e) { /* ignore */ }
+        } catch (e) { Utils.safeWarn?.('app-utils: operation failed', e); }
     }
 };
 
@@ -7204,7 +7204,7 @@ const EmployeeHelper = {
                     box.innerHTML = `<div class="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-amber-950 text-sm text-right shadow-sm" role="alert"><i class="fas fa-exclamation-triangle ml-2" aria-hidden="true"></i>${safe}</div>`;
                     try {
                         box.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-                    } catch (e) { /* ignore */ }
+                    } catch (e) { Utils.safeWarn?.('app-utils: operation failed', e); }
                     return;
                 }
             }
@@ -7725,7 +7725,7 @@ if (typeof window !== 'undefined') {
                 try {
                     var M = window[names[i]];
                     if (M && typeof M.refreshSiteDropdowns === 'function') M.refreshSiteDropdowns();
-                } catch (e) {}
+                } catch (e) { Utils.safeWarn?.('app-utils: operation failed', e); }
             }
         }
         if (typeof window.addEventListener === 'function') {
@@ -7780,7 +7780,7 @@ function removeDefaultUsersIfNeeded(options = {}) {
                 window.DataManager.save();
             }
         } catch (e) {
-            // ignore
+            Utils.safeWarn?.('app-utils: operation failed', e);
         }
 
         // حفظ عن بعد (اختياري) - فقط إذا طُلِب صراحةً
@@ -7796,7 +7796,7 @@ function removeDefaultUsersIfNeeded(options = {}) {
                     Backend.autoSave('Users', AppState.appData.users).catch(() => { });
                 }
             } catch (e) {
-                // ignore
+                Utils.safeWarn?.('app-utils: operation failed', e);
             }
         }
 
@@ -9358,7 +9358,21 @@ const I18n = {
             isRTL,
             lang
         };
-    }
+    },
+
+    /**
+     * Debounce function - limits the rate at which a function can fire
+     */
+    debounce(fn, delay = 300) {
+        let timer = null;
+        return (...args) => {
+            if (timer) clearTimeout(timer);
+            timer = setTimeout(() => {
+                fn(...args);
+                timer = null;
+            }, delay);
+        };
+    },
 };
 
 // Export I18n globally

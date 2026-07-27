@@ -12,42 +12,9 @@ window.Auth = {
         // المستخدمون الآن يحملون من قاعدة البيانات فقط
     },
 
-    // ===== Bootstrap Admin (First-time setup only) =====
-    // يسمح بالدخول لأول مرة فقط لتجهيز المزامنة/إضافة المستخدمين، ثم يتم تعطيله تلقائياً بعد نجاح مزامنة Users.
-    // ⚠️ لا يتم تخزين كلمة المرور نصياً هنا. يتم استخدام SHA-256 hash فقط.
-    bootstrap: {
-        email: 'admin@hse.local',
-        // SHA-256("admin123") - لا يوجد تخزين لكلمة المرور النصية داخل الكود
-        passwordHash: '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9',
-        disabledKey: 'hse_bootstrap_disabled',
-        disabledAtKey: 'hse_bootstrap_disabled_at'
-    },
+    // ===== ملاحظة: تم إزالة حساب Bootstrap Admin (admin@hse.local) لأسباب أمنية قبل الإطلاق =====
 
-    isBootstrapEmail(email) {
-        try {
-            return String(email || '').toLowerCase().trim() === this.bootstrap.email;
-        } catch (e) {
-            return false;
-        }
-    },
 
-    isBootstrapDisabled() {
-        try {
-            return localStorage.getItem(this.bootstrap.disabledKey) === 'true';
-        } catch (e) {
-            return false;
-        }
-    },
-
-    disableBootstrap(reason = '') {
-        try {
-            localStorage.setItem(this.bootstrap.disabledKey, 'true');
-            localStorage.setItem(this.bootstrap.disabledAtKey, new Date().toISOString());
-            if (reason) {
-                localStorage.setItem('hse_bootstrap_disabled_reason', String(reason).slice(0, 200));
-            }
-        } catch (e) { /* ignore */ }
-    },
 
     /** أقصى عمر للجلسة منذ loginTime */
     SESSION_ABSOLUTE_MS: 24 * 60 * 60 * 1000,
@@ -57,7 +24,7 @@ window.Auth = {
     _touchSessionActivity() {
         try {
             sessionStorage.setItem('hse_session_last_activity_ms', String(Date.now()));
-        } catch (e) { /* ignore */ }
+        } catch (e) { Utils.safeWarn?.('auth: operation failed', e); }
     },
 
     _isSessionExpiredForRestore(sessionUser) {
@@ -76,8 +43,8 @@ window.Auth = {
             sessionStorage.removeItem('hse_session_id');
             sessionStorage.removeItem('hse_session_last_activity_ms');
             localStorage.removeItem('hse_remember_user');
-        } catch (e) { /* ignore */ }
-        try { AppState.isPageRefresh = false; } catch (e2) { /* ignore */ }
+        } catch (e) { Utils.safeWarn?.('auth: operation failed', e); }
+        try { AppState.isPageRefresh = false; } catch (e2) { Utils.safeWarn?.('auth: operation failed', e2); }
     },
 
     /** إزالة passwordHash من كائن المستخدم في الذاكرة بعد المصادقة */
@@ -87,7 +54,7 @@ window.Auth = {
                 delete AppState.currentUser.passwordHash;
                 AppState.currentUser.password = '***';
             }
-        } catch (e) { /* ignore */ }
+        } catch (e) { Utils.safeWarn?.('auth: operation failed', e); }
     },
 
     /**
@@ -98,7 +65,7 @@ window.Auth = {
             if (typeof AppState !== 'undefined' && AppState.runningWithoutBackend === true) {
                 return 'تعذر الاتصال بالخادم (الخادم غير متاح أو خطأ 503). يرجى التحقق من الاتصال بالإنترنت ونشر التطبيق، ثم المحاولة لاحقاً.';
             }
-        } catch (e) { /* ignore */ }
+        } catch (e) { Utils.safeWarn?.('auth: operation failed', e); }
         return 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
     },
 
@@ -244,46 +211,9 @@ window.Auth = {
 
     /**
      * يتم استدعاؤها بعد نجاح مزامنة Users.
-     * إذا تم جلب مستخدمين حقيقيين (غير @hse.local)، نعطّل حساب الـ bootstrap نهائياً.
      */
     handleUsersSyncSuccess() {
-        try {
-            if (this.isBootstrapDisabled()) return false;
-            const users = AppState?.appData?.users;
-            if (!Array.isArray(users) || users.length === 0) return false;
-
-            const nonLegacyUsers = users.filter(u => {
-                const em = String(u?.email || '').toLowerCase().trim();
-                return em && !em.endsWith('@hse.local');
-            });
-            if (nonLegacyUsers.length === 0) return false;
-
-            // تعطيل نهائي
-            this.disableBootstrap('Users sync completed with real users');
-
-            // إذا كان المستخدم الحالي هو bootstrap → تسجيل خروج إجباري
-            if (AppState?.currentUser?.isBootstrap === true) {
-                try {
-                    if (typeof Notification !== 'undefined' && Notification.success) {
-                        Notification.success('✅ تم تعطيل حساب مدير النظام الافتراضي بعد نجاح المزامنة. يرجى تسجيل الدخول بحسابك من قاعدة البيانات.');
-                    }
-                } catch (e) { /* ignore */ }
-
-                try {
-                    this.logout();
-                } catch (e) { /* ignore */ }
-
-                try {
-                    if (typeof UI !== 'undefined' && typeof UI.showLoginScreen === 'function') {
-                        UI.showLoginScreen();
-                    }
-                } catch (e) { /* ignore */ }
-            }
-
-            return true;
-        } catch (e) {
-            return false;
-        }
+        return false;
     },
 
     /**
@@ -455,27 +385,7 @@ window.Auth = {
             }
             foundUser = users.find(u => u && u.email && u.email.toLowerCase().trim() === email);
 
-            // ✅ Bootstrap Support — حساب الطوارئ للدخول الأول أو عند تعذر الاتصال
-            // يُتاح دائماً لـ admin@hse.local إذا لم يكن مُعطَّلاً (أو عند انعدام الإنترنت والبيانات)
-            const isOfflineWithNoUsers = !canSyncUsers && users.length === 0;
-            const bootstrapAllowed = !this.isBootstrapDisabled() || isOfflineWithNoUsers;
-            // Bootstrap Admin يعمل حتى لو فيه مستخدمون آخرون في الـ cache
-            // (لأن admin@hse.local هو حساب طوارئ وليس حساباً عادياً)
-            if (!foundUser && bootstrapAllowed && this.isBootstrapEmail(email)) {
-                if (window.SAAS_CONFIG && window.SAAS_CONFIG.useSupabaseBackend) {
-                    foundUser = null;
-                } else {
-                    foundUser = {
-                        id: 'BOOTSTRAP_ADMIN',
-                        name: 'مدير النظام',
-                        email: this.bootstrap.email,
-                        role: 'admin',
-                        passwordHash: this.bootstrap.passwordHash,
-                        active: true,
-                        permissions: {}
-                    };
-                }
-            }
+            // ✅ ملاحظة: تم إزالة Bootstrap Support (admin@hse.local) قبل الإطلاق
 
             if (!foundUser) {
                 // رسالة واضحة عند انعدام الإنترنت وغياب البيانات المحلية
@@ -531,7 +441,6 @@ window.Auth = {
             userPermissions = Permissions.normalizePermissions(userPermissions);
         }
 
-        const isBootstrap = this.isBootstrapEmail(email) && !this.isBootstrapDisabled();
         
         const allUsersList = AppState.appData.users || [];
         const fullUserData = allUsersList.find(u => u && u.email && u.email.toLowerCase() === email) || user || {};
@@ -566,7 +475,7 @@ window.Auth = {
             id: fullUserData?.id || user.id,
             passwordChanged: fullUserData?.passwordChanged ?? false,
             forcePasswordChange: fullUserData?.forcePasswordChange === true,
-            isBootstrap: isBootstrap,
+            // isBootstrap: (تمت إزالة bootstrap قبل الإطلاق)
             loginTime: loginTime,
             photo: fullUserData?.photo || user?.photo || '' // ✅ إظهار صورة المستخدم بعد الدخول مباشرة
         };
@@ -892,7 +801,7 @@ window.Auth = {
             });
             document.dispatchEvent(loginSuccessEvent);
         } catch (e) {
-            // تجاهل الأخطاء في حالة عدم دعم CustomEvent
+            Utils.safeWarn?.('auth: operation failed', e);
         }
 
         // إرجاع معلومات عن حالة تغيير كلمة المرور
@@ -988,25 +897,25 @@ window.Auth = {
 
         // إعادة تعيين حالة جلب سجل التردد الكامل في العيادة (جلسة جديدة = جلب من الخادم مرة أخرى عند الحاجة)
         if (typeof window !== 'undefined' && window.Clinic && typeof window.Clinic === 'object') {
-            try { window.Clinic._visitsBackendFetchOk = false; } catch (e) {}
+            try { window.Clinic._visitsBackendFetchOk = false; } catch (e) { Utils.safeWarn?.('auth: operation failed', e); }
         }
         if (typeof window !== 'undefined' && window.Training && typeof window.Training === 'object') {
             try {
                 window.Training._trainingBackendFetchOk = false;
                 window.Training._trainingDataLoadPromise = null;
-            } catch (e) {}
+            } catch (e) { Utils.safeWarn?.('auth: operation failed', e); }
         }
         if (typeof window !== 'undefined' && window.ChemicalSafety && typeof window.ChemicalSafety === 'object') {
             try {
                 window.ChemicalSafety._chemicalBackendFetchOk = false;
                 window.ChemicalSafety._chemicalDataLoadPromise = null;
-            } catch (e) {}
+            } catch (e) { Utils.safeWarn?.('auth: operation failed', e); }
         }
         if (typeof window !== 'undefined' && window.DailyObservations && typeof window.DailyObservations === 'object') {
             try {
                 window.DailyObservations._dailyObsBackendFetchOk = false;
                 window.DailyObservations._dailyObsLoadPromise = null;
-            } catch (e) {}
+            } catch (e) { Utils.safeWarn?.('auth: operation failed', e); }
         }
         
         // مسح جميع بيانات الجلسة
@@ -1060,7 +969,7 @@ window.Auth = {
                             try {
                                 sessionStorage.setItem('hse_session_id', user.sessionId);
                                 currentSessionId = user.sessionId;
-                            } catch (e) { /* ignore */ }
+                            } catch (e) { Utils.safeWarn?.('auth: operation failed', e); }
                         }
 
                         // التحقق من وجود المستخدم ي قاعدة البيانات
@@ -1238,7 +1147,7 @@ window.Auth = {
                             try {
                                 sessionStorage.setItem('hse_session_id', user.sessionId);
                                 currentSessionId = user.sessionId;
-                            } catch (e) { /* ignore */ }
+                            } catch (e) { Utils.safeWarn?.('auth: operation failed', e); }
                         }
 
                         const email = user.email.toLowerCase();

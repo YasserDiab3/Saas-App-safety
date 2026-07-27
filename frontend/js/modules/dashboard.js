@@ -241,13 +241,13 @@ const Dashboard = {
                     <div>
                         <h3 class="text-xl font-bold text-gray-800 mb-2">
                             <i class="fas fa-hard-hat ml-2"></i>
-                            ${Utils.escapeHTML(contractorName || 'مقاول')}
+                            ${Utils.escapeHTML(contractorName || this.t('module.dashboard.contractorDefault', 'مقاول'))}
                         </h3>
                         <p class="text-gray-600">
                             <i class="fas fa-barcode ml-2"></i>
-                            كود المقاول: <strong>${Utils.escapeHTML(String(contractorCodeVal || ''))}</strong>
+                            ${this.t('module.dashboard.contractorCode', 'كود المقاول')}: <strong>${Utils.escapeHTML(String(contractorCodeVal || ''))}</strong>
                         </p>
-                        ${reportContractor?.entityType ? `<p class="text-gray-600 mt-1"><i class="fas fa-tag ml-2"></i>نوع الكيان: ${Utils.escapeHTML(reportContractor.entityType)}</p>` : ''}
+                        ${reportContractor?.entityType ? `<p class="text-gray-600 mt-1"><i class="fas fa-tag ml-2"></i>${this.t('module.dashboard.entityType', 'نوع الكيان')}: ${Utils.escapeHTML(reportContractor.entityType)}</p>` : ''}
                         ${reportContractor?.serviceType ? `<p class="text-gray-600 mt-1"><i class="fas fa-tools ml-2"></i>نوع الخدمة: ${Utils.escapeHTML(reportContractor.serviceType)}</p>` : ''}
                         ${approvalDateStr ? `<p class="text-gray-600 mt-1"><i class="fas fa-calendar-check ml-2"></i>تاريخ الاعتماد: ${approvalDateStr}</p>` : ''}
                         ${expiryDateStr ? `<p class="text-gray-600 mt-1"><i class="fas fa-calendar-times ml-2"></i>تاريخ الانتهاء: ${expiryDateStr}</p>` : ''}

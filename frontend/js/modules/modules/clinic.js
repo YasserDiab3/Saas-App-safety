@@ -7671,7 +7671,7 @@ const Clinic = {
                 if (typeof name === 'object' && name !== null) {
                     console.warn('⚠️ [CLINIC] اكتشاف name كـ object:', name);
                     name = name.medicationName || name.name || '';
-                    console.log('✅ [CLINIC] بعد الاستخراج:', name);
+                    Utils.safeLog('✅ [CLINIC] بعد الاستخراج:', name);
                 }
                 
                 name = (name || '').toString().trim();
@@ -7729,7 +7729,7 @@ const Clinic = {
                         if (typeof name === 'object' && name !== null) {
                             console.warn('⚠️ [CLINIC JSON] اكتشاف name كـ object:', name);
                             name = name.medicationName || name.name || '';
-                            console.log('✅ [CLINIC JSON] بعد الاستخراج:', name);
+                            Utils.safeLog('✅ [CLINIC JSON] بعد الاستخراج:', name);
                         }
                         
                         name = (name || '').toString().trim();
@@ -10720,7 +10720,7 @@ const Clinic = {
             const dbUser = users.find(u => (u.email || '').toLowerCase().trim() === currentEmail);
             const createdByName = dbUser?.name || currentUser?.name || currentEmail || 'مستخدم';
             
-            console.log('✅ [CLINIC-OLD] createdByName:', createdByName);
+            Utils.safeLog('✅ [CLINIC-OLD] createdByName:', createdByName);
 
             const formData = {
                 id: visitData?.id || Utils.generateId('CLINIC_VISIT'),
@@ -14712,7 +14712,7 @@ const Clinic = {
             });
             
             // ✅ Debug: عرض جميع البيانات
-            console.log('🔍 [CLINIC] تشخيص المستخدم:', {
+            Utils.safeLog('🔍 [CLINIC] تشخيص المستخدم:', {
                 currentEmail: currentEmail,
                 dbUserFound: !!dbUser,
                 dbUserName: dbUser?.name || 'غير موجود',
@@ -14730,20 +14730,20 @@ const Clinic = {
             
             if (dbUser && dbUser.name && dbUser.name.trim() !== '') {
                 finalCreatedBy = dbUser.name.trim();
-                console.log('✅ [CLINIC] الاسم من قاعدة البيانات:', finalCreatedBy);
+                Utils.safeLog('✅ [CLINIC] الاسم من قاعدة البيانات:', finalCreatedBy);
             } else if (currentUser?.name && currentUser.name.trim() !== '') {
                 finalCreatedBy = currentUser.name.trim();
-                console.log('✅ [CLINIC] الاسم من AppState:', finalCreatedBy);
+                Utils.safeLog('✅ [CLINIC] الاسم من AppState:', finalCreatedBy);
             } else if (currentEmail) {
                 finalCreatedBy = currentEmail;
-                console.log('⚠️ [CLINIC] استخدام email كبديل:', finalCreatedBy);
+                Utils.safeLog('⚠️ [CLINIC] استخدام email كبديل:', finalCreatedBy);
             } else {
                 finalCreatedBy = 'مستخدم';
-                console.log('⚠️ [CLINIC] استخدام "مستخدم" كـ fallback');
+                Utils.safeLog('⚠️ [CLINIC] استخدام "مستخدم" كـ fallback');
             }
             
             const finalUpdatedBy = finalCreatedBy;
-            console.log('✅ [CLINIC] finalCreatedBy النهائي:', finalCreatedBy);
+            Utils.safeLog('✅ [CLINIC] finalCreatedBy النهائي:', finalCreatedBy);
             
             // ✅ تعيين الحقول حسب نوع الشخص لضمان الكتابة في الأعمدة الصحيحة في قاعدة البيانات
             // ClinicContractorVisits لا تحتوي على عمود employeeName - يجب استخدام contractorName
@@ -14780,7 +14780,7 @@ const Clinic = {
             };
             
             // ✅ Debug: تسجيل formData.createdBy مع التأكد من وجود name (دائم)
-            console.log('🔍 [CLINIC] formData قبل الإرسال:', {
+            Utils.safeLog('🔍 [CLINIC] formData قبل الإرسال:', {
                 createdBy: formData.createdBy,
                 updatedBy: formData.updatedBy,
                 createdByType: typeof formData.createdBy,
@@ -15123,7 +15123,7 @@ if (typeof window !== 'undefined' && typeof Clinic !== 'undefined') { window.Cli
         if (typeof window !== 'undefined' && typeof Clinic !== 'undefined') {
             try {
                 window.Clinic = Clinic;
-                console.log('✅ تم تصدير Clinic بنجاح في المحاولة الثانية');
+                Utils.safeLog('✅ تم تصدير Clinic بنجاح في المحاولة الثانية');
             } catch (e) {
                 console.error('❌ فشل تصدير Clinic:', e);
             }

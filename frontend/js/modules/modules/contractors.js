@@ -1031,7 +1031,7 @@ const Contractors = {
      * @param {string} codeOrName - كود المقاول (مثل CON-056) أو اسمه
      */
     debugContractorVisibility(codeOrName) {
-        console.log('🔍 فحص حالة المقاول:', codeOrName);
+        Utils.safeLog('🔍 فحص حالة المقاول:', codeOrName);
         
         // البحث في قائمة المعتمدين
         const approvedList = AppState.appData.approvedContractors || [];
@@ -1049,29 +1049,29 @@ const Contractors = {
             };
         }
         
-        console.log('✅ المقاول موجود في قائمة المعتمدين:', approved);
+        Utils.safeLog('✅ المقاول موجود في قائمة المعتمدين:', approved);
         
         // فحص الحالة - تحديث للقيم المقبولة
         const status = (approved.status || '').toString().toLowerCase().trim();
         const approvedStatuses = ['approved', 'معتمد', 'نشط', 'active', 'مفعل', 'مفعّل', ''];
         const isApproved = approvedStatuses.includes(status);
-        console.log(`📊 الحالة (status): "${approved.status}"`, isApproved ? '✅ معتمد' : '❌ غير معتمد');
+        Utils.safeLog(`📊 الحالة (status): "${approved.status}"`, isApproved ? '✅ معتمد' : '❌ غير معتمد');
         
         // فحص الصلاحية
         const isExpired = this.isApprovalExpired(approved);
-        console.log(`📅 تاريخ الانتهاء (expiryDate): ${approved.expiryDate || 'غير محدد'}`, isExpired ? '❌ منتهي' : '✅ ساري');
+        Utils.safeLog(`📅 تاريخ الانتهاء (expiryDate): ${approved.expiryDate || 'غير محدد'}`, isExpired ? '❌ منتهي' : '✅ ساري');
         
         // فحص نشاط الاعتماد
         const isActive = this.isApprovalActive(approved, false);
-        console.log(`🔄 نشط (isApprovalActive): ${isActive}`, isActive ? '✅' : '❌');
+        Utils.safeLog(`🔄 نشط (isApprovalActive): ${isActive}`, isActive ? '✅' : '❌');
         
         // فحص الاشتراطات (إذا كان له contractorId)
         let requirementsMet = true;
         if (approved.contractorId) {
             requirementsMet = this.checkAllRequirementsMet(approved.contractorId);
-            console.log(`📋 الاشتراطات (checkAllRequirementsMet): ${requirementsMet}`, requirementsMet ? '✅ مستوفاة' : '❌ غير مستوفاة');
+            Utils.safeLog(`📋 الاشتراطات (checkAllRequirementsMet): ${requirementsMet}`, requirementsMet ? '✅ مستوفاة' : '❌ غير مستوفاة');
         } else {
-            console.log('ℹ️ لا يوجد contractorId - لا حاجة لفحص الاشتراطات');
+            Utils.safeLog('ℹ️ لا يوجد contractorId - لا حاجة لفحص الاشتراطات');
         }
         
         // التحقق من الظهور في getAllContractorsForModules
@@ -1081,7 +1081,7 @@ const Contractors = {
             c.id === approved.contractorId || 
             (c.name && approved.companyName && c.name === approved.companyName)
         );
-        console.log(`📋 يظهر في قائمة المديولات (getAllContractorsForModules): ${appearsInList}`, appearsInList ? '✅' : '❌');
+        Utils.safeLog(`📋 يظهر في قائمة المديولات (getAllContractorsForModules): ${appearsInList}`, appearsInList ? '✅' : '❌');
 
         // التحقق من الظهور في getContractorOptionsForModules
         const forForms = this.getContractorOptionsForModules();
@@ -1090,7 +1090,7 @@ const Contractors = {
             c.id === approved.contractorId || 
             (c.name && approved.companyName && c.name === approved.companyName)
         );
-        console.log(`📝 يظهر في النماذج (getContractorOptionsForModules): ${appearsInForms}`, appearsInForms ? '✅' : '❌');
+        Utils.safeLog(`📝 يظهر في النماذج (getContractorOptionsForModules): ${appearsInForms}`, appearsInForms ? '✅' : '❌');
         
         return {
             found: true,
@@ -1113,18 +1113,18 @@ const Contractors = {
      * تعرض أسباب عدم ظهور كل مقاول في النماذج
      */
     debugAllContractorsVisibility() {
-        console.log('═══════════════════════════════════════════════════════════');
-        console.log('🔍 فحص شامل لجميع المقاولين المعتمدين');
-        console.log('═══════════════════════════════════════════════════════════');
+        Utils.safeLog('═══════════════════════════════════════════════════════════');
+        Utils.safeLog('🔍 فحص شامل لجميع المقاولين المعتمدين');
+        Utils.safeLog('═══════════════════════════════════════════════════════════');
         
         const approvedList = AppState.appData.approvedContractors || [];
         const forForms = this.getContractorOptionsForModules();
         const allFromModules = this.getAllContractorsForModules();
         
-        console.log(`📊 إجمالي سجلات المعتمدين: ${approvedList.length}`);
-        console.log(`📊 المقاولين في getAllContractorsForModules: ${allFromModules.length}`);
-        console.log(`📊 المقاولين في getContractorOptionsForModules (للنماذج): ${forForms.length}`);
-        console.log('═══════════════════════════════════════════════════════════');
+        Utils.safeLog(`📊 إجمالي سجلات المعتمدين: ${approvedList.length}`);
+        Utils.safeLog(`📊 المقاولين في getAllContractorsForModules: ${allFromModules.length}`);
+        Utils.safeLog(`📊 المقاولين في getContractorOptionsForModules (للنماذج): ${forForms.length}`);
+        Utils.safeLog('═══════════════════════════════════════════════════════════');
         
         const results = {
             total: approvedList.length,
@@ -1154,7 +1154,7 @@ const Contractors = {
             
             if (appearsInForms) {
                 results.visible++;
-                console.log(`✅ ${index + 1}. ${code} - ${name} [status: "${status}"]`);
+                Utils.safeLog(`✅ ${index + 1}. ${code} - ${name} [status: "${status}"]`);
             } else {
                 results.hidden++;
                 let reason = '';
@@ -1183,34 +1183,34 @@ const Contractors = {
                     results.reasons.notInForms.push({ name, code, record });
                 }
                 
-                console.log(`❌ ${index + 1}. ${code} - ${name} [status: "${status}"] → ${reason}`);
+                Utils.safeLog(`❌ ${index + 1}. ${code} - ${name} [status: "${status}"] → ${reason}`);
             }
         });
         
-        console.log('═══════════════════════════════════════════════════════════');
-        console.log(`📊 الملخص: ${results.visible} يظهر ✅ | ${results.hidden} لا يظهر ❌`);
-        console.log('═══════════════════════════════════════════════════════════');
+        Utils.safeLog('═══════════════════════════════════════════════════════════');
+        Utils.safeLog(`📊 الملخص: ${results.visible} يظهر ✅ | ${results.hidden} لا يظهر ❌`);
+        Utils.safeLog('═══════════════════════════════════════════════════════════');
         
         if (results.reasons.statusNotApproved.length > 0) {
-            console.log('\n⚠️ مقاولين بحالة غير "approved":');
+            Utils.safeLog('\n⚠️ مقاولين بحالة غير "approved":');
             console.table(results.reasons.statusNotApproved);
         }
         
         if (results.reasons.expired.length > 0) {
-            console.log('\n⚠️ مقاولين منتهية صلاحيتهم:');
+            Utils.safeLog('\n⚠️ مقاولين منتهية صلاحيتهم:');
             console.table(results.reasons.expired);
         }
         
         if (results.reasons.noName.length > 0) {
-            console.log('\n⚠️ سجلات بدون اسم:');
+            Utils.safeLog('\n⚠️ سجلات بدون اسم:');
             console.table(results.reasons.noName);
         }
         
         if (results.reasons.notInForms.length > 0) {
-            console.log('\n⚠️ مقاولين لم يظهروا لسبب غير واضح:');
+            Utils.safeLog('\n⚠️ مقاولين لم يظهروا لسبب غير واضح:');
             results.reasons.notInForms.forEach(item => {
-                console.log('   -', item.name, item.code);
-                console.log('     السجل الكامل:', item.record);
+                Utils.safeLog('   -', item.name, item.code);
+                Utils.safeLog('     السجل الكامل:', item.record);
             });
         }
         
