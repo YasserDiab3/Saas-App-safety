@@ -3059,7 +3059,7 @@ const Training = {
         const searchInput = document.getElementById('training-search');
         const statusFilter = document.getElementById('training-filter-status');
         this._debouncedTrainingSearch = this._debouncedTrainingSearch || Utils.debounce((e) => this.filterItems(e.target.value, statusFilter?.value || ''), 300);
-        if (!searchInput.dataset.bound) {
+        if (searchInput && !searchInput.dataset.bound) {
             searchInput.addEventListener('input', this._debouncedTrainingSearch);
             searchInput.dataset.bound = '1';
         }
