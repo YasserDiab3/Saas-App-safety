@@ -1,4 +1,4 @@
 {
-  "version": "2.2.131",
-  "message": "fix(saas-adapter): fix api_delete case-sensitivity key lookup + partial i18n"
+  "version": "2.2.132",
+  "message": "fix(i18n): partial Arabic-to-t() conversion in 5 files"
 }

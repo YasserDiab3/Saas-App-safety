@@ -584,9 +584,9 @@
                 if (spec.op === 'read')
                     return wrapArray(await rpc('api_read_sheet', { p_sheet: spec.sheet }));
                 if (spec.op === 'upsert')
-                    return await rpc('api_upsert', { p_sheet: spec.sheet, p_id: data[spec.idFrom] || (data.id || cryptoId()), p_data: data });
+                    return await rpc('api_upsert', { p_sheet: spec.sheet, p_id: data[spec.idFrom] || data[spec.idFrom.charAt(0).toLowerCase() + spec.idFrom.slice(1)] || (data.id || cryptoId()), p_data: data });
                 if (spec.op === 'patch')
-                    return await rpc('api_patch', { p_sheet: spec.sheet, p_id: data[spec.idFrom], p_patch: data[spec.patchFrom] || data });
+                    return await rpc('api_patch', { p_sheet: spec.sheet, p_id: data[spec.idFrom] || data[spec.idFrom.charAt(0).toLowerCase() + spec.idFrom.slice(1)] || data.id || data.recordId, p_patch: data[spec.patchFrom] || data[spec.patchFrom.charAt(0).toLowerCase() + spec.patchFrom.slice(1)] || data });
                 if (spec.op === 'delete')
                     return await rpc('api_delete', { p_sheet: spec.sheet, p_id: data[spec.idFrom] || data[spec.idFrom.charAt(0).toLowerCase() + spec.idFrom.slice(1)] || data.id || data.recordId });
             }
