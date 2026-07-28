@@ -89,6 +89,8 @@ const Settings = {
     formSettingsState: null,
     formSettingsEventsBound: false,
 
+    t(key, fallback) { if (window.i18n && window.i18n.t) return window.i18n.t(key, fallback); return fallback; },
+
     /** ترجيع مصفوفة تعليمات ما بعد الدخول من إعدادات الشركة (مع تطبيع) */
     getPostLoginItems() {
         const raw = AppState?.companySettings?.postLoginItems;
@@ -108,7 +110,7 @@ const Settings = {
         if (!listEl) return;
         const items = this.getPostLoginItems();
         if (items.length === 0) {
-            listEl.innerHTML = '<p class="text-sm text-gray-500">لا توجد عناصر. اضغط «إضافة عنصر» لبدء الإضافة.</p>';
+            listEl.innerHTML = `<p class="text-sm text-gray-500">${this.t('settings.empty_items', 'لا توجد عناصر. اضغط «إضافة عنصر» لبدء الإضافة.')}</p>`;
             return;
         }
         const sorted = items.slice().sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
@@ -122,13 +124,13 @@ const Settings = {
                     <div class="flex-1 min-w-0">
                         <span class="font-medium text-gray-800">${title}</span>
                         <span class="text-xs text-gray-500 mr-2">${duration} ث</span>
-                        ${active ? '<span class="text-xs text-green-600">مفعّل</span>' : '<span class="text-xs text-gray-400">معطّل</span>'}
+                        ${active ? `<span class="text-xs text-green-600">${this.t('settings.status_active', 'مفعّل')}</span>` : `<span class="text-xs text-gray-400">${this.t('settings.status_inactive', 'معطّل')}</span>`}
                     </div>
                     <div class="flex items-center gap-1">
-                        <button type="button" class="post-login-edit-btn btn-icon btn-icon-secondary p-2" title="تعديل" data-index="${idx}"><i class="fas fa-edit"></i></button>
-                        <button type="button" class="post-login-delete-btn btn-icon btn-icon-secondary p-2 text-red-600" title="حذف" data-index="${idx}"><i class="fas fa-trash"></i></button>
-                        <button type="button" class="post-login-up-btn btn-icon btn-icon-secondary p-2" title="أعلى" data-index="${idx}"><i class="fas fa-arrow-up"></i></button>
-                        <button type="button" class="post-login-down-btn btn-icon btn-icon-secondary p-2" title="أسفل" data-index="${idx}"><i class="fas fa-arrow-down"></i></button>
+                        <button type="button" class="post-login-edit-btn btn-icon btn-icon-secondary p-2" title="${this.t('settings.edit', 'تعديل')}" data-index="${idx}"><i class="fas fa-edit"></i></button>
+                        <button type="button" class="post-login-delete-btn btn-icon btn-icon-secondary p-2 text-red-600" title="${this.t('settings.delete', 'حذف')}" data-index="${idx}"><i class="fas fa-trash"></i></button>
+                        <button type="button" class="post-login-up-btn btn-icon btn-icon-secondary p-2" title="${this.t('settings.move_up', 'أعلى')}" data-index="${idx}"><i class="fas fa-arrow-up"></i></button>
+                        <button type="button" class="post-login-down-btn btn-icon btn-icon-secondary p-2" title="${this.t('settings.move_down', 'أسفل')}" data-index="${idx}"><i class="fas fa-arrow-down"></i></button>
                     </div>
                 </div>`;
         }).join('');
@@ -300,11 +302,11 @@ const Settings = {
                             <div>
                                 <label for="company-secondary-name-font-size-input" class="block text-sm font-semibold text-gray-700 mb-2">
                                     <i class="fas fa-text-height ml-2"></i>
-                                    حجم خط الاسم الإضافي (بالبكسل)
+                                    ${this.t('settings.secondary_name_font_size', 'حجم خط الاسم الإضافي (بالبكسل)')}
                                 </label>
                                 <div class="flex items-center gap-3">
                                     <input type="number" id="company-secondary-name-font-size-input" class="form-input" min="8" max="72" step="1"
-                                        placeholder="مثال: 14" value="${AppState.companySettings?.secondaryNameFontSize || '14'}">
+                                        placeholder="${this.t('settings.secondary_name_size_example', 'مثال: 14')}" value="${AppState.companySettings?.secondaryNameFontSize || '14'}">
                                     <span class="text-xs text-gray-500">بكسل</span>
                                 </div>
                                 <p class="text-xs text-gray-500 mt-1">
@@ -402,13 +404,13 @@ const Settings = {
                                     </div>
                                     <div class="flex flex-wrap items-center gap-2.5">
                                         <button type="button" id="ppe-download-template-btn" style="font-size:1rem;font-weight:800;" class="btn-primary shrink-0 inline-flex items-center justify-center gap-2 rounded-xl border border-blue-500 text-base font-extrabold px-6 py-3 min-h-[50px] shadow-md hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300">
-                                            <i class="fas fa-file-download"></i> تحميل قالب
+                                            <i class="fas fa-file-download"></i> ${this.t('settings.download_template', 'تحميل قالب')}
                                         </button>
                                         <button type="button" id="ppe-import-rules-btn" style="font-size:1rem;font-weight:800;" class="btn-primary shrink-0 inline-flex items-center justify-center gap-2 rounded-xl border border-blue-500 text-base font-extrabold px-6 py-3 min-h-[50px] shadow-md hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300">
-                                            <i class="fas fa-file-import"></i> استيراد
+                                            <i class="fas fa-file-import"></i> ${this.t('settings.import', 'استيراد')}
                                         </button>
                                         <button type="button" id="ppe-add-rule-btn" style="font-size:1rem;font-weight:800;" class="btn-primary inline-flex items-center justify-center gap-2 rounded-xl border border-blue-500 text-base font-extrabold px-6 py-3 min-h-[50px] shadow-md hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300">
-                                            <i class="fas fa-plus"></i> إضافة صف
+                                            <i class="fas fa-plus"></i> ${this.t('settings.add_row', 'إضافة صف')}
                                         </button>
                                     </div>
                                 </div>
@@ -417,10 +419,10 @@ const Settings = {
                             </div>
                             <div class="flex flex-wrap items-center gap-3 pt-3 mt-1 border-t border-slate-200">
                                 <button type="button" id="save-company-settings-btn" style="font-size:1rem;font-weight:800;" class="btn-primary inline-flex items-center justify-center gap-2 rounded-xl border border-blue-500 text-base font-extrabold px-6 py-3 min-h-[50px] shadow-md hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300">
-                                    <i class="fas fa-save ml-2"></i>حفظ بيانات الشركة
+                                    <i class="fas fa-save ml-2"></i>${this.t('settings.save_company_data', 'حفظ بيانات الشركة')}
                                 </button>
                                 <button type="button" id="reset-company-name-btn" style="font-size:1rem;font-weight:800;" class="btn-primary inline-flex items-center justify-center gap-2 rounded-xl border border-blue-500 text-base font-extrabold px-6 py-3 min-h-[50px] shadow-md hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300">
-                                    <i class="fas fa-undo ml-2"></i>استعادة الاسم الافتراضي
+                                    <i class="fas fa-undo ml-2"></i>${this.t('settings.restore_default_name', 'استعادة الاسم الافتراضي')}
                                 </button>
                             </div>
                         </div>
@@ -428,13 +430,13 @@ const Settings = {
                     
                     <div class="content-card mt-6">
                         <div class="card-header">
-                            <h2 class="card-title"><i class="fas fa-image ml-2"></i>شعار الشركة</h2>
+                            <h2 class="card-title"><i class="fas fa-image ml-2"></i>${this.t('settings.company_logo', 'شعار الشركة')}</h2>
                         </div>
                         <div class="card-body space-y-4">
                             <div>
 <label for="company-logo-input" class="block text-sm font-semibold text-gray-700 mb-2">
                                     <i class="fas fa-upload ml-2"></i>
-                                    رفع شعار الشركة
+                                    ${this.t('settings.upload_logo', 'رفع شعار الشركة')}
                                 </label>
                                 <div class="flex items-center gap-4">
                                     ${AppState.companyLogo ? `
@@ -447,15 +449,15 @@ const Settings = {
                                         <input type="file" id="company-logo-input" accept="image/*" class="form-input text-sm">
                                         <p class="text-xs text-gray-500 mt-1">
                                             <i class="fas fa-info-circle ml-1"></i>
-                                            سيتم عرض الشعار في يسار جميع النماذج والصفحات. الحد الأقصى لحجم الصورة: 2MB
+                                            ${this.t('settings.logo_preview_hint', 'سيتم عرض الشعار في يسار جميع النماذج والصفحات. الحد الأقصى لحجم الصورة: 2MB')}
                                         </p>
                                         <div class="flex items-center gap-2 mt-2">
                                             <button type="button" id="upload-logo-btn" style="font-size:1rem;font-weight:800;" class="btn-primary inline-flex items-center justify-center gap-2 rounded-xl border border-blue-500 text-base font-extrabold px-6 py-3 min-h-[50px] shadow-md hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300">
-                                                <i class="fas fa-upload ml-2"></i>رفع الشعار
+                                                <i class="fas fa-upload ml-2"></i>${this.t('settings.upload_logo_btn', 'رفع الشعار')}
                                             </button>
                                             ${AppState.companyLogo ? `
                                                 <button type="button" id="remove-logo-btn" class="inline-flex items-center justify-center gap-2 rounded-xl border border-red-300 bg-red-600 hover:bg-red-700 text-white text-base font-extrabold px-5 py-3 min-h-[48px] shadow-sm hover:shadow-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-300">
-                                                    <i class="fas fa-trash ml-2"></i>إزالة الشعار
+                                                    <i class="fas fa-trash ml-2"></i>${this.t('settings.remove_logo', 'إزالة الشعار')}
                                                 </button>
                                             ` : ''}
                                         </div>
@@ -532,20 +534,20 @@ const Settings = {
                     <div class="settings-group-header">
                         <h2 class="settings-group-title">
                             <i class="fas fa-sliders-h text-purple-600 ml-2"></i>
-                            إعدادات النظام
+                            ${this.t('settings.system_settings', 'إعدادات النظام')}
                         </h2>
-                        <p class="settings-group-subtitle">إعدادات التاريخ والنماذج والأنواع</p>
+                        <p class="settings-group-subtitle">${this.t('settings.system_subtitle', 'إعدادات التاريخ والنماذج والأنواع')}</p>
                     </div>
                     <div class="settings-group-content">
                         <div class="content-card">
                             <div class="card-header">
-                                <h2 class="card-title"><i class="fas fa-calendar-alt ml-2"></i>إعدادات التاريخ</h2>
+                                <h2 class="card-title"><i class="fas fa-calendar-alt ml-2"></i>${this.t('settings.date_settings', 'إعدادات التاريخ')}</h2>
                             </div>
                             <div class="card-body space-y-4">
                                 <div>
                                     <label class="block text-sm font-semibold text-gray-700 mb-2">
-                                        <i class="fas fa-calendar-check ml-2"></i>
-                                        نوع التقويم
+<i class="fas fa-calendar-check ml-2"></i>
+                                        ${this.t('settings.calendar_type', 'نوع التقويم')}
                                     </label>
                                     <select id="date-format-select" class="form-input">
                                         <option value="gregorian" ${AppState.dateFormat === 'gregorian' ? 'selected' : ''}>الميلادي (Gregorian)</option>
@@ -556,7 +558,7 @@ const Settings = {
                                         سيتم تطبيق نوع التقويم على جميع التواريخ في النظام
                                     </p>
                                     <button type="button" id="save-date-format-btn" class="btn-primary mt-2">
-                                        <i class="fas fa-save ml-2"></i>حفظ إعدادات التاريخ
+                                        <i class="fas fa-save ml-2"></i>${this.t('settings.save_date_settings', 'حفظ إعدادات التاريخ')}
                                     </button>
                                 </div>
                             </div>
@@ -564,7 +566,7 @@ const Settings = {
 
                         <div class="content-card mt-6">
                             <div class="card-header">
-                                <h2 class="card-title"><i class="fas fa-clock ml-2"></i>حساب إجمالي ساعات العمل — لوحة التحكم</h2>
+                                <h2 class="card-title"><i class="fas fa-clock ml-2"></i>${this.t('settings.work_hours', 'حساب إجمالي ساعات العمل — لوحة التحكم')}</h2>
                             </div>
                             <div class="card-body space-y-4">
                                 <p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
@@ -573,32 +575,32 @@ const Settings = {
                                 </p>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div class="md:col-span-2">
-                                        <label class="block text-sm font-semibold text-gray-700 mb-2" for="wh-total-override">إجمالي ساعات العمل (يدوي — يتجاوز التقدير)</label>
+                                        <label class="block text-sm font-semibold text-gray-700 mb-2" for="wh-total-override">${this.t('settings.total_work_hours', 'إجمالي ساعات العمل (يدوي — يتجاوز التقدير)')}</label>
                                         <input type="text" id="wh-total-override" class="form-input" placeholder="اتركه فارغاً لاستخدام التقدير التلقائي" inputmode="decimal" autocomplete="off" />
                                         <p class="text-xs text-gray-500 mt-1">يُحفظ في التخزين المحلي تحت المفتاح <code class="text-xs">hse_total_work_hours</code>. فارغ = حذف اليدوي.</p>
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-semibold text-gray-700 mb-2" for="wh-hours-per-day">ساعات العمل يومياً</label>
+                                        <label class="block text-sm font-semibold text-gray-700 mb-2" for="wh-hours-per-day">${this.t('settings.hours_per_day', 'ساعات العمل يومياً')}</label>
                                         <input type="number" id="wh-hours-per-day" class="form-input" min="1" max="24" step="0.25" placeholder="8" />
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-semibold text-gray-700 mb-2" for="wh-days-per-month">أيام العمل في الشهر</label>
+                                        <label class="block text-sm font-semibold text-gray-700 mb-2" for="wh-days-per-month">${this.t('settings.work_days_per_month', 'أيام العمل في الشهر')}</label>
                                         <input type="number" id="wh-days-per-month" class="form-input" min="1" max="31" step="1" placeholder="22" />
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-semibold text-gray-700 mb-2" for="wh-months-per-year">عدد الأشهر في السنة (للتقدير)</label>
+                                        <label class="block text-sm font-semibold text-gray-700 mb-2" for="wh-months-per-year">${this.t('settings.months_per_year', 'عدد الأشهر في السنة (للتقدير)')}</label>
                                         <input type="number" id="wh-months-per-year" class="form-input" min="1" max="12" step="1" placeholder="12" />
                                     </div>
                                     <div class="flex items-center pt-6">
                                         <input type="checkbox" id="wh-include-contractors" class="form-checkbox h-5 w-5" />
-                                        <label for="wh-include-contractors" class="mr-2 text-sm font-medium text-gray-800">إضافة عمالة المقاولين المعتمدين (من حقول رقمية في السجل إن وُجدت)</label>
+                                        <label for="wh-include-contractors" class="mr-2 text-sm font-medium text-gray-800">${this.t('settings.include_contractors', 'إضافة عمالة المقاولين المعتمدين (من حقول رقمية في السجل إن وُجدت)')}</label>
                                     </div>
                                 </div>
                                 <p class="text-xs text-gray-500">
                                     المفاتيح: <code>hse_hours_per_day</code>، <code>hse_work_days_per_month</code>، <code>hse_work_months_per_year</code>، <code>hse_work_hours_include_contractors</code>.
                                 </p>
                                 <button type="button" id="save-work-hours-settings-btn" class="btn-primary">
-                                    <i class="fas fa-save ml-2"></i>حفظ إعدادات ساعات العمل
+                                    <i class="fas fa-save ml-2"></i>${this.t('settings.save_work_hours', 'حفظ إعدادات ساعات العمل')}
                                 </button>
                             </div>
                         </div>
@@ -610,10 +612,10 @@ const Settings = {
                     <div class="settings-group-header">
                         <h3 class="settings-group-title">
                             <i class="fas fa-database ml-2"></i>
-                            إدارة النسخ الاحتياطية
+                            ${this.t('settings.backup_management', 'إدارة النسخ الاحتياطية')}
                         </h3>
                         <p class="settings-group-subtitle">
-                            إدارة النسخ الاحتياطية للبيانات وإنشاء نسخ يدوية
+                            ${this.t('settings.backup_subtitle', 'إدارة النسخ الاحتياطية للبيانات وإنشاء نسخ يدوية')}
                         </p>
                     </div>
                     <div class="settings-group-content">
@@ -621,31 +623,31 @@ const Settings = {
                         <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
                             <h4 class="text-lg font-semibold mb-4 flex items-center">
                                 <i class="fas fa-chart-bar ml-2 text-blue-600"></i>
-                                إحصائيات النسخ الاحتياطية
+                                ${this.t('settings.backup_stats', 'إحصائيات النسخ الاحتياطية')}
                             </h4>
                             <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
                                 <div class="bg-gray-50 dark:bg-gray-700 rounded p-4">
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">إجمالي النسخ</p>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">${this.t('settings.total_backups', 'إجمالي النسخ')}</p>
                                     <p class="text-xl font-bold" id="total-backups-count">0</p>
                                 </div>
                                 <div class="bg-gray-50 dark:bg-gray-700 rounded p-4">
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">النسخ الناجحة</p>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">${this.t('settings.successful_backups', 'النسخ الناجحة')}</p>
                                     <p class="text-xl font-bold text-green-600" id="successful-backups-count">0</p>
                                 </div>
                                 <div class="bg-gray-50 dark:bg-gray-700 rounded p-4">
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">النسخ الفاشلة</p>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">${this.t('settings.failed_backups', 'النسخ الفاشلة')}</p>
                                     <p class="text-xl font-bold text-red-600" id="failed-backups-count">0</p>
                                 </div>
                                 <div class="bg-gray-50 dark:bg-gray-700 rounded p-4">
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">معدل النجاح</p>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">${this.t('settings.success_rate', 'معدل النجاح')}</p>
                                     <p class="text-xl font-bold" id="backup-success-rate">0%</p>
                                 </div>
                                 <div class="bg-gray-50 dark:bg-gray-700 rounded p-4">
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">آخر نسخة</p>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">${this.t('settings.last_backup', 'آخر نسخة')}</p>
                                     <p class="text-sm" id="last-backup-time">-</p>
                                 </div>
                                 <div class="bg-gray-50 dark:bg-gray-700 rounded p-4">
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">المساحة المستخدمة</p>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">${this.t('settings.storage_used', 'المساحة المستخدمة')}</p>
                                     <p class="text-sm font-bold" id="backup-storage-used">0 Bytes</p>
                                 </div>
                             </div>

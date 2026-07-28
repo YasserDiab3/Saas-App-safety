@@ -123,12 +123,12 @@ const SOPJHA = {
                     container.innerHTML = `
                         <div class="empty-state">
                             <i class="fas fa-exclamation-triangle text-4xl text-yellow-400 mb-4"></i>
-                            <p class="text-gray-500">حدث خطأ في تحميل البيانات</p>
-                            <p class="text-sm text-gray-400 mt-2">${error.message || 'خطأ غير معروف'}</p>
-                                        <button onclick="SOPJHA.load()" class="btn-primary mt-4">
-                                            <i class="fas fa-redo ml-2"></i>
-                                            ${this.t('module.sopjha.retry', 'إعادة المحاولة')}
-                                        </button>
+                            <p class="text-gray-500">${this.t('module.sopjha.errorLoading', 'حدث خطأ في تحميل البيانات')}</p>
+                            <p class="text-sm text-gray-400 mt-2">${error.message || this.t('module.sopjha.unknownError', 'خطأ غير معروف')}</p>
+                            <button onclick="SOPJHA.load()" class="btn-primary mt-4">
+                                <i class="fas fa-redo ml-2"></i>
+                                ${this.t('module.sopjha.retry', 'إعادة المحاولة')}
+                            </button>
                         </div>
                     `;
                 }
@@ -146,8 +146,8 @@ const SOPJHA = {
                         <div class="card-body">
                             <div class="empty-state">
                                 <i class="fas fa-exclamation-triangle text-yellow-500 text-4xl mb-4"></i>
-                                <p class="text-gray-500 mb-2">حدث خطأ أثناء تحميل البيانات</p>
-                                <p class="text-sm text-gray-400 mb-4">${error && error.message ? Utils.escapeHTML(error.message) : 'خطأ غير معروف'}</p>
+                                <p class="text-gray-500 mb-2">${this.t('module.sopjha.errorLoading', 'حدث خطأ أثناء تحميل البيانات')}</p>
+                                <p class="text-sm text-gray-400 mb-4">${error && error.message ? Utils.escapeHTML(error.message) : this.t('module.sopjha.unknownError', 'خطأ غير معروف')}</p>
                                 <button onclick="SOPJHA.load()" class="btn-primary">
                                     <i class="fas fa-redo ml-2"></i>
                                     ${this.t('module.sopjha.retry', 'إعادة المحاولة')}
@@ -158,7 +158,7 @@ const SOPJHA = {
                 `;
             }
             if (typeof Notification !== 'undefined' && Notification.error) {
-                Notification.error('حدث خطأ أثناء تحميل تعليمات السلامة SOP-JHA. يُرجى المحاولة مرة أخرى.', { duration: 5000 });
+                Notification.error(this.t('module.sopjha.loadError', 'حدث خطأ أثناء تحميل تعليمات السلامة SOP-JHA. يُرجى المحاولة مرة أخرى.'), { duration: 5000 });
             }
         }
     },
@@ -198,10 +198,10 @@ const SOPJHA = {
             container.innerHTML = `
                 <div class="empty-state">
                     <i class="fas fa-exclamation-triangle text-4xl text-red-400 mb-4"></i>
-                    <p class="text-gray-500">خطأ في تهيئة النظام</p>
+                    <p class="text-gray-500">${this.t('module.sopjha.systemInitError', 'خطأ في تهيئة النظام')}</p>
                     <button onclick="location.reload()" class="btn-primary mt-4">
                         <i class="fas fa-redo ml-2"></i>
-                        تحديث الصفحة
+                        ${this.t('module.sopjha.reloadPage', 'تحديث الصفحة')}
                     </button>
                 </div>
             `;
@@ -234,10 +234,10 @@ const SOPJHA = {
             container.innerHTML = `
                 <div class="empty-state">
                     <i class="fas fa-file-contract text-4xl text-gray-300 mb-4"></i>
-                    <p class="text-gray-500">لا توجد تعليمات سلامة</p>
+                    <p class="text-gray-500">${this.t('module.sopjha.emptyState', 'لا توجد تعليمات سلامة')}</p>
                     <button id="add-sop-jha-empty-btn" class="btn-primary mt-4">
                         <i class="fas fa-plus ml-2"></i>
-                        إضافة تعليمات جديدة
+                        ${this.t('module.sopjha.addNew', 'إضافة تعليمات جديدة')}
                     </button>
                 </div>
             `;
@@ -256,12 +256,12 @@ const SOPJHA = {
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>النوع</th>
-                            <th>العنوان</th>
-                            <th>القسم</th>
-                            <th>تاريخ الإصدار</th>
-                            <th>الحالة</th>
-                            <th>الإجراءات</th>
+                            <th>${this.t('module.sopjha.colType', 'النوع')}</th>
+                            <th>${this.t('module.sopjha.colTitle', 'العنوان')}</th>
+                            <th>${this.t('module.sopjha.colDepartment', 'القسم')}</th>
+                            <th>${this.t('module.sopjha.colIssueDate', 'تاريخ الإصدار')}</th>
+                            <th>${this.t('module.sopjha.colStatus', 'الحالة')}</th>
+                            <th>${this.t('module.sopjha.colActions', 'الإجراءات')}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -334,20 +334,20 @@ ${this.isCurrentUserAdmin() ? `
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">${this.t('module.sopjha.type', 'النوع')} *</label>
                                 <select id="sop-type" required class="form-input">
-                                    <option value="">اختر النوع</option>
-                                    <option value="SOP" ${data?.type === 'SOP' ? 'selected' : ''}>SOP - إجراءات التشغيل القياسية</option>
-                                    <option value="JHA" ${data?.type === 'JHA' ? 'selected' : ''}>JHA - تحليل مخاطر الوظيفة</option>
+                                    <option value="">${this.t('module.sopjha.selectType', 'اختر النوع')}</option>
+                                    <option value="SOP" ${data?.type === 'SOP' ? 'selected' : ''}>SOP - ${this.t('module.sopjha.sopDescription', 'إجراءات التشغيل القياسية')}</option>
+                                    <option value="JHA" ${data?.type === 'JHA' ? 'selected' : ''}>JHA - ${this.t('module.sopjha.jhaDescription', 'تحليل مخاطر الوظيفة')}</option>
                                 </select>
                             </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">${this.t('module.sopjha.title', 'العنوان')} *</label>
                                 <input type="text" id="sop-title" required class="form-input"
-                                    value="${Utils.escapeHTML(data?.title || '')}" placeholder="عنوان التعليمات">
+                                    value="${Utils.escapeHTML(data?.title || '')}" placeholder="${this.t('module.sopjha.titlePlaceholder', 'عنوان التعليمات')}">
                             </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">${this.t('module.sopjha.department', 'القسم')} *</label>
                                 <input type="text" id="sop-department" required class="form-input"
-                                    value="${Utils.escapeHTML(data?.department || '')}" placeholder="القسم المعني">
+                                    value="${Utils.escapeHTML(data?.department || '')}" placeholder="${this.t('module.sopjha.departmentPlaceholder', 'القسم المعني')}">
                             </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">${this.t('module.sopjha.issueDate', 'تاريخ الإصدار')} *</label>
@@ -357,10 +357,10 @@ ${this.isCurrentUserAdmin() ? `
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">${this.t('module.sopjha.status', 'الحالة')} *</label>
                                 <select id="sop-status" required class="form-input">
-                                    <option value="">اختر الحالة</option>
-                                    <option value="نشط" ${data?.status === 'نشط' ? 'selected' : ''}>نشط</option>
-                                    <option value="مراجعة" ${data?.status === 'مراجعة' ? 'selected' : ''}>قيد المراجعة</option>
-                                    <option value="منتهي" ${data?.status === 'منتهي' ? 'selected' : ''}>منتهي</option>
+                                    <option value="">${this.t('module.sopjha.selectStatus', 'اختر الحالة')}</option>
+                                    <option value="نشط" ${data?.status === 'نشط' ? 'selected' : ''}>${this.t('module.sopjha.statusActive', 'نشط')}</option>
+                                    <option value="مراجعة" ${data?.status === 'مراجعة' ? 'selected' : ''}>${this.t('module.sopjha.statusReview', 'قيد المراجعة')}</option>
+                                    <option value="منتهي" ${data?.status === 'منتهي' ? 'selected' : ''}>${this.t('module.sopjha.statusEnded', 'منتهي')}</option>
                                 </select>
                             </div>
                         <div>
@@ -373,13 +373,13 @@ ${this.isCurrentUserAdmin() ? `
                         <div class="col-span-2">
                             <label class="block text-sm font-semibold text-gray-700 mb-2">${this.t('module.sopjha.procedures', 'الإجراءات / الوصف')} *</label>
                             <textarea id="sop-procedures" required class="form-input" rows="8"
-                                placeholder="وصف تفصيلي للإجراءات والتعليمات">${Utils.escapeHTML(data?.procedures || '')}</textarea>
+                                placeholder="${this.t('module.sopjha.proceduresPlaceholder', 'وصف تفصيلي للإجراءات والتعليمات')}">${Utils.escapeHTML(data?.procedures || '')}</textarea>
                         </div>
                         
                         <div class="col-span-2">
                             <label class="block text-sm font-semibold text-gray-700 mb-2">${this.t('module.sopjha.hazards', 'المخاطر المحتملة')}</label>
                             <textarea id="sop-hazards" class="form-input" rows="4"
-                                placeholder="وصف تفصيلي للمخاطر المحتملة وطرق التعامل معها">${Utils.escapeHTML(data?.hazards || '')}</textarea>
+                                placeholder="${this.t('module.sopjha.hazardsPlaceholder', 'وصف تفصيلي للمخاطر المحتملة وطرق التعامل معها')}">${Utils.escapeHTML(data?.hazards || '')}</textarea>
                         </div>
                         
                         <div class="col-span-2">
@@ -423,7 +423,7 @@ ${this.isCurrentUserAdmin() ? `
         if (submitBtn) {
             originalText = submitBtn.innerHTML;
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin ml-2"></i> جاري الحفظ...';
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin ml-2"></i> ' + this.t('module.sopjha.saving', 'جاري الحفظ...');
         }
 
         // فحص العناصر قبل الاستخدام
@@ -437,7 +437,7 @@ ${this.isCurrentUserAdmin() ? `
         const hazardsEl = document.getElementById('sop-hazards');
         
         if (!typeEl || !titleEl || !departmentEl || !issueDateEl || !statusEl || !versionEl || !proceduresEl || !hazardsEl) {
-            Notification.error('بعض الحقول المطلوبة غير موجودة. يرجى تحديث الصفحة والمحاولة مرة أخرى.');
+            Notification.error(this.t('module.sopjha.missingFields', 'بعض الحقول المطلوبة غير موجودة. يرجى تحديث الصفحة والمحاولة مرة أخرى.'));
             if (submitBtn) {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalText;
@@ -474,10 +474,10 @@ ${this.isCurrentUserAdmin() ? `
                 } else {
                     AppState.appData.sopJHA.push(formData);
                 }
-                Notification.success('تم تحديث التعليمات بنجاح');
+                Notification.success(this.t('module.sopjha.updatedSuccess', 'تم تحديث التعليمات بنجاح'));
             } else {
                 AppState.appData.sopJHA.push(formData);
-                Notification.success('تم إضافة التعليمات بنجاح');
+                Notification.success(this.t('module.sopjha.addedSuccess', 'تم إضافة التعليمات بنجاح'));
             }
 
             // حفظ البيانات باستخدام window.DataManager
@@ -507,7 +507,7 @@ ${this.isCurrentUserAdmin() ? `
             }
         } catch (error) {
             Utils.safeError('خطأ في حفظ التعليمات:', error);
-            Notification.error('حدث خطأ: ' + error.message);
+            Notification.error(this.t('module.sopjha.saveError', 'حدث خطأ: ') + error.message);
             
             // استعادة الزر في حالة الخطأ
             if (submitBtn) {
@@ -522,14 +522,14 @@ ${this.isCurrentUserAdmin() ? `
         if (item) {
             await this.showForm(item);
         } else {
-            Notification.error('التعليمات غير موجودة');
+            Notification.error(this.t('module.sopjha.notFound', 'التعليمات غير موجودة'));
         }
     },
 
     async viewSOPJHA(id) {
         const item = AppState.appData.sopJHA?.find(s => s.id === id);
         if (!item) {
-            Notification.error('التعليمات غير موجودة');
+            Notification.error(this.t('module.sopjha.notFound', 'التعليمات غير موجودة'));
             return;
         }
 
@@ -546,20 +546,20 @@ ${this.isCurrentUserAdmin() ? `
                 <div class="modal-body">
                     <div class="space-y-4">
                         <div class="grid grid-cols-2 gap-4">
-                            <div><strong>النوع:</strong> ${Utils.escapeHTML(item.type || '')}</div>
-                            <div><strong>القسم:</strong> ${Utils.escapeHTML(item.department || '')}</div>
-                            <div><strong>تاريخ الإصدار:</strong> ${item.issueDate ? Utils.formatDate(item.issueDate) : '-'}</div>
-                            <div><strong>النسخة:</strong> ${Utils.escapeHTML(item.version || '')}</div>
-                            <div><strong>الحالة:</strong> 
+                            <div><strong>${this.t('module.sopjha.type', 'النوع')}:</strong> ${Utils.escapeHTML(item.type || '')}</div>
+                            <div><strong>${this.t('module.sopjha.department', 'القسم')}:</strong> ${Utils.escapeHTML(item.department || '')}</div>
+                            <div><strong>${this.t('module.sopjha.issueDate', 'تاريخ الإصدار')}:</strong> ${item.issueDate ? Utils.formatDate(item.issueDate) : '-'}</div>
+                            <div><strong>${this.t('module.sopjha.version', 'النسخة')}:</strong> ${Utils.escapeHTML(item.version || '')}</div>
+                            <div><strong>${this.t('module.sopjha.status', 'الحالة')}:</strong> 
                                 <span class="badge badge-${item.status === 'نشط' ? 'success' : 'warning'}">
                                     ${item.status || '-'}
                                 </span>
                             </div>
                         </div>
-                        <div><strong>الإجراءات:</strong><br><div class="p-3 bg-gray-50 rounded">${Utils.escapeHTML(item.procedures || '')}</div></div>
-                        ${item.hazards ? `<div><strong>المخاطر:</strong><br><div class="p-3 bg-red-50 rounded">${Utils.escapeHTML(item.hazards)}</div></div>` : ''}
+                        <div><strong>${this.t('module.sopjha.procedures', 'الإجراءات')}:</strong><br><div class="p-3 bg-gray-50 rounded">${Utils.escapeHTML(item.procedures || '')}</div></div>
+                        ${item.hazards ? `<div><strong>${this.t('module.sopjha.hazards', 'المخاطر')}:</strong><br><div class="p-3 bg-red-50 rounded">${Utils.escapeHTML(item.hazards)}</div></div>` : ''}
                         ${item.requiredPPE && item.requiredPPE.length > 0 ? `
-                            <div><strong>مهمات الوقاية المطلوبة:</strong><br>
+                            <div><strong>${this.t('module.sopjha.requiredPpe', 'مهمات الوقاية المطلوبة')}:</strong><br>
                                 ${item.requiredPPE.map(ppe => `<span class="badge badge-info mr-2">${ppe}</span>`).join('')}
                             </div>
                         ` : ''}
@@ -600,7 +600,7 @@ ${this.isCurrentUserAdmin() ? `
             
             if (AppState.appData.sopJHA.length === beforeLength) {
                 Loading.hide();
-                Notification.warning('لم يتم العثور على التعليمات للحذف');
+                Notification.warning(this.t('module.sopjha.notFoundForDelete', 'لم يتم العثور على التعليمات للحذف'));
                 return;
             }
             
@@ -617,19 +617,19 @@ ${this.isCurrentUserAdmin() ? `
             }
             
             Loading.hide();
-            Notification.success('تم حذف التعليمات بنجاح');
+            Notification.success(this.t('module.sopjha.deletedSuccess', 'تم حذف التعليمات بنجاح'));
             this.load();
         } catch (error) {
             Loading.hide();
             Utils.safeError('خطأ في حذف التعليمات:', error);
-            Notification.error('حدث خطأ: ' + error.message);
+            Notification.error(this.t('module.sopjha.deleteError', 'حدث خطأ: ') + error.message);
         }
     },
 
     async exportPDF(id) {
         const item = AppState.appData.sopJHA?.find(s => s.id === id);
         if (!item) {
-            Notification.error('التعليمات غير موجودة');
+            Notification.error(this.t('module.sopjha.notFound', 'التعليمات غير موجودة'));
             return;
         }
 
@@ -637,16 +637,16 @@ ${this.isCurrentUserAdmin() ? `
             Loading.show();
 
             const formCode = item.isoCode || item.id?.substring(0, 12) || 'SOP-UNKNOWN';
-            const formTitle = `${item.type}: ${item.title || 'تعليمات السلامة'}`;
+            const formTitle = `${item.type}: ${item.title || this.t('module.sopjha.defaultTitle', 'تعليمات السلامة')}`;
 
             const content = `
                 <table>
-                    <tr><th>النوع</th><td>${Utils.escapeHTML(item.type || 'N/A')}</td></tr>
-                    <tr><th>العنوان</th><td>${Utils.escapeHTML(item.title || 'N/A')}</td></tr>
-                    <tr><th>القسم</th><td>${Utils.escapeHTML(item.department || 'N/A')}</td></tr>
-                    <tr><th>تاريخ الإصدار</th><td>${item.issueDate ? Utils.formatDate(item.issueDate) : 'N/A'}</td></tr>
-                    <tr><th>النسخة</th><td>${Utils.escapeHTML(item.version || 'N/A')}</td></tr>
-                    <tr><th>الحالة</th><td>${Utils.escapeHTML(item.status || 'N/A')}</td></tr>
+                    <tr><th>${this.t('module.sopjha.colType', 'النوع')}</th><td>${Utils.escapeHTML(item.type || 'N/A')}</td></tr>
+                    <tr><th>${this.t('module.sopjha.colTitle', 'العنوان')}</th><td>${Utils.escapeHTML(item.title || 'N/A')}</td></tr>
+                    <tr><th>${this.t('module.sopjha.colDepartment', 'القسم')}</th><td>${Utils.escapeHTML(item.department || 'N/A')}</td></tr>
+                    <tr><th>${this.t('module.sopjha.colIssueDate', 'تاريخ الإصدار')}</th><td>${item.issueDate ? Utils.formatDate(item.issueDate) : 'N/A'}</td></tr>
+                    <tr><th>${this.t('module.sopjha.colVersion', 'النسخة')}</th><td>${Utils.escapeHTML(item.version || 'N/A')}</td></tr>
+                    <tr><th>${this.t('module.sopjha.colStatus', 'الحالة')}</th><td>${Utils.escapeHTML(item.status || 'N/A')}</td></tr>
                 </table>
                 <div class="section-title">${this.t('module.sopjha.proceduresLabel', 'الإجراءات / الوصف:')}</div>
                 <div class="description">${Utils.escapeHTML(item.procedures || 'N/A')}</div>
@@ -658,13 +658,13 @@ ${this.isCurrentUserAdmin() ? `
                     <div class="section-title">${this.t('module.sopjha.requiredPpeLabel', 'مهمات الوقاية المطلوبة:')}</div>
                     <table>
                         <tr>
-                            <th>نوع مهمات الوقاية</th>
-                            <th>الحالة</th>
+                            <th>${this.t('module.sopjha.colPpeType', 'نوع مهمات الوقاية')}</th>
+                            <th>${this.t('module.sopjha.colPpeStatus', 'الحالة')}</th>
                         </tr>
                         ${item.requiredPPE.map(ppe => `
                             <tr>
                                 <td>${Utils.escapeHTML(ppe)}</td>
-                                <td>✓ مطلوب</td>
+                                <td>${this.t('module.sopjha.required', 'مطلوب')}</td>
                             </tr>
                         `).join('')}
                     </table>
@@ -686,18 +686,18 @@ ${this.isCurrentUserAdmin() ? `
                         setTimeout(() => {
                             URL.revokeObjectURL(url);
                             Loading.hide();
-                            Notification.success('تم تحديث التقرير للطباعة/الحفظ كـ PDF');
+                            Notification.success(this.t('module.sopjha.pdfSuccess', 'تم تحديث التقرير للطباعة/الحفظ كـ PDF'));
                         }, 1000);
                     }, 500);
                 };
             } else {
                 Loading.hide();
-                Notification.error('يرجى السماح للنوافذ المنبثقة لعرض التقرير');
+                Notification.error(this.t('module.sopjha.popupBlocked', 'يرجى السماح للنوافذ المنبثقة لعرض التقرير'));
             }
         } catch (error) {
             Loading.hide();
             Utils.safeError('خطأ في تصدير PDF:', error);
-            Notification.error('فشل تصدير PDF: ' + error.message);
+            Notification.error(this.t('module.sopjha.pdfFail', 'فشل تصدير PDF: ') + error.message);
         }
     }
 };
@@ -727,4 +727,3 @@ ${this.isCurrentUserAdmin() ? `
         }
     }
 })();
-

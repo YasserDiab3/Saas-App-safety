@@ -1,4 +1,4 @@
 {
-  "version": "2.2.130",
-  "message": "fix(perf): add debouncing to 46 search inputs, partial i18n pass"
+  "version": "2.2.131",
+  "message": "fix(saas-adapter): fix api_delete case-sensitivity key lookup + partial i18n"
 }

@@ -96,82 +96,92 @@ const Reports = {
                 'report.employeeTrainingPrograms': 'عدد برامج التدريب للموظفين',
                 'report.employeeTrainingTopics': 'عدد الموضوعات التدريبية للموظفين',
                 'report.contractorTrainingPrograms': 'عدد برامج تدريب المقاولين',
-                'report.contractorTrainingTopics': 'عدد الموضوعات التدريبية للمقاولين'
-            },
-            en: {
-                'title': 'Reports',
-                'subtitle': 'Create and export various reports',
-                'card.period': 'Monthly / Yearly Report',
-                'card.periodDesc': 'Generate a statistical report for a specific period (monthly or yearly) including permits, observations, incidents, clinic visits, training and violations',
-                'card.incidents': 'Incidents Report',
-                'card.incidentsDesc': 'Generate a comprehensive report of all recorded incidents',
-                'card.training': 'Training Report',
-                'card.trainingDesc': 'Generate a report on training programs and participants',
-                'card.full': 'Comprehensive Report',
-                'card.fullDesc': 'Generate a comprehensive report of all system data',
-                'btn.generate': 'Generate Report',
-                'error.load': 'An error occurred while loading data',
-                'btn.retry': 'Retry',
-                'msg.noData': 'Data not available. Please refresh the page',
-                'msg.incidentsInvalid': 'Invalid incidents data',
-                'msg.trainingInvalid': 'Invalid training data',
-                'msg.unknownReport': 'Unknown report type',
-                'msg.allowPopups': 'Please allow pop-ups to view the report',
-                'msg.invalidPeriodInput': 'Invalid period format. Please try again.',
-                'msg.periodCancelled': 'Period selection was cancelled.',
-                'report.incidents': 'Incidents Report',
-                'report.training': 'Training Report',
-                'report.full': 'Comprehensive Report',
-                'report.periodSummary': 'Period Summary Report',
-                'report.totalIncidents': 'Total Incidents',
-                'report.createdDate': 'Creation Date',
-                'report.isoCode': 'ISO Code',
-                'report.date': 'Date',
-                'report.location': 'Location',
-                'report.severity': 'Severity',
-                'report.status': 'Status',
-                'report.description': 'Description',
-                'report.totalPrograms': 'Total Training Programs',
-                'report.programName': 'Program Name',
-                'report.trainer': 'Trainer',
-                'report.participantsCount': 'Participants Count',
-                'report.generalStats': 'General Statistics',
-                'report.basicStats': 'Basic Statistics',
-                'report.type': 'Type',
-                'report.total': 'Total',
-                'report.incidentsRow': 'Incidents',
-                'report.nearmiss': 'Near Miss',
-                'report.observations': 'Observations',
-                'report.ptw': 'Work Permits',
-                'report.trainingPrograms': 'Training Programs',
-                'report.violations': 'Violations',
-                'report.clinicVisits': 'Clinic Visits',
-                'report.trainingSection': 'Training Section',
-                'report.indicator': 'Indicator',
-                'report.value': 'Value',
-                'report.traineesCount': 'Trainees Count',
-                'report.avgTrainingHoursEmployees': 'Average Training Hours (Employees)',
-                'report.totalTrainingHoursEmployees': 'Total Training Hours (Employees)',
-                'report.hour': 'hour',
-                'report.trainingContractors': 'Training Section - Contractors',
-                'report.traineesContractors': 'Trainees Count (Contractors)',
-                'report.avgTrainingContractors': 'Average Training Hours (Contractors)',
-                'report.totalTrainingContractors': 'Total Training Hours (Contractors)',
-                'report.violationsSection': 'Violations Section',
-                'report.employeeViolations': 'Employee Violations Count',
-                'report.contractorViolations': 'Contractor Violations Count',
-                'report.violationsByType': 'Violations by Type',
-                'report.violationType': 'Violation Type',
-                'report.violationsCount': 'Violations Count',
-                'report.violationsByDept': 'Violations by Department',
-                'report.department': 'Department',
-                'report.period': 'Period',
-                'report.periodTypeMonthly': 'Monthly Report',
-                'report.periodTypeYearly': 'Yearly Report',
-                'report.employeeTrainingPrograms': 'Employee Training Programs',
-                'report.employeeTrainingTopics': 'Employee Training Topics',
-                'report.contractorTrainingPrograms': 'Contractor Training Programs',
-                'report.contractorTrainingTopics': 'Contractor Training Topics'
+                 'report.contractorTrainingTopics': 'عدد الموضوعات التدريبية للمقاولين',
+                 'report.preparing': 'جاري تحضير التقرير...',
+                 'report.extractError': 'حدث خطأ عند استخراج التقرير',
+                 'report.periodTypePrompt': 'اختر نوع الفترة:\n1- شهري\n2- سنوي',
+                 'report.monthInputPrompt': 'أدخل السنة والشهر بصيغة YYYY-MM (مثال: 2026-02)',
+                 'report.yearInputPrompt': 'أدخل السنة بصيغة YYYY (مثال: 2026)'
+             },
+             en: {
+                 'title': 'Reports',
+                 'subtitle': 'Create and export various reports',
+                 'card.period': 'Monthly / Yearly Report',
+                 'card.periodDesc': 'Generate a statistical report for a specific period (monthly or yearly) including permits, observations, incidents, clinic visits, training and violations',
+                 'card.incidents': 'Incidents Report',
+                 'card.incidentsDesc': 'Generate a comprehensive report of all recorded incidents',
+                 'card.training': 'Training Report',
+                 'card.trainingDesc': 'Generate a report on training programs and participants',
+                 'card.full': 'Comprehensive Report',
+                 'card.fullDesc': 'Generate a comprehensive report of all system data',
+                 'btn.generate': 'Generate Report',
+                 'error.load': 'An error occurred while loading data',
+                 'btn.retry': 'Retry',
+                 'msg.noData': 'Data not available. Please refresh the page',
+                 'msg.incidentsInvalid': 'Invalid incidents data',
+                 'msg.trainingInvalid': 'Invalid training data',
+                 'msg.unknownReport': 'Unknown report type',
+                 'msg.allowPopups': 'Please allow pop-ups to view the report',
+                 'msg.invalidPeriodInput': 'Invalid period format. Please try again.',
+                 'msg.periodCancelled': 'Period selection was cancelled.',
+                 'report.incidents': 'Incidents Report',
+                 'report.training': 'Training Report',
+                 'report.full': 'Comprehensive Report',
+                 'report.periodSummary': 'Period Summary Report',
+                 'report.totalIncidents': 'Total Incidents',
+                 'report.createdDate': 'Creation Date',
+                 'report.isoCode': 'ISO Code',
+                 'report.date': 'Date',
+                 'report.location': 'Location',
+                 'report.severity': 'Severity',
+                 'report.status': 'Status',
+                 'report.description': 'Description',
+                 'report.totalPrograms': 'Total Training Programs',
+                 'report.programName': 'Program Name',
+                 'report.trainer': 'Trainer',
+                 'report.participantsCount': 'Participants Count',
+                 'report.generalStats': 'General Statistics',
+                 'report.basicStats': 'Basic Statistics',
+                 'report.type': 'Type',
+                 'report.total': 'Total',
+                 'report.incidentsRow': 'Incidents',
+                 'report.nearmiss': 'Near Miss',
+                 'report.observations': 'Observations',
+                 'report.ptw': 'Work Permits',
+                 'report.trainingPrograms': 'Training Programs',
+                 'report.violations': 'Violations',
+                 'report.clinicVisits': 'Clinic Visits',
+                 'report.trainingSection': 'Training Section',
+                 'report.indicator': 'Indicator',
+                 'report.value': 'Value',
+                 'report.traineesCount': 'Trainees Count',
+                 'report.avgTrainingHoursEmployees': 'Average Training Hours (Employees)',
+                 'report.totalTrainingHoursEmployees': 'Total Training Hours (Employees)',
+                 'report.hour': 'hour',
+                 'report.trainingContractors': 'Training Section - Contractors',
+                 'report.traineesContractors': 'Trainees Count (Contractors)',
+                 'report.avgTrainingContractors': 'Average Training Hours (Contractors)',
+                 'report.totalTrainingContractors': 'Total Training Hours (Contractors)',
+                 'report.violationsSection': 'Violations Section',
+                 'report.employeeViolations': 'Employee Violations Count',
+                 'report.contractorViolations': 'Contractor Violations Count',
+                 'report.violationsByType': 'Violations by Type',
+                 'report.violationType': 'Violation Type',
+                 'report.violationsCount': 'Violations Count',
+                 'report.violationsByDept': 'Violations by Department',
+                 'report.department': 'Department',
+                 'report.period': 'Period',
+                 'report.periodTypeMonthly': 'Monthly Report',
+                 'report.periodTypeYearly': 'Yearly Report',
+                 'report.employeeTrainingPrograms': 'Employee Training Programs',
+                 'report.employeeTrainingTopics': 'Employee Training Topics',
+                 'report.contractorTrainingPrograms': 'Contractor Training Programs',
+                 'report.contractorTrainingTopics': 'Contractor Training Topics',
+                 'report.preparing': 'Preparing report...',
+                 'report.extractError': 'An error occurred while extracting the report',
+                 'report.periodTypePrompt': 'Choose period type:\n1- Monthly\n2- Yearly',
+                 'report.monthInputPrompt': 'Enter year-month in format YYYY-MM (e.g. 2026-02)',
+                 'report.yearInputPrompt': 'Enter year in format YYYY (e.g. 2026)'
             }
         };
         return {
@@ -369,9 +379,7 @@ const Reports = {
     async _askForPeriod() {
         const { t, lang } = this.getTranslations();
         try {
-            const typePrompt = lang === 'ar'
-                ? 'اختر نوع الفترة:\n1- شهري\n2- سنوي'
-                : 'Choose period type:\n1- Monthly\n2- Yearly';
+             const typePrompt = t('report.periodTypePrompt');
             const typeInput = window.prompt(typePrompt, '1');
             if (typeInput === null) {
                 if (typeof Notification !== 'undefined' && Notification.info) {
@@ -383,9 +391,7 @@ const Reports = {
             const isYearly = trimmedType === '2';
 
             if (!isYearly) {
-                const monthPrompt = lang === 'ar'
-                    ? 'أدخل السنة والشهر بصيغة YYYY-MM (مثال: 2026-02)'
-                    : 'Enter year-month in format YYYY-MM (e.g. 2026-02)';
+                 const monthPrompt = t('report.monthInputPrompt');
                 const monthInput = window.prompt(monthPrompt);
                 if (monthInput === null) {
                     if (typeof Notification !== 'undefined' && Notification.info) {
@@ -421,9 +427,7 @@ const Reports = {
                 };
             } else {
                 const nowYear = new Date().getFullYear();
-                const yearPrompt = lang === 'ar'
-                    ? 'أدخل السنة بصيغة YYYY (مثال: 2026)'
-                    : 'Enter year in format YYYY (e.g. 2026)';
+                 const yearPrompt = t('report.yearInputPrompt');
                 const yearInput = window.prompt(yearPrompt, String(nowYear));
                 if (yearInput === null) {
                     if (typeof Notification !== 'undefined' && Notification.info) {
@@ -473,7 +477,7 @@ const Reports = {
                 Notification.error(t('msg.allowPopups'));
                 return;
             }
-            printWindow.document.write('<html dir="rtl"><body style="font-family: Arial; padding: 20px; text-align: center;"><p>جاري تحضير التقرير...</p></body></html>');
+             printWindow.document.write(`<html dir="rtl"><body style="font-family: Arial; padding: 20px; text-align: center;"><p>${t('report.preparing')}</p></body></html>`);
             printWindow.document.close();
 
             if (type === 'full') {
@@ -543,9 +547,9 @@ const Reports = {
             }, 300);
         } catch (err) {
             if (printWindow && typeof printWindow.close === 'function') printWindow.close();
-            const msg = (typeof Notification !== 'undefined' && Notification.error)
-                ? (err && err.message) || 'حدث خطأ عند استخراج التقرير'
-                : (err && err.message) || 'حدث خطأ عند استخراج التقرير';
+             const msg = (typeof Notification !== 'undefined' && Notification.error)
+                ? (err && err.message) || t('report.extractError')
+                : (err && err.message) || t('report.extractError');
             if (typeof Notification !== 'undefined' && Notification.error) {
                 Notification.error(msg);
             } else {

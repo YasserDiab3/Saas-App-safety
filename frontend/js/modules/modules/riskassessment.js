@@ -31,11 +31,16 @@ const RiskAssessment = (() => {
     };
 
     const RISK_BRACKETS = [
-        { id: 'low', label: 'منخفضة (≤5)', min: 0, max: 5 },
-        { id: 'medium', label: 'متوسطة (6-10)', min: 6, max: 10 },
-        { id: 'high', label: 'مرتفعة (11-15)', min: 11, max: 15 },
-        { id: 'critical', label: 'حرجة (≥16)', min: 16, max: Infinity }
+        { id: 'low', label: t('riskassessment.risk_bracket.low', 'منخفضة (≤5)'), min: 0, max: 5 },
+        { id: 'medium', label: t('riskassessment.risk_bracket.medium', 'متوسطة (6-10)'), min: 6, max: 10 },
+        { id: 'high', label: t('riskassessment.risk_bracket.high', 'مرتفعة (11-15)'), min: 11, max: 15 },
+        { id: 'critical', label: t('riskassessment.risk_bracket.critical', 'حرجة (≥16)'), min: 16, max: Infinity }
     ];
+
+const t = (key, fallback) => {
+    if (window.i18n && window.i18n.t) return window.i18n.t(key, fallback);
+    return fallback;
+};
 
     const ensureDataStructure = () => {
         if (!AppState.appData) AppState.appData = {};
@@ -205,21 +210,21 @@ const RiskAssessment = (() => {
                     <div>
                         <h1 class="section-title">
                             <i class="fas fa-shield-alt ml-3"></i>
-                            تقييم المخاطر
+                            ${t('riskassessment.section_title', 'تقييم المخاطر')}
                         </h1>
                         <p class="section-subtitle">
-                            إدارة تقييمات المخاطر، متابعة الإجراءات التصحيحية، وتحليل مستويات الخطورة لحظيًا
+                            ${t('riskassessment.section_subtitle', 'إدارة تقييمات المخاطر، متابعة الإجراءات التصحيحية، وتحليل مستويات الخطورة لحظيًا')}
                         </p>
                     </div>
                     <div class="flex items-center gap-3 flex-wrap">
-                        <button id="add-risk-assessment-btn" class="btn-primary">
-                            <i class="fas fa-plus ml-2"></i>
-                            إضافة تقييم جديد
-                        </button>
-                        <button id="export-risk-excel-btn" class="btn-success">
-                            <i class="fas fa-file-excel ml-2"></i>
-                            تصدير Excel
-                        </button>
+                         <button id="add-risk-assessment-btn" class="btn-primary">
+                             <i class="fas fa-plus ml-2"></i>
+                             ${t('riskassessment.btn_add_new', 'إضافة تقييم جديد')}
+                         </button>
+                         <button id="export-risk-excel-btn" class="btn-success">
+                             <i class="fas fa-file-excel ml-2"></i>
+                             ${t('riskassessment.btn_export_excel', 'تصدير Excel')}
+                         </button>
                     </div>
                 </div>
             </div>
@@ -229,10 +234,10 @@ const RiskAssessment = (() => {
                 <!-- مصفوفة تقييم المخاطر المرجعية -->
                 <div class="content-card">
                     <div class="card-header">
-                        <h2 class="card-title flex items-center">
-                            <i class="fas fa-th ml-2"></i>
-                            مصفوفة تقييم المخاطر (مرجع)
-                        </h2>
+                         <h2 class="card-title flex items-center">
+                             <i class="fas fa-th ml-2"></i>
+                             ${t('riskassessment.matrix_title', 'مصفوفة تقييم المخاطر (مرجع)')}
+                         </h2>
                     </div>
                     <div class="card-body flex justify-center">
                         ${typeof RiskMatrix !== 'undefined' ? RiskMatrix.generate('risk-matrix-display', {
@@ -245,55 +250,55 @@ const RiskAssessment = (() => {
                 <div class="content-card">
                     <div class="card-header">
                         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                            <h2 class="card-title flex items-center">
-                                <i class="fas fa-list ml-2"></i>
-                                سجل تقييمات المخاطر
-                            </h2>
+                             <h2 class="card-title flex items-center">
+                                 <i class="fas fa-list ml-2"></i>
+                                 ${t('riskassessment.assessment_log', 'سجل تقييمات المخاطر')}
+                             </h2>
                             <form id="risk-assessment-filters" class="grid gap-3 md:grid-cols-4 w-full">
                                 <label class="input-group col-span-2">
                                     <span class="input-group-icon"><i class="fas fa-search"></i></span>
-                                    <input type="search"
-                                           class="form-input"
-                                           placeholder="بحث عن نشاط، موقع، أو إجراء تصحيحي..."
-                                           data-filter="query"
-                                           value="${state.filters.query}">
+                                     <input type="search"
+                                            class="form-input"
+                                            placeholder="${t('riskassessment.filter_search', 'بحث عن نشاط، موقع، أو إجراء تصحيحي...')}"
+                                            data-filter="query"
+                                            value="${state.filters.query}">
                                 </label>
-                                <select class="form-input" data-filter="status">
-                                    <option value="all" ${state.filters.status === 'all' ? 'selected' : ''}>جميع الحالات</option>
-                                    <option value="قيد المراجعة" ${state.filters.status === 'قيد المراجعة' ? 'selected' : ''}>قيد المراجعة</option>
-                                    <option value="يتطلب إجراء" ${state.filters.status === 'يتطلب إجراء' ? 'selected' : ''}>يتطلب إجراء</option>
-                                    <option value="مكتمل" ${state.filters.status === 'مكتمل' ? 'selected' : ''}>مكتمل</option>
-                                </select>
-                                <select class="form-input" data-filter="riskBracket">
-                                    <option value="all" ${state.filters.riskBracket === 'all' ? 'selected' : ''}>جميع مستويات المخاطر</option>
-                                    ${RISK_BRACKETS.map((bracket) => `
-                                        <option value="${bracket.id}" ${state.filters.riskBracket === bracket.id ? 'selected' : ''}>
-                                            ${bracket.label}
-                                        </option>
-                                    `).join('')}
-                                </select>
+                                 <select class="form-input" data-filter="status">
+                                     <option value="all" ${state.filters.status === 'all' ? 'selected' : ''}>${t('riskassessment.status_all', 'جميع الحالات')}</option>
+                                     <option value="قيد المراجعة" ${state.filters.status === 'قيد المراجعة' ? 'selected' : ''}>${t('riskassessment.status_in_review', 'قيد المراجعة')}</option>
+                                     <option value="يتطلب إجراء" ${state.filters.status === 'يتطلب إجراء' ? 'selected' : ''}>${t('riskassessment.status_action_required', 'يتطلب إجراء')}</option>
+                                     <option value="مكتمل" ${state.filters.status === 'مكتمل' ? 'selected' : ''}>${t('riskassessment.status_completed', 'مكتمل')}</option>
+                                 </select>
+                                 <select class="form-input" data-filter="riskBracket">
+                                     <option value="all" ${state.filters.riskBracket === 'all' ? 'selected' : ''}>${t('riskassessment.risk_all', 'جميع مستويات المخاطر')}</option>
+                                     ${RISK_BRACKETS.map((bracket) => `
+                                         <option value="${bracket.id}" ${state.filters.riskBracket === bracket.id ? 'selected' : ''}>
+                                             ${bracket.label}
+                                         </option>
+                                     `).join('')}
+                                 </select>
                             </form>
                         </div>
                     </div>
                     <div class="card-body">
                         <div class="flex items-center justify-between mb-4">
-                            <div class="text-sm text-gray-500">
-                                <i class="fas fa-sort ml-1"></i>
-                                ترتيب حسب:
-                                <select class="form-input inline-block w-auto ml-2" data-sort-field>
-                                    <option value="updatedAt" ${state.sort.field === 'updatedAt' ? 'selected' : ''}>آخر تحديث</option>
-                                    <option value="date" ${state.sort.field === 'date' ? 'selected' : ''}>تاريخ التقييم</option>
-                                    <option value="riskLevel" ${state.sort.field === 'riskLevel' ? 'selected' : ''}>مستوى المخاطر</option>
-                                    <option value="status" ${state.sort.field === 'status' ? 'selected' : ''}>الحالة</option>
-                                </select>
-                                <button type="button" class="btn-icon ml-2" data-sort-direction>
-                                    <i class="fas fa-sort-amount-${state.sort.direction === 'asc' ? 'up' : 'down'}"></i>
-                                </button>
-                            </div>
-                            <button type="button" class="btn-secondary btn-sm" data-action="reset-filters">
-                                <i class="fas fa-undo ml-1"></i>
-                                إعادة الضبط
-                            </button>
+                             <div class="text-sm text-gray-500">
+                                 <i class="fas fa-sort ml-1"></i>
+                                 ${t('riskassessment.sort_by', 'ترتيب حسب:')}
+                                 <select class="form-input inline-block w-auto ml-2" data-sort-field>
+                                     <option value="updatedAt" ${state.sort.field === 'updatedAt' ? 'selected' : ''}>${t('riskassessment.sort_updated', 'آخر تحديث')}</option>
+                                     <option value="date" ${state.sort.field === 'date' ? 'selected' : ''}>${t('riskassessment.sort_date', 'تاريخ التقييم')}</option>
+                                     <option value="riskLevel" ${state.sort.field === 'riskLevel' ? 'selected' : ''}>${t('riskassessment.sort_risk_level', 'مستوى المخاطر')}</option>
+                                     <option value="status" ${state.sort.field === 'status' ? 'selected' : ''}>${t('riskassessment.sort_status', 'الحالة')}</option>
+                                 </select>
+                                 <button type="button" class="btn-icon ml-2" data-sort-direction>
+                                     <i class="fas fa-sort-amount-${state.sort.direction === 'asc' ? 'up' : 'down'}"></i>
+                                 </button>
+                             </div>
+                             <button type="button" class="btn-secondary btn-sm" data-action="reset-filters">
+                                 <i class="fas fa-undo ml-1"></i>
+                                 ${t('riskassessment.btn_reset', 'إعادة الضبط')}
+                             </button>
                         </div>
                         <div id="risk-assessment-table-container" class="relative">
                             <div class="empty-state" id="risk-assessment-empty-state">
@@ -302,7 +307,7 @@ const RiskAssessment = (() => {
                                         <div style="height: 100%; background: linear-gradient(90deg, #3b82f6, #2563eb, #3b82f6); background-size: 200% 100%; border-radius: 3px; animation: loadingProgress 1.5s ease-in-out infinite;"></div>
                                     </div>
                                 </div>
-                                <p class="text-gray-500">جاري التحميل...</p>
+                                 <p class="text-gray-500">${t('riskassessment.loading', 'جاري التحميل...')}</p>
                             </div>
                         </div>
                     </div>
@@ -333,12 +338,12 @@ const RiskAssessment = (() => {
                 <td>
                     <div class="space-y-1">
                         <div class="flex items-center gap-2">
-                            <span class="text-xs text-gray-500">قبل التحكم:</span>
-                            ${formatRiskBadge(initialRisk)}
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs text-gray-500">بعد التحكم:</span>
-                            ${formatRiskBadge(residualRisk)}
+                             <span class="text-xs text-gray-500">${t('riskassessment.before_control', 'قبل التحكم:')}</span>
+                             ${formatRiskBadge(initialRisk)}
+                         </div>
+                         <div class="flex items-center gap-2">
+                             <span class="text-xs text-gray-500">${t('riskassessment.after_control', 'بعد التحكم:')}</span>
+                             ${formatRiskBadge(residualRisk)}
                         </div>
                     </div>
                 </td>
@@ -350,15 +355,15 @@ const RiskAssessment = (() => {
                 </td>
                 <td class="w-32">
                     <div class="flex items-center gap-2 justify-end">
-                        <button class="btn-icon btn-icon-info" data-action="view" data-id="${assessment.id}" title="عرض">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="btn-icon btn-icon-primary" data-action="edit" data-id="${assessment.id}" title="تعديل">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn-icon btn-icon-danger" data-action="delete" data-id="${assessment.id}" title="حذف">
-                            <i class="fas fa-trash"></i>
-                        </button>
+                         <button class="btn-icon btn-icon-info" data-action="view" data-id="${assessment.id}" title="${t('riskassessment.view', 'عرض')}">
+                             <i class="fas fa-eye"></i>
+                         </button>
+                         <button class="btn-icon btn-icon-primary" data-action="edit" data-id="${assessment.id}" title="${t('riskassessment.edit', 'تعديل')}">
+                             <i class="fas fa-edit"></i>
+                         </button>
+                         <button class="btn-icon btn-icon-danger" data-action="delete" data-id="${assessment.id}" title="${t('riskassessment.delete', 'حذف')}">
+                             <i class="fas fa-trash"></i>
+                         </button>
                     </div>
                 </td>
             </tr>
@@ -371,14 +376,14 @@ const RiskAssessment = (() => {
 
         if (!assessments.length) {
             container.innerHTML = `
-                <div class="empty-state" id="risk-assessment-empty-state">
-                    <i class="fas fa-shield-alt text-4xl text-gray-300 mb-4"></i>
-                    <p class="text-gray-500">لا توجد تقييمات مخاطر مطابقة للمرشحات الحالية</p>
-                    <button class="btn-primary mt-4" data-action="create">
-                        <i class="fas fa-plus ml-2"></i>
-                        إضافة تقييم جديد
-                    </button>
-                </div>
+                 <div class="empty-state" id="risk-assessment-empty-state">
+                     <i class="fas fa-shield-alt text-4xl text-gray-300 mb-4"></i>
+                     <p class="text-gray-500">${t('riskassessment.no_matches', 'لا توجد تقييمات مخاطر مطابقة للمرشحات الحالية')}</p>
+                     <button class="btn-primary mt-4" data-action="create">
+                         <i class="fas fa-plus ml-2"></i>
+                         ${t('riskassessment.btn_add_new', 'إضافة تقييم جديد')}
+                     </button>
+                 </div>
             `;
             return;
         }
@@ -387,16 +392,16 @@ const RiskAssessment = (() => {
         fragment.innerHTML = `
             <div class="table-wrapper" style="overflow-x: auto;">
                 <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>النشاط/المهمة</th>
-                            <th>الموقع</th>
-                            <th>معدلات المخاطر</th>
-                            <th>تاريخ التقييم</th>
-                            <th>الحالة</th>
-                            <th class="text-right">الإجراءات</th>
-                        </tr>
-                    </thead>
+                     <thead>
+                         <tr>
+                             <th>${t('riskassessment.col_activity', 'النشاط/المهمة')}</th>
+                             <th>${t('riskassessment.col_location', 'الموقع')}</th>
+                             <th>${t('riskassessment.col_risk_rates', 'معدلات المخاطر')}</th>
+                             <th>${t('riskassessment.col_assessment_date', 'تاريخ التقييم')}</th>
+                             <th>${t('riskassessment.col_status', 'الحالة')}</th>
+                             <th class="text-right">${t('riskassessment.col_actions', 'الإجراءات')}</th>
+                         </tr>
+                     </thead>
                     <tbody id="risk-assessment-table-body">
                         ${assessments.map(buildRow).join('')}
                     </tbody>
@@ -425,24 +430,24 @@ const RiskAssessment = (() => {
 
         summaryRoot.innerHTML = `
             <div class="bg-white border border-gray-100 rounded-lg p-4 shadow-sm">
-                <div class="text-sm text-gray-500 mb-2">إجمالي التقييمات</div>
+                 <div class="text-sm text-gray-500 mb-2">${t('riskassessment.total_assessments', 'إجمالي التقييمات')}</div>
                 <div class="text-3xl font-bold text-gray-800">${total}</div>
             </div>
             <div class="bg-white border border-gray-100 rounded-lg p-4 shadow-sm">
                 <div class="flex items-center justify-between">
                     <div>
-                        <div class="text-sm text-gray-500 mb-2">يتطلب إجراء</div>
+                         <div class="text-sm text-gray-500 mb-2">${t('riskassessment.requires_action', 'يتطلب إجراء')}</div>
                         <div class="text-2xl font-semibold text-red-600">${requiresAction}</div>
                     </div>
                     <span class="badge badge-danger">${((requiresAction / (total || 1)) * 100).toFixed(0)}%</span>
                 </div>
             </div>
             <div class="bg-white border border-gray-100 rounded-lg p-4 shadow-sm">
-                <div class="text-sm text-gray-500 mb-2">مكتمل</div>
+                 <div class="text-sm text-gray-500 mb-2">${t('riskassessment.completed', 'مكتمل')}</div>
                 <div class="text-2xl font-semibold text-emerald-600">${completed}</div>
             </div>
             <div class="bg-white border border-gray-100 rounded-lg p-4 shadow-sm">
-                <div class="text-sm text-gray-500 mb-2">مخاطر عالية/حرجة</div>
+                 <div class="text-sm text-gray-500 mb-2">${t('riskassessment.high_critical_risk', 'مخاطر عالية/حرجة')}</div>
                 <div class="text-2xl font-semibold text-orange-600">${highRisk}</div>
                 ${lastUpdated ? `<div class="text-xs text-gray-400 mt-2">
                     <i class="fas fa-history ml-1"></i> آخر تحديث ${toArabicDate(lastUpdated)}
@@ -581,12 +586,12 @@ const RiskAssessment = (() => {
                                     <div class="card-body">
                                         <div class="empty-state">
                                             <i class="fas fa-exclamation-triangle text-yellow-500 text-4xl mb-4"></i>
-                                            <p class="text-gray-500 mb-2">حدث خطأ أثناء تحميل البيانات</p>
-                                            <p class="text-sm text-gray-400 mb-4">${error && error.message ? Utils.escapeHTML(error.message) : 'خطأ غير معروف'}</p>
-                                            <button onclick="RiskAssessment.load()" class="btn-primary">
-                                                <i class="fas fa-redo ml-2"></i>
-                                                إعادة المحاولة
-                                            </button>
+                                             <p class="text-gray-500 mb-2">${t('riskassessment.error_loading_data', 'حدث خطأ أثناء تحميل البيانات')}</p>
+                                             <p class="text-sm text-gray-400 mb-4">${error && error.message ? Utils.escapeHTML(error.message) : t('riskassessment.unknown_error', 'خطأ غير معروف')}</p>
+                                             <button onclick="RiskAssessment.load()" class="btn-primary">
+                                                 <i class="fas fa-redo ml-2"></i>
+                                                 ${t('riskassessment.btn_retry', 'إعادة المحاولة')}
+                                             </button>
                                         </div>
                                     </div>
                                 </div>
@@ -607,10 +612,10 @@ const RiskAssessment = (() => {
                     section.innerHTML = `
                         <div class="section-header">
                             <div>
-                                <h1 class="section-title">
-                                    <i class="fas fa-shield-alt ml-3"></i>
-                                    تقييم المخاطر
-                                </h1>
+                                 <h1 class="section-title">
+                                     <i class="fas fa-shield-alt ml-3"></i>
+                                     ${t('riskassessment.section_title', 'تقييم المخاطر')}
+                                 </h1>
                             </div>
                         </div>
                         <div class="mt-6">
@@ -618,12 +623,12 @@ const RiskAssessment = (() => {
                                 <div class="card-body">
                                     <div class="empty-state">
                                         <i class="fas fa-exclamation-triangle text-yellow-500 text-4xl mb-4"></i>
-                                        <p class="text-gray-500 mb-2">حدث خطأ أثناء تحميل البيانات</p>
-                                        <p class="text-sm text-gray-400 mb-4">${error && error.message ? Utils.escapeHTML(error.message) : 'خطأ غير معروف'}</p>
-                                        <button onclick="RiskAssessment.load()" class="btn-primary">
-                                            <i class="fas fa-redo ml-2"></i>
-                                            إعادة المحاولة
-                                        </button>
+                                         <p class="text-gray-500 mb-2">${t('riskassessment.error_loading_data', 'حدث خطأ أثناء تحميل البيانات')}</p>
+                                         <p class="text-sm text-gray-400 mb-4">${error && error.message ? Utils.escapeHTML(error.message) : t('riskassessment.unknown_error', 'خطأ غير معروف')}</p>
+                                         <button onclick="RiskAssessment.load()" class="btn-primary">
+                                             <i class="fas fa-redo ml-2"></i>
+                                             ${t('riskassessment.btn_retry', 'إعادة المحاولة')}
+                                         </button>
                                     </div>
                                 </div>
                             </div>
