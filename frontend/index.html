@@ -10484,6 +10484,16 @@
                         <span data-i18n="nav.iso">نظام ISO</span>
                     </a>
                     <a
+                        href="#compliance-reports"
+                        class="nav-item"
+                        data-section="compliance-reports"
+                        role="menuitem"
+                        title="تقارير الامتثال"
+                    >
+                        <i class="fas fa-file-shield" aria-hidden="true"></i>
+                        <span data-i18n="nav.compliance">تقارير الامتثال</span>
+                    </a>
+                    <a
                         href="#emergency"
                         class="nav-item"
                         data-section="emergency"
@@ -12446,6 +12456,12 @@
                         aria-label="قسم نظام ISO"
                     ></section>
                     <section
+                        id="compliance-reports-section"
+                        class="section"
+                        role="region"
+                        aria-label="قسم تقارير الامتثال"
+                    ></section>
+                    <section
                         id="emergency-section"
                         class="section"
                         role="region"
@@ -12873,6 +12889,7 @@
         <script src="js/saas/saas-org-sites.js" defer></script>
         <script src="js/saas/saas-capa.js" defer></script>
         <script src="js/saas/saas-notify.js" defer></script>
+        <script src="js/saas/saas-enterprise-stubs.js" defer></script>
         <script src="js/saas/saas-tenant-cache.js" defer></script>
         <script src="js/saas/saas-session.js" defer></script>
         <script src="js/saas/plan-gating.js" defer></script>
@@ -13089,7 +13106,7 @@
                     }
 
                     // bump-version.mjs يحدث هذه القيمة تلقائياً
-                    const __SW_REGISTER_QUERY = "v=hse-app-v2.2.153-20260729";
+                    const __SW_REGISTER_QUERY = "v=hse-app-v2.2.154-20260729";
                     const swUrl =
                         swPath +
                         (swPath.includes("?") ? "&" : "?") +

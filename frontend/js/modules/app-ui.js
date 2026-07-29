@@ -6946,6 +6946,13 @@ window.UI = {
                         }
                     }
                     break;
+                case 'compliance-reports':
+                    if (typeof ComplianceReports !== 'undefined' && ComplianceReports.load) {
+                        ComplianceReports.load();
+                    } else if (!silent) {
+                        Utils.safeError('❌ موديول تقارير الامتثال غير متوفر');
+                    }
+                    break;
                 case 'emergency':
                     if (typeof Emergency !== 'undefined' && Emergency.load) {
                         Emergency.load();
@@ -10551,6 +10558,7 @@ window.UI = {
                 'nav.chemical': 'المواد الكيميائية',
                 'nav.observations': 'الملاحظات اليومية',
                 'nav.iso': 'نظام ISO',
+                'nav.compliance': 'تقارير الامتثال',
                 'nav.emergency': 'تنبيهات الطوارئ',
                 'nav.risk': 'تقييم المخاطر',
                 'nav.sop': 'تعليمات السلامة SOP-JHA',
@@ -10645,6 +10653,7 @@ window.UI = {
                 'nav.chemical': 'Chemical Safety',
                 'nav.observations': 'Daily Observations',
                 'nav.iso': 'ISO System',
+                'nav.compliance': 'Compliance Reports',
                 'nav.emergency': 'Emergency Alerts',
                 'nav.risk': 'Risk Assessment',
                 'nav.sop': 'Safety Instructions SOP-JHA',

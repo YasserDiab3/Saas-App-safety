@@ -1357,6 +1357,9 @@ const NearMiss = {
                     <button class="btn-secondary" type="button" data-action="create-capa" data-id="${record.id}">
                         <i class="fas fa-clipboard-check ml-2"></i>إنشاء CAPA
                     </button>
+                    <button class="btn-secondary" type="button" data-action="ai-assist" data-id="${record.id}">
+                        <i class="fas fa-robot ml-2"></i>اقتراح AI
+                    </button>
                     <button class="btn-secondary" data-action="detail-print" data-id="${record.id}">
                         <i class="fas fa-print ml-2"></i>
                         طباعة
@@ -1394,6 +1397,25 @@ const NearMiss = {
                 const id = capaBtn.getAttribute('data-id');
                 const rec = (AppState.appData.nearmiss || []).find((r) => String(r.id) === String(id));
                 if (rec) SaaSCAPA.promptCreateFromRecord('nearmiss', rec);
+            });
+        }
+        const aiBtn = modal.querySelector('[data-action="ai-assist"]');
+        if (aiBtn && window.IncidentAIAssist) {
+            aiBtn.addEventListener('click', () => {
+                const id = aiBtn.getAttribute('data-id');
+                const rec = (AppState.appData.nearmiss || []).find((r) => String(r.id) === String(id));
+                if (!rec) return;
+                IncidentAIAssist.suggestForForm(
+                    () => rec.description || rec.type || '',
+                    (result) => {
+                        if (result && result.draftCapa && window.SaaSCAPA) {
+                            SaaSCAPA.createFromSource('nearmiss', rec, {
+                                action: result.draftCapa,
+                                fields: { riskRating: result.severity === 'كارثي' || result.severity === 'عالي' ? 'High' : 'Medium' }
+                            });
+                        }
+                    }
+                );
             });
         }
 

@@ -1732,6 +1732,9 @@ const ISO = {
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn-secondary" onclick="this.closest('.modal-overlay').remove()">إغلاق</button>
+                    <button type="button" class="btn-secondary" onclick="window.SaaSCAPA&&SaaSCAPA.promptCreateFromRecord('iso-audit', (AppState.appData.hseAudits||[]).find(a=>String(a.id)==='${audit.id}'))">
+                        <i class="fas fa-clipboard-check ml-2"></i>إنشاء CAPA
+                    </button>
                 </div>
             </div>
         `;

@@ -650,6 +650,37 @@
                     tips: ['Content managed by platform administrator.'] }
             ),
 
+            guide('encrypted-backup-restore', 'settings', 'fa-shield-halved', 90, 'admin',
+                'النسخ الاحتياطي المشفّر والاستعادة', 'Encrypted backup & restore',
+                {
+                    purpose: 'تصدير واستيراد بيانات المؤسسة بملف <code>.hsebackup</code> مشفّر بعبارة مرور تختارها أنت.',
+                    access: 'الإعدادات → النسخ الاحتياطي والبيانات التجريبية (مدير المؤسسة).',
+                    steps: [
+                        'افتح الإعدادات بصلاحية Owner/Admin.',
+                        'اختر <strong>تصدير نسخة مشفّرة</strong> وأدخل عبارة مرور ≥ 8 أحرف (واحفظها بأمان).',
+                        'للاستيراد: اختر الملف ثم أدخل <strong>نفس</strong> عبارة المرور.',
+                        'الاستيراد لا يستبدل حسابات المستخدمين.',
+                        'فعّل تذكير النسخة الشهرية من تفضيلات الإشعارات.'
+                    ],
+                    tips: [
+                        'عبارة المرور ليست كلمة دخول النظام — تُستخدم فقط لفك تشفير الملف.',
+                        'اختبر الاستعادة على بيئة تجريبية عند الإمكان قبل الاعتماد الكامل.'
+                    ]
+                },
+                {
+                    purpose: 'Export/import org data as an encrypted <code>.hsebackup</code> file with your passphrase.',
+                    access: 'Settings → Backup (org admin).',
+                    steps: [
+                        'Open Settings as owner/admin.',
+                        'Export encrypted backup and choose a passphrase (≥ 8 chars).',
+                        'To restore: select the file and enter the same passphrase.',
+                        'Import does not replace user accounts.',
+                        'Enable monthly backup reminder in notification prefs.'
+                    ],
+                    tips: ['Passphrase is not your login password.', 'Test restore when possible.']
+                }
+            ),
+
             guide('support', '', 'fa-headset', 99, 'getting-started', 'الدعم الفني', 'Technical Support',
                 {
                     purpose: 'الحصول على مساعدة إضافية.',

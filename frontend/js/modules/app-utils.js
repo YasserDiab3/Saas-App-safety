@@ -2929,7 +2929,7 @@ const DEFAULT_COMPANY_NAME = '';
 
 const AppState = {
     /** fallback فقط — المصدر الرسمي: frontend/version.json (يُحدَّث عبر saas-version.js) */
-    appVersion: '2.2.153',
+    appVersion: '2.2.155',
     /** نص اختياري لرسالة التحديث (ملخص التغييرات). إن تُركت فارغة يُستخدم النص الافتراضي. */
     updateMessage: '',
     debugMode: false,
@@ -3022,6 +3022,7 @@ const AppState = {
         orgDepartments: [], // الأقسام حسب الموقع
         notificationPrefs: [], // تفضيلات إشعارات المستأجر
         complianceChecklists: [], // قوائم تحقق امتثال (ISO 45001 خفيفة)
+        webhookEndpoints: [], // Webhooks صادرة (enterprise stub)
         companySettings: [], // إعدادات الشركة / onboarding
         safetyBudgets: [], // تعريفات الميزانية المعتمدة
         safetyBudgetTransactions: [], // عمليات الصرف ومتابعة الإنفاق

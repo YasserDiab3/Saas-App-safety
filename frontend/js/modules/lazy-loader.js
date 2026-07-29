@@ -39,6 +39,7 @@ const LazyLoader = {
         'chemical-safety': { name: 'ChemicalSafety', required: false, priority: 3 },
         'daily-observations': { name: 'DailyObservations', required: false, priority: 3 },
         'iso': { name: 'ISO', required: false, priority: 3 },
+        'compliance-reports': { name: 'ComplianceReports', required: false, priority: 3 },
         'emergency': { name: 'Emergency', required: false, priority: 3 },
         'risk-assessment': { name: 'RiskAssessment', required: false, priority: 3 },
         'sop-jha': { name: 'SOPJHA', required: false, priority: 3 },

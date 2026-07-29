@@ -683,6 +683,7 @@ const Settings = {
 
                         <div id="hse-org-sites-host"></div>
                         <div id="hse-notify-prefs-host"></div>
+                        <div id="hse-enterprise-host"></div>
                         <div id="hse-compliance-host"></div>
 
                         <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
@@ -1407,6 +1408,7 @@ const Settings = {
             try {
                 if (window.SaaSOrgSites) SaaSOrgSites.renderSettingsPanel(document.getElementById('hse-org-sites-host'));
                 if (window.SaaSNotify) SaaSNotify.renderPrefsPanel(document.getElementById('hse-notify-prefs-host'));
+                if (window.SaaSEnterpriseStubs) SaaSEnterpriseStubs.renderEnterprisePanel(document.getElementById('hse-enterprise-host'));
                 if (window.ComplianceReports) ComplianceReports.renderInto(document.getElementById('hse-compliance-host'));
             } catch (_e) { /* panels optional */ }
 

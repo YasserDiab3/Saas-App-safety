@@ -180,6 +180,22 @@
                 </tbody>
               </table>
             </div>
+            <hr class="my-4"/>
+            <h5 class="font-semibold mb-2">الأقسام (حسب الموقع)</h5>
+            <div class="flex flex-wrap gap-2 mb-3">
+              <select id="hse-dept-site" class="form-input">${optionsHtml('')}</select>
+              <input id="hse-dept-name" class="form-input" placeholder="اسم القسم" style="min-width:160px" />
+              <button type="button" id="hse-dept-add-btn" class="btn-secondary">إضافة قسم</button>
+            </div>
+            <ul class="text-sm space-y-1" id="hse-dept-list">
+              ${listDepartments().map((d) => {
+                const site = getSite(d.siteId);
+                return `<li class="flex justify-between gap-2 border rounded p-2">
+                  <span>${escapeHtml(d.name)} <span class="hse-site-chip">${escapeHtml((site && site.name) || d.siteId || '')}</span></span>
+                  <button type="button" class="btn-secondary hse-dept-del" data-id="${escapeAttr(d.id)}">حذف</button>
+                </li>`;
+              }).join('') || '<li class="text-gray-500">لا أقسام بعد</li>'}
+            </ul>
           </div>`;
         const addBtn = container.querySelector('#hse-site-add-btn');
         if (addBtn) {
@@ -202,6 +218,35 @@
             btn.addEventListener('click', async () => {
                 if (!confirm('حذف هذا الموقع؟')) return;
                 await deleteSite(btn.getAttribute('data-id'));
+                renderSettingsPanel(container);
+            });
+        });
+        const deptAdd = container.querySelector('#hse-dept-add-btn');
+        if (deptAdd) {
+            deptAdd.addEventListener('click', async () => {
+                ensureArrays();
+                const name = container.querySelector('#hse-dept-name')?.value?.trim();
+                const siteId = container.querySelector('#hse-dept-site')?.value || '';
+                if (!name) return;
+                const row = {
+                    id: 'DEPT-' + Date.now().toString(36).toUpperCase(),
+                    name,
+                    siteId,
+                    createdAt: new Date().toISOString()
+                };
+                AppState.appData.orgDepartments.push(row);
+                if (global.Backend && Backend.autoSave) await Backend.autoSave(DEPT_SHEET, AppState.appData.orgDepartments);
+                else if (global.DataManager) DataManager.save();
+                renderSettingsPanel(container);
+            });
+        }
+        container.querySelectorAll('.hse-dept-del').forEach((btn) => {
+            btn.addEventListener('click', async () => {
+                ensureArrays();
+                const id = btn.getAttribute('data-id');
+                AppState.appData.orgDepartments = AppState.appData.orgDepartments.filter((d) => String(d.id) !== String(id));
+                if (global.Backend && Backend.autoSave) await Backend.autoSave(DEPT_SHEET, AppState.appData.orgDepartments);
+                else if (global.DataManager) DataManager.save();
                 renderSettingsPanel(container);
             });
         });

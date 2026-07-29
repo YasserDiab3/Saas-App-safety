@@ -1684,6 +1684,7 @@ const Backend = {
                 'NotificationPrefs': 'notificationPrefs',
                 'ComplianceChecklists': 'complianceChecklists',
                 'CompanySettings': 'companySettings',
+                'WebhookEndpoints': 'webhookEndpoints',
                 'AuditLog': 'auditLog',
                 'UserActivityLog': 'user_activity_log'
             };

@@ -78,6 +78,19 @@ const ComplianceReports = {
         if (window.SaaSCAPA) SaaSCAPA.renderOverdueWidget(container.querySelector('#hse-capa-overdue-widget'));
     },
 
+    /** Full-section entry used by sidebar navigation. */
+    load() {
+        const section = document.getElementById('compliance-reports-section');
+        if (!section) return;
+        section.innerHTML = `
+          <div class="section-header mb-4">
+            <h1 class="section-title"><i class="fas fa-file-shield ml-2"></i>تقارير الامتثال</h1>
+            <p class="section-subtitle">ملخص امتثال شهري، قوائم ISO 45001، ومتابعة CAPA المتأخر</p>
+          </div>
+          <div id="compliance-reports-host"></div>`;
+        this.renderInto(section.querySelector('#compliance-reports-host'));
+    },
+
     esc(s) {
         return String(s || '').replace(/</g, '&lt;');
     },

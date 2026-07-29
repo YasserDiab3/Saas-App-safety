@@ -99,6 +99,25 @@
         htmlFooter,
         spreadsheetBannerRows,
         wrapPrintHtml,
-        formatStamp
+        formatStamp,
+        /** Prefer branded wrap when FormHeader is unavailable or opt-in. */
+        enhanceFormHeader() {
+            try {
+                if (!global.FormHeader || typeof FormHeader.generatePDFHTML !== 'function') return;
+                if (FormHeader.__hseBrandWrapped) return;
+                const orig = FormHeader.generatePDFHTML.bind(FormHeader);
+                FormHeader.generatePDFHTML = function (formCode, title, content, a, b, c, d, e) {
+                    const body = `${htmlHeader(title || formCode)}${content || ''}${htmlFooter()}`;
+                    return orig(formCode, title, body, a, b, c, d, e);
+                };
+                FormHeader.__hseBrandWrapped = true;
+            } catch (_e) { /* ignore */ }
+        }
     };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => setTimeout(() => global.SaaSReportBrand.enhanceFormHeader(), 800));
+    } else {
+        setTimeout(() => global.SaaSReportBrand.enhanceFormHeader(), 800);
+    }
 })(window);
