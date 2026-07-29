@@ -251,6 +251,7 @@ const MODULE_PERMISSIONS_CONFIG = [
     { key: 'chemical-safety', label: 'السلامة الكيميائية', icon: 'fa-flask' },
     { key: 'daily-observations', label: 'الملاحظات اليومية', icon: 'fa-eye', hasDetailedPermissions: true },
     { key: 'iso', label: 'نظام ISO', icon: 'fa-certificate' },
+    { key: 'compliance-reports', label: 'تقارير الامتثال', icon: 'fa-file-shield', parentModule: 'iso' },
     { key: 'emergency', label: 'تنبيهات الطوارئ', icon: 'fa-bell' },
     { key: 'safety-calendar', label: 'تقويم السلامة', icon: 'fa-calendar-days' },
     { key: 'risk-assessment', label: 'تقييم المخاطر', icon: 'fa-balance-scale' },
@@ -1864,6 +1865,25 @@ const Permissions = {
      * @param {string} moduleName - اسم الموديول
      * @returns {boolean} - true إذا كان لديه صلاحية، false إذا لم يكن لديه صلاحية
      */
+    /** Site IDs allowed for user; null = all sites (admin / unrestricted legacy). */
+    getAllowedSiteIds(user = AppState.currentUser) {
+        if (typeof window !== 'undefined' && window.SaaSOrgSites && typeof SaaSOrgSites.allowedSiteIds === 'function') {
+            return SaaSOrgSites.allowedSiteIds(user);
+        }
+        if (!user) return null;
+        if (this.isCurrentUserEffectiveAdmin(user)) return null;
+        const raw = user.allowedSites || user.siteIds || [];
+        if (!Array.isArray(raw) || raw.length === 0) return null;
+        return raw.map(String);
+    },
+
+    filterByAllowedSites(records, user = AppState.currentUser) {
+        if (typeof window !== 'undefined' && window.SaaSOrgSites && typeof SaaSOrgSites.filterBySite === 'function') {
+            return SaaSOrgSites.filterBySite(records);
+        }
+        return Array.isArray(records) ? records : [];
+    },
+
     hasAccess(moduleName) {
         const user = AppState.currentUser;
         if (!user) {
@@ -1876,6 +1896,10 @@ const Permissions = {
         // ملفي الشخصي متاح دائماً لأي مستخدم مسجل الدخول
         if (moduleName === 'profile') {
             return true;
+        }
+
+        if (moduleName === 'compliance-reports') {
+            return this.hasAccess('iso') || this.hasAccess('action-tracking') || this.isCurrentUserEffectiveAdmin(user);
         }
 
         // مديولات أساسية — متاحة لكل مستخدم مسجل (مطابقة plan-gating CORE و app.core_module_keys)
@@ -2905,7 +2929,7 @@ const DEFAULT_COMPANY_NAME = '';
 
 const AppState = {
     /** fallback فقط — المصدر الرسمي: frontend/version.json (يُحدَّث عبر saas-version.js) */
-    appVersion: '2.2.149',
+    appVersion: '2.2.151',
     /** نص اختياري لرسالة التحديث (ملخص التغييرات). إن تُركت فارغة يُستخدم النص الافتراضي. */
     updateMessage: '',
     debugMode: false,
@@ -2994,6 +3018,11 @@ const AppState = {
         employeePPEMatrix: {}, // مصوة مهمات الوقاية لكل موظف حسب الوظيفة
         employeePPEMatrixByCode: {}, // مصفوفة مهمات الوقاية لكل موظف مرتبطة بالكود الوظيي
         actionTrackingRegister: [], // سجل متابعة الإجراءات
+        orgSites: [], // المواقع التنظيمية (Company → Site)
+        orgDepartments: [], // الأقسام حسب الموقع
+        notificationPrefs: [], // تفضيلات إشعارات المستأجر
+        complianceChecklists: [], // قوائم تحقق امتثال (ISO 45001 خفيفة)
+        companySettings: [], // إعدادات الشركة / onboarding
         safetyBudgets: [], // تعريفات الميزانية المعتمدة
         safetyBudgetTransactions: [], // عمليات الصرف ومتابعة الإنفاق
         workflows: [], // سير العمل والموافقات

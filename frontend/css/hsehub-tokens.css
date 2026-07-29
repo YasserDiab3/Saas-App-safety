@@ -1,0 +1,162 @@
+/* HSEHub 360 — product design tokens (world-class identity layer) */
+:root {
+    --hse-navy: #0b2a4a;
+    --hse-navy-mid: #13315c;
+    --hse-navy-light: #1a4a7a;
+    --hse-teal: #0d9488;
+    --hse-teal-soft: #ccfbf1;
+    --hse-amber: #d97706;
+    --hse-danger: #b91c1c;
+    --hse-success: #047857;
+    --hse-surface: #f7f9fc;
+    --hse-ink: #0f172a;
+    --hse-muted: #64748b;
+    --hse-border: #e2e8f0;
+    --hse-radius: 12px;
+    --hse-radius-sm: 8px;
+    --hse-font-display: "Segoe UI", "Tahoma", "Arial", sans-serif;
+    --hse-font-body: "Segoe UI", "Tahoma", "Arial", sans-serif;
+    --hse-shadow: 0 8px 24px rgba(11, 42, 74, 0.08);
+
+    /* Align legacy tokens with brand */
+    --primary-color: var(--hse-navy-mid);
+    --primary-dark: var(--hse-navy);
+    --primary-light: var(--hse-navy-light);
+    --success-color: var(--hse-success);
+    --warning-color: var(--hse-amber);
+    --danger-color: var(--hse-danger);
+    --sidebar-bg: linear-gradient(180deg, var(--hse-navy) 0%, var(--hse-navy-mid) 55%, var(--hse-navy) 100%);
+    --login-bg: linear-gradient(135deg, var(--hse-navy) 0%, var(--hse-navy-light) 100%);
+}
+
+.hse-trust-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin: 14px 0 4px;
+    padding: 10px 8px;
+    border-top: 1px solid var(--hse-border);
+}
+.hse-trust-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--hse-muted);
+    background: var(--hse-surface);
+    border: 1px solid var(--hse-border);
+    border-radius: 999px;
+    padding: 4px 10px;
+    line-height: 1.3;
+}
+.hse-trust-chip strong { color: var(--hse-navy-mid); font-weight: 600; }
+
+.hse-empty-state {
+    text-align: center;
+    padding: 2.5rem 1.25rem;
+    color: var(--hse-muted);
+    background: var(--hse-surface);
+    border: 1px dashed var(--hse-border);
+    border-radius: var(--hse-radius);
+}
+.hse-empty-state__title {
+    color: var(--hse-ink);
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin: 0 0 0.35rem;
+}
+.hse-empty-state__hint { margin: 0; font-size: 0.9rem; }
+
+.hse-danger-zone {
+    border: 1px solid #fecaca;
+    border-radius: var(--hse-radius);
+    background: #fff;
+    box-shadow: var(--hse-shadow);
+}
+
+.hse-onboarding-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10050;
+    background: rgba(11, 42, 74, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+}
+.hse-onboarding-card {
+    width: min(560px, 100%);
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    font-family: var(--hse-font-body);
+}
+.hse-onboarding-card__head {
+    background: linear-gradient(135deg, var(--hse-navy), var(--hse-navy-light));
+    color: #fff;
+    padding: 18px 20px;
+}
+.hse-onboarding-card__body { padding: 18px 20px; }
+.hse-onboarding-card__foot {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 12px 20px 18px;
+    border-top: 1px solid var(--hse-border);
+}
+.hse-onboarding-steps {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 14px;
+}
+.hse-onboarding-steps span {
+    flex: 1;
+    height: 4px;
+    border-radius: 4px;
+    background: #e2e8f0;
+}
+.hse-onboarding-steps span.is-active { background: var(--hse-teal); }
+.hse-onboarding-steps span.is-done { background: var(--hse-navy-mid); }
+
+.hse-exec-board {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin: 12px 0 18px;
+}
+.hse-exec-card {
+    background: #fff;
+    border: 1px solid var(--hse-border);
+    border-radius: var(--hse-radius-sm);
+    padding: 14px;
+    box-shadow: var(--hse-shadow);
+}
+.hse-exec-card__label {
+    font-size: 12px;
+    color: var(--hse-muted);
+    margin-bottom: 6px;
+}
+.hse-exec-card__value {
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: var(--hse-navy);
+    font-variant-numeric: tabular-nums;
+}
+.hse-site-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: var(--hse-teal-soft);
+    color: #115e59;
+}
+
+#hse-compliance-section,
+#hse-org-sites-panel,
+#hse-notify-prefs-panel {
+    margin-top: 1rem;
+}

@@ -666,7 +666,7 @@ const Settings = {
                             </div>
                         </div>
 
-                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-red-200">
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-red-200 hse-danger-zone">
                             <h4 class="text-lg font-semibold mb-2 flex items-center text-red-700">
                                 <i class="fas fa-exclamation-triangle ml-2"></i>
                                 منطقة خطر
@@ -678,6 +678,32 @@ const Settings = {
                             <button type="button" id="hse-ops-wipe-btn" class="btn-danger">
                                 <i class="fas fa-bomb ml-2"></i>مسح بيانات التشغيل
                             </button>
+                        </div>
+
+                        <div id="hse-org-sites-host"></div>
+                        <div id="hse-notify-prefs-host"></div>
+                        <div id="hse-compliance-host"></div>
+
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                            <h4 class="text-lg font-semibold mb-2 flex items-center">
+                                <i class="fas fa-file-export ml-2 text-slate-700"></i>
+                                تصدير أدلة التدقيق (Evidence)
+                            </h4>
+                            <p class="text-sm text-gray-600 mb-3">تصدير CSV لأحداث التدقيق الحساسة لفترة زمنية (مدير المؤسسة).</p>
+                            <div class="flex flex-wrap gap-2 items-end">
+                                <div>
+                                    <label class="text-xs text-gray-500">من</label>
+                                    <input type="date" id="hse-audit-from" class="form-input" />
+                                </div>
+                                <div>
+                                    <label class="text-xs text-gray-500">إلى</label>
+                                    <input type="date" id="hse-audit-to" class="form-input" />
+                                </div>
+                                <button type="button" id="hse-audit-export-btn" class="btn-secondary">
+                                    <i class="fas fa-download ml-2"></i>تصدير CSV
+                                </button>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-3">SSO / SAML للمؤسسات: قريباً — نقطة الربط مُعدّة في خارطة الأمان.</p>
                         </div>
                     </div>
                 </div>
@@ -1376,6 +1402,30 @@ const Settings = {
                 BackupUI.init();
             }, 500);
         }
+        setTimeout(() => {
+            try {
+                if (window.SaaSOrgSites) SaaSOrgSites.renderSettingsPanel(document.getElementById('hse-org-sites-host'));
+                if (window.SaaSNotify) SaaSNotify.renderPrefsPanel(document.getElementById('hse-notify-prefs-host'));
+                if (window.ComplianceReports) ComplianceReports.renderInto(document.getElementById('hse-compliance-host'));
+            } catch (_e) { /* panels optional */ }
+
+            const auditBtn = document.getElementById('hse-audit-export-btn');
+            if (auditBtn && !auditBtn.dataset.bound) {
+                auditBtn.dataset.bound = '1';
+                auditBtn.addEventListener('click', () => {
+                    const from = document.getElementById('hse-audit-from')?.value || '';
+                    const to = document.getElementById('hse-audit-to')?.value || '';
+                    const fromIso = from ? from + 'T00:00:00.000Z' : '';
+                    const toIso = to ? to + 'T23:59:59.999Z' : '';
+                    if (typeof AuditLog !== 'undefined' && AuditLog.exportEvidencePack) {
+                        const n = AuditLog.exportEvidencePack(fromIso, toIso);
+                        if (typeof Notification !== 'undefined' && Notification.success) {
+                            Notification.success(`تم تصدير ${n} حدث تدقيق`);
+                        }
+                    }
+                });
+            }
+        }, 600);
         setTimeout(() => {
             // أزرار التقارير
             const generateIncidentsBtn = document.getElementById('generate-incidents-report-btn');
@@ -3756,7 +3806,9 @@ const Settings = {
 
         const hasSettingsAccess = this.hasAccessForUser(user, 'settings');
         const permissions = user.permissions || {};
-        const allModules = [
+        const allModules = (typeof MODULE_PERMISSIONS_CONFIG !== 'undefined' && Array.isArray(MODULE_PERMISSIONS_CONFIG))
+            ? MODULE_PERMISSIONS_CONFIG.map((m) => ({ key: m.key, label: m.label }))
+            : [
             { key: 'dashboard', label: 'لوحة التحكم' },
             { key: 'incidents', label: 'الحوادث' },
             { key: 'nearmiss', label: 'الحوادث الوشيكة' },
@@ -3773,6 +3825,10 @@ const Settings = {
             { key: 'daily-observations', label: 'الملاحظات اليومية' },
             { key: 'iso', label: 'نظام ISO' },
             { key: 'emergency', label: 'تنبيهات الطوارئ' },
+            { key: 'action-tracking', label: 'متابعة الإجراءات / CAPA' },
+            { key: 'change-management', label: 'إدارة التغيرات' },
+            { key: 'safety-performance-kpis', label: 'مؤشرات الأداء' },
+            { key: 'safety-calendar', label: 'تقويم السلامة' },
             { key: 'users', label: 'المستخدمين' },
             { key: 'settings', label: 'الإعدادات' }
         ];

@@ -1346,6 +1346,9 @@ const NearMiss = {
                 </div>
                 <div class="modal-footer">
                     <button class="btn-secondary" data-action="close-modal">إغلاق</button>
+                    <button class="btn-secondary" type="button" data-action="create-capa" data-id="${record.id}">
+                        <i class="fas fa-clipboard-check ml-2"></i>إنشاء CAPA
+                    </button>
                     <button class="btn-secondary" data-action="detail-print" data-id="${record.id}">
                         <i class="fas fa-print ml-2"></i>
                         طباعة
@@ -1375,6 +1378,14 @@ const NearMiss = {
             printBtn.addEventListener('click', () => {
                 const recordId = printBtn.getAttribute('data-id');
                 this.printNearMiss(recordId);
+            });
+        }
+        const capaBtn = modal.querySelector('[data-action="create-capa"]');
+        if (capaBtn && window.SaaSCAPA) {
+            capaBtn.addEventListener('click', () => {
+                const id = capaBtn.getAttribute('data-id');
+                const rec = (AppState.appData.nearmiss || []).find((r) => String(r.id) === String(id));
+                if (rec) SaaSCAPA.promptCreateFromRecord('nearmiss', rec);
             });
         }
 

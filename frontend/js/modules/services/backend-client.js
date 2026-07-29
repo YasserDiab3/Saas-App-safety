@@ -1679,6 +1679,12 @@ const Backend = {
                 'SafetyBudgetPurchaseOrders': 'safetyBudgetPurchaseOrders',
                 'SafetyPerformanceKPIs': 'safetyPerformanceKPIs',
                 'ActionTrackingRegister': 'actionTrackingRegister',
+                'OrgSites': 'orgSites',
+                'OrgDepartments': 'orgDepartments',
+                'NotificationPrefs': 'notificationPrefs',
+                'ComplianceChecklists': 'complianceChecklists',
+                'CompanySettings': 'companySettings',
+                'AuditLog': 'auditLog',
                 'UserActivityLog': 'user_activity_log'
             };
 

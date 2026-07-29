@@ -3245,12 +3245,27 @@ const Dashboard = {
         /* لا نزيل kpis-values-ready أبداً؛ الكروت تظهر مرة واحدة وتبقى ثابتة. التحديث بتغيير القيم (textContent) فقط دون إخفاء أو إعادة إنشاء عناصر. */
 
         try {
-            const incidents = Array.isArray(data.incidents) ? data.incidents : [];
+            const incidentsRaw = Array.isArray(data.incidents) ? data.incidents : [];
+            const incidents = (typeof Permissions !== 'undefined' && Permissions.filterByAllowedSites)
+                ? Permissions.filterByAllowedSites(incidentsRaw)
+                : (window.SaaSOrgSites ? SaaSOrgSites.filterBySite(incidentsRaw) : incidentsRaw);
             const users = Array.isArray(data.users) ? data.users : [];
             const ptwDataset = this.getUnifiedPTWDataset(data);
-            const nearmiss = Array.isArray(data.nearmiss) ? data.nearmiss : [];
+            const nearmissRaw = Array.isArray(data.nearmiss) ? data.nearmiss : [];
+            const nearmiss = (typeof Permissions !== 'undefined' && Permissions.filterByAllowedSites)
+                ? Permissions.filterByAllowedSites(nearmissRaw)
+                : (window.SaaSOrgSites ? SaaSOrgSites.filterBySite(nearmissRaw) : nearmissRaw);
             const employees = Array.isArray(data.employees) ? data.employees : [];
             const registryData = Array.isArray(data.incidentsRegistry) ? data.incidentsRegistry : [];
+
+            try {
+                const dashMain = document.querySelector('#dashboard-section .dashboard-content, #dashboard-section .kpi-grid, #dashboard-section');
+                if (window.ExecutiveKPI && dashMain) {
+                    const hostParent = document.querySelector('#dashboard-section .section-header')?.parentElement
+                        || document.getElementById('dashboard-section');
+                    if (hostParent) ExecutiveKPI.mount(hostParent);
+                }
+            } catch (_e) { /* optional */ }
 
             // حساب كل القيم دون المساس بـ DOM
             const totalIncidentsCount = (registryData && registryData.length > 0)

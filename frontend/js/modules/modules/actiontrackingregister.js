@@ -113,8 +113,13 @@ const ActionTrackingRegister = {
                             <i class="fas fa-plus ml-2"></i>
                             إضافة إجراء جديد
                         </button>
+                        <button id="capa-overdue-refresh-btn" class="btn-secondary" title="CAPA المتأخر">
+                            <i class="fas fa-clock ml-2"></i>
+                            متأخر
+                        </button>
                     </div>
                 </div>
+                <div id="atr-capa-overdue" class="mt-3"></div>
             </div>
             
             <!-- Navigation Tabs -->
@@ -308,7 +313,7 @@ const ActionTrackingRegister = {
                 'Training Gap': ['Lack of Training', 'Management System Failure', 'Other'],
                 'Documentation Issue': ['Inadequate Procedures', 'Management System Failure', 'Communication Gap', 'Other']
             },
-            statusList: ['Open', 'In Progress', 'Closed', 'Overdue'],
+            statusList: ['Open', 'In Progress', 'Pending Verification', 'Closed', 'Overdue'],
             riskRatingList: ['Low', 'Medium', 'High', 'Critical'],
             departmentList: ['Production', 'Maintenance', 'Quality', 'Safety', 'HR', 'Admin', 'Other'],
             locationList: ['Factory A', 'Factory B', 'Warehouse', 'Office', 'Other'],
@@ -958,7 +963,11 @@ const ActionTrackingRegister = {
     },
 
     filterItems(items, filters) {
-        return items.filter(action => {
+        let scoped = items;
+        if (window.SaaSOrgSites && typeof SaaSOrgSites.filterBySite === 'function') {
+            scoped = SaaSOrgSites.filterBySite(items);
+        }
+        return scoped.filter(action => {
             // البحث النصي
             const matchesSearch = !filters.search ||
                 (action.observationIssueHazard || '').toLowerCase().includes(filters.search) ||
@@ -1001,6 +1010,17 @@ const ActionTrackingRegister = {
         setTimeout(() => {
             const addBtn = document.getElementById('add-action-btn');
             if (addBtn) addBtn.addEventListener('click', () => this.showActionForm());
+
+            const overdueBtn = document.getElementById('capa-overdue-refresh-btn');
+            if (overdueBtn && !overdueBtn.dataset.bound) {
+                overdueBtn.dataset.bound = '1';
+                overdueBtn.addEventListener('click', () => {
+                    const el = document.getElementById('atr-capa-overdue');
+                    if (window.SaaSCAPA && el) SaaSCAPA.renderOverdueWidget(el);
+                });
+                const el = document.getElementById('atr-capa-overdue');
+                if (window.SaaSCAPA && el) SaaSCAPA.renderOverdueWidget(el);
+            }
 
             const settingsBtn = document.getElementById('action-settings-btn');
             if (settingsBtn) settingsBtn.addEventListener('click', () => this.switchView('settings'));
@@ -1288,6 +1308,16 @@ const ActionTrackingRegister = {
                                 </select>
                             </div>
                             <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">الموقع التنظيمي</label>
+                                <select id="action-site-id" class="form-input">
+                                    ${window.SaaSOrgSites ? SaaSOrgSites.optionsHtml(actionData?.siteId) : '<option value=\"\">—</option>'}
+                                </select>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">تحقق الفعالية (إلزامي قبل Closed)</label>
+                                <textarea id="action-effectiveness" class="form-input" rows="2" placeholder="ماذا تم التحقق منه بعد تنفيذ الإجراء؟">${Utils.escapeHTML(actionData?.effectivenessCheck || '')}</textarea>
+                            </div>
+                            <div>
                                 <label class="block text-sm font-semibold text-gray-700 mb-2">اسم صاحب الملاحظة *</label>
                                 <input type="text" id="action-observer-name" required class="form-input"
                                     value="${Utils.escapeHTML(actionData?.observerName || '')}" placeholder="اسم صاحب الملاحظة">
@@ -1406,6 +1436,13 @@ const ActionTrackingRegister = {
                 return;
             }
 
+            const effectivenessCheck = document.getElementById('action-effectiveness')?.value?.trim() || '';
+            const siteId = document.getElementById('action-site-id')?.value || '';
+            if ((status === 'Closed' || status === 'مغلق') && effectivenessCheck.length < 3) {
+                Notification.error('لا يمكن الإغلاق قبل إدخال تحقق الفعالية');
+                return;
+            }
+
             const formData = {
                 id: actionData?.id || 'ATR-' + Date.now().toString(36).toUpperCase(),
                 serialNumber: actionData?.serialNumber || '',
@@ -1417,10 +1454,16 @@ const ActionTrackingRegister = {
                 rootCause: rootCause,
                 department: department,
                 location: location,
+                siteId: siteId,
                 riskRating: riskRating,
                 responsible: responsible,
                 originalTargetDate: targetDate,
                 status: status,
+                capaLifecycle: status,
+                sourceType: actionData?.sourceType || '',
+                sourceId: actionData?.sourceId || '',
+                effectivenessCheck: effectivenessCheck,
+                requireEffectiveness: true,
                 observerName: observerName,
                 shift: shift,
                 createdAt: actionData?.createdAt || new Date().toISOString(),

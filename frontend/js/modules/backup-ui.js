@@ -348,6 +348,11 @@ const BackupUI = {
             }
             this.setStatus(`تم مسح بيانات التشغيل (${result.deleted || 0} سجل).`, 'ok');
             this.showNotification('تم مسح بيانات التشغيل', 'success');
+            try {
+                if (typeof AuditLog !== 'undefined' && AuditLog.log) {
+                    AuditLog.log('ops_wipe', 'settings', 'ops', { deleted: result.deleted || 0 });
+                }
+            } catch (_e) { /* ignore */ }
             setTimeout(() => location.reload(), 1200);
         } catch (e) {
             this.setStatus(e.message || String(e), 'err');

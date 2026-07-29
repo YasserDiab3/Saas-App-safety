@@ -1,5 +1,6 @@
 /* Import variables.css */
 @import url('variables.css');
+@import url('hsehub-tokens.css');
 
 /* Import base.css */
 @import url('base.css');

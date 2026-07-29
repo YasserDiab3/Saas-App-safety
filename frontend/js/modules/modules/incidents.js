@@ -8241,6 +8241,12 @@ const Incidents = {
                 </div>
                 <div class="modal-footer">
                     <button class="btn-secondary" onclick="this.closest('.modal-overlay').remove()">إغلاق</button>
+                    <button class="btn-secondary" type="button" onclick="window.SaaSCAPA&&SaaSCAPA.promptCreateFromRecord('incidents', (AppState.appData.incidents||[]).find(i=>String(i.id)==='${incident.id}'))">
+                        <i class="fas fa-clipboard-check ml-2"></i>إنشاء CAPA
+                    </button>
+                    <button class="btn-secondary" type="button" id="hse-incident-ai-btn-${incident.id}">
+                        <i class="fas fa-robot ml-2"></i>اقتراح AI
+                    </button>
                     <button class="btn-secondary" onclick="Incidents.exportPDF('${incident.id}');">
                         <i class="fas fa-file-pdf ml-2"></i>تصدير PDF
                     </button>
@@ -8268,6 +8274,22 @@ const Incidents = {
         modal.addEventListener('click', (e) => {
             if (e.target === modal) modal.remove();
         });
+        const aiBtn = modal.querySelector(`#hse-incident-ai-btn-${incident.id}`);
+        if (aiBtn && window.IncidentAIAssist) {
+            aiBtn.addEventListener('click', () => {
+                IncidentAIAssist.suggestForForm(
+                    () => incident.title || incident.description || incident.incidentDetails || '',
+                    (result) => {
+                        if (result && result.draftCapa && window.SaaSCAPA) {
+                            SaaSCAPA.createFromSource('incidents', incident, {
+                                action: result.draftCapa,
+                                fields: { riskRating: result.severity === 'كارثي' || result.severity === 'عالي' ? 'High' : 'Medium' }
+                            });
+                        }
+                    }
+                );
+            });
+        }
     },
 
     async deleteIncident(id) {

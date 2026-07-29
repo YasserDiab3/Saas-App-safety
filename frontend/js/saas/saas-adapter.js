@@ -426,6 +426,55 @@
             return Object.assign({ success: true }, res || {});
         }
 
+        if (action === 'enqueueNotification') {
+            const res = await rpc('api_enqueue_notification', {
+                p_event_key: (data && data.eventKey) || '',
+                p_title: (data && data.title) || '',
+                p_body: (data && data.body) || '',
+                p_record_id: (data && data.recordId) || null,
+                p_site_id: (data && data.siteId) || null,
+                p_channels: (data && data.channels) || [],
+                p_payload: Object.assign({}, (data && data.meta) || {}, {
+                    whatsappNumber: (data && data.whatsappNumber) || ''
+                })
+            });
+            if (res && res.success === false) return res;
+            return Object.assign({ success: true }, res || {});
+        }
+        if (action === 'enqueueInAppNotification') {
+            const uid = (data && data.userId) || null;
+            if (!uid) return { success: false, message: 'userId مطلوب' };
+            const res = await rpc('api_enqueue_in_app_notification', {
+                p_user_id: uid,
+                p_title: (data && data.title) || '',
+                p_body: (data && data.body) || ''
+            });
+            if (res && res.success === false) return res;
+            return Object.assign({ success: true }, res || {});
+        }
+        if (action === 'exportAuditEvidence') {
+            const from = (data && data.from) || '';
+            const to = (data && data.to) || '';
+            let rows = [];
+            try {
+                if (global.AuditLog && typeof AuditLog.getAll === 'function') {
+                    rows = AuditLog.getAll({});
+                } else {
+                    const sheet = await rpc('api_read_sheet', { p_sheet: 'AuditLog' });
+                    rows = Array.isArray(sheet) ? sheet : [];
+                }
+            } catch (_e) {
+                rows = [];
+            }
+            const filtered = (rows || []).filter((e) => {
+                const ts = String((e && e.timestamp) || '');
+                if (from && ts < from) return false;
+                if (to && ts > to) return false;
+                return true;
+            });
+            return { success: true, data: filtered, count: filtered.length };
+        }
+
         if (action === 'getCompanySettings') {
             const rows = await rpc('api_read_sheet', { p_sheet: 'CompanySettings' });
             if (rows && rows.success === false) return rows;

@@ -502,6 +502,26 @@ const Users = {
                             </select>
                         </div>
 
+                        <!-- Site scope -->
+                        <div class="form-section">
+                            <div class="form-section-title">
+                                <i class="fas fa-sitemap"></i>
+                                نطاق المواقع
+                            </div>
+                            <p class="form-field-hint" style="margin-top: -0.5rem; margin-bottom: 0.75rem;">
+                                اترك الكل بلا تحديد = الوصول لكل المواقع (أو سلوك المدير). التحديد يقيّد السجلات ذات siteId.
+                            </p>
+                            <div id="user-allowed-sites" class="grid grid-cols-2 gap-2">
+                                ${(typeof window !== 'undefined' && window.SaaSOrgSites ? SaaSOrgSites.listSites() : []).map((s) => {
+            const selected = Array.isArray(userData?.allowedSites) && userData.allowedSites.map(String).includes(String(s.id));
+            return `<label class="flex items-center gap-2 text-sm p-2 border rounded">
+              <input type="checkbox" class="user-site-cb" value="${String(s.id).replace(/"/g, '')}" ${selected ? 'checked' : ''}/>
+              ${String(s.name || s.id).replace(/</g, '&lt;')}
+            </label>`;
+        }).join('') || '<p class="text-sm text-gray-500">لا مواقع بعد — أضفها من الإعدادات.</p>'}
+                            </div>
+                        </div>
+
                         <!-- Module Permissions -->
                         <div class="form-section">
                             <div class="form-section-title" style="display: flex; align-items: center; justify-content: space-between;">
@@ -1359,7 +1379,8 @@ const Users = {
 
         // ✅ إصلاح: جمع الصلاحيات بشكل صحيح
         const collectedPermissions = this.collectPermissions();
-        
+        const allowedSites = Array.from(document.querySelectorAll('.user-site-cb:checked')).map((el) => el.value);
+
         const formData = {
             id: this.currentEditId || Utils.generateId('USER'),
             name: nameEl.value.trim(),
@@ -1368,6 +1389,8 @@ const Users = {
             department: departmentEl.value.trim(),
             active: activeEl.checked,
             photo: photoBase64,
+            allowedSites,
+            siteIds: allowedSites,
             // ✅ إصلاح: التأكد من حفظ الصلاحيات حتى لو كانت فارغة (لكن ليس undefined)
             // حفظ الصلاحيات ككائن فارغ {} بدلاً من undefined لضمان عدم فقدانها
             permissions: collectedPermissions && typeof collectedPermissions === 'object' ? collectedPermissions : {},
