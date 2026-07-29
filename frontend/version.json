@@ -1,4 +1,4 @@
 {
-  "version": "2.2.135",
-  "message": "fix: remove contractors.clean.js ref and add cloudflare beacon to CSP"
+  "version": "2.2.136",
+  "message": "fix: critical bugs in 4 modules causing load failure"
 }

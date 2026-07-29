@@ -7838,9 +7838,7 @@ const Contractors = {
             return this.renderApprovalRequestSectionPlaceholder();
         }
         
-        const isAdmin = Permissions.isAdmin();
-        
-        // ✅ تحسين: استخدام try-catch لتجنب الأخطاء التي قد تبطئ التحميل
+        const isAdmin = typeof Permissions !== 'undefined' && Permissions.isAdmin();
         let myRequests = [];
         let pendingRequests = [];
         
@@ -7920,7 +7918,7 @@ const Contractors = {
      * ✅ إصلاح: عرض placeholder عند عدم جاهزية البيانات
      */
     renderApprovalRequestSectionPlaceholder() {
-        const isAdmin = Permissions.isAdmin();
+        const isAdmin = typeof Permissions !== 'undefined' && Permissions.isAdmin();
         const circuitOpen = (typeof Backend !== 'undefined' &&
             Backend?._circuitBreaker?.isOpen);
         const remainingSeconds = circuitOpen && Backend?._circuitBreaker?.openUntil
