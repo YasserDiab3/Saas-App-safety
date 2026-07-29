@@ -296,7 +296,7 @@
     // Write actions blocked when the tenant is read-only (frozen/past_due).
     // The DB enforces this too (records RLS, migration 0009); this is the
     // friendly UX layer so the user sees a clear message, not an RLS error.
-    const WRITE_RE = /^(save|append|update|add|create|delete|remove|patch|set|upsert)/i;
+    const WRITE_RE = /^(save|append|update|add|create|delete|remove|patch|set|upsert|import|inject|wipe|restore)/i;
     function isWriteAction(action) {
         if (action === 'login' || action === 'logout') return false;
         if (/^updateSingleRowInSheet$/.test(action)) return true;
@@ -304,6 +304,128 @@
     }
 
     async function tryExplicitHandler(action, data) {
+        // ---- Encrypted tenant backup + demo data (owner/admin) ----
+        if (action === 'listTenantSheets') {
+            const rows = await rpc('api_list_tenant_sheets', {});
+            if (rows && rows.success === false) return rows;
+            return { success: true, data: Array.isArray(rows) ? rows : [] };
+        }
+        if (action === 'getTenantBackupIdentity') {
+            const me = await rpc('api_me', {});
+            if (me && me.success === false) return me;
+            const tenant = (me && me.tenant) || {};
+            return {
+                success: true,
+                data: {
+                    tenantId: (me && (me.tenant_id || me.tenantId)) || tenant.id || '',
+                    orgCode: tenant.org_code || (me && (me.org_code || me.orgCode)) || '',
+                    role: (me && me.role) || ''
+                }
+            };
+        }
+        if (action === 'exportTenantBackupBundle') {
+            const listed = await rpc('api_list_tenant_sheets', {});
+            if (listed && listed.success === false) return listed;
+            const sheetMeta = Array.isArray(listed) ? listed : [];
+            const names = sheetMeta.map(s => s && s.name).filter(Boolean);
+            const sheets = {};
+            const chunkSize = 8;
+            for (let i = 0; i < names.length; i += chunkSize) {
+                const chunk = names.slice(i, i + chunkSize);
+                const batch = await rpc('api_batch_read', { p_sheets: chunk });
+                if (batch && batch.success === false) return batch;
+                const obj = batch && typeof batch === 'object' ? batch : {};
+                chunk.forEach((name) => {
+                    let rows = Array.isArray(obj[name]) ? obj[name] : [];
+                    if (name === 'Users') {
+                        rows = rows.map((row) => {
+                            const clean = Object.assign({}, row || {});
+                            delete clean.password;
+                            delete clean.passwordHash;
+                            delete clean.hashedPassword;
+                            delete clean.pin;
+                            delete clean.otp;
+                            return clean;
+                        });
+                    }
+                    sheets[name] = rows;
+                });
+            }
+            const me = await rpc('api_me', {});
+            const tenant = (me && me.tenant) || {};
+            const appVer = (global.AppState && global.AppState.appVersion)
+                || (global.SAAS_CONFIG && global.SAAS_CONFIG.appVersion)
+                || '';
+            return {
+                success: true,
+                data: {
+                    magic: 'HSEHUB_BACKUP',
+                    formatVersion: 1,
+                    exportedAt: new Date().toISOString(),
+                    appVersion: appVer,
+                    tenantId: (me && (me.tenant_id || me.tenantId)) || tenant.id || '',
+                    orgCode: tenant.org_code || (me && (me.org_code || me.orgCode)) || '',
+                    sheets
+                }
+            };
+        }
+        if (action === 'importTenantBackupBundle') {
+            const bundle = (data && data.bundle) || data || {};
+            if (!bundle.sheets || typeof bundle.sheets !== 'object') {
+                return { success: false, message: 'حزمة النسخة غير صالحة' };
+            }
+            const me = await rpc('api_me', {});
+            const tenant = (me && me.tenant) || {};
+            const currentTenant = (me && (me.tenant_id || me.tenantId)) || tenant.id || '';
+            if (bundle.tenantId && currentTenant && String(bundle.tenantId) !== String(currentTenant)
+                && !(data && data.forceTenantMismatch)) {
+                return { success: false, message: 'النسخة تنتمي لمؤسسة أخرى — فعّل التأكيد للمتابعة' };
+            }
+            let imported = 0;
+            let skippedUsers = false;
+            const names = Object.keys(bundle.sheets);
+            for (let i = 0; i < names.length; i++) {
+                const sheet = names[i];
+                const rows = bundle.sheets[sheet];
+                const res = await rpc('api_import_tenant_sheet', {
+                    p_sheet: sheet,
+                    p_rows: Array.isArray(rows) ? rows : []
+                });
+                if (res && res.success === false) return res;
+                if (res && res.skipped) skippedUsers = true;
+                else imported += 1;
+            }
+            return { success: true, imported, skippedUsers };
+        }
+        if (action === 'injectDemoData') {
+            const pack = (global.SaaSDemoPack && typeof global.SaaSDemoPack.getPack === 'function')
+                ? global.SaaSDemoPack.getPack()
+                : null;
+            if (!pack) return { success: false, message: 'حزمة البيانات التجريبية غير محمّلة' };
+            let sheets = 0;
+            let rows = 0;
+            const names = Object.keys(pack);
+            for (let i = 0; i < names.length; i++) {
+                const sheet = names[i];
+                const list = Array.isArray(pack[sheet]) ? pack[sheet] : [];
+                const res = await rpc('api_upsert_demo_rows', { p_sheet: sheet, p_rows: list });
+                if (res && res.success === false) return res;
+                sheets += 1;
+                rows += Number((res && res.count) || list.length || 0);
+            }
+            return { success: true, sheets, rows };
+        }
+        if (action === 'wipeDemoData') {
+            const res = await rpc('api_wipe_tenant_sheets', { p_mode: 'demo' });
+            if (res && res.success === false) return res;
+            return Object.assign({ success: true }, res || {});
+        }
+        if (action === 'wipeOpsData') {
+            const res = await rpc('api_wipe_tenant_sheets', { p_mode: 'ops' });
+            if (res && res.success === false) return res;
+            return Object.assign({ success: true }, res || {});
+        }
+
         if (action === 'getCompanySettings') {
             const rows = await rpc('api_read_sheet', { p_sheet: 'CompanySettings' });
             if (rows && rows.success === false) return rows;

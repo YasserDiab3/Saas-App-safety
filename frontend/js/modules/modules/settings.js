@@ -611,107 +611,73 @@ const Settings = {
                 <div id="backup-management-section" class="settings-group mt-6" style="display: none;">
                     <div class="settings-group-header">
                         <h3 class="settings-group-title">
-                            <i class="fas fa-database ml-2"></i>
-                            ${this.t('settings.backup_management', 'إدارة النسخ الاحتياطية')}
+                            <i class="fas fa-shield-alt ml-2"></i>
+                            ${this.t('settings.backup_management', 'النسخ الاحتياطي والبيانات التجريبية')}
                         </h3>
                         <p class="settings-group-subtitle">
-                            ${this.t('settings.backup_subtitle', 'إدارة النسخ الاحتياطية للبيانات وإنشاء نسخ يدوية')}
+                            ${this.t('settings.backup_subtitle', 'تصدير/استيراد مشفّر لمدير المؤسسة، مع بيانات تجريبية قابلة للحذف بعد المعاينة')}
                         </p>
                     </div>
-                    <div class="settings-group-content">
-                        <!-- Backup Statistics Card -->
-                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
-                            <h4 class="text-lg font-semibold mb-4 flex items-center">
-                                <i class="fas fa-chart-bar ml-2 text-blue-600"></i>
-                                ${this.t('settings.backup_stats', 'إحصائيات النسخ الاحتياطية')}
-                            </h4>
-                            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                <div class="bg-gray-50 dark:bg-gray-700 rounded p-4">
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">${this.t('settings.total_backups', 'إجمالي النسخ')}</p>
-                                    <p class="text-xl font-bold" id="total-backups-count">0</p>
-                                </div>
-                                <div class="bg-gray-50 dark:bg-gray-700 rounded p-4">
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">${this.t('settings.successful_backups', 'النسخ الناجحة')}</p>
-                                    <p class="text-xl font-bold text-green-600" id="successful-backups-count">0</p>
-                                </div>
-                                <div class="bg-gray-50 dark:bg-gray-700 rounded p-4">
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">${this.t('settings.failed_backups', 'النسخ الفاشلة')}</p>
-                                    <p class="text-xl font-bold text-red-600" id="failed-backups-count">0</p>
-                                </div>
-                                <div class="bg-gray-50 dark:bg-gray-700 rounded p-4">
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">${this.t('settings.success_rate', 'معدل النجاح')}</p>
-                                    <p class="text-xl font-bold" id="backup-success-rate">0%</p>
-                                </div>
-                                <div class="bg-gray-50 dark:bg-gray-700 rounded p-4">
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">${this.t('settings.last_backup', 'آخر نسخة')}</p>
-                                    <p class="text-sm" id="last-backup-time">-</p>
-                                </div>
-                                <div class="bg-gray-50 dark:bg-gray-700 rounded p-4">
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">${this.t('settings.storage_used', 'المساحة المستخدمة')}</p>
-                                    <p class="text-sm font-bold" id="backup-storage-used">0 Bytes</p>
-                                </div>
-                            </div>
-                            <div class="mt-4 flex gap-2">
-                                <button id="create-manual-backup-btn" class="btn btn-primary">
-                                    <i class="fas fa-database ml-2"></i>
-                                    إنشاء نسخة احتياطية يدوية
-                                </button>
-                                <button id="refresh-backups-btn" class="btn btn-secondary">
-                                    <i class="fas fa-sync-alt ml-2"></i>
-                                    تحديث
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <!-- Backup Settings Card -->
-                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
-                            <h4 class="text-lg font-semibold mb-4 flex items-center">
-                                <i class="fas fa-cog ml-2 text-green-600"></i>
-                                إعدادات النسخ الاحتياطية
-                            </h4>
-                            <div class="space-y-4">
-                                <div class="flex items-center">
-                                    <input type="checkbox" id="auto-backup-enabled" class="form-checkbox">
-                                    <label for="auto-backup-enabled" class="mr-2">تفعيل النسخ الاحتياطي التلقائي</label>
-                                </div>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label class="block text-sm font-medium mb-2">الحد الأقصى للنسخ</label>
-                                        <input type="number" id="max-backup-files" class="form-input" value="30" min="1" max="100">
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium mb-2">مدة الاحتفاظ (بالأيام)</label>
-                                        <input type="number" id="retention-days" class="form-input" value="30" min="1" max="365">
-                                    </div>
-                                </div>
-                                <div class="flex items-center gap-4">
-                                    <label class="flex items-center">
-                                        <input type="checkbox" id="notify-on-backup" class="form-checkbox" checked>
-                                        <span class="mr-2">إشعار عند إنشاء نسخة احتياطية</span>
-                                    </label>
-                                    <label class="flex items-center">
-                                        <input type="checkbox" id="notify-on-failure" class="form-checkbox" checked>
-                                        <span class="mr-2">إشعار عند فشل النسخ</span>
-                                    </label>
-                                </div>
-                                <div class="flex gap-2">
-                                    <button id="save-backup-settings-btn" class="btn btn-primary">
-                                        <i class="fas fa-save ml-2"></i>
-                                        حفظ الإعدادات
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Backups List -->
+                    <div class="settings-group-content space-y-6">
                         <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                            <h4 class="text-lg font-semibold mb-4 flex items-center">
-                                <i class="fas fa-list ml-2 text-purple-600"></i>
-                                قائمة النسخ الاحتياطية
-                            </h4>
-                            <div id="backups-list" class="space-y-3 max-h-96 overflow-y-auto">
-                                <p class="text-gray-500 text-center py-4">جاري التحميل...</p>
+                            <div class="flex flex-wrap items-start justify-between gap-3 mb-4">
+                                <div>
+                                    <h4 class="text-lg font-semibold flex items-center">
+                                        <i class="fas fa-lock ml-2 text-blue-600"></i>
+                                        نسخة احتياطية مشفّرة
+                                    </h4>
+                                    <p class="text-sm text-gray-500 mt-1" id="hse-backup-meta">—</p>
+                                </div>
+                                <button type="button" id="hse-backup-refresh-btn" class="btn-secondary">
+                                    <i class="fas fa-sync-alt ml-2"></i>تحديث الحالة
+                                </button>
                             </div>
+                            <p class="text-sm text-gray-600 mb-4">
+                                يُنزَّل ملف <code>.hsebackup</code> مشفّر بعبارة مرور تختارها أنت (لا تُخزّن على الخادم).
+                                الاستعادة لا تستبدل حسابات المستخدمين.
+                            </p>
+                            <div class="flex flex-wrap gap-2 mb-3">
+                                <button type="button" id="hse-backup-export-btn" class="btn-primary">
+                                    <i class="fas fa-file-export ml-2"></i>تصدير نسخة مشفّرة
+                                </button>
+                                <button type="button" id="hse-backup-import-btn" class="btn-secondary">
+                                    <i class="fas fa-file-import ml-2"></i>استيراد نسخة مشفّرة
+                                </button>
+                                <input type="file" id="hse-backup-file-input" accept=".hsebackup,application/json,.json" class="hidden" />
+                            </div>
+                            <div id="hse-backup-status" class="text-sm font-semibold text-gray-600" aria-live="polite"></div>
+                        </div>
+
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                            <h4 class="text-lg font-semibold mb-2 flex items-center">
+                                <i class="fas fa-flask ml-2 text-emerald-600"></i>
+                                بيانات تجريبية للمعاينة
+                            </h4>
+                            <p class="text-sm text-gray-600 mb-4">
+                                تعبئة سجلات تجريبية موسومة يمكن حذفها لاحقاً دون المساس بالبيانات الحقيقية.
+                            </p>
+                            <div class="flex flex-wrap gap-2">
+                                <button type="button" id="hse-demo-inject-btn" class="btn-primary">
+                                    <i class="fas fa-flask ml-2"></i>تعبئة بيانات تجريبية
+                                </button>
+                                <button type="button" id="hse-demo-wipe-btn" class="btn-secondary">
+                                    <i class="fas fa-trash-alt ml-2"></i>حذف البيانات التجريبية
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-red-200">
+                            <h4 class="text-lg font-semibold mb-2 flex items-center text-red-700">
+                                <i class="fas fa-exclamation-triangle ml-2"></i>
+                                منطقة خطر
+                            </h4>
+                            <p class="text-sm text-gray-600 mb-4">
+                                مسح بيانات التشغيل لكل المديولات مع الإبقاء على المستخدمين والإعدادات ومركز المساعدة.
+                                يتطلب كتابة كلمة «مسح» للتأكيد.
+                            </p>
+                            <button type="button" id="hse-ops-wipe-btn" class="btn-danger">
+                                <i class="fas fa-bomb ml-2"></i>مسح بيانات التشغيل
+                            </button>
                         </div>
                     </div>
                 </div>

@@ -1,489 +1,367 @@
 /* ========================================
-   واجهة إدارة النسخ الاحتياطية
-   Backup Management UI
+   إدارة النسخ الاحتياطي المشفّر + البيانات التجريبية
    ======================================== */
 
-/**
- * واجهة إدارة النسخ الاحتياطية
- */
 const backupUiLog = (...args) => {
     try {
         if (typeof Utils !== 'undefined' && typeof Utils.safeLog === 'function') {
             Utils.safeLog(...args);
         }
-    } catch (e) { /* ignore */ }
+    } catch (_e) { /* ignore */ }
 };
 
 const BackupUI = {
     eventsBound: false,
-    
-    /**
-     * تهيئة الواجهة
-     */
+    lastMeta: null,
+
     async init() {
         try {
-            // التحقق من الصلاحيات (يجب أن يكون المستخدم مديراً)
             if (!this.isAdmin()) {
                 backupUiLog('ℹ️ المستخدم ليس مديراً، لن يتم عرض قسم النسخ الاحتياطية');
                 return;
             }
-            
-            // إظهار قسم النسخ الاحتياطية
             const backupSection = document.getElementById('backup-management-section');
-            if (backupSection) {
-                backupSection.style.display = 'block';
-            } else {
-                console.warn('⚠️ قسم النسخ الاحتياطية غير موجود في DOM');
-            }
-            
-            // ربط الأحداث (فقط إذا لم يتم ربطها من قبل)
+            if (backupSection) backupSection.style.display = 'block';
+            else console.warn('⚠️ قسم النسخ الاحتياطية غير موجود في DOM');
+
             if (!this.eventsBound) {
                 this.setupEventListeners();
                 this.eventsBound = true;
             }
-            
-            // تحميل البيانات
-            await this.loadBackupStatistics();
-            await this.loadBackupList();
-            await this.loadBackupSettings();
-            
-            backupUiLog('✅ تم تهيئة واجهة النسخ الاحتياطية بنجاح');
+            await this.refreshStatus();
+            backupUiLog('✅ تم تهيئة واجهة النسخ الاحتياطية المشفرة');
         } catch (error) {
             console.error('❌ خطأ في تهيئة واجهة النسخ الاحتياطية:', error);
         }
     },
 
-    /**
-     * التحقق من صلاحيات المدير
-     */
     isAdmin() {
         try {
-            if (typeof AppState !== 'undefined' && AppState.currentUser) {
-                const user = AppState.currentUser;
-                if (user.role === 'admin') {
-                    return true;
+            if (typeof Permissions !== 'undefined') {
+                if (typeof Permissions.isCurrentUserEffectiveAdmin === 'function') {
+                    return Permissions.isCurrentUserEffectiveAdmin();
+                }
+                if (typeof Permissions.isCurrentUserAdmin === 'function') {
+                    return Permissions.isCurrentUserAdmin();
+                }
+                if (typeof Permissions.isAdmin === 'function') {
+                    return Permissions.isAdmin();
                 }
             }
-            
-            if (typeof Permissions !== 'undefined' && typeof AppState !== 'undefined') {
-                const user = AppState.currentUser;
-                if (user) {
-                    const perms = Permissions.getEffectivePermissions(user);
-                    return perms && perms.__isAdmin === true;
-                }
-            }
-        } catch (error) {
-            console.warn('⚠️ خطأ في التحقق من صلاحيات المدير:', error);
+            const user = (typeof AppState !== 'undefined' && AppState.currentUser) || null;
+            if (!user) return false;
+            const role = String(user.role || '').toLowerCase();
+            return role === 'admin' || role === 'owner' || role === 'administrator';
+        } catch (_e) {
+            return false;
         }
-        
-        return false;
     },
 
-    /**
-     * ربط الأحداث
-     */
     setupEventListeners() {
-        // زر إنشاء نسخة احتياطية يدوية
-        const createBackupBtn = document.getElementById('create-manual-backup-btn');
-        if (createBackupBtn) {
-            createBackupBtn.addEventListener('click', () => this.createManualBackup());
-        }
-        
-        // زر تحديث قائمة النسخ
-        const refreshBtn = document.getElementById('refresh-backups-btn');
-        if (refreshBtn) {
-            refreshBtn.addEventListener('click', () => this.loadBackupList());
-        }
-        
-        // زر حفظ الإعدادات
-        const saveSettingsBtn = document.getElementById('save-backup-settings-btn');
-        if (saveSettingsBtn) {
-            saveSettingsBtn.addEventListener('click', () => this.saveBackupSettings());
+        const on = (id, fn) => {
+            const el = document.getElementById(id);
+            if (el && !el.dataset.backupBound) {
+                el.dataset.backupBound = '1';
+                el.addEventListener('click', fn);
+            }
+        };
+        on('hse-backup-export-btn', () => this.exportEncryptedBackup());
+        on('hse-backup-import-btn', () => this.importEncryptedBackup());
+        on('hse-demo-inject-btn', () => this.injectDemoData());
+        on('hse-demo-wipe-btn', () => this.wipeDemoData());
+        on('hse-ops-wipe-btn', () => this.wipeOpsData());
+        on('hse-backup-refresh-btn', () => this.refreshStatus());
+    },
+
+    setStatus(text, cls) {
+        const el = document.getElementById('hse-backup-status');
+        if (!el) return;
+        el.className = 'pf-msg' + (cls ? ' ' + cls : '');
+        el.textContent = text || '';
+    },
+
+    async refreshStatus() {
+        const box = document.getElementById('hse-backup-meta');
+        try {
+            if (!window.SaaSAdapter) {
+                if (box) box.textContent = 'محوّل SaaS غير جاهز';
+                return;
+            }
+            const list = await Backend.sendToAppsScript('listTenantSheets', {});
+            if (!list || list.success === false) {
+                if (box) box.textContent = (list && list.message) || 'تعذّر قراءة قائمة الأوراق';
+                return;
+            }
+            const sheets = Array.isArray(list.data) ? list.data : (Array.isArray(list) ? list : []);
+            this.lastMeta = { sheets, at: new Date().toISOString() };
+            if (box) {
+                box.textContent = `أوراق مسجّلة: ${sheets.length} — جاهز للتصدير/الاستيراد المشفر (مدير المؤسسة فقط).`;
+            }
+        } catch (e) {
+            if (box) box.textContent = e.message || String(e);
         }
     },
 
-    /**
-     * إنشاء نسخة احتياطية يدوية
-     */
-    async createManualBackup() {
+    promptPassphrase(title, confirmRequired) {
+        const p1 = window.prompt(title || 'أدخل عبارة مرور النسخة (≥ 8 أحرف):', '');
+        if (p1 == null) return null;
+        if (String(p1).length < 8) {
+            this.showNotification('عبارة المرور يجب ألا تقل عن 8 أحرف', 'error');
+            return null;
+        }
+        if (confirmRequired) {
+            const p2 = window.prompt('أعد إدخال عبارة المرور للتأكيد:', '');
+            if (p2 == null) return null;
+            if (String(p1) !== String(p2)) {
+                this.showNotification('عبارتا المرور غير متطابقتين', 'error');
+                return null;
+            }
+        }
+        return String(p1);
+    },
+
+    async exportEncryptedBackup() {
         if (!this.isAdmin()) {
-            this.showNotification('يجب أن تكون مديراً لإنشاء نسخة احتياطية', 'error');
+            this.showNotification('هذه العملية متاحة لمدير المؤسسة فقط', 'error');
             return;
         }
-        
-        const createBtn = document.getElementById('create-manual-backup-btn');
-        if (createBtn) {
-            createBtn.disabled = true;
-            createBtn.innerHTML = '<i class="fas fa-spinner fa-spin ml-2"></i> جاري إنشاء النسخة الاحتياطية...';
+        if (!window.SaaSBackupCrypto) {
+            this.showNotification('وحدة التشفير غير محمّلة', 'error');
+            return;
         }
-        
+        const passphrase = this.promptPassphrase('أدخل عبارة مرور لتأمين ملف النسخة (≥ 8):', true);
+        if (!passphrase) return;
+
+        const btn = document.getElementById('hse-backup-export-btn');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin ml-2"></i>جاري التصدير…'; }
+        this.setStatus('جاري قراءة بيانات المؤسسة…', '');
+
         try {
-            const userData = AppState.currentUser || {
-                id: 'unknown',
-                name: 'Unknown',
-                email: '',
-                role: 'admin'
-            };
-            
-            // استدعاء API
-            const result = await Backend.fetchData('createManualBackup', {
-                userData: userData
-            });
-            
-            if (result && result.success) {
-                this.showNotification('تم إنشاء النسخة الاحتياطية بنجاح', 'success');
-                
-                // تحديث القوائم
-                await this.loadBackupStatistics();
-                await this.loadBackupList();
-            } else {
-                this.showNotification(
-                    result?.message || 'فشل في إنشاء النسخة الاحتياطية',
-                    'error'
-                );
+            const result = await Backend.sendToAppsScript('exportTenantBackupBundle', {});
+            if (!result || result.success !== true || !result.data) {
+                throw new Error((result && result.message) || 'فشل بناء حزمة النسخة');
             }
-        } catch (error) {
-            console.error('❌ خطأ في إنشاء النسخة الاحتياطية:', error);
-            this.showNotification('حدث خطأ أثناء إنشاء النسخة الاحتياطية: ' + error.message, 'error');
+            const bundle = result.data;
+            this.setStatus('جاري التشفير…', '');
+            const envelope = await SaaSBackupCrypto.encryptJson(bundle, passphrase);
+            const org = bundle.orgCode || bundle.tenantId || 'tenant';
+            const fname = `hsehub-backup-${String(org).replace(/[^\w\-]+/g, '_')}-${new Date().toISOString().slice(0, 10)}.hsebackup`;
+            SaaSBackupCrypto.downloadJsonFile(envelope, fname);
+            this.setStatus('تم تنزيل النسخة المشفّرة بنجاح. احتفظ بعبارة المرور.', 'ok');
+            this.showNotification('تم تصدير النسخة الاحتياطية المشفّرة', 'success');
+        } catch (e) {
+            this.setStatus(e.message || String(e), 'err');
+            this.showNotification('فشل التصدير: ' + (e.message || e), 'error');
         } finally {
-            if (createBtn) {
-                createBtn.disabled = false;
-                createBtn.innerHTML = '<i class="fas fa-database ml-2"></i> إنشاء نسخة احتياطية يدوية';
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-file-export ml-2"></i>تصدير نسخة مشفّرة';
             }
         }
     },
 
-    /**
-     * تحميل إحصائيات النسخ الاحتياطية
-     */
-    async loadBackupStatistics() {
-        try {
-            const result = await Backend.fetchData('getBackupStatistics', {});
-            
-            if (result && result.success && result.data) {
-                const stats = result.data;
-                
-                // تحديث الإحصائيات في الواجهة
-                const totalBackupsEl = document.getElementById('total-backups-count');
-                if (totalBackupsEl) {
-                    totalBackupsEl.textContent = stats.totalBackups || 0;
+    async importEncryptedBackup() {
+        if (!this.isAdmin()) {
+            this.showNotification('هذه العملية متاحة لمدير المؤسسة فقط', 'error');
+            return;
+        }
+        if (!window.SaaSBackupCrypto) {
+            this.showNotification('وحدة التشفير غير محمّلة', 'error');
+            return;
+        }
+
+        const input = document.getElementById('hse-backup-file-input');
+        if (!input) return;
+        input.value = '';
+        input.onchange = async () => {
+            const file = input.files && input.files[0];
+            if (!file) return;
+            const passphrase = this.promptPassphrase('أدخل عبارة مرور ملف النسخة:', false);
+            if (!passphrase) return;
+
+            const btn = document.getElementById('hse-backup-import-btn');
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin ml-2"></i>جاري الاستيراد…'; }
+            this.setStatus('جاري فك التشفير…', '');
+
+            try {
+                const envelope = await SaaSBackupCrypto.readJsonFile(file);
+                const bundle = await SaaSBackupCrypto.decryptToJson(envelope, passphrase);
+                if (!bundle.sheets || typeof bundle.sheets !== 'object') {
+                    throw new Error('الحزمة لا تحتوي على بيانات أوراق');
                 }
-                
-                const successfulBackupsEl = document.getElementById('successful-backups-count');
-                if (successfulBackupsEl) {
-                    successfulBackupsEl.textContent = stats.successfulBackups || 0;
-                }
-                
-                const failedBackupsEl = document.getElementById('failed-backups-count');
-                if (failedBackupsEl) {
-                    failedBackupsEl.textContent = stats.failedBackups || 0;
-                }
-                
-                const successRateEl = document.getElementById('backup-success-rate');
-                if (successRateEl) {
-                    successRateEl.textContent = stats.successRate || '0%';
-                }
-                
-                const lastBackupEl = document.getElementById('last-backup-time');
-                if (lastBackupEl && stats.lastSuccessfulBackup) {
-                    const date = new Date(stats.lastSuccessfulBackup.date);
-                    lastBackupEl.textContent = date.toLocaleString('ar-SA');
-                } else if (lastBackupEl) {
-                    lastBackupEl.textContent = '-';
-                }
-                
-                const storageUsedEl = document.getElementById('backup-storage-used');
-                if (storageUsedEl) {
-                    storageUsedEl.textContent = stats.totalStorageUsed || '0 Bytes';
-                }
-            }
-        } catch (error) {
-            // تجاهل أخطاء Circuit Breaker و الخادم السحابي غير المفعل
-            const errorMsg = String(error?.message || '').toLowerCase();
-            if (!errorMsg.includes('circuit breaker') && 
-                !errorMsg.includes('google apps script غير مفعل') &&
-                !errorMsg.includes('غير مفعل')) {
-                // تسجيل الأخطاء الأخرى فقط
-                if (typeof Utils !== 'undefined' && Utils.safeError) {
-                    Utils.safeError('❌ خطأ في تحميل إحصائيات النسخ الاحتياطية:', error);
+
+                let force = false;
+                const me = await Backend.sendToAppsScript('getTenantBackupIdentity', {});
+                const currentTenant = (me && me.data && (me.data.tenantId || me.data.tenant_id)) || '';
+                if (bundle.tenantId && currentTenant && String(bundle.tenantId) !== String(currentTenant)) {
+                    const ok = window.confirm(
+                        'تحذير: النسخة تنتمي لمؤسسة أخرى.\n\n' +
+                        'استيرادها سيستبدل بيانات التشغيل في المؤسسة الحالية.\n' +
+                        'المستخدمون لن يُستبدلوا.\n\nهل تريد المتابعة رغم ذلك؟'
+                    );
+                    if (!ok) {
+                        this.setStatus('تم إلغاء الاستيراد', '');
+                        return;
+                    }
+                    force = true;
                 } else {
-                    console.error('❌ خطأ في تحميل إحصائيات النسخ الاحتياطية:', error);
+                    const ok = window.confirm(
+                        'سيتم استبدال بيانات الأوراق المستوردة (ما عدا المستخدمين).\n' +
+                        'يُفضّل أخذ نسخة مشفّرة أولاً.\n\nهل تريد المتابعة؟'
+                    );
+                    if (!ok) {
+                        this.setStatus('تم إلغاء الاستيراد', '');
+                        return;
+                    }
                 }
+
+                this.setStatus('جاري استعادة الأوراق…', '');
+                const result = await Backend.sendToAppsScript('importTenantBackupBundle', {
+                    bundle,
+                    forceTenantMismatch: force
+                });
+                if (!result || result.success !== true) {
+                    throw new Error((result && result.message) || 'فشل الاستيراد');
+                }
+                this.setStatus(
+                    `تم الاستيراد: ${result.imported || 0} ورقة` +
+                    (result.skippedUsers ? ' (تم تخطي Users)' : ''),
+                    'ok'
+                );
+                this.showNotification('تم استيراد النسخة بنجاح — سيتم تحديث الصفحة', 'success');
+                setTimeout(() => location.reload(), 1200);
+            } catch (e) {
+                this.setStatus(e.message || String(e), 'err');
+                this.showNotification('فشل الاستيراد: ' + (e.message || e), 'error');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-file-import ml-2"></i>استيراد نسخة مشفّرة';
+                }
+            }
+        };
+        input.click();
+    },
+
+    async injectDemoData() {
+        if (!this.isAdmin()) {
+            this.showNotification('هذه العملية متاحة لمدير المؤسسة فقط', 'error');
+            return;
+        }
+        const ok = window.confirm(
+            'سيتم إضافة بيانات تجريبية موسومة (source=demo) للمعاينة دون حذف بياناتك الحالية.\n\nهل تريد المتابعة؟'
+        );
+        if (!ok) return;
+
+        const btn = document.getElementById('hse-demo-inject-btn');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin ml-2"></i>جاري التعبئة…'; }
+        this.setStatus('جاري حقن البيانات التجريبية…', '');
+        try {
+            const result = await Backend.sendToAppsScript('injectDemoData', {});
+            if (!result || result.success !== true) {
+                throw new Error((result && result.message) || 'فشل حقن البيانات التجريبية');
+            }
+            this.setStatus(`تم إضافة بيانات تجريبية في ${result.sheets || 0} ورقة (${result.rows || 0} سجل).`, 'ok');
+            this.showNotification('تم تعبئة البيانات التجريبية', 'success');
+            setTimeout(() => location.reload(), 1000);
+        } catch (e) {
+            this.setStatus(e.message || String(e), 'err');
+            this.showNotification('فشل التعبئة: ' + (e.message || e), 'error');
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-flask ml-2"></i>تعبئة بيانات تجريبية';
             }
         }
     },
 
-    /**
-     * تحميل قائمة النسخ الاحتياطية
-     */
-    async loadBackupList() {
-        const listContainer = document.getElementById('backups-list');
-        if (!listContainer) return;
-        
+    async wipeDemoData() {
+        if (!this.isAdmin()) {
+            this.showNotification('هذه العملية متاحة لمدير المؤسسة فقط', 'error');
+            return;
+        }
+        const ok = window.confirm('حذف جميع السجلات التجريبية الموسومة فقط (source=demo)؟\nلن تُمس البيانات الحقيقية.');
+        if (!ok) return;
+
+        const btn = document.getElementById('hse-demo-wipe-btn');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin ml-2"></i>جاري الحذف…'; }
         try {
-            const result = await Backend.fetchData('getAllBackups', {});
-            
-            if (result && result.success && result.data) {
-                const backups = result.data || [];
-                
-                if (backups.length === 0) {
-                    listContainer.innerHTML = '<p class="text-gray-500 text-center py-4">لا توجد نسخ احتياطية</p>';
+            const result = await Backend.sendToAppsScript('wipeDemoData', {});
+            if (!result || result.success !== true) {
+                throw new Error((result && result.message) || 'فشل حذف البيانات التجريبية');
+            }
+            this.setStatus(`تم حذف ${result.deleted || 0} سجل تجريبي.`, 'ok');
+            this.showNotification('تم حذف البيانات التجريبية', 'success');
+            setTimeout(() => location.reload(), 1000);
+        } catch (e) {
+            this.setStatus(e.message || String(e), 'err');
+            this.showNotification('فشل الحذف: ' + (e.message || e), 'error');
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-trash-alt ml-2"></i>حذف البيانات التجريبية';
+            }
+        }
+    },
+
+    async wipeOpsData() {
+        if (!this.isAdmin()) {
+            this.showNotification('هذه العملية متاحة لمدير المؤسسة فقط', 'error');
+            return;
+        }
+        const ok1 = window.confirm(
+            'تحذير شديد: مسح بيانات التشغيل لجميع المديولات.\n' +
+            'يُحتفظ بالمستخدمين والإعدادات ومركز المساعدة.\n\nهل تريد المتابعة؟'
+        );
+        if (!ok1) return;
+        const typed = window.prompt('اكتب كلمة «مسح» للتأكيد النهائي:', '');
+        if (String(typed || '').trim() !== 'مسح') {
+            this.showNotification('تم الإلغاء — عبارة التأكيد غير مطابقة', 'error');
+            return;
+        }
+
+        const btn = document.getElementById('hse-ops-wipe-btn');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin ml-2"></i>جاري المسح…'; }
+        try {
+            const result = await Backend.sendToAppsScript('wipeOpsData', {});
+            if (!result || result.success !== true) {
+                throw new Error((result && result.message) || 'فشل مسح بيانات التشغيل');
+            }
+            this.setStatus(`تم مسح بيانات التشغيل (${result.deleted || 0} سجل).`, 'ok');
+            this.showNotification('تم مسح بيانات التشغيل', 'success');
+            setTimeout(() => location.reload(), 1200);
+        } catch (e) {
+            this.setStatus(e.message || String(e), 'err');
+            this.showNotification('فشل المسح: ' + (e.message || e), 'error');
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-bomb ml-2"></i>مسح بيانات التشغيل';
+            }
+        }
+    },
+
+    showNotification(message, type) {
+        try {
+            if (typeof Notification !== 'undefined') {
+                if (type === 'success' && typeof Notification.success === 'function') {
+                    Notification.success(message);
                     return;
                 }
-                
-                listContainer.innerHTML = backups.map(backup => {
-                    const date = new Date(backup.createdAt);
-                    const statusClass = backup.status === 'completed' ? 'badge-success' : 'badge-danger';
-                    const statusText = backup.status === 'completed' ? 'نجح' : 'فشل';
-                    const typeText = backup.backupType === 'manual' ? 'يدوي' : backup.backupType === 'automatic' ? 'تلقائي' : 'استعادة';
-                    
-                    return `
-                        <div class="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-600 mb-3">
-                            <div class="flex justify-between items-start mb-2">
-                                <div class="flex-1">
-                                    <h5 class="font-semibold text-lg">${Utils.escapeHTML(backup.backupName || backup.id)}</h5>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                        <i class="fas fa-calendar ml-1"></i>
-                                        ${date.toLocaleString('ar-SA')}
-                                    </p>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">
-                                        <i class="fas fa-user ml-1"></i>
-                                        ${Utils.escapeHTML(backup.createdBy || 'غير معروف')}
-                                    </p>
-                                </div>
-                                <div class="flex flex-col items-end gap-2">
-                                    <span class="badge ${statusClass}">${statusText}</span>
-                                    <span class="badge badge-info">${typeText}</span>
-                                </div>
-                            </div>
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3 text-sm">
-                                <div>
-                                    <span class="text-gray-600 dark:text-gray-400">الحجم:</span>
-                                    <span class="font-semibold mr-2">${backup.fileSizeFormatted || 'N/A'}</span>
-                                </div>
-                                <div>
-                                    <span class="text-gray-600 dark:text-gray-400">الأوراق:</span>
-                                    <span class="font-semibold mr-2">${backup.sheetsCount || 0}</span>
-                                </div>
-                                <div>
-                                    <span class="text-gray-600 dark:text-gray-400">السجلات:</span>
-                                    <span class="font-semibold mr-2">${backup.totalRecords || 0}</span>
-                                </div>
-                                <div>
-                                    <span class="text-gray-600 dark:text-gray-400">المدة:</span>
-                                    <span class="font-semibold mr-2">${backup.duration ? backup.duration + ' ث' : 'N/A'}</span>
-                                </div>
-                            </div>
-                            <div class="flex gap-2 mt-3">
-                                ${backup.fileUrl ? `
-                                    <a href="${backup.fileUrl}" target="_blank" class="btn btn-sm btn-primary">
-                                        <i class="fas fa-external-link-alt ml-1"></i>
-                                        فتح في Drive
-                                    </a>
-                                ` : ''}
-                                ${backup.status === 'completed' ? `
-                                    <button class="btn btn-sm btn-success" onclick="BackupUI.downloadBackup('${backup.id}')">
-                                        <i class="fas fa-download ml-1"></i>
-                                        تحميل
-                                    </button>
-                                ` : ''}
-                                <button class="btn btn-sm btn-danger" onclick="BackupUI.deleteBackup('${backup.id}')">
-                                    <i class="fas fa-trash ml-1"></i>
-                                    حذف
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-            } else {
-                listContainer.innerHTML = '<p class="text-red-500 text-center py-4">خطأ في تحميل النسخ الاحتياطية</p>';
-            }
-        } catch (error) {
-            // تجاهل أخطاء Circuit Breaker و الخادم السحابي غير المفعل
-            const errorMsg = String(error?.message || '').toLowerCase();
-            if (!errorMsg.includes('circuit breaker') && 
-                !errorMsg.includes('google apps script غير مفعل') &&
-                !errorMsg.includes('غير مفعل')) {
-                // تسجيل الأخطاء الأخرى فقط
-                if (typeof Utils !== 'undefined' && Utils.safeError) {
-                    Utils.safeError('❌ خطأ في تحميل قائمة النسخ الاحتياطية:', error);
-                } else {
-                    console.error('❌ خطأ في تحميل قائمة النسخ الاحتياطية:', error);
+                if (type === 'error' && typeof Notification.error === 'function') {
+                    Notification.error(message);
+                    return;
+                }
+                if (typeof Notification.show === 'function') {
+                    Notification.show(message, type);
+                    return;
                 }
             }
-            listContainer.innerHTML = '<p class="text-red-500 text-center py-4">خطأ في تحميل النسخ الاحتياطية</p>';
-        }
-    },
-
-    /**
-     * تحميل إعدادات النسخ الاحتياطية
-     */
-    async loadBackupSettings() {
-        try {
-            const result = await Backend.fetchData('getBackupSettings', {});
-            
-            if (result && result.success && result.data) {
-                const settings = result.data;
-                
-                // تحديث الإعدادات في الواجهة
-                const autoBackupEnabled = document.getElementById('auto-backup-enabled');
-                if (autoBackupEnabled) {
-                    autoBackupEnabled.checked = settings.autoBackupEnabled || false;
-                }
-                
-                const maxBackupFiles = document.getElementById('max-backup-files');
-                if (maxBackupFiles) {
-                    maxBackupFiles.value = settings.maxBackupFiles || 30;
-                }
-                
-                const retentionDays = document.getElementById('retention-days');
-                if (retentionDays) {
-                    retentionDays.value = settings.retentionDays || 30;
-                }
-            }
-        } catch (error) {
-            // تجاهل أخطاء Circuit Breaker و الخادم السحابي غير المفعل
-            const errorMsg = String(error?.message || '').toLowerCase();
-            if (!errorMsg.includes('circuit breaker') && 
-                !errorMsg.includes('google apps script غير مفعل') &&
-                !errorMsg.includes('غير مفعل')) {
-                // تسجيل الأخطاء الأخرى فقط
-                if (typeof Utils !== 'undefined' && Utils.safeError) {
-                    Utils.safeError('❌ خطأ في تحميل إعدادات النسخ الاحتياطية:', error);
-                } else {
-                    console.error('❌ خطأ في تحميل إعدادات النسخ الاحتياطية:', error);
-                }
-            }
-        }
-    },
-
-    /**
-     * حفظ إعدادات النسخ الاحتياطية
-     */
-    async saveBackupSettings() {
-        const saveBtn = document.getElementById('save-backup-settings-btn');
-        if (saveBtn) {
-            saveBtn.disabled = true;
-            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin ml-2"></i> جاري الحفظ...';
-        }
-        
-        try {
-            const settings = {
-                autoBackupEnabled: document.getElementById('auto-backup-enabled')?.checked || false,
-                maxBackupFiles: parseInt(document.getElementById('max-backup-files')?.value) || 30,
-                retentionDays: parseInt(document.getElementById('retention-days')?.value) || 30,
-                notifyOnBackup: document.getElementById('notify-on-backup')?.checked || true,
-                notifyOnFailure: document.getElementById('notify-on-failure')?.checked || true
-            };
-            
-            const userData = AppState.currentUser || {
-                id: 'unknown',
-                name: 'Unknown',
-                email: '',
-                role: 'admin'
-            };
-            
-            const result = await Backend.fetchData('saveBackupSettings', {
-                ...settings,
-                userData: userData
-            });
-            
-            if (result && result.success) {
-                this.showNotification('تم حفظ الإعدادات بنجاح', 'success');
-            } else {
-                this.showNotification(
-                    result?.message || 'فشل في حفظ الإعدادات',
-                    'error'
-                );
-            }
-        } catch (error) {
-            console.error('❌ خطأ في حفظ إعدادات النسخ الاحتياطية:', error);
-            this.showNotification('حدث خطأ أثناء حفظ الإعدادات: ' + error.message, 'error');
-        } finally {
-            if (saveBtn) {
-                saveBtn.disabled = false;
-                saveBtn.innerHTML = '<i class="fas fa-save ml-2"></i> حفظ الإعدادات';
-            }
-        }
-    },
-
-    /**
-     * تحميل نسخة احتياطية
-     */
-    async downloadBackup(backupId) {
-        try {
-            const result = await Backend.fetchData('downloadBackup', {
-                backupId: backupId
-            });
-            
-            if (result && result.success && result.data) {
-                // فتح رابط التحميل في نافذة جديدة
-                window.open(result.data.downloadUrl || result.data.fileUrl, '_blank');
-                this.showNotification('جاري تحميل النسخة الاحتياطية...', 'info');
-            } else {
-                this.showNotification(
-                    result?.message || 'فشل في تحميل النسخة الاحتياطية',
-                    'error'
-                );
-            }
-        } catch (error) {
-            console.error('❌ خطأ في تحميل النسخة الاحتياطية:', error);
-            this.showNotification('حدث خطأ أثناء تحميل النسخة الاحتياطية: ' + error.message, 'error');
-        }
-    },
-
-    /**
-     * حذف نسخة احتياطية
-     */
-    async deleteBackup(backupId) {
-        if (!confirm('هل أنت متأكد من حذف هذه النسخة الاحتياطية؟')) {
-            return;
-        }
-        
-        try {
-            const userData = AppState.currentUser || {
-                id: 'unknown',
-                name: 'Unknown',
-                email: '',
-                role: 'admin'
-            };
-            
-            const result = await Backend.fetchData('deleteBackup', {
-                backupId: backupId,
-                userData: userData
-            });
-            
-            if (result && result.success) {
-                this.showNotification('تم حذف النسخة الاحتياطية بنجاح', 'success');
-                
-                // تحديث القوائم
-                await this.loadBackupStatistics();
-                await this.loadBackupList();
-            } else {
-                this.showNotification(
-                    result?.message || 'فشل في حذف النسخة الاحتياطية',
-                    'error'
-                );
-            }
-        } catch (error) {
-            console.error('❌ خطأ في حذف النسخة الاحتياطية:', error);
-            this.showNotification('حدث خطأ أثناء حذف النسخة الاحتياطية: ' + error.message, 'error');
-        }
-    },
-
-    /**
-     * إظهار إشعار
-     */
-    showNotification(message, type = 'info') {
-        if (typeof Notification !== 'undefined' && Notification.show) {
-            Notification.show('النسخ الاحتياطي', message, type);
-        } else {
-            alert(message);
-        }
+        } catch (_e) { /* fallthrough */ }
+        alert(message);
     }
 };
 
-// تصدير للاستخدام العام
 if (typeof window !== 'undefined') {
     window.BackupUI = BackupUI;
 }
