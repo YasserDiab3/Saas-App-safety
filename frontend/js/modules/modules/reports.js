@@ -530,9 +530,12 @@ const Reports = {
             }
 
             const formCode = `REPORT-${type.toUpperCase()}-${new Date().toISOString().slice(0, 10)}`;
-            const htmlContent = typeof FormHeader !== 'undefined' && FormHeader.generatePDFHTML
+            let htmlContent = typeof FormHeader !== 'undefined' && FormHeader.generatePDFHTML
                 ? FormHeader.generatePDFHTML(formCode, title, content, false, true, { version: '1.0' }, new Date().toISOString(), new Date().toISOString())
                 : `<html><body>${content}</body></html>`;
+            if (window.SaaSReportBrand && typeof SaaSReportBrand.wrapPrintHtml === 'function') {
+                htmlContent = SaaSReportBrand.wrapPrintHtml(title, content);
+            }
 
             printWindow.document.open();
             printWindow.document.write(htmlContent);

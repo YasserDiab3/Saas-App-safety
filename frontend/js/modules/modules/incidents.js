@@ -364,6 +364,9 @@ const Incidents = {
                     this.registryData = [];
                 }
             }
+            if (window.SaaSOrgSites && typeof SaaSOrgSites.filterBySite === 'function') {
+                this.registryData = SaaSOrgSites.filterBySite(this.registryData || []);
+            }
             // ✅ تنظيف أي تكرارات قديمة عند التحميل (بنفس id أو نفس incidentId)
             // يضمن أن أي تكرارات تراكمت سابقاً في IncidentsRegistry تُزال وتُمزامن نظيفة
             const removed = this._dedupeRegistryData();
@@ -3732,6 +3735,7 @@ const Incidents = {
                                     <option value="">اختر المصنع</option>
                                 </select>
                             </div>
+                            ${typeof window !== 'undefined' && window.SaaSOrgSites ? window.SaaSOrgSites.orgSelectFieldHtml('', 'manual-org-site') : ''}
                             <div>
                                 <label class="block text-sm font-semibold text-gray-700 mb-2">
                                     الموقع / Location *
@@ -4266,6 +4270,8 @@ const Incidents = {
             incidentType: typeSelect.value, // New Field
             factory: factoryName,
             incidentLocation: locationName,
+            siteId: (modal.querySelector('#manual-org-site')?.value)
+                || (window.SaaSOrgSites ? SaaSOrgSites.resolveSiteIdFromLegacy(factorySelect.value || factoryName) : (factorySelect.value || '')),
             incidentDate: incidentDateTime.toISOString(),
             incidentDay: incidentDay,
             incidentTime: timeInput.value,

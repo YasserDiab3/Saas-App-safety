@@ -5213,7 +5213,12 @@ const DailyObservations = {
             return match ? match[1] : '';
         };
 
-        return items.filter(obs => {
+        let scoped = items;
+        if (window.SaaSOrgSites && typeof SaaSOrgSites.filterBySite === 'function') {
+            scoped = SaaSOrgSites.filterBySite(items);
+        }
+
+        return scoped.filter(obs => {
             // البحث النصي
             const matchesSearch = !filters.search ||
                 (obs.isoCode || '').toLowerCase().includes(filters.search) ||
@@ -8358,6 +8363,9 @@ const DailyObservations = {
                 <div class="modal-footer form-actions-centered" style="padding: 20px 30px; background: #f8f9fa; border-top: 1px solid #e5e7eb; border-radius: 0 0 20px 20px;">
                     <button type="button" class="btn-secondary" onclick="this.closest('.modal-overlay').remove()" style="margin: 0 5px;">
                         <i class="fas fa-times ml-2"></i>إغلاق
+                    </button>
+                    <button type="button" class="btn-secondary" style="margin: 0 5px;" onclick="window.SaaSCAPA&&SaaSCAPA.promptCreateFromRecord('daily-observations', (AppState.appData.dailyObservations||[]).find(o=>String(o.id)==='${observation.id}'))">
+                        <i class="fas fa-clipboard-check ml-2"></i>إنشاء CAPA
                     </button>
                     <button type="button" onclick="DailyObservations.exportPDF('${observation.id}');" class="btn-secondary" style="margin: 0 5px;">
                         <i class="fas fa-file-pdf ml-2"></i>تصدير PDF

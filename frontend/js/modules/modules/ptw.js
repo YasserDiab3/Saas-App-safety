@@ -4964,7 +4964,7 @@ const PTW = {
         const typeFilter = document.getElementById('ptw-map-filter-type')?.value;
 
         // تصفية التصاريح
-        const filteredPermits = (AppState.appData.ptw || []).filter(permit => {
+        let filteredPermits = (AppState.appData.ptw || []).filter(permit => {
             // فلتر الحالة
             if (statusFilter) {
                 if (permit.status !== statusFilter) return false;
@@ -4979,6 +4979,9 @@ const PTW = {
 
             return true;
         });
+        if (window.SaaSOrgSites && typeof SaaSOrgSites.filterBySite === 'function') {
+            filteredPermits = SaaSOrgSites.filterBySite(filteredPermits);
+        }
 
         Utils.safeLog('📊 عدد التصاريح للعرض:', filteredPermits.length);
 

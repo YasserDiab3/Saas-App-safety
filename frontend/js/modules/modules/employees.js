@@ -3306,6 +3306,7 @@ const Employees = {
                             <div>
                                 <label for="employee-branch" class="block text-sm font-semibold text-gray-700 mb-2">الرع (Branch)</label>
                                 <input type="text" id="employee-branch" class="form-input" value="${employeeData?.branch || ''}" placeholder="الرع">
+                                ${typeof window !== 'undefined' && window.SaaSOrgSites ? window.SaaSOrgSites.orgSelectFieldHtml(employeeData?.siteId || '', 'employee-org-site') : ''}
                             </div>
                             <div>
                                 <label for="employee-location" class="block text-sm font-semibold text-gray-700 mb-2">الموقع (Location)</label>
@@ -3769,6 +3770,8 @@ const Employees = {
             job: positionEl.value.trim(),
             position: positionEl.value.trim(),
             branch: branchEl.value.trim(),
+            siteId: document.getElementById('employee-org-site')?.value
+                || (window.SaaSOrgSites ? SaaSOrgSites.resolveSiteIdFromLegacy(branchEl.value.trim()) : ''),
             location: locationEl.value.trim(),
             gender: genderEl.value,
             nationalId: nationalIdEl?.value.trim() || '',
@@ -4591,6 +4594,9 @@ const Employees = {
             }
         
         let employees = AppState.appData.employees || [];
+        if (window.SaaSOrgSites && typeof SaaSOrgSites.filterBySite === 'function') {
+            employees = SaaSOrgSites.filterBySite(employees);
+        }
         
         // ✅ تصفية الموظفين النشطين فقط (ما لم يُطلب خلاف ذلك) - استخدام isEmployeeInactive
         if (!showInactive) {

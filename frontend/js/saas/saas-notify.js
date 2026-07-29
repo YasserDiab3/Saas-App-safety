@@ -161,9 +161,54 @@
             localStorage.setItem(key, month);
             enqueue('backup_reminder', {
                 title: 'تذكير النسخة الاحتياطية',
-                body: 'صدّر نسخة مشفّرة شهرية من الإعدادات → النسخ الاحتياطي.'
+                body: 'صدّر نسخة مشفّرة شهرية من الإعدادات → النسخ الاحتياطي. للاستيراد: نفس عبارة المرور التي استخدمتها عند التصدير.'
             });
         } catch (_e) { /* ignore */ }
+    }
+
+    /**
+     * Daily scan: CAPA overdue + training expired → outbox/in-app (deduped per day).
+     */
+    async function scanOperationalDue() {
+        try {
+            const day = new Date().toISOString().slice(0, 10);
+            const key = 'hse_notify_due_scan_' + day;
+            if (localStorage.getItem(key) === '1') return;
+            localStorage.setItem(key, '1');
+
+            const prefs = getPrefs();
+            const events = prefs.events || {};
+
+            if (events.capa_due !== false && global.SaaSCAPA && typeof SaaSCAPA.list === 'function') {
+                const overdue = SaaSCAPA.list({ overdueOnly: true }).slice(0, 20);
+                for (let i = 0; i < overdue.length; i++) {
+                    const row = overdue[i];
+                    await enqueue('capa_due', {
+                        title: 'CAPA متأخر',
+                        body: (row.observationIssueHazard || row.id || '').toString().slice(0, 180),
+                        recordId: row.id,
+                        siteId: row.siteId || ''
+                    });
+                }
+            }
+
+            if (events.training_reminder !== false && global.AppState && AppState.appData) {
+                const today = day;
+                const training = (AppState.appData.training || []).filter((t) => {
+                    const exp = String(t.expiryDate || t.expiry || '').slice(0, 10);
+                    return exp && exp <= today;
+                }).slice(0, 15);
+                for (let i = 0; i < training.length; i++) {
+                    const t = training[i];
+                    await enqueue('training_reminder', {
+                        title: 'تدريب منتهٍ / مستحق',
+                        body: (t.programName || t.name || t.id || '').toString().slice(0, 180),
+                        recordId: t.id || '',
+                        siteId: t.siteId || ''
+                    });
+                }
+            }
+        } catch (_e) { /* best-effort */ }
     }
 
     global.SaaSNotify = {
@@ -172,6 +217,7 @@
         enqueue,
         renderPrefsPanel,
         maybeBackupReminder,
+        scanOperationalDue,
         defaultPrefs
     };
 })(window);

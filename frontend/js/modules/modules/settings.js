@@ -635,6 +635,7 @@ const Settings = {
                             <p class="text-sm text-gray-600 mb-4">
                                 يُنزَّل ملف <code>.hsebackup</code> مشفّر بعبارة مرور تختارها أنت (لا تُخزّن على الخادم).
                                 الاستعادة لا تستبدل حسابات المستخدمين.
+                                <strong>للاستيراد:</strong> اختر الملف ثم أدخل نفس عبارة المرور المستخدمة عند التصدير.
                             </p>
                             <div class="flex flex-wrap gap-2 mb-3">
                                 <button type="button" id="hse-backup-export-btn" class="btn-primary">

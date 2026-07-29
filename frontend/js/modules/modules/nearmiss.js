@@ -489,6 +489,9 @@ const NearMiss = {
 
         const { search, type, department, startDate, endDate } = this.state.filters;
         let items = (AppState.appData.nearmiss || []).filter((item) => !!item);
+        if (window.SaaSOrgSites && typeof SaaSOrgSites.filterBySite === 'function') {
+            items = SaaSOrgSites.filterBySite(items);
+        }
 
         if (type) {
             items = items.filter((item) => (item.type || '').toLowerCase() === type.toLowerCase());
@@ -785,6 +788,7 @@ const NearMiss = {
                                 <label for="nearmiss-location" class="block text-sm font-semibold text-gray-700 mb-2">مكان الملاحظة بالمصنع *</label>
                                 <input type="text" id="nearmiss-location" class="form-input" required value="${Utils.escapeHTML(record?.location || '')}" placeholder="حدد الموقع بدقة">
                             </div>
+                            ${typeof window !== 'undefined' && window.SaaSOrgSites ? window.SaaSOrgSites.orgSelectFieldHtml(record?.siteId || '', 'nearmiss-org-site') : ''}
                             <div>
                                 <label for="nearmiss-department" class="block text-sm font-semibold text-gray-700 mb-2">الإدارة التابع لها *</label>
                                 <input type="text" id="nearmiss-department" class="form-input" list="nearmiss-departments-list" required value="${Utils.escapeHTML(record?.department || '')}" placeholder="اختر أو اكتب الإدارة">
@@ -1029,6 +1033,8 @@ const NearMiss = {
         const location = (form.querySelector('#nearmiss-location')?.value || '').trim();
         const department = (form.querySelector('#nearmiss-department')?.value || '').trim();
         const description = (form.querySelector('#nearmiss-description')?.value || '').trim();
+        const siteId = (form.querySelector('#nearmiss-org-site')?.value || '')
+            || (window.SaaSOrgSites ? SaaSOrgSites.resolveSiteIdFromLegacy(location) : '');
         const correctiveValue = form.querySelector('input[name="nearmiss-corrective"]:checked')?.value || 'no';
         const correctiveProposed = correctiveValue === 'yes';
         const correctiveDescription = correctiveProposed
@@ -1113,6 +1119,7 @@ const NearMiss = {
                     observerName,
                     phone,
                     location,
+                    siteId,
                     department,
                     description,
                     correctiveProposed,
@@ -1133,6 +1140,7 @@ const NearMiss = {
                     observerName,
                     phone,
                     location,
+                    siteId,
                     department,
                     description,
                     correctiveProposed,

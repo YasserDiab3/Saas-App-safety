@@ -12,6 +12,13 @@
         if (!Array.isArray(AppState.appData.orgDepartments)) AppState.appData.orgDepartments = [];
     }
 
+    function escapeHtml(s) {
+        return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+    function escapeAttr(s) {
+        return escapeHtml(s).replace(/'/g, '&#39;');
+    }
+
     function listSites() {
         ensureArrays();
         return (AppState.appData.orgSites || []).filter(Boolean).slice().sort((a, b) =>
@@ -41,13 +48,13 @@
         }
     }
 
-    /** Site IDs the current user may see. Empty array + admin = all; empty + non-admin = unrestricted legacy. */
+    /** Site IDs the current user may see. null = all (admin / unrestricted legacy). */
     function allowedSiteIds(user) {
         const u = user || (global.AppState && AppState.currentUser) || null;
         if (!u) return null;
-        if (isAdmin() || String(u.role || '').toLowerCase() === 'owner') return null; // all
+        if (isAdmin() || String(u.role || '').toLowerCase() === 'owner') return null;
         const raw = u.allowedSites || u.siteIds || u.sites || [];
-        if (!Array.isArray(raw) || raw.length === 0) return null; // legacy: no restriction
+        if (!Array.isArray(raw) || raw.length === 0) return null;
         return raw.map(String);
     }
 
@@ -69,7 +76,7 @@
         if (!allowed) return list;
         return list.filter((r) => {
             const sid = recordSiteId(r);
-            if (!sid) return true; // records without site remain visible
+            if (!sid) return true;
             return allowed.includes(sid);
         });
     }
@@ -80,6 +87,36 @@
         const sid = recordSiteId(rec);
         if (!sid) return true;
         return allowed.includes(sid);
+    }
+
+    function resolveSiteIdFromLegacy(factoryIdOrName) {
+        const raw = String(factoryIdOrName || '').trim();
+        if (!raw) return '';
+        const sites = listSites();
+        const byId = sites.find((s) => String(s.id) === raw);
+        if (byId) return byId.id;
+        const byName = sites.find((s) => String(s.name || '').trim() === raw || String(s.code || '') === raw);
+        return byName ? byName.id : raw;
+    }
+
+    function optionsHtml(selectedId) {
+        const opts = ['<option value="">— كل المواقع / بدون —</option>'];
+        listSites().forEach((s) => {
+            if (s.active === false) return;
+            const sel = String(selectedId || '') === String(s.id) ? ' selected' : '';
+            const label = s.code ? `${s.name} (${s.code})` : s.name;
+            opts.push(`<option value="${escapeAttr(s.id)}"${sel}>${escapeHtml(label)}</option>`);
+        });
+        return opts.join('');
+    }
+
+    function orgSelectFieldHtml(selectedId, fieldId) {
+        const id = fieldId || 'hse-org-site-id';
+        return `<div>
+          <label class="block text-sm font-semibold text-gray-700 mb-2" for="${id}">الموقع التنظيمي (Org Site)</label>
+          <select id="${id}" class="form-input">${optionsHtml(selectedId)}</select>
+          <p class="text-xs text-gray-500 mt-1">يُستخدم لصلاحيات المواقع والتقارير التنفيذية</p>
+        </div>`;
     }
 
     async function upsertSite(data) {
@@ -111,24 +148,6 @@
         AppState.appData.orgSites = AppState.appData.orgSites.filter((s) => String(s.id) !== String(id));
         if (global.Backend && Backend.autoSave) await Backend.autoSave(SHEET, AppState.appData.orgSites);
         else if (global.DataManager) DataManager.save();
-    }
-
-    function optionsHtml(selectedId) {
-        const opts = ['<option value=\"\">— كل المواقع / بدون —</option>'];
-        listSites().forEach((s) => {
-            if (s.active === false) return;
-            const sel = String(selectedId || '') === String(s.id) ? ' selected' : '';
-            const label = s.code ? `${s.name} (${s.code})` : s.name;
-            opts.push(`<option value="${escapeAttr(s.id)}"${sel}>${escapeHtml(label)}</option>`);
-        });
-        return opts.join('');
-    }
-
-    function escapeHtml(s) {
-        return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-    }
-    function escapeAttr(s) {
-        return escapeHtml(s).replace(/'/g, '&#39;');
     }
 
     function renderSettingsPanel(container) {
@@ -198,6 +217,8 @@
         filterBySite,
         canAccessRecord,
         recordSiteId,
+        resolveSiteIdFromLegacy,
+        orgSelectFieldHtml,
         upsertSite,
         deleteSite,
         optionsHtml,
