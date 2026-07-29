@@ -2905,7 +2905,7 @@ const DEFAULT_COMPANY_NAME = '';
 
 const AppState = {
     /** fallback فقط — المصدر الرسمي: frontend/version.json (يُحدَّث عبر saas-version.js) */
-    appVersion: '2.2.138',
+    appVersion: '2.2.140',
     /** نص اختياري لرسالة التحديث (ملخص التغييرات). إن تُركت فارغة يُستخدم النص الافتراضي. */
     updateMessage: '',
     debugMode: false,
@@ -4928,6 +4928,20 @@ const Utils = {
             };
             document.addEventListener('keydown', handleEsc);
         });
+    },
+
+    /**
+     * Debounce — يؤخّر تنفيذ الدالة حتى يتوقف الاستدعاء المتكرر (للبحث وغيره).
+     */
+    debounce(fn, delay = 300) {
+        let timer = null;
+        return (...args) => {
+            if (timer) clearTimeout(timer);
+            timer = setTimeout(() => {
+                fn(...args);
+                timer = null;
+            }, delay);
+        };
     }
 };
 
@@ -7671,20 +7685,6 @@ const PPEMatrix = {
                 this.renderItems(instance);
             }
         }
-    },
-
-    /**
-     * Debounce function - limits the rate at which a function can fire
-     */
-    debounce(fn, delay = 300) {
-        let timer = null;
-        return (...args) => {
-            if (timer) clearTimeout(timer);
-            timer = setTimeout(() => {
-                fn(...args);
-                timer = null;
-            }, delay);
-        };
     }
 };
 

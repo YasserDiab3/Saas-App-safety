@@ -1,4 +1,4 @@
 {
-  "version": "2.2.138",
-  "message": "fix: wrap all synchronous-path global refs and fix SafetyBudget load wrapper"
+  "version": "2.2.140",
+  "message": "fix: move debounce from I18n into Utils (wrong object)"
 }
