@@ -178,7 +178,7 @@ const Settings = {
             // (المواقع/الإعدادات تُحمَّل في الخلفية ويُعاد رسم كارت إعدادات النماذج عند الجاهزية)
 
         section.innerHTML = `
-            <div class="section-header">
+            <div class="section-header hse-settings-hero">
                 <h1 class="section-title">
                     <i class="fas fa-cog ml-3"></i>
                     ${I18n.t('settings.title')}
@@ -186,63 +186,82 @@ const Settings = {
                 <p class="section-subtitle">${I18n.t('settings.subtitle')}</p>
             </div>
 
-            <!-- Tabs Navigation -->
-            <div class="tabs-container mt-6">
-                <div class="tabs-nav">
-                    <button class="tab-btn active" data-tab="company-data">
-                        <i class="fas fa-building ml-2"></i>
-                        ${I18n.t('settings.tabs.company')}
-                    </button>
-                    <button class="tab-btn" data-tab="cloud-storage">
-                        <i class="fas fa-cloud-upload-alt ml-2"></i>
-                        ${I18n.t('settings.tabs.cloud')}
-                    </button>
-                    <button class="tab-btn" data-tab="google-drive">
-                        <i class="fab fa-google-drive ml-2"></i>
-                        ${I18n.t('settings.tabs.drive')}
-                    </button>
-                    <button class="tab-btn" data-tab="sharepoint">
-                        <i class="fab fa-microsoft ml-2"></i>
-                        ${I18n.t('settings.tabs.sharepoint')}
-                    </button>
-                    <button class="tab-btn" data-tab="system-settings">
-                        <i class="fas fa-sliders-h ml-2"></i>
-                        ${I18n.t('settings.tabs.system')}
-                    </button>
-                    <button class="tab-btn" data-tab="form-settings">
-                        <i class="fas fa-file-alt ml-2"></i>
-                        ${I18n.t('settings.tabs.forms')}
-                    </button>
-                    <button class="tab-btn" data-tab="violation-types">
-                        <i class="fas fa-tags ml-2"></i>
-                        ${I18n.t('settings.tabs.violations')}
-                    </button>
-                    <button class="tab-btn" data-tab="reports">
-                        <i class="fas fa-file-pdf ml-2"></i>
-                        ${I18n.t('settings.tabs.reports')}
-                    </button>
-                    <button class="tab-btn" data-tab="notifications">
-                        <i class="fas fa-envelope ml-2"></i>
-                        ${I18n.t('settings.tabs.email')}
-                    </button>
-                    <button class="tab-btn" data-tab="permissions">
-                        <i class="fas fa-shield-alt ml-2"></i>
-                        ${I18n.t('settings.tabs.permissions')}
-                    </button>
-                    <button class="tab-btn" data-tab="approval-circuit">
-                        <i class="fas fa-project-diagram ml-2"></i>
-                        ${I18n.t('settings.tabs.circuit')}
-                    </button>
-                    <button class="tab-btn" data-tab="privacy" ${!isAdmin ? 'style="display:none;"' : ''}>
-                        <i class="fas fa-cookie-bite ml-2"></i>
-                        ${I18n.t('settings.tabs.privacy')}
-                    </button>
-                    <button class="tab-btn" data-tab="logs" ${!isAdmin ? 'style="display:none;"' : ''}>
-                        <i class="fas fa-history ml-2"></i>
-                        ${I18n.t('settings.tabs.logs')}
-                    </button>
-                </div>
-            </div>
+            <div class="hse-settings-shell">
+                <aside class="hse-settings-rail" aria-label="${I18n.t('settings.title')}">
+                    <div class="hse-settings-search">
+                        <i class="fas fa-search" aria-hidden="true"></i>
+                        <input type="search" id="hse-settings-search" placeholder="بحث في الإعدادات..." autocomplete="off" />
+                    </div>
+                    <p class="hse-settings-search-empty" id="hse-settings-search-empty">لا نتائج مطابقة</p>
+                    <nav class="hse-settings-nav tabs-nav" id="hse-settings-nav">
+                        <div class="hse-settings-nav-group" data-group="org">
+                            <div class="hse-settings-nav-label">المؤسسة</div>
+                            <button type="button" class="tab-btn hse-settings-nav-item active" data-tab="company-data" data-search="شركة مؤسسة بيانات">
+                                <i class="fas fa-building"></i>
+                                ${I18n.t('settings.tabs.company')}
+                            </button>
+                            <button type="button" class="tab-btn hse-settings-nav-item" data-tab="system-settings" data-search="نظام مواقع أقسام">
+                                <i class="fas fa-sliders-h"></i>
+                                ${I18n.t('settings.tabs.system')}
+                            </button>
+                            <button type="button" class="tab-btn hse-settings-nav-item" data-tab="form-settings" data-search="نماذج مواقع أماكن">
+                                <i class="fas fa-file-alt"></i>
+                                ${I18n.t('settings.tabs.forms')}
+                            </button>
+                        </div>
+                        <div class="hse-settings-nav-group" data-group="storage">
+                            <div class="hse-settings-nav-label">التخزين</div>
+                            <button type="button" class="tab-btn hse-settings-nav-item" data-tab="cloud-storage" data-search="سحابة تخزين نسخة">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                ${I18n.t('settings.tabs.cloud')}
+                            </button>
+                            <button type="button" class="tab-btn hse-settings-nav-item" data-tab="google-drive" data-search="google drive جوجل">
+                                <i class="fab fa-google-drive"></i>
+                                ${I18n.t('settings.tabs.drive')}
+                            </button>
+                            <button type="button" class="tab-btn hse-settings-nav-item" data-tab="sharepoint" data-search="sharepoint مايكروسوفت">
+                                <i class="fab fa-microsoft"></i>
+                                ${I18n.t('settings.tabs.sharepoint')}
+                            </button>
+                        </div>
+                        <div class="hse-settings-nav-group" data-group="ops">
+                            <div class="hse-settings-nav-label">التشغيل</div>
+                            <button type="button" class="tab-btn hse-settings-nav-item" data-tab="notifications" data-search="إشعارات بريد واتساب تنبيه">
+                                <i class="fas fa-bell"></i>
+                                ${I18n.t('settings.tabs.email')}
+                            </button>
+                            <button type="button" class="tab-btn hse-settings-nav-item" data-tab="reports" data-search="تقارير pdf امتثال">
+                                <i class="fas fa-file-pdf"></i>
+                                ${I18n.t('settings.tabs.reports')}
+                            </button>
+                            <button type="button" class="tab-btn hse-settings-nav-item" data-tab="violation-types" data-search="مخالفات أنواع">
+                                <i class="fas fa-tags"></i>
+                                ${I18n.t('settings.tabs.violations')}
+                            </button>
+                        </div>
+                        <div class="hse-settings-nav-group" data-group="governance">
+                            <div class="hse-settings-nav-label">الحوكمة</div>
+                            <button type="button" class="tab-btn hse-settings-nav-item" data-tab="permissions" data-search="صلاحيات مستخدمين أدوار">
+                                <i class="fas fa-shield-alt"></i>
+                                ${I18n.t('settings.tabs.permissions')}
+                            </button>
+                            <button type="button" class="tab-btn hse-settings-nav-item" data-tab="approval-circuit" data-search="دوائر موافقة اعتماد">
+                                <i class="fas fa-project-diagram"></i>
+                                ${I18n.t('settings.tabs.circuit')}
+                            </button>
+                            <button type="button" class="tab-btn hse-settings-nav-item" data-tab="privacy" data-search="خصوصية كوكيز" ${!isAdmin ? 'style="display:none;"' : ''}>
+                                <i class="fas fa-cookie-bite"></i>
+                                ${I18n.t('settings.tabs.privacy')}
+                            </button>
+                            <button type="button" class="tab-btn hse-settings-nav-item" data-tab="logs" data-search="سجلات تدقيق مراقبة إصدارات" ${!isAdmin ? 'style="display:none;"' : ''}>
+                                <i class="fas fa-history"></i>
+                                ${I18n.t('settings.tabs.logs')}
+                            </button>
+                        </div>
+                    </nav>
+                </aside>
+
+                <div class="hse-settings-main">
 
             <!-- Tab Content: Company Data -->
             <div class="tab-content active" id="tab-company-data">
@@ -1144,6 +1163,8 @@ const Settings = {
                 </div>
                 ` : '<div class="settings-group mt-6"><p class="text-gray-600">هذا القسم متاح للمديرين فقط</p></div>'}
             </div>
+                </div><!-- /.hse-settings-main -->
+            </div><!-- /.hse-settings-shell -->
         `;
         this.setupEventListeners();
         // تأخير بسيط لضمان تحميل DOM قبل تهيئة التبويبات
@@ -1269,57 +1290,98 @@ const Settings = {
     },
 
     setupTabsNavigation() {
-        const tabButtons = document.querySelectorAll('.tab-btn');
-        const tabContents = document.querySelectorAll('.tab-content');
+        const section = document.getElementById('settings-section');
+        if (!section) return;
 
-        tabButtons.forEach(button => {
+        const tabButtons = section.querySelectorAll('.hse-settings-nav .tab-btn');
+        const tabContents = section.querySelectorAll('.hse-settings-main > .tab-content');
+        const searchInput = section.querySelector('#hse-settings-search');
+        const searchEmpty = section.querySelector('#hse-settings-search-empty');
+
+        const activateTab = (targetTab) => {
+            tabButtons.forEach((btn) => btn.classList.remove('active'));
+            tabContents.forEach((content) => content.classList.remove('active'));
+
+            const button = section.querySelector(`.hse-settings-nav .tab-btn[data-tab="${targetTab}"]`);
+            if (button) button.classList.add('active');
+            const targetContent = document.getElementById(`tab-${targetTab}`);
+            if (targetContent) targetContent.classList.add('active');
+
+            try {
+                if (history.replaceState) {
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('settingsTab', targetTab);
+                    history.replaceState({}, '', url);
+                }
+            } catch (_e) { /* ignore */ }
+
+            if (targetTab === 'form-settings' && this.isCurrentUserAdmin()) {
+                if (typeof Permissions !== 'undefined' && typeof Permissions.bindFormSettingsEvents === 'function') {
+                    Permissions.bindFormSettingsEvents().catch((error) => {
+                        Utils.safeError('❌ خطأ في تحميل إعدادات النماذج:', error);
+                    });
+                }
+            }
+            if (targetTab === 'privacy' && this.isCurrentUserAdmin()) {
+                Settings.loadPrivacyTab();
+            }
+
+            try {
+                button && button.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+            } catch (_e) { /* ignore */ }
+        };
+
+        tabButtons.forEach((button) => {
             button.addEventListener('click', () => {
                 const targetTab = button.getAttribute('data-tab');
-
-                // Remove active class from all buttons and contents
-                tabButtons.forEach(btn => btn.classList.remove('active'));
-                tabContents.forEach(content => content.classList.remove('active'));
-
-                // Add active class to clicked button and corresponding content
-                button.classList.add('active');
-                const targetContent = document.getElementById(`tab-${targetTab}`);
-                if (targetContent) {
-                    targetContent.classList.add('active');
-                }
-                
-                // ✅ إصلاح: تحميل بيانات إعدادات النماذج فوراً عند فتح التبويب
-                if (targetTab === 'form-settings' && this.isCurrentUserAdmin()) {
-                    // تحميل البيانات فوراً بدون تأخير
-                    if (typeof Permissions !== 'undefined' && typeof Permissions.bindFormSettingsEvents === 'function') {
-                        // ✅ إصلاح: استدعاء مباشر بدون setTimeout لضمان التحميل الفوري
-                        Permissions.bindFormSettingsEvents().catch(error => {
-                            Utils.safeError('❌ خطأ في تحميل إعدادات النماذج:', error);
-                        });
-                    }
-                }
-                // تحميل بيانات الخصوصية والكوكيز عند فتح التبويب (للمدير فقط)
-                if (targetTab === 'privacy' && this.isCurrentUserAdmin()) {
-                    Settings.loadPrivacyTab();
-                }
+                if (targetTab) activateTab(targetTab);
             });
         });
 
-        // Activate first tab by default if no tab content is active
-        const activeContent = document.querySelector('.tab-content.active');
-        if (!activeContent) {
-            const firstTab = tabButtons[0];
-            if (firstTab) {
-                firstTab.click();
-            }
-        } else {
-            // Ensure the corresponding button is also active
-            const activeTabId = activeContent.id.replace('tab-', '');
-            const correspondingButton = document.querySelector(`.tab-btn[data-tab="${activeTabId}"]`);
-            if (correspondingButton) {
-                tabButtons.forEach(btn => btn.classList.remove('active'));
-                correspondingButton.classList.add('active');
-            }
+        if (searchInput && !searchInput._hseBound) {
+            searchInput._hseBound = true;
+            searchInput.addEventListener('input', () => {
+                const q = String(searchInput.value || '').trim().toLowerCase();
+                let visible = 0;
+                tabButtons.forEach((btn) => {
+                    if (btn.style.display === 'none' && !btn.classList.contains('is-hidden')) {
+                        // admin-hidden — keep hidden
+                        return;
+                    }
+                    const hay = (
+                        (btn.getAttribute('data-search') || '') +
+                        ' ' +
+                        (btn.textContent || '')
+                    ).toLowerCase();
+                    const match = !q || hay.includes(q);
+                    btn.classList.toggle('is-hidden', !match);
+                    if (match && btn.style.display !== 'none') visible++;
+                });
+                section.querySelectorAll('.hse-settings-nav-group').forEach((group) => {
+                    const any = Array.from(group.querySelectorAll('.tab-btn')).some(
+                        (b) => !b.classList.contains('is-hidden') && b.style.display !== 'none'
+                    );
+                    group.classList.toggle('is-empty', !any);
+                });
+                if (searchEmpty) searchEmpty.classList.toggle('is-visible', !!q && visible === 0);
+            });
         }
+
+        let initial = 'company-data';
+        try {
+            const url = new URL(window.location.href);
+            const fromUrl = url.searchParams.get('settingsTab');
+            if (fromUrl && section.querySelector(`.hse-settings-nav .tab-btn[data-tab="${fromUrl}"]`)) {
+                initial = fromUrl;
+            }
+        } catch (_e) { /* ignore */ }
+
+        const activeContent = section.querySelector('.hse-settings-main > .tab-content.active');
+        if (activeContent && initial === 'company-data') {
+            const activeTabId = activeContent.id.replace('tab-', '');
+            if (activeTabId) initial = activeTabId;
+        }
+        activateTab(initial);
     },
 
     async loadPrivacyTab() {
