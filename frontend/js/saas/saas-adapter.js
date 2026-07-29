@@ -85,11 +85,76 @@
         addUserTask:          { op: 'upsert', sheet: 'UserTasks', idFrom: 'id' },
         updateUserTask:       { op: 'patch',  sheet: 'UserTasks', idFrom: 'taskId', patchFrom: 'updateData' },
         deleteUserTask:       { op: 'delete', sheet: 'UserTasks', idFrom: 'taskId' },
+        // deletes — prefer the id keys modules actually send
+        deleteClinicVisit:            { op: 'delete', sheet: 'ClinicVisits', idFrom: 'visitId' },
+        deleteIncident:               { op: 'delete', sheet: 'Incidents', idFrom: 'incidentId' },
+        deleteNearMiss:               { op: 'delete', sheet: 'NearMiss', idFrom: 'nearMissId' },
+        deleteViolation:              { op: 'delete', sheet: 'Violations', idFrom: 'violationId' },
+        deleteViolationFromSheet:     { op: 'delete', sheet: 'Violations', idFrom: 'id' },
+        deleteTraining:               { op: 'delete', sheet: 'Training', idFrom: 'trainingId' },
+        deleteMedication:             { op: 'delete', sheet: 'Medications', idFrom: 'medicationId' },
+        deleteObservation:            { op: 'delete', sheet: 'DailyObservations', idFrom: 'observationId' },
+        deleteActionTracking:         { op: 'delete', sheet: 'ActionTrackingRegister', idFrom: 'actionId' },
+        deleteEmployee:               { op: 'delete', sheet: 'Employees', idFrom: 'employeeId' },
+        deleteContractor:             { op: 'delete', sheet: 'Contractors', idFrom: 'contractorId' },
+        deleteApprovedContractor:     { op: 'delete', sheet: 'ApprovedContractors', idFrom: 'approvedContractorId' },
+        deletePPE:                    { op: 'delete', sheet: 'PPE', idFrom: 'ppeId' },
+        deletePPEStockItem:           { op: 'delete', sheet: 'PPEStock', idFrom: 'itemId' },
+        deleteSafetyTeamMember:       { op: 'delete', sheet: 'SafetyTeamMembers', idFrom: 'id' },
+        deleteSafetyAlert:            { op: 'delete', sheet: 'EmergencyAlerts', idFrom: 'id' },
         addContractorApprovalRequest:       { op: 'upsert', sheet: 'ContractorApprovalRequests', idFrom: 'id' },
         updateContractorApprovalRequest:    { op: 'patch',  sheet: 'ContractorApprovalRequests', idFrom: 'requestId', patchFrom: 'updateData' },
         rejectContractorApprovalRequest:    { op: 'patch',  sheet: 'ContractorApprovalRequests', idFrom: 'requestId' }
         // … extend incrementally. Unmapped CRUD falls through to convention.
     };
+
+    /**
+     * Pick a record id for delete/patch RPCs.
+     * PostgREST omits undefined args, so a missing p_id becomes api_delete(p_sheet)
+     * and fails with "Could not find the function … in the schema cache".
+     */
+    function pickRecordId(data, preferredKey) {
+        if (!data || typeof data !== 'object') return null;
+        const keys = [];
+        const push = (k) => {
+            if (k && !keys.includes(k)) keys.push(k);
+        };
+        push(preferredKey);
+        if (preferredKey && typeof preferredKey === 'string' && preferredKey.length > 1) {
+            push(preferredKey.charAt(0).toLowerCase() + preferredKey.slice(1));
+            // ClinicVisitId → visitId / IncidentId → incidentId
+            const stripped = preferredKey.replace(/Id$/, '');
+            const m = stripped.match(/^(?:Clinic|Employee|Contractor|Approved|Safety|PPE|Daily|Periodic|User|Fire|Chemical|HSE|KPI)?(.+)$/);
+            if (m && m[1] && m[1] !== stripped) {
+                const core = m[1];
+                push(core.charAt(0).toLowerCase() + core.slice(1) + 'Id');
+            }
+        }
+        [
+            'id', 'recordId', 'visitId', 'taskId', 'employeeId', 'trainingId',
+            'incidentId', 'violationId', 'nearMissId', 'medicationId',
+            'contractorId', 'approvedContractorId', 'ppeId', 'itemId',
+            'userId', 'actionId', 'observationId', 'planId', 'requestId',
+            'memberId', 'alertId'
+        ].forEach(push);
+
+        for (let i = 0; i < keys.length; i++) {
+            const v = data[keys[i]];
+            if (v != null && String(v).trim() !== '') return String(v).trim();
+        }
+        return null;
+    }
+
+    async function rpcDelete(sheet, id) {
+        const p_id = id == null ? '' : String(id).trim();
+        if (!p_id) {
+            return { success: false, message: 'معرف السجل مطلوب للحذف' };
+        }
+        if (!sheet) {
+            return { success: false, message: 'اسم الورقة مطلوب للحذف' };
+        }
+        return await rpc('api_delete', { p_sheet: sheet, p_id: p_id });
+    }
 
     // Business-logic actions — now handled by atomic Postgres RPCs (0007).
     function clinicSheetFor(data) {
@@ -110,6 +175,22 @@
             }
             case 'getAllClinicVisits':
                 return wrapArray(await rpc('api_get_all_clinic_visits', {}));
+            case 'deleteClinicVisit': {
+                const visitId = pickRecordId(data, 'visitId');
+                if (!visitId) return { success: false, message: 'معرف الزيارة مطلوب للحذف' };
+                let sheet = clinicSheetFor(data);
+                // If personType omitted, try local AppState to pick employee vs contractor sheet.
+                if (!data.personType && global.AppState && global.AppState.appData) {
+                    const employees = global.AppState.appData.clinicVisits || [];
+                    const contractors = global.AppState.appData.clinicContractorVisits || [];
+                    if (contractors.some(v => String(v && v.id) === String(visitId))) {
+                        sheet = 'ClinicContractorVisits';
+                    } else if (employees.some(v => String(v && v.id) === String(visitId))) {
+                        sheet = 'ClinicVisits';
+                    }
+                }
+                return await rpcDelete(sheet, visitId);
+            }
             case 'updateTaskCompletionRate':
                 return await rpc('api_update_task_completion', {
                     p_task_id: data.taskId || data.task_id,
@@ -167,7 +248,7 @@
         return null;
     }
     const BUSINESS_ACTIONS = new Set([
-        'addClinicVisit', 'updateClinicVisit', 'updateTaskCompletionRate',
+        'addClinicVisit', 'updateClinicVisit', 'deleteClinicVisit', 'updateTaskCompletionRate',
         'getUserTasksByUserId', 'getAllClinicVisits',
         'approveContractorApprovalRequest'
     ]);
@@ -304,7 +385,7 @@
             return await rpc('api_patch', { p_sheet: 'PPE', p_id: data.ppeId || data.id, p_patch: data.updateData || data });
         }
         if (action === 'deletePPE') {
-            return await rpc('api_delete', { p_sheet: 'PPE', p_id: data.ppeId || data.id });
+            return await rpcDelete('PPE', pickRecordId(data, 'ppeId'));
         }
         if (action === 'getPPEItemsList') {
             return wrapArray(await rpc('api_read_sheet', { p_sheet: 'PPEStock' }));
@@ -314,29 +395,29 @@
             return await rpc('api_upsert', { p_sheet: 'PPE_Transactions', p_id: id, p_data: Object.assign({}, data, { id }) });
         }
         if (action === 'deletePPEStockItem') {
-            return await rpc('api_delete', { p_sheet: 'PPEStock', p_id: data.itemId || data.id });
+            return await rpcDelete('PPEStock', pickRecordId(data, 'itemId'));
         }
         // ---- Training / Employees / Contractors ----
         if (action === 'deleteTraining') {
-            return await rpc('api_delete', { p_sheet: 'Training', p_id: data.trainingId || data.id });
+            return await rpcDelete('Training', pickRecordId(data, 'trainingId'));
         }
         if (action === 'deleteUser') {
-            return await rpc('api_delete', { p_sheet: 'Users', p_id: data.userId || data.id });
+            return await rpcDelete('Users', pickRecordId(data, 'userId'));
         }
         if (action === 'deactivateEmployee') {
             return await rpc('api_patch', { p_sheet: 'Employees', p_id: data.employeeId || data.id, p_patch: { active: false, updatedAt: new Date().toISOString() } });
         }
         if (action === 'deleteEmployee') {
-            return await rpc('api_delete', { p_sheet: 'Employees', p_id: data.employeeId || data.id });
+            return await rpcDelete('Employees', pickRecordId(data, 'employeeId'));
         }
         if (action === 'deleteApprovedContractor') {
-            return await rpc('api_delete', { p_sheet: 'ApprovedContractors', p_id: data.approvedContractorId || data.id });
+            return await rpcDelete('ApprovedContractors', pickRecordId(data, 'approvedContractorId'));
         }
         if (action === 'updateApprovedContractor') {
             return await rpc('api_patch', { p_sheet: 'ApprovedContractors', p_id: data.approvedContractorId || data.id, p_patch: data.updateData || data });
         }
         if (action === 'deleteContractor') {
-            return await rpc('api_delete', { p_sheet: 'Contractors', p_id: data.contractorId || data.id });
+            return await rpcDelete('Contractors', pickRecordId(data, 'contractorId'));
         }
         // ---- ISO / HSE ----
         if (action === 'addHSEObjective') {
@@ -419,7 +500,7 @@
         }
         // ---- Generic sheet operations ----
         if (action === 'deleteFromSheet') {
-            return await rpc('api_delete', { p_sheet: data.sheetName, p_id: data.id || data.recordId });
+            return await rpcDelete(data.sheetName, pickRecordId(data, 'id'));
         }
         if (action === 'testConnection') {
             return { success: true, message: 'Supabase connected' };
@@ -583,12 +664,17 @@
             if (spec) {
                 if (spec.op === 'read')
                     return wrapArray(await rpc('api_read_sheet', { p_sheet: spec.sheet }));
-                if (spec.op === 'upsert')
-                    return await rpc('api_upsert', { p_sheet: spec.sheet, p_id: data[spec.idFrom] || data[spec.idFrom.charAt(0).toLowerCase() + spec.idFrom.slice(1)] || (data.id || cryptoId()), p_data: data });
-                if (spec.op === 'patch')
-                    return await rpc('api_patch', { p_sheet: spec.sheet, p_id: data[spec.idFrom] || data[spec.idFrom.charAt(0).toLowerCase() + spec.idFrom.slice(1)] || data.id || data.recordId, p_patch: data[spec.patchFrom] || data[spec.patchFrom.charAt(0).toLowerCase() + spec.patchFrom.slice(1)] || data });
                 if (spec.op === 'delete')
-                    return await rpc('api_delete', { p_sheet: spec.sheet, p_id: data[spec.idFrom] || data[spec.idFrom.charAt(0).toLowerCase() + spec.idFrom.slice(1)] || data.id || data.recordId });
+                    return await rpcDelete(spec.sheet, pickRecordId(data, spec.idFrom));
+                if (spec.op === 'upsert')
+                    return await rpc('api_upsert', { p_sheet: spec.sheet, p_id: pickRecordId(data, spec.idFrom) || cryptoId(), p_data: data });
+                if (spec.op === 'patch') {
+                    const patchId = pickRecordId(data, spec.idFrom);
+                    if (!patchId) return { success: false, message: 'معرف السجل مطلوب للتحديث' };
+                    const patchKey = spec.patchFrom;
+                    const patchPayload = (patchKey && (data[patchKey] || data[patchKey.charAt(0).toLowerCase() + patchKey.slice(1)])) || data;
+                    return await rpc('api_patch', { p_sheet: spec.sheet, p_id: patchId, p_patch: patchPayload });
+                }
             }
         }
 

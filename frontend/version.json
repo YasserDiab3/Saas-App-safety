@@ -1,4 +1,4 @@
 {
-  "version": "2.2.141",
-  "message": "fix: attach debounce to Utils so four modules load again"
+  "version": "2.2.143",
+  "message": "fix(build): align index SW query with version 2.2.141"
 }
