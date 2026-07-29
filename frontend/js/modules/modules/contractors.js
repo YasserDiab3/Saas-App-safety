@@ -337,9 +337,10 @@ const Contractors = {
     },
 
     async load(preserveCurrentTab = false) {
-        // ✅ CRITICAL: منع استدعاء load() أكثر من مرة في نفس الوقت
         if (this._isLoading) {
-            Utils.safeLog('⚠️ load() قيد التنفيذ بالفعل - تم تجاهل الاستدعاء');
+            if (typeof Utils !== 'undefined' && Utils.safeLog) {
+                Utils.safeLog('⚠️ load() قيد التنفيذ بالفعل - تم تجاهل الاستدعاء');
+            } else { console.log('load() already in progress - skipped'); }
             return;
         }
         

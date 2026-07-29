@@ -1,4 +1,4 @@
 {
-  "version": "2.2.136",
-  "message": "fix: critical bugs in 4 modules causing load failure"
+  "version": "2.2.137",
+  "message": "fix: add typeof Permissions guard to remaining unprotected calls"
 }

@@ -1910,6 +1910,7 @@ const PTW = {
                             <div class="empty-state">
                                 <i class="fas fa-exclamation-triangle text-yellow-500 text-4xl mb-4"></i>
                                 <p class="text-gray-500 mb-4">${t('module.common.loadDataRuntimeError', 'حدث خطأ أثناء تحميل البيانات')}</p>
+                                <p class="text-sm text-gray-400 mb-4">${error && error.message ? Utils.escapeHTML(error.message) : 'خطأ غير معروف'}</p>
                                 <button onclick="PTW.load()" class="btn-primary">
                                     <i class="fas fa-redo ml-2"></i>
                                     ${t('module.common.retry', 'إعادة المحاولة')}

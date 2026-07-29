@@ -3371,9 +3371,28 @@ SafetyBudget.deletePurchaseOrder = async function (recordId) {
 
 const __originalSafetyBudgetLoad = SafetyBudget.load;
 SafetyBudget.load = async function () {
-    this.ensurePurchaseOrdersCollection();
-    await __originalSafetyBudgetLoad.call(this);
-    this.injectPurchaseOrdersUI();
+    try {
+        this.ensurePurchaseOrdersCollection();
+    } catch (e) {
+        if (typeof Utils !== 'undefined' && Utils.safeWarn) {
+            Utils.safeWarn('⚠️ ensurePurchaseOrdersCollection failed:', e);
+        } else { console.warn('ensurePurchaseOrdersCollection failed:', e); }
+    }
+    try {
+        await __originalSafetyBudgetLoad.call(this);
+    } catch (e) {
+        if (typeof Utils !== 'undefined' && Utils.safeError) {
+            Utils.safeError('❌ Original SafetyBudget.load failed:', e);
+        } else { console.error('Original SafetyBudget.load failed:', e); }
+        throw e;
+    }
+    try {
+        this.injectPurchaseOrdersUI();
+    } catch (e) {
+        if (typeof Utils !== 'undefined' && Utils.safeWarn) {
+            Utils.safeWarn('⚠️ injectPurchaseOrdersUI failed:', e);
+        } else { console.warn('injectPurchaseOrdersUI failed:', e); }
+    }
     this.ensurePurchaseOrdersLoaded().then(() => {
         if (this.currentTab === 'purchase-orders') {
             this.switchTab('purchase-orders', { silent: true });
