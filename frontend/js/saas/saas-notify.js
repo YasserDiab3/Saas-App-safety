@@ -103,6 +103,20 @@
                 });
             } catch (_e) { /* offline / RPC missing */ }
         }
+
+        try {
+            if (global.SaaSEnterpriseStubs && typeof SaaSEnterpriseStubs.emitWebhook === 'function') {
+                await SaaSEnterpriseStubs.emitWebhook(eventKey, {
+                    title,
+                    body,
+                    recordId,
+                    siteId: (payload && payload.siteId) || '',
+                    channels,
+                    meta: payload || {}
+                });
+            }
+        } catch (_e) { /* best-effort */ }
+
         return { ok: true, channels };
     }
 

@@ -6899,6 +6899,7 @@ const DailyObservations = {
         };
 
         const siteId = record.siteId || record.site || record.locationSiteId || '';
+        const orgSiteId = record.orgSiteId || record.org_site_id || '';
         const placeId = record.placeId || record.locationId || record.place || '';
         const locationName = record.locationName || record.placeName || record.location || record.customLocationName || '';
         const dateValue = record.dateTime || record.date || record.observationDate || '';
@@ -6967,6 +6968,7 @@ const DailyObservations = {
             id: recordId,
             isoCode: isoCodeValue,
             siteId,
+            orgSiteId,
             siteName: record.siteName || this.lookupSiteName(siteId),
             placeId,
             locationName: locationName || this.lookupPlaceName(siteId, placeId),
@@ -7249,6 +7251,7 @@ const DailyObservations = {
                                 <label for="custom-location-input" class="form-label">مكان آخر (إدخال يدوي)</label>
                                 <input type="text" id="custom-location-input" class="form-input" placeholder="مثال: خط الإنتاج 3">
                             </div>
+                            ${typeof window !== 'undefined' && window.SaaSOrgSites ? window.SaaSOrgSites.orgSelectFieldHtml((normalizedData && (normalizedData.orgSiteId || '')) || '', 'observation-org-site') : ''}
                         </div>
 
                         <div id="observation-step-2" class="observation-form-step observation-step-2 hidden">
@@ -7829,6 +7832,7 @@ const DailyObservations = {
             isoCode,
             siteId,
             siteName: this.lookupSiteName(siteId),
+            orgSiteId: (document.getElementById('observation-org-site')?.value || existingRecord?.orgSiteId || '').trim(),
             placeId,
             locationName,
             observationType,

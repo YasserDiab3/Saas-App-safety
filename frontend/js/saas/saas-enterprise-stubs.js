@@ -73,7 +73,7 @@
                 <button type="button" class="btn-secondary wh-del" data-i="${i}">حذف</button>
               </li>`).join('') || '<li class="text-gray-500">لا webhooks بعد</li>'}
             </ul>
-            <p class="text-xs text-gray-500 mt-2">الأحداث: capa_created، capa_due، backup_reminder، ops_wipe — تُرسل عند توفر CORS على المستقبل.</p>
+            <p class="text-xs text-gray-500 mt-2">الأحداث: capa_created، capa_due، ptw_approval، backup_reminder — تُرسل من المتصفح (CORS) ومن Edge <code>notify-dispatch</code> بدون CORS عند جدولة الـ cron.</p>
           </div>`;
 
         container.querySelector('#sso-save')?.addEventListener('click', async () => {

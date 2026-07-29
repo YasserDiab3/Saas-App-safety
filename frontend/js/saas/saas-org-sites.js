@@ -60,23 +60,67 @@
 
     function recordSiteId(rec) {
         if (!rec || typeof rec !== 'object') return '';
-        return String(rec.siteId || rec.site_id || rec.locationSiteId || '').trim();
+        const org = String(rec.orgSiteId || rec.org_site_id || '').trim();
+        if (org) return org;
+        const sid = String(rec.siteId || rec.site_id || rec.locationSiteId || '').trim();
+        if (!sid) return '';
+        // Only treat as org-scope when id belongs to OrgSites (avoid operational location IDs).
+        try {
+            const sites = listSites();
+            if (sites.some((s) => String(s.id) === sid)) return sid;
+        } catch (_e) { /* ignore */ }
+        return '';
+    }
+
+    function isStrictSiteScope() {
+        try {
+            const cs = global.AppState && AppState.companySettings;
+            if (cs && (cs.strictSiteScope === true || cs.strictSiteScope === 'true')) return true;
+            const rows = (AppState.appData && AppState.appData.companySettings) || [];
+            const row = Array.isArray(rows) ? (rows.find((r) => String(r.id) === 'default') || rows[0]) : null;
+            return !!(row && (row.strictSiteScope === true || row.strictSiteScope === 'true'));
+        } catch (_e) {
+            return false;
+        }
+    }
+
+    async function setStrictSiteScope(enabled) {
+        if (!global.AppState) throw new Error('AppState missing');
+        if (!AppState.companySettings) AppState.companySettings = {};
+        AppState.companySettings.strictSiteScope = !!enabled;
+        if (!AppState.appData) AppState.appData = {};
+        if (!Array.isArray(AppState.appData.companySettings)) AppState.appData.companySettings = [];
+        let row = AppState.appData.companySettings.find((r) => String(r.id) === 'default');
+        if (!row) {
+            row = Object.assign({ id: 'default' }, AppState.companySettings);
+            AppState.appData.companySettings.push(row);
+        }
+        row.strictSiteScope = !!enabled;
+        Object.assign(AppState.companySettings, row);
+        if (global.Backend && Backend.sendToAppsScript) {
+            await Backend.sendToAppsScript('saveCompanySettings', Object.assign({ id: 'default' }, AppState.companySettings));
+        } else if (global.DataManager) {
+            DataManager.save();
+        }
+        return !!enabled;
     }
 
     function filterBySite(records, siteIdOverride) {
         const list = Array.isArray(records) ? records : [];
         const forced = siteIdOverride != null && siteIdOverride !== '' ? String(siteIdOverride) : '';
+        const strict = isStrictSiteScope();
         if (forced) {
             return list.filter((r) => {
                 const sid = recordSiteId(r);
-                return !sid || sid === forced;
+                if (!sid) return !strict;
+                return sid === forced;
             });
         }
         const allowed = allowedSiteIds();
         if (!allowed) return list;
         return list.filter((r) => {
             const sid = recordSiteId(r);
-            if (!sid) return true;
+            if (!sid) return !strict;
             return allowed.includes(sid);
         });
     }
@@ -85,7 +129,7 @@
         const allowed = allowedSiteIds();
         if (!allowed) return true;
         const sid = recordSiteId(rec);
-        if (!sid) return true;
+        if (!sid) return !isStrictSiteScope();
         return allowed.includes(sid);
     }
 
@@ -160,6 +204,13 @@
               المواقع التنظيمية
             </h4>
             <p class="text-sm text-gray-600 mb-4">نموذج Company → Site لفصل البيانات والتقارير والصلاحيات حسب الموقع.</p>
+            <label class="flex items-start gap-2 text-sm mb-4 p-3 rounded border border-slate-200 bg-slate-50 dark:bg-gray-900/40">
+              <input type="checkbox" id="hse-strict-site-scope" ${isStrictSiteScope() ? 'checked' : ''} class="mt-1" />
+              <span>
+                <strong>نطاق مواقع صارم</strong>
+                <span class="block text-gray-600 text-xs mt-1">إخفاء السجلات بدون موقع للمستخدمين المحدودين بمواقع. الافتراضي: السجلات القديمة بدون siteId تبقى مرئية.</span>
+              </span>
+            </label>
             <div class="flex flex-wrap gap-2 mb-3">
               <input id="hse-site-name" class="form-input" placeholder="اسم الموقع" style="min-width:180px" />
               <input id="hse-site-code" class="form-input" placeholder="رمز (اختياري)" style="min-width:100px" />
@@ -197,6 +248,20 @@
               }).join('') || '<li class="text-gray-500">لا أقسام بعد</li>'}
             </ul>
           </div>`;
+        const strictCb = container.querySelector('#hse-strict-site-scope');
+        if (strictCb) {
+            strictCb.addEventListener('change', async () => {
+                try {
+                    await setStrictSiteScope(!!strictCb.checked);
+                    if (typeof Notification !== 'undefined' && Notification.success) {
+                        Notification.success(strictCb.checked ? 'تم تفعيل النطاق الصارم' : 'تم إيقاف النطاق الصارم');
+                    }
+                } catch (e) {
+                    strictCb.checked = !strictCb.checked;
+                    if (typeof Notification !== 'undefined' && Notification.error) Notification.error(e.message || String(e));
+                }
+            });
+        }
         const addBtn = container.querySelector('#hse-site-add-btn');
         if (addBtn) {
             addBtn.addEventListener('click', async () => {
@@ -259,6 +324,8 @@
         listDepartments,
         getSite,
         allowedSiteIds,
+        isStrictSiteScope,
+        setStrictSiteScope,
         filterBySite,
         canAccessRecord,
         recordSiteId,

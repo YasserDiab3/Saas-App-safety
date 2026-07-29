@@ -1,12 +1,14 @@
 // ============================================================
 // Edge Function: notify-dispatch
-// Claims pending app.notification_outbox rows and sends Email (SMTP)
-// and optional WhatsApp (Meta Cloud API) messages.
+// Claims pending app.notification_outbox rows and sends Email (SMTP),
+// optional WhatsApp (Meta Cloud API), and tenant WebhookEndpoints.
 //
 // Deploy:  supabase functions deploy notify-dispatch --no-verify-jwt
 // Secrets: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SMTP_*, CRON_SECRET
-// Optional WhatsApp: WA_PHONE_NUMBER_ID, WA_ACCESS_TOKEN
+// Optional WhatsApp: WA_PHONE_NUMBER_ID, WA_ACCESS_TOKEN, WA_DEFAULT_TO
 // Invoke:  POST + header x-cron-secret: <CRON_SECRET>
+// Cron:    Supabase Dashboard → Edge Functions → notify-dispatch → Schedules
+//          (every 5–15 min) OR external cron hitting the function URL.
 // ============================================================
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts';
@@ -23,6 +25,14 @@ type OutboxRow = {
   site_id: string | null;
   channels: string[] | unknown;
   payload: Record<string, unknown>;
+};
+
+type WebhookRow = {
+  id?: string;
+  url?: string;
+  secret?: string;
+  enabled?: boolean;
+  events?: string[];
 };
 
 async function sendSmtp(to: string, subject: string, html: string) {
@@ -94,6 +104,49 @@ async function resolveOwnerEmail(supa: ReturnType<typeof createClient>, tenantId
   return { email, tenantName: (data && (data as { name?: string }).name) || tenantId };
 }
 
+async function loadTenantWebhooks(supa: ReturnType<typeof createClient>, tenantId: string): Promise<WebhookRow[]> {
+  const { data, error } = await supa
+    .schema('app')
+    .from('records')
+    .select('id, data')
+    .eq('tenant_id', tenantId)
+    .eq('sheet', 'WebhookEndpoints');
+  if (error || !data) return [];
+  return data
+    .map((r: { data?: WebhookRow }) => (r && r.data) || {})
+    .filter((w: WebhookRow) => w && w.enabled !== false && w.url);
+}
+
+async function fanOutWebhooks(hooks: WebhookRow[], row: OutboxRow) {
+  const eventKey = row.event_key || '';
+  const body = JSON.stringify({
+    event: eventKey,
+    at: new Date().toISOString(),
+    app: 'HSEHub 360',
+    tenantId: row.tenant_id,
+    recordId: row.record_id,
+    siteId: row.site_id,
+    title: row.title,
+    body: row.body,
+    data: row.payload || {}
+  });
+  for (const hook of hooks) {
+    const events = Array.isArray(hook.events) ? hook.events.map(String) : [];
+    if (events.length && !events.includes(eventKey) && !events.includes('*')) continue;
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (hook.secret) headers['X-HSEHub-Secret'] = String(hook.secret);
+    const res = await fetch(String(hook.url), {
+      method: 'POST',
+      headers,
+      body
+    });
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(`webhook ${hook.url}: ${res.status} ${err.slice(0, 200)}`);
+    }
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', {
@@ -126,6 +179,7 @@ Deno.serve(async (req) => {
 
   const list = (rows || []) as OutboxRow[];
   let sent = 0;
+  let webhooks = 0;
   const failures: { id: string; error: string }[] = [];
 
   for (const row of list) {
@@ -155,10 +209,22 @@ Deno.serve(async (req) => {
         }
       }
 
+      // Always attempt tenant webhooks (server-side; no CORS)
+      const hooks = await loadTenantWebhooks(supa, row.tenant_id);
+      const webhookErrors: string[] = [];
+      for (const hook of hooks) {
+        try {
+          await fanOutWebhooks([hook], row);
+          webhooks++;
+        } catch (we) {
+          webhookErrors.push(String(we).slice(0, 200));
+        }
+      }
+
       await supa.rpc('api_complete_notification_outbox', {
         p_id: row.id,
         p_ok: true,
-        p_error: null
+        p_error: webhookErrors.length ? webhookErrors.join('; ').slice(0, 500) : null
       });
       sent++;
     } catch (e) {
@@ -173,7 +239,7 @@ Deno.serve(async (req) => {
   }
 
   return new Response(
-    JSON.stringify({ ok: true, claimed: list.length, sent, failures }),
+    JSON.stringify({ ok: true, claimed: list.length, sent, webhooks, failures }),
     { headers: { 'Content-Type': 'application/json' } }
   );
 });

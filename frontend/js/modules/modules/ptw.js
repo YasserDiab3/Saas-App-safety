@@ -7327,6 +7327,7 @@ const PTW = {
                         <div class="ptw-manual-form-section manual-section-1" style="margin-top: 0; border-top-left-radius: 0; border-top-right-radius: 0;">
                             <h3><i class="fas fa-info-circle"></i><span>القسم الأول : بيانات التصريح الأساسية</span></h3>
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                ${typeof window !== 'undefined' && window.SaaSOrgSites ? window.SaaSOrgSites.orgSelectFieldHtml(existingEntry?.orgSiteId || '', 'manual-ptw-org-site') : ''}
                                 <div>
                                     <label class="block text-sm font-bold text-gray-700 mb-2">الموقع / القسم <span class="text-red-500">*</span></label>
                                     <select id="manual-permit-location" class="form-input transition-all focus:ring-2 focus:ring-blue-200" required>
@@ -8568,6 +8569,7 @@ const PTW = {
                 requestingParty: modal.querySelector('#manual-permit-requesting-party')?.value.trim() || '',
                 locationId: locationId,
                 location: locationName,
+                orgSiteId: (modal.querySelector('#manual-ptw-org-site')?.value || existingEntry?.orgSiteId || '').trim(),
                 locationEntries: selectedLocationEntries,
                 sublocationId: sublocationId,
                 sublocation: sublocationName,
@@ -10801,6 +10803,7 @@ const PTW = {
                                 <span>القسم الأول : بيانات التصريح الأساسية</span>
                              </h3>
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                ${typeof window !== 'undefined' && window.SaaSOrgSites ? window.SaaSOrgSites.orgSelectFieldHtml(ptwData?.orgSiteId || '', 'ptw-org-site') : ''}
                                 <div>
                                     <label class="block text-sm font-bold text-gray-700 mb-2">الموقع / القسم <span class="text-red-500">*</span></label>
                                     <select id="ptw-location" name="location" required class="form-input transition-all focus:ring-2 focus:ring-blue-200">
@@ -11956,6 +11959,7 @@ const PTW = {
             location: selectedSiteName || selectedSiteId,
             siteId: selectedSiteId,
             siteName: selectedSiteName,
+            orgSiteId: (document.getElementById('ptw-org-site')?.value || existingPermit?.orgSiteId || '').trim(),
             sublocation: selectedSublocationName || selectedSublocationId,
             sublocationId: selectedSublocationId,
             sublocationName: selectedSublocationName,
@@ -13177,6 +13181,26 @@ const PTW = {
             Backend.autoSave('PTW', AppState.appData.ptw).catch(error => {
                 Utils.safeError('خطأ في حفظ Google Sheets:', error);
             });
+
+            try {
+                if (window.SaaSNotify && typeof SaaSNotify.enqueue === 'function') {
+                    const nextApproval = this.getNextPendingApproval(permit.approvals);
+                    SaaSNotify.enqueue('ptw_approval', {
+                        title: action === 'approved' ? 'اعتماد PTW' : 'رفض PTW',
+                        body: `${permit.permitNumber || permit.id || ''} — ${approval.role || ''} → ${action}`,
+                        recordId: permit.id,
+                        siteId: permit.orgSiteId || permit.siteId || permit.locationId || '',
+                        meta: {
+                            action,
+                            nextRole: nextApproval && nextApproval.role,
+                            status: permit.status
+                        }
+                    }).catch(() => {});
+                }
+                if (typeof AuditLog !== 'undefined' && AuditLog.log) {
+                    AuditLog.log('ptw_approval', 'ptw', permit.id, { action, role: approval.role });
+                }
+            } catch (_e) { /* best-effort */ }
 
             if (action === 'approved') {
                 const nextApproval = this.getNextPendingApproval(permit.approvals);

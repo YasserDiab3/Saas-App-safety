@@ -90,6 +90,58 @@
           </body></html>`;
     }
 
+    /** Prepend brand banner AOA to SheetJS workbook first sheet or create one. */
+    function brandWorkbook(wb, reportTitle) {
+        try {
+            if (!global.XLSX || !wb) return wb;
+            const banner = spreadsheetBannerRows(reportTitle || 'تصدير');
+            banner.push([]);
+            const sheetName = (wb.SheetNames && wb.SheetNames[0]) || 'Sheet1';
+            if (!wb.Sheets) wb.Sheets = {};
+            if (!wb.SheetNames || !wb.SheetNames.length) {
+                wb.SheetNames = [sheetName];
+                wb.Sheets[sheetName] = global.XLSX.utils.aoa_to_sheet(banner);
+                return wb;
+            }
+            const sheet = wb.Sheets[sheetName];
+            const existing = global.XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' }) || [];
+            wb.Sheets[sheetName] = global.XLSX.utils.aoa_to_sheet(banner.concat(existing));
+            return wb;
+        } catch (_e) {
+            return wb;
+        }
+    }
+
+    function aoaToBrandedSheet(aoa, reportTitle) {
+        const banner = spreadsheetBannerRows(reportTitle || 'تصدير');
+        banner.push([]);
+        const rows = banner.concat(Array.isArray(aoa) ? aoa : []);
+        if (!global.XLSX) return null;
+        return global.XLSX.utils.aoa_to_sheet(rows);
+    }
+
+    function writeBrandedFile(wb, filename, reportTitle) {
+        brandWorkbook(wb, reportTitle);
+        if (global.XLSX && XLSX.writeFile) {
+            XLSX.writeFile(wb, filename || 'hsehub-export.xlsx');
+        }
+    }
+
+    /** Patch XLSX.writeFile once so every Excel download gets a brand banner. */
+    function enhanceXlsx() {
+        try {
+            if (!global.XLSX || !XLSX.writeFile || XLSX.__hseBrandWrapped) return;
+            const orig = XLSX.writeFile.bind(XLSX);
+            XLSX.writeFile = function (wb, filename, opts) {
+                try {
+                    brandWorkbook(wb, String(filename || 'export').replace(/\.[^.]+$/, ''));
+                } catch (_e) { /* ignore */ }
+                return orig(wb, filename, opts);
+            };
+            XLSX.__hseBrandWrapped = true;
+        } catch (_e) { /* ignore */ }
+    }
+
     global.SaaSReportBrand = {
         brandName,
         tenantName,
@@ -100,7 +152,10 @@
         spreadsheetBannerRows,
         wrapPrintHtml,
         formatStamp,
-        /** Prefer branded wrap when FormHeader is unavailable or opt-in. */
+        brandWorkbook,
+        aoaToBrandedSheet,
+        writeBrandedFile,
+        enhanceXlsx,
         enhanceFormHeader() {
             try {
                 if (!global.FormHeader || typeof FormHeader.generatePDFHTML !== 'function') return;
@@ -115,9 +170,21 @@
         }
     };
 
+    function boot() {
+        global.SaaSReportBrand.enhanceFormHeader();
+        global.SaaSReportBrand.enhanceXlsx();
+        // XLSX may load late
+        let n = 0;
+        const t = setInterval(() => {
+            global.SaaSReportBrand.enhanceXlsx();
+            if (global.XLSX && XLSX.__hseBrandWrapped) clearInterval(t);
+            if (++n > 40) clearInterval(t);
+        }, 500);
+    }
+
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => setTimeout(() => global.SaaSReportBrand.enhanceFormHeader(), 800));
+        document.addEventListener('DOMContentLoaded', () => setTimeout(boot, 400));
     } else {
-        setTimeout(() => global.SaaSReportBrand.enhanceFormHeader(), 800);
+        setTimeout(boot, 400);
     }
 })(window);
