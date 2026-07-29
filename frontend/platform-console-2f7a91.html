@@ -302,12 +302,13 @@
           <div class="pf-toolbar pf-toolbar-search">
             <input type="search" id="device-search" class="pf-search-input" data-i18n-ph="pf_dev_search_ph" placeholder="بحث…">
             <button type="button" class="saas-btn sm pf-search-btn" id="device-search-btn" data-i18n="pf_search_btn">بحث</button>
+            <button type="button" class="saas-btn sm ghost" id="device-refresh-btn" data-i18n="pf_ck_refresh">تحديث</button>
             <button type="button" class="saas-btn sm ghost pf-export-btn" onclick="exportTab('devices','excel')" data-i18n="pf_export_excel">Excel</button>
             <button type="button" class="saas-btn sm ghost pf-export-btn" onclick="exportTab('devices','pdf')" data-i18n="pf_export_pdf">PDF</button>
             <span class="pf-msg" id="export-msg-devices"></span>
           </div>
         </div>
-        <p class="pf-plans-note muted-s" data-i18n="pf_dev_note"></p>
+        <p class="pf-plans-note muted-s" data-i18n="pf_dev_note">جلسات الأجهزة للمستخدمين المسجّلين — تُحدَّث عند الدخول وأثناء استخدام التطبيق. اضغط تحديث لجلب أحدث ظهور.</p>
         <div class="pf-table-wrap" id="devices-table"></div>
         <div class="pf-pager" id="devices-pager"></div>
       </div>
@@ -429,7 +430,7 @@
   <script src="js/saas/saas-brand.js"></script>
   <script src="js/saas/supabase-bootstrap.js"></script>
   <script src="js/saas/saas-escape.js"></script>
-  <script src="js/saas/saas-i18n.js?v=2.2.80"></script>
+  <script src="js/saas/saas-i18n.js?v=2.2.146"></script>
   <script src="js/saas/saas-platform-export.js"></script>
   <script src="js/modules/help-default-content-data.js"></script>
   <script src="js/modules/help-default-content.js"></script>
@@ -891,6 +892,9 @@
       $('user-search').onkeydown = e => { if (e.key === 'Enter') $('user-search-btn').click(); };
       $('device-search-btn').onclick = () => { _state.devices.offset = 0; _state.devices.search = $('device-search').value.trim(); loadDevices(); };
       $('device-search').onkeydown = e => { if (e.key === 'Enter') $('device-search-btn').click(); };
+      if ($('device-refresh-btn')) {
+        $('device-refresh-btn').onclick = () => { loadDevices(); };
+      }
       $('billing-filter').onchange = () => { _state.billing.offset = 0; _state.billing.status = $('billing-filter').value; loadBilling(); };
       $('inquiry-status-filter').onchange = () => { _state.inquiries.status = $('inquiry-status-filter').value; loadInquiries(); };
       $('inquiry-refresh-btn').onclick = () => loadInquiries();
@@ -1401,7 +1405,12 @@
         p_search: st.search || null
       });
       if (error) { $('devices-table').innerHTML = `<p class="err">${esc(error.message)}</p>`; return; }
-      const items = data.items || [];
+      let payload = data;
+      if (typeof data === 'string') {
+        try { payload = JSON.parse(data); } catch (_e) { payload = {}; }
+      }
+      const items = (payload && payload.items) || [];
+      const total = (payload && payload.total) || 0;
       $('devices-table').innerHTML = items.length
         ? `<table class="pf-table pf-table--devices"><thead><tr>
             <th>${esc(T('pf_col_email'))}</th><th>${esc(T('pf_col_name'))}</th>
@@ -1419,10 +1428,10 @@
             <td>${regionCell(r)}</td>
             <td>${geoCell(r.latitude, r.longitude, r.geo_source)}</td>
             <td>${esc(r.device_type || '—')}${r.screen_size ? `<br><span class="muted-s">${esc(r.screen_size)}</span>` : ''}</td>
-            <td>${esc(fmtDate(r.last_seen_at))}</td></tr>`).join('')
+            <td>${esc(fmtExp(r.last_seen_at) || '—')}</td></tr>`).join('')
         }</tbody></table>`
         : `<p class="muted-s">${esc(T('pf_no_rows'))}</p>`;
-      renderPager('devices-pager', data.total, st.offset, dir => {
+      renderPager('devices-pager', total, st.offset, dir => {
         st.offset = Math.max(0, st.offset + dir * PAGE_SIZE);
         loadDevices();
       });

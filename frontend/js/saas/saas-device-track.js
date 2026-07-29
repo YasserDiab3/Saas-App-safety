@@ -1,11 +1,15 @@
 /**
  * saas-device-track.js — report device/session metadata after login (IP/geo via edge function).
  * Browsers cannot expose MAC addresses; we use a stable device_id in localStorage instead.
+ *
+ * This telemetry is security-essential for platform admins (session/device audit)
+ * and reports for authenticated users regardless of marketing/functional cookie prefs.
  */
 (function (global) {
     const STORAGE_KEY = 'hse_device_id';
     const LAST_REPORT_KEY = 'hse_device_report_at';
-    const MIN_INTERVAL_MS = 15 * 60 * 1000;
+    const MIN_INTERVAL_MS = 5 * 60 * 1000;
+    let _inflight = null;
 
     function uuid() {
         if (global.crypto && crypto.randomUUID) return crypto.randomUUID();
@@ -99,10 +103,6 @@
         const CFG = global.SAAS_CONFIG || {};
         if (!SaaS || !CFG.supabaseUrl || !CFG.supabaseAnonKey) return;
 
-        if (global.CookieConsent && typeof CookieConsent.has === 'function' && !CookieConsent.has('functional')) {
-            return;
-        }
-
         await SaaS.ready;
         const session = await SaaS.getSession();
         if (!session || !session.access_token) return;
@@ -110,6 +110,8 @@
         if (!opts || !opts.force) {
             if (!shouldReport()) return;
         }
+
+        if (_inflight) return _inflight;
 
         const ua = (navigator && navigator.userAgent) ? String(navigator.userAgent) : '';
         const payload = {
@@ -125,36 +127,58 @@
             page_url: (global.location && location.href) ? String(location.href).substring(0, 500) : ''
         };
 
-        const gps = await tryGpsCoords();
-        if (gps) {
-            payload.latitude = gps.latitude;
-            payload.longitude = gps.longitude;
-            payload.geo_source = gps.geo_source;
-        }
+        _inflight = (async () => {
+            try {
+                const gps = await tryGpsCoords();
+                if (gps) {
+                    payload.latitude = gps.latitude;
+                    payload.longitude = gps.longitude;
+                    payload.geo_source = gps.geo_source;
+                }
 
-        const url = CFG.supabaseUrl.replace(/\/$/, '') + '/functions/v1/device-session';
-        try {
-            const res = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: 'Bearer ' + session.access_token,
-                    apikey: CFG.supabaseAnonKey
-                },
-                body: JSON.stringify(payload)
-            });
-            if (res.ok) markReported();
-        } catch (_e) { /* silent — non-critical telemetry */ }
+                const url = CFG.supabaseUrl.replace(/\/$/, '') + '/functions/v1/device-session';
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: 'Bearer ' + session.access_token,
+                        apikey: CFG.supabaseAnonKey
+                    },
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                    markReported();
+                    return true;
+                }
+                let detail = '';
+                try { detail = await res.text(); } catch (_e) { /* ignore */ }
+                if (typeof Utils !== 'undefined' && Utils.safeWarn) {
+                    Utils.safeWarn('device-session report failed', res.status, detail);
+                }
+                return false;
+            } catch (e) {
+                if (typeof Utils !== 'undefined' && Utils.safeWarn) {
+                    Utils.safeWarn('device-session report error', e);
+                }
+                return false;
+            } finally {
+                _inflight = null;
+            }
+        })();
+
+        return _inflight;
     }
 
     function bind() {
         document.addEventListener('loginSuccess', () => report({ force: true }));
         global.SaaS.ready.then(() => {
-            if (global.SaaSAuthStorage && global.SAAS_CONFIG &&
-                global.SaaSAuthStorage.hasSession(global.SAAS_CONFIG)) {
-                report({ force: false });
-            }
+            report({ force: false });
         });
+        global.addEventListener('focus', () => report({ force: false }));
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') report({ force: false });
+        });
+        global.addEventListener('online', () => report({ force: true }));
     }
 
     global.SaaSDeviceTrack = { report, deviceId, bind };

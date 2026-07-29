@@ -38,7 +38,14 @@ function clientIp(req: Request): string {
 function isPrivateIp(ip: string): boolean {
   if (!ip) return true;
   if (ip === '127.0.0.1' || ip === '::1') return true;
-  if (ip.startsWith('10.') || ip.startsWith('192.168.') || ip.startsWith('172.')) return true;
+  if (ip.startsWith('10.')) return true;
+  if (ip.startsWith('192.168.')) return true;
+  // RFC1918 172.16.0.0 – 172.31.255.255 only (not all 172.*)
+  const m = /^172\.(\d+)\./.exec(ip);
+  if (m) {
+    const second = Number(m[1]);
+    if (second >= 16 && second <= 31) return true;
+  }
   return false;
 }
 
