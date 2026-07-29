@@ -179,6 +179,7 @@ const Settings = {
 
         section.innerHTML = `
             <div class="section-header hse-settings-hero">
+                <div class="hse-settings-hero__badge"><i class="fas fa-shield-alt"></i> HSEHub 360</div>
                 <h1 class="section-title">
                     <i class="fas fa-cog ml-3"></i>
                     ${I18n.t('settings.title')}
@@ -193,7 +194,7 @@ const Settings = {
                         <input type="search" id="hse-settings-search" placeholder="بحث في الإعدادات..." autocomplete="off" />
                     </div>
                     <p class="hse-settings-search-empty" id="hse-settings-search-empty">لا نتائج مطابقة</p>
-                    <nav class="hse-settings-nav tabs-nav" id="hse-settings-nav">
+                    <nav class="hse-settings-nav" id="hse-settings-nav">
                         <div class="hse-settings-nav-group" data-group="org">
                             <div class="hse-settings-nav-label">المؤسسة</div>
                             <button type="button" class="tab-btn hse-settings-nav-item active" data-tab="company-data" data-search="شركة مؤسسة بيانات">
