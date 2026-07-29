@@ -50,6 +50,15 @@
           <button id="mfa-go" class="saas-btn" data-i18n="mfa_verify_btn">تحقق</button>
         </div>
         <button id="go" class="saas-btn" data-i18n="btn_login">دخول</button>
+        <div class="saas-sso-block" style="margin-top:14px;text-align:center">
+          <div style="display:flex;align-items:center;gap:10px;margin:10px 0;color:#64748b;font-size:12px">
+            <span style="flex:1;height:1px;background:#e2e8f0"></span>
+            <span data-i18n="sso_or">أو</span>
+            <span style="flex:1;height:1px;background:#e2e8f0"></span>
+          </div>
+          <button type="button" id="sso-go" class="saas-btn" style="background:linear-gradient(135deg,#0b2a4a,#0d9488)" data-i18n="btn_sso">دخول عبر SSO المؤسسي</button>
+          <p style="font-size:11px;color:#64748b;margin-top:8px" data-i18n="sso_hint">أدخل بريد شركتك أولاً ثم اضغط SSO (يتطلب ربط IdP)</p>
+        </div>
         <div class="saas-msg" id="msg"></div>
         <div class="hse-trust-bar" role="note" aria-label="عناصر ثقة المنصة">
           <span class="hse-trust-chip"><strong>MFA</strong> مصادقة ثنائية</span>
@@ -170,6 +179,8 @@
 
     document.getElementById('go').addEventListener('click', doLogin);
     document.getElementById('pwd').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+    const ssoBtn = document.getElementById('sso-go');
+    if (ssoBtn) ssoBtn.addEventListener('click', doSsoLogin);
     document.getElementById('mfa-go').addEventListener('click', doMfaVerify);
     document.getElementById('mfa-code').addEventListener('keydown', e => { if (e.key === 'Enter') doMfaVerify(); });
 
@@ -523,6 +534,41 @@
       } catch (e) {
         msg(authErrorMessage(e.message) || 'فشل الدخول', 'err');
         $('go').disabled = false;
+      }
+    }
+
+    async function doSsoLogin() {
+      const email = $('email').value.trim();
+      const domain = (email.includes('@') ? email.split('@').pop() : '').toLowerCase();
+      if (!domain) {
+        msg(T('sso_need_email') || 'أدخل بريدك المؤسسي أولاً لتحديد نطاق SSO', 'err');
+        return;
+      }
+      if (!SaaS.client() || typeof SaaS.signInWithSSO !== 'function') {
+        msg('تعذّر الاتصال بخادم الدخول.', 'err');
+        return;
+      }
+      $('sso-go').disabled = true;
+      msg(T('sso_redirecting') || 'جاري التحويل إلى مزوّد الهوية…');
+      try {
+        const r = await SaaS.signInWithSSO({
+          domain,
+          redirectTo: location.origin + '/'
+        });
+        if (r.error) {
+          msg(authErrorMessage(r.error.message) || (T('sso_failed') || 'فشل SSO — تأكد من ربط النطاق لدى المسؤول'), 'err');
+          $('sso-go').disabled = false;
+          return;
+        }
+        if (r.data && r.data.url) {
+          location.href = r.data.url;
+          return;
+        }
+        msg(T('sso_no_url') || 'لم يُرجع المزوّد رابط تحويل. تحقق من إعداد SAML.', 'err');
+        $('sso-go').disabled = false;
+      } catch (e) {
+        msg(authErrorMessage(e.message) || 'فشل SSO', 'err');
+        $('sso-go').disabled = false;
       }
     }
   </script>

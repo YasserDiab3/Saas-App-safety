@@ -20,6 +20,7 @@ description: >-
 ```powershell
 Set-Location "d:\App\Cluda Ai\clinic-saas"
 node supabase/scripts/pro_foundation_smoke.mjs
+node supabase/scripts/live_capa_email_smoke.mjs
 node supabase/scripts/mobile_smoke.mjs
 node supabase/scripts/ui_flow_smoke.mjs
 node supabase/scripts/p0_module_smoke.mjs

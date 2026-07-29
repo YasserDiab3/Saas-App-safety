@@ -99,7 +99,14 @@
                     siteId: (payload && payload.siteId) || '',
                     channels,
                     whatsappNumber: prefs.whatsappNumber || '',
-                    meta: payload || {}
+                    meta: Object.assign({}, payload || {}, {
+                        toEmail:
+                            (payload && (payload.toEmail || payload.notifyEmail)) ||
+                            (global.AppState &&
+                                AppState.currentUser &&
+                                (AppState.currentUser.email || AppState.currentUser.userEmail)) ||
+                            ''
+                    })
                 });
             } catch (_e) { /* offline / RPC missing */ }
         }

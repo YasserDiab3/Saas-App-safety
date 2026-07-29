@@ -89,6 +89,29 @@
             if (!_client) return { data: null, error: { message: 'Supabase client not ready' } };
             return _client.auth.signInWithPassword({ email, password });
         },
+        /**
+         * Enterprise SAML/OIDC SSO via Supabase Auth.
+         * Requires IdP registered on the project (supabase sso add …).
+         * @param {{ domain?: string, providerId?: string, redirectTo?: string }} opts
+         */
+        async signInWithSSO(opts) {
+            await ready;
+            if (!_client) return { data: null, error: { message: 'Supabase client not ready' } };
+            const domain = (opts && opts.domain) || '';
+            const providerId = (opts && opts.providerId) || '';
+            const redirectTo = (opts && opts.redirectTo) || (typeof location !== 'undefined' ? location.origin + '/' : undefined);
+            const params = providerId
+                ? { providerId, options: { redirectTo } }
+                : { domain, options: { redirectTo } };
+            if (!providerId && !domain) {
+                return { data: null, error: { message: 'SSO domain or providerId required' } };
+            }
+            try {
+                return await _client.auth.signInWithSSO(params);
+            } catch (e) {
+                return { data: null, error: { message: (e && e.message) || String(e) } };
+            }
+        },
         async signUp(email, password, fullName) {
             await ready;
             if (!_client) return { data: null, error: { message: 'Supabase client not ready' } };

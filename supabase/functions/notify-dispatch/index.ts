@@ -11,7 +11,7 @@
 //          (every 5–15 min) OR external cron hitting the function URL.
 // ============================================================
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts';
+import nodemailer from 'npm:nodemailer@6.9.16';
 
 const APP_URL = Deno.env.get('APP_URL') ?? 'https://saas-app-safety.vercel.app';
 
@@ -43,17 +43,22 @@ async function sendSmtp(to: string, subject: string, html: string) {
   const fromName = Deno.env.get('SMTP_SENDER_NAME') || 'HSEHub 360';
   if (!host || !user || !pass) throw new Error('SMTP not configured');
 
-  const client = new SMTPClient({
-    connection: { hostname: host, port, tls: true, auth: { username: user, password: pass } }
+  // Office 365 / most providers: port 587 = STARTTLS (secure:false + requireTLS)
+  const transporter = nodemailer.createTransport({
+    host,
+    port,
+    secure: port === 465,
+    requireTLS: port === 587,
+    auth: { user, pass },
+    tls: { minVersion: 'TLSv1.2' }
   });
-  await client.send({
+
+  await transporter.sendMail({
     from: `${fromName} <${user}>`,
     to,
     subject,
-    content: 'auto',
     html
   });
-  await client.close();
 }
 
 async function sendWhatsApp(toE164: string, text: string) {
@@ -81,26 +86,63 @@ async function sendWhatsApp(toE164: string, text: string) {
   }
 }
 
-async function resolveOwnerEmail(supa: ReturnType<typeof createClient>, tenantId: string) {
+async function resolveOwnerEmail(
+  supa: ReturnType<typeof createClient>,
+  tenantId: string,
+  payload: Record<string, unknown> = {}
+) {
+  const explicit =
+    String(payload.toEmail || payload.notifyEmail || payload.email || '').trim();
+  if (explicit && explicit.includes('@')) {
+    const { data: t } = await supa.schema('app').from('tenants').select('name').eq('id', tenantId).maybeSingle();
+    return { email: explicit, tenantName: (t && (t as { name?: string }).name) || tenantId };
+  }
+
   const { data } = await supa
+    .schema('app')
     .from('tenants')
     .select('id, name')
     .eq('id', tenantId)
     .maybeSingle();
+
   const { data: members } = await supa
+    .schema('app')
     .from('tenant_members')
     .select('user_id, role')
     .eq('tenant_id', tenantId)
     .in('role', ['owner', 'admin'])
-    .limit(5);
+    .limit(8);
+
   let email = '';
   if (members && members.length) {
     const ids = members.map((m: { user_id: string }) => m.user_id);
-    const { data: profiles } = await supa.from('profiles').select('id, email').in('id', ids);
+    const { data: profiles } = await supa
+      .schema('app')
+      .from('profiles')
+      .select('id, email')
+      .in('id', ids);
     const owner = members.find((m: { role: string }) => m.role === 'owner') || members[0];
-    const prof = (profiles || []).find((p: { id: string }) => p.id === owner.user_id) || (profiles || [])[0];
+    const prof =
+      (profiles || []).find((p: { id: string }) => p.id === owner.user_id) || (profiles || [])[0];
     email = (prof && prof.email) || '';
+
+    // Fallback: Auth Admin API if profile email empty
+    if (!email) {
+      for (const id of [owner.user_id, ...ids]) {
+        try {
+          const { data: userData } = await supa.auth.admin.getUserById(id);
+          const ue = userData?.user?.email || '';
+          if (ue) {
+            email = ue;
+            break;
+          }
+        } catch (_e) {
+          /* continue */
+        }
+      }
+    }
   }
+
   return { email, tenantName: (data && (data as { name?: string }).name) || tenantId };
 }
 
@@ -187,7 +229,7 @@ Deno.serve(async (req) => {
       const channels = Array.isArray(row.channels)
         ? row.channels.map(String)
         : [];
-      const { email, tenantName } = await resolveOwnerEmail(supa, row.tenant_id);
+      const { email, tenantName } = await resolveOwnerEmail(supa, row.tenant_id, row.payload || {});
       const html = `<div dir="rtl" style="font-family:Segoe UI,Tahoma,sans-serif;line-height:1.6">
         <p><strong>${row.title || row.event_key}</strong></p>
         <p>${row.body || ''}</p>
