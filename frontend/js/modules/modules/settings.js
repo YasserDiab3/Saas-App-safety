@@ -673,7 +673,7 @@ const Settings = {
                             </h4>
                             <p class="text-sm text-gray-600 mb-4">
                                 مسح بيانات التشغيل لكل المديولات مع الإبقاء على المستخدمين والإعدادات ومركز المساعدة.
-                                يتطلب كتابة كلمة «مسح» للتأكيد.
+                                <strong>لا كلمة مرور سرية</strong> — للتأكيد اكتب كلمة <code>مسح</code> فقط في النافذة التي تظهر.
                             </p>
                             <button type="button" id="hse-ops-wipe-btn" class="btn-danger">
                                 <i class="fas fa-bomb ml-2"></i>مسح بيانات التشغيل

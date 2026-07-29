@@ -24,10 +24,9 @@ const BackupUI = {
             if (backupSection) backupSection.style.display = 'block';
             else console.warn('⚠️ قسم النسخ الاحتياطية غير موجود في DOM');
 
-            if (!this.eventsBound) {
-                this.setupEventListeners();
-                this.eventsBound = true;
-            }
+            // Always re-bind: Settings may re-render and replace the buttons.
+            this.setupEventListeners();
+            this.eventsBound = true;
             await this.refreshStatus();
             backupUiLog('✅ تم تهيئة واجهة النسخ الاحتياطية المشفرة');
         } catch (error) {
@@ -280,11 +279,17 @@ const BackupUI = {
             this.showNotification('هذه العملية متاحة لمدير المؤسسة فقط', 'error');
             return;
         }
-        const ok = window.confirm('حذف جميع السجلات التجريبية الموسومة فقط (source=demo)؟\nلن تُمس البيانات الحقيقية.');
+        const ok = window.confirm(
+            'حذف البيانات التجريبية فقط؟\n\n' +
+            'يُحذف ما وُسِم بـ source=demo أثناء «تعبئة بيانات تجريبية».\n' +
+            'لا تُطلب كلمة مرور — تأكيد فقط.\n' +
+            'البيانات الحقيقية لن تُمس.'
+        );
         if (!ok) return;
 
         const btn = document.getElementById('hse-demo-wipe-btn');
         if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin ml-2"></i>جاري الحذف…'; }
+        this.setStatus('جاري حذف البيانات التجريبية…', '');
         try {
             const result = await Backend.sendToAppsScript('wipeDemoData', {});
             if (!result || result.success !== true) {
@@ -310,18 +315,32 @@ const BackupUI = {
             return;
         }
         const ok1 = window.confirm(
-            'تحذير شديد: مسح بيانات التشغيل لجميع المديولات.\n' +
-            'يُحتفظ بالمستخدمين والإعدادات ومركز المساعدة.\n\nهل تريد المتابعة؟'
+            'تحذير شديد: مسح بيانات التشغيل لجميع المديولات.\n\n' +
+            'يُحتفظ بـ: المستخدمين، إعدادات الشركة، إعدادات النماذج، مركز المساعدة.\n' +
+            'لا توجد كلمة مرور سرية — الخطوة التالية تطلب كتابة كلمة تأكيد فقط.\n\n' +
+            'هل تريد المتابعة؟'
         );
         if (!ok1) return;
-        const typed = window.prompt('اكتب كلمة «مسح» للتأكيد النهائي:', '');
-        if (String(typed || '').trim() !== 'مسح') {
-            this.showNotification('تم الإلغاء — عبارة التأكيد غير مطابقة', 'error');
+
+        const typed = window.prompt(
+            'للتأكيد النهائي اكتب بالضبط هذه الكلمة (بدون مسافات أو علامات):\n\nمسح\n\n' +
+            'ليست كلمة مرور النظام — مجرد عبارة تأكيد لمنع المسح بالخطأ.',
+            ''
+        );
+        if (typed == null) {
+            this.showNotification('تم إلغاء المسح', 'error');
+            return;
+        }
+        const normalized = String(typed).trim().replace(/\u200f|\u200e/g, '');
+        if (normalized !== 'مسح') {
+            this.showNotification('تم الإلغاء — يجب كتابة كلمة «مسح» حرفياً (بدون كلمة مرور أخرى)', 'error');
+            this.setStatus('عبارة التأكيد غير مطابقة. اكتب: مسح', 'err');
             return;
         }
 
         const btn = document.getElementById('hse-ops-wipe-btn');
         if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin ml-2"></i>جاري المسح…'; }
+        this.setStatus('جاري مسح بيانات التشغيل…', '');
         try {
             const result = await Backend.sendToAppsScript('wipeOpsData', {});
             if (!result || result.success !== true) {
