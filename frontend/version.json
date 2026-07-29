@@ -1,4 +1,4 @@
 {
   "version": "2.2.134",
-  "message": "fix(training): add null check for searchInput to prevent TypeError on tab switch"
+  "message": "fix(index): remove dead script tag for contractors.clean.js"
 }
