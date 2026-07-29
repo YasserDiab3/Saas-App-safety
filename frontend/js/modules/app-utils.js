@@ -2905,7 +2905,7 @@ const DEFAULT_COMPANY_NAME = '';
 
 const AppState = {
     /** fallback فقط — المصدر الرسمي: frontend/version.json (يُحدَّث عبر saas-version.js) */
-    appVersion: '2.2.137',
+    appVersion: '2.2.138',
     /** نص اختياري لرسالة التحديث (ملخص التغييرات). إن تُركت فارغة يُستخدم النص الافتراضي. */
     updateMessage: '',
     debugMode: false,
@@ -7671,6 +7671,20 @@ const PPEMatrix = {
                 this.renderItems(instance);
             }
         }
+    },
+
+    /**
+     * Debounce function - limits the rate at which a function can fire
+     */
+    debounce(fn, delay = 300) {
+        let timer = null;
+        return (...args) => {
+            if (timer) clearTimeout(timer);
+            timer = setTimeout(() => {
+                fn(...args);
+                timer = null;
+            }, delay);
+        };
     }
 };
 
@@ -9357,20 +9371,6 @@ const I18n = {
             t: (key, defaultValue) => this.t(`${moduleName}.${key}`, defaultValue),
             isRTL,
             lang
-        };
-    },
-
-    /**
-     * Debounce function - limits the rate at which a function can fire
-     */
-    debounce(fn, delay = 300) {
-        let timer = null;
-        return (...args) => {
-            if (timer) clearTimeout(timer);
-            timer = setTimeout(() => {
-                fn(...args);
-                timer = null;
-            }, delay);
         };
     },
 };

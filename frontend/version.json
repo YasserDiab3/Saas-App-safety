@@ -1,4 +1,4 @@
 {
-  "version": "2.2.137",
-  "message": "fix: add typeof Permissions guard to remaining unprotected calls"
+  "version": "2.2.138",
+  "message": "fix: wrap all synchronous-path global refs and fix SafetyBudget load wrapper"
 }
