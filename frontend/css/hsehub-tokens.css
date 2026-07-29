@@ -1,4 +1,4 @@
-/* HSEHub 360 — product design tokens (world-class identity layer) */
+﻿/* HSEHub 360 — product design tokens (world-class identity layer) */
 :root {
     --hse-navy: #0b2a4a;
     --hse-navy-mid: #13315c;
@@ -161,45 +161,43 @@
     margin-top: 1rem;
 }
 
-/* ===== Settings shell (professional IA) ===== */
+/* ===== Settings shell (RTL-first, HSEHub brand) ===== */
 #settings-section {
-    --hse-set-rail-w: 270px;
+    --hse-set-rail-w: 260px;
     position: relative;
     isolation: isolate;
 }
 
 #settings-section .hse-settings-hero {
-    margin-bottom: 1.35rem;
-    padding: 1.15rem 1.25rem 1.25rem;
+    margin-bottom: 1.25rem;
+    padding: 1.1rem 1.25rem 1.2rem;
     border-radius: var(--hse-radius);
     border: 1px solid rgba(19, 49, 92, 0.12);
     background:
-        linear-gradient(135deg, rgba(13, 148, 136, 0.10) 0%, transparent 42%),
-        linear-gradient(225deg, rgba(11, 42, 74, 0.08) 0%, transparent 50%),
+        linear-gradient(135deg, rgba(13, 148, 136, 0.12) 0%, transparent 45%),
+        linear-gradient(225deg, rgba(11, 42, 74, 0.07) 0%, transparent 55%),
         #fff;
     box-shadow: var(--hse-shadow);
+    text-align: start;
 }
 #settings-section .hse-settings-hero__badge {
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    margin-bottom: 0.55rem;
+    margin-bottom: 0.5rem;
     padding: 0.28rem 0.7rem;
     border-radius: 999px;
     font-size: 0.72rem;
     font-weight: 700;
-    letter-spacing: 0.02em;
     color: var(--hse-navy);
     background: rgba(13, 148, 136, 0.14);
     border: 1px solid rgba(13, 148, 136, 0.28);
 }
 #settings-section .hse-settings-hero__badge i {
     color: var(--hse-teal);
-    font-size: 0.75rem;
 }
 #settings-section .hse-settings-hero .section-title {
     color: var(--hse-navy);
-    letter-spacing: -0.02em;
     margin: 0 0 0.35rem;
 }
 #settings-section .hse-settings-hero .section-subtitle {
@@ -210,45 +208,41 @@
 }
 
 /*
-  App sidebar sits on the RIGHT in Arabic.
-  Force a stable physical layout: rail LEFT · content RIGHT.
+  Inherit page direction (no forced LTR):
+  - Arabic RTL → rail on the RIGHT (start), content on the LEFT
+  - English LTR → rail on the LEFT (start), content on the RIGHT
 */
 #settings-section .hse-settings-shell {
-    direction: ltr;
-    display: grid;
-    grid-template-columns: var(--hse-set-rail-w) minmax(0, 1fr);
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
     gap: 1.15rem;
-    align-items: start;
     width: 100%;
     max-width: 100%;
     min-width: 0;
 }
 
 #settings-section .hse-settings-rail {
-    direction: rtl;
-    grid-column: 1;
-    grid-row: 1;
+    flex: 0 0 var(--hse-set-rail-w);
+    width: var(--hse-set-rail-w);
+    max-width: var(--hse-set-rail-w);
     position: sticky;
     top: 0.75rem;
     z-index: 2;
-    width: 100%;
-    max-width: var(--hse-set-rail-w);
     max-height: calc(100vh - 5.5rem);
     overflow-x: hidden;
     overflow-y: auto;
-    background: linear-gradient(180deg, #0b2a4a 0%, #13315c 55%, #0f3a5c 100%);
+    background: linear-gradient(165deg, #0b2a4a 0%, #13315c 48%, #0d4a5c 100%);
     border: 1px solid rgba(11, 42, 74, 0.35);
     border-radius: var(--hse-radius);
     box-shadow: var(--hse-shadow);
-    padding: 0.9rem 0.7rem 1rem;
+    padding: 0.85rem 0.65rem 1rem;
     color: #e2e8f0;
     -webkit-overflow-scrolling: touch;
 }
 
 #settings-section .hse-settings-main {
-    direction: rtl;
-    grid-column: 2;
-    grid-row: 1;
+    flex: 1 1 auto;
     min-width: 0;
     max-width: 100%;
     overflow-x: auto;
@@ -256,16 +250,17 @@
     border: 1px solid var(--hse-border);
     border-radius: var(--hse-radius);
     box-shadow: var(--hse-shadow);
-    padding: 1.2rem 1.3rem 1.6rem;
+    padding: 1.15rem 1.25rem 1.5rem;
+    text-align: start;
 }
 
 #settings-section .hse-settings-search {
     position: relative;
-    margin-bottom: 0.85rem;
+    margin-bottom: 0.75rem;
 }
 #settings-section .hse-settings-search i {
     position: absolute;
-    right: 0.75rem;
+    inset-inline-end: 0.75rem;
     top: 50%;
     transform: translateY(-50%);
     color: rgba(226, 232, 240, 0.65);
@@ -279,9 +274,11 @@
     border-radius: var(--hse-radius-sm);
     background: rgba(255, 255, 255, 0.08);
     color: #f8fafc;
-    padding: 0.55rem 2rem 0.55rem 0.75rem;
+    padding-block: 0.55rem;
+    padding-inline: 0.75rem 2rem;
     font-size: 0.84rem;
     outline: none;
+    text-align: start;
     transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
 #settings-section .hse-settings-search input::placeholder {
@@ -296,7 +293,7 @@
 #settings-section .hse-settings-nav {
     display: flex;
     flex-direction: column;
-    gap: 0.15rem;
+    gap: 0.12rem;
     border: none !important;
     box-shadow: none !important;
     background: transparent !important;
@@ -307,8 +304,8 @@
 }
 
 #settings-section .hse-settings-nav-group {
-    margin-bottom: 0.65rem;
-    padding-bottom: 0.55rem;
+    margin-bottom: 0.55rem;
+    padding-bottom: 0.5rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 #settings-section .hse-settings-nav-group:last-child {
@@ -319,28 +316,27 @@
 #settings-section .hse-settings-nav-label {
     font-size: 0.68rem;
     font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    letter-spacing: 0.04em;
     color: rgba(148, 163, 184, 0.95);
-    padding: 0.2rem 0.55rem 0.45rem;
+    padding: 0.15rem 0.55rem 0.4rem;
+    text-align: start;
 }
 
-/* Kill global .tab-btn / .tabs-nav leakage inside settings rail */
 #settings-section .hse-settings-nav .tab-btn,
 #settings-section .hse-settings-nav .hse-settings-nav-item {
     display: flex !important;
     flex-direction: row;
     align-items: center;
+    justify-content: flex-start;
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
-    justify-content: flex-start;
-    text-align: right;
+    text-align: start !important;
     border: 1px solid transparent !important;
     border-bottom: 1px solid transparent !important;
     border-radius: 10px !important;
-    padding: 0.58rem 0.65rem !important;
-    margin: 0.12rem 0 !important;
+    padding: 0.55rem 0.6rem !important;
+    margin: 0.1rem 0 !important;
     background: transparent !important;
     color: #e2e8f0 !important;
     font-size: 0.84rem !important;
@@ -357,7 +353,9 @@
     content: none !important;
 }
 #settings-section .hse-settings-nav .tab-btn i {
-    margin-left: 0.55rem !important;
+    margin-inline-end: 0.55rem !important;
+    margin-inline-start: 0 !important;
+    margin-left: 0 !important;
     margin-right: 0 !important;
     width: 1.55rem;
     height: 1.55rem;
@@ -371,23 +369,27 @@
     font-size: 0.78rem !important;
 }
 #settings-section .hse-settings-nav .tab-btn:hover {
-    background: rgba(255, 255, 255, 0.08) !important;
+    background: rgba(255, 255, 255, 0.09) !important;
     color: #fff !important;
     border-color: rgba(255, 255, 255, 0.12) !important;
 }
 #settings-section .hse-settings-nav .tab-btn:hover i {
-    background: rgba(13, 148, 136, 0.28);
+    background: rgba(13, 148, 136, 0.3);
     color: #ccfbf1 !important;
 }
-/* Active indicator: physical left edge (away from app sidebar) */
 #settings-section .hse-settings-nav .tab-btn.active {
-    background: linear-gradient(90deg, rgba(13, 148, 136, 0.35), rgba(255, 255, 255, 0.08)) !important;
+    background: linear-gradient(
+        to left,
+        rgba(13, 148, 136, 0.38),
+        rgba(255, 255, 255, 0.08)
+    ) !important;
     color: #fff !important;
     border-color: rgba(45, 212, 191, 0.45) !important;
-    box-shadow: inset 3px 0 0 #2dd4bf !important;
+    box-shadow: none !important;
+    border-inline-start: 3px solid #2dd4bf !important;
 }
 #settings-section .hse-settings-nav .tab-btn.active i {
-    background: rgba(13, 148, 136, 0.45);
+    background: rgba(13, 148, 136, 0.5);
     color: #fff !important;
 }
 #settings-section .hse-settings-nav .tab-btn.is-hidden {
@@ -410,9 +412,10 @@
     margin-top: 0 !important;
 }
 #settings-section .hse-settings-main .settings-group-header {
-    border-bottom: 2px solid rgba(13, 148, 136, 0.2);
-    margin-bottom: 1.15rem;
-    padding-bottom: 0.85rem;
+    border-bottom: 2px solid rgba(13, 148, 136, 0.22);
+    margin-bottom: 1.1rem;
+    padding-bottom: 0.8rem;
+    text-align: start;
 }
 #settings-section .hse-settings-main .settings-group-title {
     font-size: 1.15rem;
@@ -429,7 +432,7 @@
     background: #fff;
 }
 #settings-section .hse-settings-main .card-header {
-    background: linear-gradient(90deg, rgba(11, 42, 74, 0.04), rgba(13, 148, 136, 0.06));
+    background: linear-gradient(to left, rgba(11, 42, 74, 0.04), rgba(13, 148, 136, 0.07));
     border-bottom: 1px solid var(--hse-border);
 }
 #settings-section .hse-settings-main .card-title {
@@ -447,18 +450,29 @@
     display: block;
 }
 
-/* Mobile: single column; rail on top */
+html[lang="en"] #settings-section .hse-settings-nav .tab-btn.active,
+body[lang="en"] #settings-section .hse-settings-nav .tab-btn.active,
+.ltr #settings-section .hse-settings-nav .tab-btn.active,
+[dir="ltr"] #settings-section .hse-settings-nav .tab-btn.active {
+    background: linear-gradient(
+        to right,
+        rgba(13, 148, 136, 0.38),
+        rgba(255, 255, 255, 0.08)
+    ) !important;
+}
+
+@media (max-width: 1100px) {
+    #settings-section { --hse-set-rail-w: 232px; }
+}
+
 @media (max-width: 960px) {
     #settings-section .hse-settings-shell {
-        grid-template-columns: 1fr;
-    }
-    #settings-section .hse-settings-rail,
-    #settings-section .hse-settings-main {
-        grid-column: 1;
-        grid-row: auto;
-        max-width: none;
+        flex-direction: column;
     }
     #settings-section .hse-settings-rail {
+        flex: none;
+        width: 100%;
+        max-width: none;
         position: static;
         max-height: none;
         overflow: visible;
@@ -480,18 +494,17 @@
         border: none;
         gap: 0.4rem;
     }
-    #settings-section .hse-settings-nav-label {
-        display: none;
-    }
+    #settings-section .hse-settings-nav-label { display: none; }
     #settings-section .hse-settings-nav .tab-btn {
         width: auto !important;
         white-space: nowrap;
         background: rgba(255, 255, 255, 0.08) !important;
         border: 1px solid rgba(255, 255, 255, 0.14) !important;
+        border-inline-start-width: 1px !important;
     }
     #settings-section .hse-settings-nav .tab-btn.active {
-        box-shadow: none !important;
         border-color: rgba(45, 212, 191, 0.55) !important;
+        border-inline-start: 1px solid rgba(45, 212, 191, 0.55) !important;
         background: rgba(13, 148, 136, 0.35) !important;
     }
 }
