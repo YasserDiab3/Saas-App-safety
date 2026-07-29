@@ -330,6 +330,9 @@ const Training = {
     },
 
     async load() {
+        if (this._isLoading) return;
+        this._isLoading = true;
+        try {
         // مستمع تغيير اللغة: لا يعيد تحميل الموديول كاملاً ولا يطلب الشبكة؛
         // يطبق i18n على القسم ويبطل الكاش ثم يعيد رسم التبويب النشط فقط.
         if (!this._languageChangeListenerAdded) {
@@ -522,6 +525,9 @@ const Training = {
                 `;
                 this.applyModuleI18n(section);
             }
+        }
+        } finally {
+            this._isLoading = false;
         }
     },
 

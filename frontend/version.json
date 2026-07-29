@@ -1,4 +1,4 @@
 {
-  "version": "2.2.134",
-  "message": "fix(index): remove dead script tag for contractors.clean.js"
+  "version": "2.2.135",
+  "message": "fix: remove contractors.clean.js ref and add cloudflare beacon to CSP"
 }

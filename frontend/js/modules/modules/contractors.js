@@ -401,7 +401,7 @@ const Contractors = {
             }
 
             // تحميل المحتوى بشكل متوازي لتحسين الأداء
-            const isAdmin = Permissions.isAdmin();
+            const isAdmin = typeof Permissions !== 'undefined' && Permissions.isAdmin();
 
             // دالة مساعدة لمعالجة الأخطاء
             const handleError = (sectionName, error) => {
@@ -4759,7 +4759,7 @@ const Contractors = {
                 }
 
                 // التحقق من الصلاحيات - فقط المدير يمكنه اعتماد التقييمات مباشرة
-                const isAdmin = Permissions.isAdmin();
+                const isAdmin = typeof Permissions !== 'undefined' && Permissions.isAdmin();
 
                 if (evaluationData) {
                     // التعديل - فقط المدير

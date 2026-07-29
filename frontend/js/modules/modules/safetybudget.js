@@ -33,9 +33,13 @@ const SafetyBudget = {
     },
 
     async load() {
+        if (this._isLoading) return;
+        this._isLoading = true;
+        try {
         // Add language change listener
         if (!this._languageChangeListenerAdded) {
             document.addEventListener('language-changed', () => {
+                if (this._isLoading) { this._reloadRequested = true; return; }
                 this.load();
             });
             this._languageChangeListenerAdded = true;
@@ -44,6 +48,7 @@ const SafetyBudget = {
         // التحقق من وجود التبعيات المطلوبة
         if (typeof Utils === 'undefined') {
             console.error('Utils غير متوفر!');
+            this._isLoading = false;
             return;
         }
         const section = document.getElementById('safety-budget-section');
@@ -256,7 +261,9 @@ const SafetyBudget = {
                 }
             }, 100);
         } catch (error) {
-            Utils.safeError('❌ خطأ في تحميل مديول ميزانية السلامة:', error);
+            if (typeof Utils !== 'undefined' && Utils.safeError) {
+                Utils.safeError('❌ خطأ في تحميل مديول ميزانية السلامة:', error);
+            } else { console.error('❌ خطأ في تحميل مديول ميزانية السلامة:', error); }
             section.innerHTML = `
                 <div class="section-header">
                     <div>
@@ -282,6 +289,13 @@ const SafetyBudget = {
                     </div>
                 </div>
             `;
+        }
+        } finally {
+            this._isLoading = false;
+            if (this._reloadRequested) {
+                this._reloadRequested = false;
+                setTimeout(() => { try { this.load(); } catch (_) {} }, 0);
+            }
         }
     },
 
