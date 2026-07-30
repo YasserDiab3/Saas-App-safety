@@ -117,7 +117,7 @@
             if (j.city) payload.city = String(j.city);
             if (j.latitude != null) payload.latitude = Number(j.latitude);
             if (j.longitude != null) payload.longitude = Number(j.longitude);
-            if (!payload.geo_source) payload.geo_source = 'ipwho';
+            if (!payload.geo_source) payload.geo_source = 'ip';
         } catch (_e) { /* ignore */ }
         return payload;
     }

@@ -14,6 +14,7 @@ declare
   v_tenant uuid;
   v_ip text;
   v_headers jsonb;
+  v_geo text;
 begin
   if v_user is null then
     raise exception 'not authenticated';
@@ -40,12 +41,17 @@ begin
 
   v_tenant := nullif(p_payload->>'tenant_id', '')::uuid;
   if v_tenant is null then
-    select m.tenant_id into v_tenant
-      from app.memberships m
-     where m.user_id = v_user
-       and m.status = 'active'
-     order by m.created_at asc nulls last
+    select tu.tenant_id into v_tenant
+      from app.tenant_users tu
+     where tu.user_id = v_user
+       and tu.status = 'active'
+     order by tu.created_at asc nulls last
      limit 1;
+  end if;
+
+  v_geo := lower(coalesce(nullif(trim(p_payload->>'geo_source'), ''), 'none'));
+  if v_geo not in ('ip', 'gps', 'none') then
+    v_geo := case when v_geo like 'ip%' then 'ip' else 'none' end;
   end if;
 
   insert into app.user_device_sessions (
@@ -70,7 +76,7 @@ begin
     nullif(trim(p_payload->>'city'), ''),
     nullif(p_payload->>'latitude', '')::numeric,
     nullif(p_payload->>'longitude', '')::numeric,
-    coalesce(nullif(trim(p_payload->>'geo_source'), ''), 'none'),
+    v_geo,
     left(nullif(trim(p_payload->>'page_url'), ''), 500),
     now()
   )
