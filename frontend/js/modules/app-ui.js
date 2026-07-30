@@ -10212,12 +10212,14 @@ window.UI = {
         // تحميل اللغة المحفوظة (بدون عرض إشعار أثناء التهيئة)
         const savedLang = localStorage.getItem('language') || AppState.currentLanguage || 'ar';
         this.setLanguage(savedLang, true); // true = تهيئة أولية (لا نعرض إشعار)
-        // زر اللغة الرئيسي: تبديل مباشر بين العربية والإنجليزية بدون قائمة منسدلة
+        // زر اللغة الرئيسي: تدوير ar → en → fr → tr
         langToggle.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
             const currentLang = localStorage.getItem('language') || AppState.currentLanguage || 'ar';
-            const nextLang = currentLang === 'ar' ? 'en' : 'ar';
+            const nextLang = (window.HseI18nExtra && HseI18nExtra.nextLang)
+                ? HseI18nExtra.nextLang(currentLang)
+                : (currentLang === 'ar' ? 'en' : 'ar');
             this.setLanguage(nextLang);
         });
 
@@ -10314,13 +10316,17 @@ window.UI = {
      * @param {boolean} isInitialLoad - هل هذه تهيئة أولية؟ (لا نعرض إشعار إذا كان true)
      */
     setLanguage(lang, isInitialLoad = false) {
+        const supported = (window.HseI18nExtra && HseI18nExtra.SUPPORTED) || ['ar', 'en', 'fr', 'tr'];
+        if (!supported.includes(lang)) lang = 'ar';
         // حفظ اللغة
         localStorage.setItem('language', lang);
         if (AppState) {
             AppState.currentLanguage = lang;
         }
 
-        const isRTL = lang === 'ar';
+        const isRTL = (window.HseI18nExtra && typeof HseI18nExtra.isRtl === 'function')
+            ? HseI18nExtra.isRtl(lang)
+            : lang === 'ar';
 
         // تحديث اتجاه الصفحة على جميع العناصر
         document.documentElement.dir = isRTL ? 'rtl' : 'ltr';
@@ -10467,14 +10473,21 @@ window.UI = {
         // تحديث نص زر اللغة في التطبيق الرئيسي (مع تجنب تعارض IDs المكررة)
         const mainLangText = document.querySelector('#language-toggle #current-lang-text');
         if (mainLangText) {
-            // عرض اختصار اللغة الهدف (التي سيتم التحويل إليها عند الضغط).
-            mainLangText.textContent = lang === 'ar' ? 'EN' : 'AR';
+            // عرض اختصار اللغة التالية في الدورة
+            const next = (window.HseI18nExtra && HseI18nExtra.nextLang)
+                ? HseI18nExtra.nextLang(lang)
+                : (lang === 'ar' ? 'en' : 'ar');
+            mainLangText.textContent = (window.HseI18nExtra && HseI18nExtra.shortLabel)
+                ? HseI18nExtra.shortLabel(next)
+                : (lang === 'ar' ? 'EN' : 'AR');
         }
 
         // تحديث نص زر اللغة في شاشة الدخول عند وجوده
         const loginLangText = document.querySelector('#login-language-toggle-btn #current-lang-text');
         if (loginLangText) {
-            loginLangText.textContent = lang === 'ar' ? 'العربية' : 'English';
+            loginLangText.textContent = (window.HseI18nExtra && HseI18nExtra.label)
+                ? HseI18nExtra.label(lang)
+                : (lang === 'ar' ? 'العربية' : 'English');
         }
 
         // تحديث جميع العناصر التي تحتوي على data-i18n (القائمة + لوحة التحكم)

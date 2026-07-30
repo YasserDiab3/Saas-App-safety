@@ -7,8 +7,26 @@
     const SSO_SHEET = 'SsoConfig';
     const SSO_ID = 'sso-default';
 
+    /** Documented outbound webhook / notify event catalog for ERP middleware */
+    const WEBHOOK_EVENTS = [
+        { key: 'incident.created', label: 'حادث جديد' },
+        { key: 'capa.closed', label: 'إغلاق CAPA' },
+        { key: 'ptw.approved', label: 'اعتماد PTW' },
+        { key: 'training.due', label: 'تدريب مستحق' },
+        { key: '*', label: 'كل الأحداث' }
+    ];
+
     function escapeAttr(s) {
         return String(s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+    }
+
+    function biExportUrl() {
+        try {
+            const base = (global.SAAS_CONFIG && SAAS_CONFIG.supabaseUrl) || '';
+            return String(base).replace(/\/$/, '') + '/functions/v1/bi-export';
+        } catch (_e) {
+            return 'https://tbkajjarkqhsdiabufjv.supabase.co/functions/v1/bi-export';
+        }
     }
 
     function getWebhookRows() {
@@ -168,15 +186,21 @@
             <p class="text-xs text-gray-500 mb-2">Bearer token: يُضبط كسر Edge <code>SCIM_BEARER_TOKEN</code> على المنصة (لا يُعرض هنا).</p>
             <p class="text-xs text-amber-700 mb-3">الدليل الكامل: docs/SSO_SAML_SCIM.md</p>
             <hr class="my-3"/>
-            <h5 class="font-semibold mb-2">Webhooks صادرة</h5>
+            <h5 class="font-semibold mb-2">Webhooks صادرة + Power BI / ERP</h5>
+            <p class="text-xs text-gray-500 mb-2">كتالوج الأحداث: ${WEBHOOK_EVENTS.map((e) => `<code>${e.key}</code>`).join(' · ')}</p>
+            <p class="text-xs text-gray-500 mb-2" dir="ltr">bi-export: ${escapeAttr(biExportUrl())}?tenant_id=&lt;uuid&gt;&amp;format=json</p>
+            <p class="text-xs text-amber-700 mb-2">الدليل: docs/POWER_BI_ERP_CONNECTORS.md</p>
             <div class="flex flex-wrap gap-2 mb-2">
               <input id="wh-url" class="form-input" placeholder="https://hooks.example.com/hse" style="min-width:220px" />
               <input id="wh-secret" class="form-input" placeholder="سر توقيع (اختياري)" style="min-width:140px" />
+              <select id="wh-events" class="form-input" style="min-width:160px">
+                ${WEBHOOK_EVENTS.map((e) => `<option value="${e.key}">${e.key} — ${e.label}</option>`).join('')}
+              </select>
               <button type="button" id="wh-add" class="btn-primary">إضافة</button>
             </div>
             <ul class="text-sm space-y-1" id="wh-list">
               ${hooks.map((h, i) => `<li class="flex justify-between gap-2 border rounded p-2">
-                <span dir="ltr">${String(h.url || '').replace(/</g, '&lt;')}</span>
+                <span dir="ltr">${String(h.url || '').replace(/</g, '&lt;')} <span class="text-xs text-gray-400">[${(Array.isArray(h.events) ? h.events : ['*']).join(',')}]</span></span>
                 <button type="button" class="btn-secondary wh-del" data-i="${i}">حذف</button>
               </li>`).join('') || '<li class="text-gray-500">لا webhooks بعد</li>'}
             </ul>
@@ -205,8 +229,16 @@
             const url = container.querySelector('#wh-url')?.value?.trim();
             if (!url) return;
             const secret = container.querySelector('#wh-secret')?.value?.trim() || '';
+            const ev = container.querySelector('#wh-events')?.value || '*';
             const rows = getWebhookRows();
-            rows.push({ id: 'WH-' + Date.now(), url, secret, enabled: true, events: ['*'], createdAt: new Date().toISOString() });
+            rows.push({
+                id: 'WH-' + Date.now(),
+                url,
+                secret,
+                enabled: true,
+                events: [ev],
+                createdAt: new Date().toISOString()
+            });
             await saveWebhooks(rows);
             renderEnterprisePanel(container);
         });
@@ -230,6 +262,8 @@
         domainFromEmail,
         acsUrl,
         scimBaseUrl,
+        biExportUrl,
+        WEBHOOK_EVENTS,
         renderEnterprisePanel
     };
 

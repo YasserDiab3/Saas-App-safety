@@ -685,6 +685,19 @@ const Settings = {
                                     <i class="fas fa-trash-alt ml-2"></i>حذف البيانات التجريبية
                                 </button>
                             </div>
+                            <div class="mt-4 pt-4 border-t border-slate-200">
+                                <h5 class="font-semibold mb-2"><i class="fas fa-industry ml-2 text-slate-600"></i>حزم صناعية (Industry packs)</h5>
+                                <p class="text-xs text-gray-500 mb-2">Construction و Oil &amp; Gas — سجلات تجريبية موسومة <code>_pack</code>. الدليل: docs/INDUSTRY_PACKS.md</p>
+                                <div class="flex flex-wrap gap-2 items-center">
+                                    <select id="hse-industry-pack-select" class="form-input" style="min-width:200px">
+                                        <option value="construction">Construction — مقاولات</option>
+                                        <option value="oil_gas">Oil &amp; Gas — نفط وغاز</option>
+                                    </select>
+                                    <button type="button" id="hse-industry-pack-inject-btn" class="btn-secondary">
+                                        <i class="fas fa-box-open ml-2"></i>حقن الحزمة
+                                    </button>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-red-200 hse-danger-zone">
@@ -704,6 +717,7 @@ const Settings = {
                         <div id="hse-org-sites-host"></div>
                         <div id="hse-notify-prefs-host"></div>
                         <div id="hse-enterprise-host"></div>
+                        <div id="hse-soc2-host"></div>
                         <div id="hse-compliance-host"></div>
 
                         <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
@@ -725,7 +739,7 @@ const Settings = {
                                     <i class="fas fa-download ml-2"></i>تصدير CSV
                                 </button>
                             </div>
-                            <p class="text-xs text-gray-500 mt-3">SSO / SAML للمؤسسات: قريباً — نقطة الربط مُعدّة في خارطة الأمان.</p>
+                            <p class="text-xs text-gray-500 mt-3">SSO ومركز جاهزية SOC2/ISO متاحان في الأقسام أعلاه. موصلات Power BI: docs/POWER_BI_ERP_CONNECTORS.md</p>
                         </div>
                     </div>
                 </div>
@@ -1472,7 +1486,9 @@ const Settings = {
                 if (window.SaaSOrgSites) SaaSOrgSites.renderSettingsPanel(document.getElementById('hse-org-sites-host'));
                 if (window.SaaSNotify) SaaSNotify.renderPrefsPanel(document.getElementById('hse-notify-prefs-host'));
                 if (window.SaaSEnterpriseStubs) SaaSEnterpriseStubs.renderEnterprisePanel(document.getElementById('hse-enterprise-host'));
+                if (window.SaaSComplianceCenter) SaaSComplianceCenter.render(document.getElementById('hse-soc2-host'));
                 if (window.ComplianceReports) ComplianceReports.renderInto(document.getElementById('hse-compliance-host'));
+                if (window.SaaSUiShell) SaaSUiShell.enhanceEmptyStates(document.getElementById('settings-section') || document);
             } catch (_e) { /* panels optional */ }
 
             const auditBtn = document.getElementById('hse-audit-export-btn');

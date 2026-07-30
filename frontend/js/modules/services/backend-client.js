@@ -1685,6 +1685,8 @@ const Backend = {
                 'ComplianceChecklists': 'complianceChecklists',
                 'CompanySettings': 'companySettings',
                 'WebhookEndpoints': 'webhookEndpoints',
+                'SsoConfig': 'ssoConfig',
+                'ComplianceProgram': 'complianceProgram',
                 'AuditLog': 'auditLog',
                 'UserActivityLog': 'user_activity_log'
             };

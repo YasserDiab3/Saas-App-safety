@@ -70,6 +70,7 @@ const BackupUI = {
         on('hse-demo-wipe-btn', () => this.wipeDemoData());
         on('hse-ops-wipe-btn', () => this.wipeOpsData());
         on('hse-backup-refresh-btn', () => this.refreshStatus());
+        on('hse-industry-pack-inject-btn', () => this.injectIndustryPack());
     },
 
     setStatus(text, cls) {
@@ -270,6 +271,39 @@ const BackupUI = {
             if (btn) {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-flask ml-2"></i>تعبئة بيانات تجريبية';
+            }
+        }
+    },
+
+    async injectIndustryPack() {
+        if (!this.isAdmin()) {
+            this.showNotification('هذه العملية متاحة لمدير المؤسسة فقط', 'error');
+            return;
+        }
+        const packId = document.getElementById('hse-industry-pack-select')?.value || 'construction';
+        const ok = window.confirm(
+            `حقن حزمة الصناعة «${packId}»؟\n\nسجلات تجريبية موسومة _pack — يمكن حذفها مع مسح البيانات التجريبية.`
+        );
+        if (!ok) return;
+
+        const btn = document.getElementById('hse-industry-pack-inject-btn');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin ml-2"></i>جاري الحقن…'; }
+        this.setStatus('جاري حقن حزمة الصناعة…', '');
+        try {
+            const result = await Backend.sendToAppsScript('injectIndustryPack', { packId });
+            if (!result || result.success !== true) {
+                throw new Error((result && result.message) || 'فشل حقن الحزمة');
+            }
+            this.setStatus(`تم حقن ${packId}: ${result.sheets || 0} ورقة (${result.rows || 0} سجل).`, 'ok');
+            this.showNotification('تم حقن حزمة الصناعة', 'success');
+            setTimeout(() => location.reload(), 1000);
+        } catch (e) {
+            this.setStatus(e.message || String(e), 'err');
+            this.showNotification('فشل الحقن: ' + (e.message || e), 'error');
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-box-open ml-2"></i>حقن الحزمة';
             }
         }
     },

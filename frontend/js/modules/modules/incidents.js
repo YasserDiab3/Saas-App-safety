@@ -1277,7 +1277,11 @@ const Incidents = {
     },
 
     async renderIncidentsListTab() {
+        const header = (window.SaaSUiShell && SaaSUiShell.pageHeader)
+            ? SaaSUiShell.pageHeader('قائمة الحوادث', 'سجل الحوادث التشغيلية مع الفلاتر والبحث')
+            : '';
         return `
+            ${header}
             <div class="content-card">
                 <div class="card-header">
                     <div class="flex items-center justify-between">

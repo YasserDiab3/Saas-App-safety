@@ -7,10 +7,10 @@
 | SSO/SAML/OIDC + SCIM | أساس منتج جاهز | إعدادات + زر Login SSO + `docs/SSO_SAML_SCIM.md` + Edge `scim-v2` تجريبي — **يتطلب تسجيل IdP على خطة Supabase المناسبة** |
 | بوابة مقاولين مستقلة | غير مكتمل | موديول مقاولين داخل التطبيق فقط — ليست بوابة منفصلة |
 | Offline native app | غير مكتمل | PWA حالية — ليس تطبيق متاجر أصلي |
-| SOC2 / ISO27001 برنامج رسمي | غير مكتمل | ضوابط تقنية جزئية (RLS, MFA, audit) — الشهادة عملية تدقيق خارجية |
-| موصلات Power BI / ERP | غير مكتمل | Webhooks صادرة أساسية عبر Edge — ليست موصلات ERP جاهزة |
-| لغات إضافية + industry packs | غير مكتمل | ar/en فقط |
-| توحيد UX لكل الشاشات | جزئي | tokens + إعدادات منمّقة — ليس redesign لكل موديول |
-| Webhooks منصة كاملة | جزئي | إعدادات + fan-out من `notify-dispatch` |
+| SOC2 / ISO27001 برنامج رسمي | أساس منتج جاهز | مركز جاهزية في الإعدادات + Evidence + `docs/COMPLIANCE_SOC2_ISO27001.md` — **الشهادة تدقيق خارجي** |
+| موصلات Power BI / ERP | أساس منتج جاهز | Edge `bi-export` + كتالوج webhooks + `docs/POWER_BI_ERP_CONNECTORS.md` — **ليست موصلات SAP/Oracle أصلية** |
+| لغات إضافية + industry packs | أساس منتج جاهز | ar/en/fr/tr (مفاتيح أساسية) + حزم Construction / Oil&Gas — `docs/INDUSTRY_PACKS.md` |
+| توحيد UX لكل الشاشات | أساس منتج جاهز | tokens + `SaaSUiShell` + توحيد empty states على الشاشات الحرجة — ليس redesign لكل موديول |
+| Webhooks منصة كاملة | جزئي | إعدادات + fan-out من `notify-dispatch` + كتالوج أحداث موثّق |
 
-**لا يُنفَّذ SSO كامل أو SOC2 أو Native داخل هذه الدفعة.** عند الحاجة التجارية، تُفتح مشاريع منفصلة لكل بند.
+عند الحاجة التجارية لشهادة رسمية أو تكامل ERP مخصص أو بوابة مقاولين مستقلة، تُفتح مشاريع منفصلة.

@@ -415,6 +415,25 @@
             }
             return { success: true, sheets, rows };
         }
+        if (action === 'injectIndustryPack') {
+            const packId = (data && data.packId) || '';
+            const pack = (global.SaaSIndustryPacks && typeof SaaSIndustryPacks.getPack === 'function')
+                ? SaaSIndustryPacks.getPack(packId)
+                : null;
+            if (!pack) return { success: false, message: 'حزمة الصناعة غير معروفة: ' + packId };
+            let sheets = 0;
+            let rows = 0;
+            const names = Object.keys(pack);
+            for (let i = 0; i < names.length; i++) {
+                const sheet = names[i];
+                const list = Array.isArray(pack[sheet]) ? pack[sheet] : [];
+                const res = await rpc('api_upsert_demo_rows', { p_sheet: sheet, p_rows: list });
+                if (res && res.success === false) return res;
+                sheets += 1;
+                rows += Number((res && res.count) || list.length || 0);
+            }
+            return { success: true, sheets, rows, packId };
+        }
         if (action === 'wipeDemoData') {
             const res = await rpc('api_wipe_tenant_sheets', { p_mode: 'demo' });
             if (res && res.success === false) return res;

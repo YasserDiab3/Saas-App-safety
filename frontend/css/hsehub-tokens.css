@@ -509,6 +509,59 @@ body[lang="en"] #settings-section .hse-settings-nav .tab-btn.active,
     }
 }
 
+.hse-page-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0 0 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--hse-border);
+}
+.hse-page-header__title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--hse-navy);
+    font-family: var(--hse-font-display);
+}
+.hse-page-header__sub {
+    margin: 0.25rem 0 0;
+    font-size: 0.9rem;
+    color: var(--hse-muted);
+}
+.hse-page-header__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.hse-section-card {
+    background: #fff;
+    border: 1px solid var(--hse-border);
+    border-radius: var(--hse-radius);
+    box-shadow: var(--hse-shadow);
+    padding: 1rem 1.15rem;
+    margin-bottom: 1rem;
+}
+
+/* Unify legacy empty states with HSE empty chrome */
+.empty-state.hse-empty-state,
+.empty-state.hse-empty-enhanced,
+.section-content .empty-state {
+    text-align: center;
+    padding: 2.5rem 1.25rem;
+    color: var(--hse-muted);
+    background: var(--hse-surface);
+    border: 1px dashed var(--hse-border);
+    border-radius: var(--hse-radius);
+}
+.section-content .empty-state p,
+.empty-state.hse-empty-enhanced p {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
 [data-theme="dark"] #settings-section .hse-settings-hero,
 [data-theme="dark"] #settings-section .hse-settings-main {
     background: var(--card-bg, #1e293b);

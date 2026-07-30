@@ -69,6 +69,9 @@
       login_filling: 'جاري الدخول...', login_ok: 'تم! جارٍ فتح التطبيق...',
       err_fill_both: 'أدخل البريد وكلمة المرور', err_login_failed: 'فشل الدخول',
       pwd_show: 'إظهار كلمة المرور', pwd_hide: 'إخفاء كلمة المرور',
+      btn_sso: 'دخول عبر SSO المؤسسي',
+      sso_need_email: 'أدخل بريد المؤسسة أولاً لتحديد نطاق SSO',
+      sso_failed: 'تعذّر بدء تسجيل الدخول عبر SSO',
 
       cookie_banner_aria: 'موافقة الكوكيز',
       cookie_banner_text: 'نستخدم الكوكيز والتخزين المحلي لتشغيل HSEHub 360 بأمان وتحسين تجربتك. يمكنك قبول الكل أو رفض غير الأساسية أو تخصيص التفضيلات.',
@@ -329,6 +332,9 @@
       login_filling: 'Signing in...', login_ok: 'Done! Opening the app...',
       err_fill_both: 'Enter email and password', err_login_failed: 'Sign-in failed',
       pwd_show: 'Show password', pwd_hide: 'Hide password',
+      btn_sso: 'Sign in with enterprise SSO',
+      sso_need_email: 'Enter your work email first so we can resolve the SSO domain',
+      sso_failed: 'Could not start SSO sign-in',
 
       cookie_banner_aria: 'Cookie consent',
       cookie_banner_text: 'We use cookies and local storage to run HSEHub 360 securely and improve your experience. Accept all, reject non-essential, or customize.',
@@ -532,10 +538,57 @@
   };
 
   const KEY = 'saas_lang';
+  const SUPPORTED = ['ar', 'en', 'fr', 'tr'];
+  const SHORT = { ar: 'ع', en: 'EN', fr: 'FR', tr: 'TR' };
+
+  // fr/tr inherit English SaaS strings with overrides for login-facing keys
+  DICT.fr = Object.assign({}, DICT.en, {
+    brand_sub: 'HSEHub 360 — Sécurité • Santé • Environnement',
+    login_doctitle: 'Connexion — HSEHub 360',
+    login_title: 'Connexion',
+    btn_login: 'Se connecter',
+    no_account: 'Pas de compte ?',
+    signup_link: 'Créer une organisation',
+    f_email: 'E-mail',
+    f_password: 'Mot de passe',
+    btn_sso: 'Connexion SSO entreprise',
+    err_fill_both: 'Saisissez e-mail et mot de passe',
+    err_login_failed: 'Échec de la connexion',
+    login_filling: 'Connexion…',
+    login_ok: 'OK — ouverture de l’application…',
+    mfa_prompt: 'Saisissez le code MFA de votre application',
+    mfa_verify_btn: 'Vérifier'
+  });
+  DICT.tr = Object.assign({}, DICT.en, {
+    brand_sub: 'HSEHub 360 — İş Sağlığı • Güvenlik • Çevre',
+    login_doctitle: 'Giriş — HSEHub 360',
+    login_title: 'Giriş',
+    btn_login: 'Giriş yap',
+    no_account: 'Hesabınız yok mu?',
+    signup_link: 'Yeni kuruluş oluştur',
+    f_email: 'E-posta',
+    f_password: 'Şifre',
+    btn_sso: 'Kurumsal SSO ile giriş',
+    err_fill_both: 'E-posta ve şifre girin',
+    err_login_failed: 'Giriş başarısız',
+    login_filling: 'Giriş yapılıyor…',
+    login_ok: 'Tamam — uygulama açılıyor…',
+    mfa_prompt: 'Uygulamanızdaki MFA kodunu girin',
+    mfa_verify_btn: 'Doğrula'
+  });
+
+  function normalizeLang(v) {
+    const s = String(v || '').toLowerCase();
+    return SUPPORTED.includes(s) ? s : 'ar';
+  }
+
   const I18n = {
-    lang: (localStorage.getItem(KEY) === 'en') ? 'en' : 'ar',
+    lang: normalizeLang(localStorage.getItem(KEY)),
     onChange: null, _btn: null,
-    t(k) { const d = DICT[this.lang] || DICT.ar; return (k in d) ? d[k] : (DICT.ar[k] || k); },
+    t(k) {
+      const d = DICT[this.lang] || DICT.ar;
+      return (k in d) ? d[k] : ((DICT.en && DICT.en[k]) || DICT.ar[k] || k);
+    },
     apply() {
       const html = document.documentElement;
       html.lang = this.lang; html.dir = (this.lang === 'ar') ? 'rtl' : 'ltr';
@@ -556,7 +609,11 @@
       document.querySelectorAll('[data-i18n-html]').forEach(el => { el.innerHTML = this.t(el.getAttribute('data-i18n-html')); });
       const tk = document.body && document.body.getAttribute('data-i18n-title');
       if (tk) document.title = this.t(tk);
-      if (this._btn) this._btn.textContent = (this.lang === 'ar') ? 'EN' : 'ع';
+      if (this._btn) {
+        const i = SUPPORTED.indexOf(this.lang);
+        const next = SUPPORTED[(i >= 0 ? i + 1 : 0) % SUPPORTED.length];
+        this._btn.textContent = SHORT[next] || next.toUpperCase();
+      }
       if (global.SaaSAuthFields && typeof global.SaaSAuthFields.refreshLabels === 'function') {
         try { global.SaaSAuthFields.refreshLabels(); } catch (_e) { /* ignore */ }
       }
@@ -565,7 +622,17 @@
       }
       if (typeof this.onChange === 'function') { try { this.onChange(this.lang); } catch (e) {} }
     },
-    toggle() { this.lang = (this.lang === 'ar') ? 'en' : 'ar'; localStorage.setItem(KEY, this.lang); this.apply(); },
+    toggle() {
+      const i = SUPPORTED.indexOf(this.lang);
+      this.lang = SUPPORTED[(i >= 0 ? i + 1 : 0) % SUPPORTED.length];
+      localStorage.setItem(KEY, this.lang);
+      this.apply();
+    },
+    setLang(lang) {
+      this.lang = normalizeLang(lang);
+      localStorage.setItem(KEY, this.lang);
+      this.apply();
+    },
     mount() {
       if (this._btn) return;
       const b = document.createElement('button');

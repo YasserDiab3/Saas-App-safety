@@ -1,4 +1,4 @@
 {
-  "version": "2.2.168",
-  "message": "fix(build): align index SW query with 2.2.165"
+  "version": "2.2.169",
+  "message": "feat: enterprise compliance, fr/tr, BI export, UX shell"
 }

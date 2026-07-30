@@ -121,9 +121,44 @@ function main() {
         missTrEn.sort().forEach((k) => console.error('  ', k));
     }
 
-    const exit = onlyAr.length + onlyEn.length + missingAr.length + missingEn.length + missTrAr.length + missTrEn.length;
+    // Core fr/tr keys in i18n-extra-langs.js (parity between CORE_FR and CORE_TR)
+    const extraPath = path.join(root, 'js', 'modules', 'i18n-extra-langs.js');
+    let frTrIssues = 0;
+    if (fs.existsSync(extraPath)) {
+        const extra = fs.readFileSync(extraPath, 'utf8');
+        const frKeys = [];
+        const trKeys = [];
+        const frBlock = extra.match(/CORE_FR\s*=\s*\{([\s\S]*?)\};/);
+        const trBlock = extra.match(/CORE_TR\s*=\s*\{([\s\S]*?)\};/);
+        const keyRe = /'((?:\\'|[^'])+)':\s*/g;
+        if (frBlock) {
+            let m;
+            while ((m = keyRe.exec(frBlock[1])) !== null) frKeys.push(m[1]);
+        }
+        keyRe.lastIndex = 0;
+        if (trBlock) {
+            let m;
+            while ((m = keyRe.exec(trBlock[1])) !== null) trKeys.push(m[1]);
+        }
+        const setFr = new Set(frKeys);
+        const setTr = new Set(trKeys);
+        const onlyFr = [...setFr].filter((k) => !setTr.has(k));
+        const onlyTr = [...setTr].filter((k) => !setFr.has(k));
+        frTrIssues = onlyFr.length + onlyTr.length;
+        console.log(`i18n-extra: fr core keys=${setFr.size}, tr core keys=${setTr.size}`);
+        if (onlyFr.length) {
+            console.error('\nمفاتيح CORE_FR فقط:');
+            onlyFr.sort().forEach((k) => console.error('  ', k));
+        }
+        if (onlyTr.length) {
+            console.error('\nمفاتيح CORE_TR فقط:');
+            onlyTr.sort().forEach((k) => console.error('  ', k));
+        }
+    }
+
+    const exit = onlyAr.length + onlyEn.length + missingAr.length + missingEn.length + missTrAr.length + missTrEn.length + frTrIssues;
     if (exit === 0) {
-        console.log('\n✓ لا اختلافات في مفاتيح ar/en، وكل مفاتيح data-i18n في index.html معرّفة.');
+        console.log('\n✓ لا اختلافات في مفاتيح ar/en، وfr/tr core متطابق، وكل مفاتيح data-i18n في index.html معرّفة.');
     } else {
         console.error(`\nإجمالي المشكلات: ${exit}`);
         process.exitCode = 1;

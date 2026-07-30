@@ -658,13 +658,16 @@ const Dashboard = {
             container.innerHTML = `
                 <div class="content-card">
                     <div class="card-body">
-                        <div class="empty-state">
+                        ${(window.SaaSUiShell && SaaSUiShell.emptyState)
+                            ? SaaSUiShell.emptyState('حدث خطأ أثناء تحميل البيانات', 'تحقق من الاتصال ثم أعد المحاولة',
+                                '<button onclick="Dashboard.loadReportsWidget(true)" class="btn-primary mt-4"><i class="fas fa-redo ml-2"></i>إعادة المحاولة</button>')
+                            : `<div class="empty-state">
                             <i class="fas fa-exclamation-triangle text-4xl text-gray-300 mb-4"></i>
                             <p class="text-gray-500">حدث خطأ أثناء تحميل البيانات</p>
                             <button onclick="Dashboard.loadReportsWidget(true)" class="btn-primary mt-4">
                                 <i class="fas fa-redo ml-2"></i>إعادة المحاولة
                             </button>
-                        </div>
+                        </div>`}
                     </div>
                 </div>
             `;
