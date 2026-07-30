@@ -1,18 +1,18 @@
 /* ========================================
-   HSEHub 360 � Safety � Health � Environment
-   app-utils.js - ?????? ???????? ????????
+   HSEHub 360 — Safety • Health • Environment
+   app-utils.js - الدوال المساعدة والثوابت
    ======================================== */
 
-// ?????? ????? Chrome Extensions
+// معالجة أخطاء Chrome Extensions
 (function () {
     'use strict';
 
     /**
-     * ????? ?? ?????? ??????? (Chrome/Edge) � ???? ?? ???????.
-     * ??????? ????? ????? ?????? ???????? sendMessage ??? ?????? ?? runtime.lastError?
-     * ?? ??? ????? ???? ??????? ??? ????.
-     * ??? ????? ??????: ??? ??????? ??????? ?????? ?? ???? chrome.runtime ??? ??? ?????
-     * ?????? ???? if (chrome.runtime) ?? ???? ?????.
+     * ضوضاء من إضافات المتصفح (Chrome/Edge) — ليست من تطبيقنا.
+     * تُسجَّل عادةً عندما يستدعي الامتداد sendMessage دون التحقق من runtime.lastError،
+     * أو عند إغلاق منفذ الرسائل قبل الرد.
+     * يجب قمعها دائماً: على الصفحات العادية غالباً لا يوجد chrome.runtime لذا كان القمع
+     * السابق داخل if (chrome.runtime) لا يعمل أبداً.
      */
     const extNoise = (s) => {
         const t = String(s || '').toLowerCase();
@@ -64,10 +64,10 @@
     wrapConsole('info');
     wrapConsole('debug');
 
-    // ?? ???? ????? chrome.runtime.lastError ???: ??????? ???? ??? getter ???? ?????? ????? (????? ?? ????? ?????).
-    // ???????? ???? ????? ?? lastError ????? ?????? ??????? ??? ?????.
+    // لا نعيد تعريف chrome.runtime.lastError هنا: القراءة داخل الـ getter كانت تستدعي نفسها (تكرار لا نهائي محتمل).
+    // الإضافات التي تتحقق من lastError تحتاج القيمة الأصلية دون تلاعب.
 
-    // ??? ????? CSP ???????? ?? source maps ? frame-ancestors
+    // قمع أخطاء CSP المتعلقة بـ source maps و frame-ancestors
     const originalError = window.onerror;
     window.onerror = function (msg, url, line, col, error) {
         if (msg && (
@@ -87,7 +87,7 @@
                 msg.includes('Extension context invalidated')
             )
         )) {
-            return true; // ??? ??? ?????
+            return true; // منع عرض الخطأ
         }
         if (originalError) {
             return originalError.apply(this, arguments);
@@ -95,7 +95,7 @@
         return false;
     };
 
-    // ??? ????? unhandled promise rejections ???????? ?? Chrome Extensions
+    // قمع أخطاء unhandled promise rejections المتعلقة بـ Chrome Extensions
     window.addEventListener('unhandledrejection', function (event) {
         const reason = event.reason;
         if (reason && (
@@ -129,103 +129,103 @@
 
 // ===== Permissions System =====
 
-// ????? ????????? ????????? ??? ?????
+// تعريف الصلاحيات التفصيلية لكل مديول
 const MODULE_DETAILED_PERMISSIONS = {
     'employees': {
-        label: '??????? ????? ????? ?????? ????????',
+        label: 'صلاحيات مديول قاعدة بيانات الموظفين',
         permissions: [
-            { key: 'employees-list', label: '????? ????????', icon: 'fa-id-badge' },
-            { key: 'external-workforce', label: '????? ??????? ???????? ??????????', icon: 'fa-helmet-safety' }
+            { key: 'employees-list', label: 'قائمة الموظفين', icon: 'fa-id-badge' },
+            { key: 'external-workforce', label: 'تبويب العمالة الخارجية والمقاولين', icon: 'fa-helmet-safety' }
         ]
     },
     'incidents': {
-        label: '??????? ????? ???????',
+        label: 'صلاحيات مديول الحوادث',
         permissions: [
-            { key: 'registry', label: '??? ???????', icon: 'fa-book' },
-            { key: 'detailed-log', label: '????? ????????', icon: 'fa-list-alt' },
-            { key: 'incidents-list', label: '????? ???????', icon: 'fa-list' },
-            { key: 'annual-log', label: '????? ??????', icon: 'fa-calendar-alt' },
-            { key: 'analysis', label: '???????', icon: 'fa-chart-line' },
-            { key: 'approvals', label: '?????????', icon: 'fa-check-circle' },
-            { key: 'safety-alerts', label: '??????? ???????', icon: 'fa-bell' }
+            { key: 'registry', label: 'سجل الحوادث', icon: 'fa-book' },
+            { key: 'detailed-log', label: 'السجل التفصيلي', icon: 'fa-list-alt' },
+            { key: 'incidents-list', label: 'قائمة الحوادث', icon: 'fa-list' },
+            { key: 'annual-log', label: 'السجل السنوي', icon: 'fa-calendar-alt' },
+            { key: 'analysis', label: 'التحليل', icon: 'fa-chart-line' },
+            { key: 'approvals', label: 'الموافقات', icon: 'fa-check-circle' },
+            { key: 'safety-alerts', label: 'تنبيهات السلامة', icon: 'fa-bell' }
         ]
     },
     'clinic': {
-        label: '??????? ????? ???????',
+        label: 'صلاحيات مديول العيادة',
         permissions: [
-            { key: 'visits', label: '????????', icon: 'fa-user-md' },
-            { key: 'medications', label: '???????', icon: 'fa-pills' },
-            { key: 'sickLeave', label: '???????? ???????', icon: 'fa-calendar-times' },
-            { key: 'dispensed-medications', label: '??? ??????? ????????', icon: 'fa-prescription-bottle-alt' },
-            { key: 'injuries', label: '????????', icon: 'fa-user-injured' },
-            { key: 'supply-request', label: '??? ????????', icon: 'fa-shopping-cart' },
-            { key: 'approvals', label: '????? ????????', icon: 'fa-check-circle' },
-            { key: 'data-analysis', label: '????? ????????', icon: 'fa-chart-bar' }
+            { key: 'visits', label: 'الزيارات', icon: 'fa-user-md' },
+            { key: 'medications', label: 'الأدوية', icon: 'fa-pills' },
+            { key: 'sickLeave', label: 'الإجازات المرضية', icon: 'fa-calendar-times' },
+            { key: 'dispensed-medications', label: 'سجل الأدوية المنصرفة', icon: 'fa-prescription-bottle-alt' },
+            { key: 'injuries', label: 'الإصابات', icon: 'fa-user-injured' },
+            { key: 'supply-request', label: 'طلب احتياجات', icon: 'fa-shopping-cart' },
+            { key: 'approvals', label: 'طلبات الموافقة', icon: 'fa-check-circle' },
+            { key: 'data-analysis', label: 'تحليل البيانات', icon: 'fa-chart-bar' }
         ]
     },
     'training': {
-        label: '??????? ????? ???????',
+        label: 'صلاحيات مديول التدريب',
         permissions: [
-            { key: 'training-list', label: '????? ?????????', icon: 'fa-list' },
-            { key: 'training-matrix', label: '?????? ???????', icon: 'fa-table' },
-            { key: 'annual-plan', label: '????? ???????', icon: 'fa-calendar-check' },
-            { key: 'analysis', label: '???????', icon: 'fa-chart-line' },
-            { key: 'contractor-training', label: '????? ?????????', icon: 'fa-users' }
+            { key: 'training-list', label: 'قائمة التدريبات', icon: 'fa-list' },
+            { key: 'training-matrix', label: 'مصفوفة التدريب', icon: 'fa-table' },
+            { key: 'annual-plan', label: 'الخطة السنوية', icon: 'fa-calendar-check' },
+            { key: 'analysis', label: 'التحليل', icon: 'fa-chart-line' },
+            { key: 'contractor-training', label: 'تدريب المقاولين', icon: 'fa-users' }
         ]
     },
     'fire-equipment': {
-        label: '??????? ????? ????? ???????',
+        label: 'صلاحيات مديول معدات الإطفاء',
         permissions: [
-            { key: 'database', label: '????? ????????', icon: 'fa-database' },
-            { key: 'register', label: '?????', icon: 'fa-clipboard-list' },
-            { key: 'inspections', label: '????????', icon: 'fa-clipboard-check' },
-            { key: 'analytics', label: '???????', icon: 'fa-chart-line' },
-            { key: 'approval-requests', label: '????? ????????', icon: 'fa-check-circle' }
+            { key: 'database', label: 'قاعدة البيانات', icon: 'fa-database' },
+            { key: 'register', label: 'السجل', icon: 'fa-clipboard-list' },
+            { key: 'inspections', label: 'الفحوصات', icon: 'fa-clipboard-check' },
+            { key: 'analytics', label: 'التحليل', icon: 'fa-chart-line' },
+            { key: 'approval-requests', label: 'طلبات الموافقة', icon: 'fa-check-circle' }
         ]
     },
     'daily-observations': {
-        label: '??????? ????? ????????? ???????',
+        label: 'صلاحيات مديول الملاحظات اليومية',
         permissions: [
-            { key: 'observations-registry', label: '??? ?????????', icon: 'fa-book' },
+            { key: 'observations-registry', label: 'سجل الملاحظات', icon: 'fa-book' },
             {
                 key: 'observations-view-department',
-                label: '??? ??????? ??????? ??????? (????? ??? ????? ???????? ?? �??????? ?? ???????�)',
+                label: 'عرض ملاحظات الإدارة المعنية (تطابق حقل إدارة المستخدم مع «المسؤول عن التنفيذ»)',
                 icon: 'fa-building'
             },
-            { key: 'data-analysis', label: '????? ????????', icon: 'fa-chart-bar' },
-            { key: 'observations-specialist-review', label: '?????? ?????? ??????? (??? ????????)', icon: 'fa-user-check' },
-            { key: 'observations-manager-approve', label: '?????? ???? ???????', icon: 'fa-stamp' },
-            { key: 'observations-view-all', label: '??? ???? ????????? (?????? ?????)', icon: 'fa-globe' }
+            { key: 'data-analysis', label: 'تحليل البيانات', icon: 'fa-chart-bar' },
+            { key: 'observations-specialist-review', label: 'مراجعة أخصائي السلامة (سير الاعتماد)', icon: 'fa-user-check' },
+            { key: 'observations-manager-approve', label: 'اعتماد مدير السلامة', icon: 'fa-stamp' },
+            { key: 'observations-view-all', label: 'عرض جميع الملاحظات (متابعة شاملة)', icon: 'fa-globe' }
         ]
     },
     'ptw': {
-        label: '??????? ????? ?????? ?????',
+        label: 'صلاحيات مديول تصاريح العمل',
         permissions: [
-            { key: 'ptw-list', label: '????? ????????', icon: 'fa-list' },
-            { key: 'analytics', label: '???????', icon: 'fa-chart-line' },
-            { key: 'approvals', label: '?????????', icon: 'fa-check-circle' }
+            { key: 'ptw-list', label: 'قائمة التصاريح', icon: 'fa-list' },
+            { key: 'analytics', label: 'التحليل', icon: 'fa-chart-line' },
+            { key: 'approvals', label: 'الموافقات', icon: 'fa-check-circle' }
         ]
     },
     'contractors': {
-        label: '??????? ????? ?????????',
+        label: 'صلاحيات مديول المقاولين',
         permissions: [
-            { key: 'contractors-list', label: '????? ?????????', icon: 'fa-list' },
-            { key: 'evaluations', label: '?????????', icon: 'fa-star' },
-            { key: 'analytics', label: '???????', icon: 'fa-chart-line' },
-            { key: 'approval-requests', label: '????? ????????', icon: 'fa-check-circle' }
+            { key: 'contractors-list', label: 'قائمة المقاولين', icon: 'fa-list' },
+            { key: 'evaluations', label: 'التقييمات', icon: 'fa-star' },
+            { key: 'analytics', label: 'التحليل', icon: 'fa-chart-line' },
+            { key: 'approval-requests', label: 'طلبات الموافقة', icon: 'fa-check-circle' }
         ]
     },
     'sustainability': {
-        label: '??????? ????? ????????? ???????',
+        label: 'صلاحيات مديول الاستدامة البيئية',
         permissions: [
             {
                 key: 'consumption-register',
-                label: '????? ??????? ?????? ????????? ?????? (????? ???)',
+                label: 'تسجيل استهلاك المياه والكهرباء والغاز (إضافة فقط)',
                 icon: 'fa-tint'
             },
             {
                 key: 'full-manage',
-                label: '????? ????? ????????? (????????? ?????????? ?????/??? ???????)',
+                label: 'إدارة كاملة للاستدامة (المخلفات، الإعدادات، تعديل/حذف السجلات)',
                 icon: 'fa-leaf'
             }
         ]
@@ -233,44 +233,44 @@ const MODULE_DETAILED_PERMISSIONS = {
 };
 
 const MODULE_PERMISSIONS_CONFIG = [
-    { key: 'dashboard', label: '???? ??????', icon: 'fa-dashboard' },
-    { key: 'users', label: '????? ??????????', icon: 'fa-users-cog', adminOnly: true },
-    { key: 'user-tasks', label: '???? ??????????', icon: 'fa-tasks' },
-    { key: 'employees', label: '????? ?????? ????????', icon: 'fa-database', hasDetailedPermissions: true },
-    { key: 'incidents', label: '???????', icon: 'fa-exclamation-triangle', hasDetailedPermissions: true },
-    { key: 'nearmiss', label: '??????? ???????', icon: 'fa-exclamation-circle' },
-    { key: 'ptw', label: '?????? ?????', icon: 'fa-id-card', hasDetailedPermissions: true },
-    { key: 'training', label: '???????', icon: 'fa-graduation-cap', hasDetailedPermissions: true },
-    { key: 'clinic', label: '??????? ??????', icon: 'fa-hospital', hasDetailedPermissions: true },
-    { key: 'fire-equipment', label: '????? ???????', icon: 'fa-fire-extinguisher', hasDetailedPermissions: true },
-    { key: 'periodic-inspections', label: '???????? ???????', icon: 'fa-clipboard-check' },
-    { key: 'ppe', label: '????? ???????', icon: 'fa-hard-hat' },
-    { key: 'violations', label: '?????????', icon: 'fa-ban' },
-    { key: 'contractors', label: '?????????', icon: 'fa-users', hasDetailedPermissions: true },
-    { key: 'behavior-monitoring', label: '?????? ?????????', icon: 'fa-user-check' },
-    { key: 'chemical-safety', label: '??????? ??????????', icon: 'fa-flask' },
-    { key: 'daily-observations', label: '????????? ???????', icon: 'fa-eye', hasDetailedPermissions: true },
-    { key: 'iso', label: '???? ISO', icon: 'fa-certificate' },
-    { key: 'compliance-reports', label: '?????? ????????', icon: 'fa-file-shield', parentModule: 'iso' },
-    { key: 'emergency', label: '??????? ???????', icon: 'fa-bell' },
-    { key: 'safety-calendar', label: '????? ???????', icon: 'fa-calendar-days' },
-    { key: 'risk-assessment', label: '????? ???????', icon: 'fa-balance-scale' },
-    { key: 'sop-jha', label: '??????? ????? ??????????', icon: 'fa-tasks' },
-    { key: 'legal-documents', label: '??????? ?????????', icon: 'fa-file-contract' },
-    { key: 'sustainability', label: '?????????', icon: 'fa-leaf', hasDetailedPermissions: true },
-    { key: 'safety-budget', label: '??????? ??????? ????? ???????', icon: 'fa-wallet' },
-    { key: 'ai-assistant', label: '??????? ?????', icon: 'fa-robot' },
-    { key: 'safety-performance-kpis', label: '?????? ?????? ?????? ???????', icon: 'fa-gauge-high', hasDetailedPermissions: true },
-    { key: 'kpi-annual-plan', label: '????? ??????? ??????? ?????? (KPIs)', icon: 'fa-calendar-alt', parentModule: 'safety-performance-kpis' },
-    { key: 'hse-monitoring-plan', label: '??? ?????? HSE', icon: 'fa-clipboard-check', parentModule: 'safety-performance-kpis' },
-    { key: 'safety-health-management', label: '????? ??????? ??????', icon: 'fa-user-shield' },
-    { key: 'help', label: '????????', icon: 'fa-circle-question' },
-    { key: 'settings', label: '?????????', icon: 'fa-cog', adminOnly: true },
-    { key: 'action-tracking', label: '??? ?????? ?????????', icon: 'fa-clipboard-list' },
-    { key: 'issue-tracking', label: '???? ???????', icon: 'fa-bug', hasDetailedPermissions: true },
-    { key: 'change-management', label: '????? ????????', icon: 'fa-exchange-alt', hasDetailedPermissions: true },
-    // adminOnly + ??? ???? ?? JSON: ???? ?? ??????? ??? ??? ?????? ??? ??? ?????? issuing-authorities (???? hasAccess)
-    { key: 'issuing-authorities', label: '?????? ??? ???????? ??? ?????? ?????', icon: 'fa-user-check', parentModule: 'ptw', adminOnly: true }
+    { key: 'dashboard', label: 'لوحة التحكم', icon: 'fa-dashboard' },
+    { key: 'users', label: 'إدارة المستخدمين', icon: 'fa-users-cog', adminOnly: true },
+    { key: 'user-tasks', label: 'مهام المستخدمين', icon: 'fa-tasks' },
+    { key: 'employees', label: 'قاعدة بيانات الموظفين', icon: 'fa-database', hasDetailedPermissions: true },
+    { key: 'incidents', label: 'الحوادث', icon: 'fa-exclamation-triangle', hasDetailedPermissions: true },
+    { key: 'nearmiss', label: 'الحوادث الوشيكة', icon: 'fa-exclamation-circle' },
+    { key: 'ptw', label: 'تصاريح العمل', icon: 'fa-id-card', hasDetailedPermissions: true },
+    { key: 'training', label: 'التدريب', icon: 'fa-graduation-cap', hasDetailedPermissions: true },
+    { key: 'clinic', label: 'العيادة الطبية', icon: 'fa-hospital', hasDetailedPermissions: true },
+    { key: 'fire-equipment', label: 'معدات الإطفاء', icon: 'fa-fire-extinguisher', hasDetailedPermissions: true },
+    { key: 'periodic-inspections', label: 'الفحوصات الدورية', icon: 'fa-clipboard-check' },
+    { key: 'ppe', label: 'مهمات الوقاية', icon: 'fa-hard-hat' },
+    { key: 'violations', label: 'المخالفات', icon: 'fa-ban' },
+    { key: 'contractors', label: 'المقاولين', icon: 'fa-users', hasDetailedPermissions: true },
+    { key: 'behavior-monitoring', label: 'مراقبة السلوكيات', icon: 'fa-user-check' },
+    { key: 'chemical-safety', label: 'السلامة الكيميائية', icon: 'fa-flask' },
+    { key: 'daily-observations', label: 'الملاحظات اليومية', icon: 'fa-eye', hasDetailedPermissions: true },
+    { key: 'iso', label: 'نظام ISO', icon: 'fa-certificate' },
+    { key: 'compliance-reports', label: 'تقارير الامتثال', icon: 'fa-file-shield', parentModule: 'iso' },
+    { key: 'emergency', label: 'تنبيهات الطوارئ', icon: 'fa-bell' },
+    { key: 'safety-calendar', label: 'تقويم السلامة', icon: 'fa-calendar-days' },
+    { key: 'risk-assessment', label: 'تقييم المخاطر', icon: 'fa-balance-scale' },
+    { key: 'sop-jha', label: 'إجراءات العمل والتقييمات', icon: 'fa-tasks' },
+    { key: 'legal-documents', label: 'الوثائق القانونية', icon: 'fa-file-contract' },
+    { key: 'sustainability', label: 'الاستدامة', icon: 'fa-leaf', hasDetailedPermissions: true },
+    { key: 'safety-budget', label: 'ميزانية السلامة وتتبع الإنفاق', icon: 'fa-wallet' },
+    { key: 'ai-assistant', label: 'المساعد الذكي', icon: 'fa-robot' },
+    { key: 'safety-performance-kpis', label: 'مؤشرات الأداء لإدارة السلامة', icon: 'fa-gauge-high', hasDetailedPermissions: true },
+    { key: 'kpi-annual-plan', label: 'الخطة السنوية لمؤشرات الأداء (KPIs)', icon: 'fa-calendar-alt', parentModule: 'safety-performance-kpis' },
+    { key: 'hse-monitoring-plan', label: 'خطة متابعة HSE', icon: 'fa-clipboard-check', parentModule: 'safety-performance-kpis' },
+    { key: 'safety-health-management', label: 'إدارة السلامة والصحة', icon: 'fa-user-shield' },
+    { key: 'help', label: 'المساعدة', icon: 'fa-circle-question' },
+    { key: 'settings', label: 'الإعدادات', icon: 'fa-cog', adminOnly: true },
+    { key: 'action-tracking', label: 'سجل متابعة الإجراءات', icon: 'fa-clipboard-list' },
+    { key: 'issue-tracking', label: 'تتبع المشاكل', icon: 'fa-bug', hasDetailedPermissions: true },
+    { key: 'change-management', label: 'إدارة التغيرات', icon: 'fa-exchange-alt', hasDetailedPermissions: true },
+    // adminOnly + منح صريح في JSON: يظهر في القائمة لمن ليس مديراً إذا منح المدير issuing-authorities (انظر hasAccess)
+    { key: 'issuing-authorities', label: 'المصرح لهم بالتوقيع على تصاريح العمل', icon: 'fa-user-check', parentModule: 'ptw', adminOnly: true }
 ];
 
 const buildRoleDefaults = (enabledKeys = []) => {
@@ -281,43 +281,43 @@ const buildRoleDefaults = (enabledKeys = []) => {
     return permissions;
 };
 
-// ?? ?????? ????? ????: ?? ??? ????? ?? ??????? ???????? ????????
-// ????????? ????? ??? ?? ??? ???? ?????? ?? ???? ????? ??????????
-// ??? ???? ??????? ??????? ??? ????????? ?? ??? ??????
+// ⚠️ ملاحظة أمنية مهمة: لا يتم إضافة أي صلاحيات افتراضية تلقائياً
+// الصلاحيات تُمنح فقط من قبل مدير النظام من خلال إدارة المستخدمين
+// هذا يضمن السيطرة الكاملة على الصلاحيات من قبل المدير
 //
-// ?? ?????: DEFAULT_ROLE_PERMISSIONS ?? ??? ???????? ?? hasAccess ?? getEffectivePermissions
-// ??? ?????? ????? ??? ??????? ?? ????? ?????? ?? ????????? ?????????
-// ?? ??? ???????? ???????? ???? ?? ??????? - ???? ????????? ??? ????? ?????? ?? ??? ??????
+// ⚠️ تحذير: DEFAULT_ROLE_PERMISSIONS لا يتم استخدامه في hasAccess أو getEffectivePermissions
+// هذا الكائن موجود فقط للتوافق مع الكود القديم أو للاستخدام المستقبلي
+// لا يتم استخدامه تلقائياً لمنح أي صلاحيات - جميع الصلاحيات يجب منحها صراحةً من قبل المدير
 const DEFAULT_ROLE_PERMISSIONS = {
-    // ???? ?????? - ??????? ????? ??? ?? ?????????? (??? ?????? ???? ?? hasAccess ??????)
+    // مدير النظام - صلاحيات كاملة على كل الموديولات (يتم التحقق منها في hasAccess مباشرة)
     admin: buildRoleDefaults(MODULE_PERMISSIONS_CONFIG.map(m => m.key)),
 
-    // ????? ??????? - ?? ???? ??????? ????????? ??? ????? ?? ??? ???? ??????
+    // مسئول السلامة - لا توجد صلاحيات افتراضية، يجب منحها من قبل مدير النظام
     safety_officer: buildRoleDefaults([]),
 
-    // ???????? ?????? - ?? ???? ??????? ????????? ??? ????? ?? ??? ???? ??????
+    // المستخدم العادي - لا توجد صلاحيات افتراضية، يجب منحها من قبل مدير النظام
     user: buildRoleDefaults([]),
 
-    // ??? ??????? ??? - ????? ????? ??? ???? ????? ?? ????? ?? ???
+    // دور القراءة فقط - يمكنه العرض فقط بدون إضافة أو تعديل أو حذف
     read_only: buildRoleDefaults([])
 };
 
-// ? ????? ??????? ??????? ?? ??????
+// ✅ قائمة الأدوار المتاحة في النظام
 const AVAILABLE_ROLES = [
-    { key: 'admin', label: '???? ??????', labelEn: 'System Administrator', color: 'red', icon: 'fa-user-shield' },
-    { key: 'safety_officer', label: '????? ???????', labelEn: 'Safety Officer', color: 'blue', icon: 'fa-hard-hat' },
-    { key: 'user', label: '?????? ????', labelEn: 'Regular User', color: 'green', icon: 'fa-user' },
-    { key: 'read_only', label: '????? ???', labelEn: 'Read Only', color: 'purple', icon: 'fa-eye' }
+    { key: 'admin', label: 'مدير النظام', labelEn: 'System Administrator', color: 'red', icon: 'fa-user-shield' },
+    { key: 'safety_officer', label: 'مسئول السلامة', labelEn: 'Safety Officer', color: 'blue', icon: 'fa-hard-hat' },
+    { key: 'user', label: 'مستخدم عادي', labelEn: 'Regular User', color: 'green', icon: 'fa-user' },
+    { key: 'read_only', label: 'قراءة فقط', labelEn: 'Read Only', color: 'purple', icon: 'fa-eye' }
 ];
 
 const Permissions = {
     /**
-     * ?? ????? �???? ????�? ???? ?????? ?????? ?? ??????/?????? (Admin? ???? ??????? �)
+     * هل الدور «مدير نظام»؟ يدعم اختلاف الحروف في الجدول/الجلسة (Admin، مدير النظام، …)
      */
     isAdminRole(role) {
         if (role == null || role === '') return false;
         const r = String(role).trim();
-        if (r === '???? ??????' || r === '????') return true;
+        if (r === 'مدير النظام' || r === 'مدير') return true;
         const low = r.toLowerCase();
         return (
             low === 'admin' ||
@@ -328,8 +328,8 @@ const Permissions = {
     },
 
     /**
-     * ???? ???? ?? ?????? ?? ?? ???? permissions ?? ?? ???? ?????????? (??? ????????).
-     * ??????? ?? Users ???????? adminOnly ???????? ??????? ?????? ??????.
+     * مدير فعلي في الجلسة أو في عمود permissions أو في جدول المستخدمين (بعد المزامنة).
+     * يُستخدم لـ Users وإعدادات adminOnly وتبويبات التفصيل ومعدات الحريق.
      */
     isCurrentUserEffectiveAdmin(user = AppState.currentUser) {
         if (!user) return false;
@@ -359,20 +359,20 @@ const Permissions = {
     },
 
     /**
-     * ????? ???? ????????? (?????? JSON string ??? ????)
+     * تطبيع كائن الصلاحيات (يُحوّل JSON string إلى كائن)
      */
     normalizePermissions(permissions) {
         if (!permissions) return null;
         if (typeof permissions === 'string') {
             try {
-                // ?????? ????? JSON ?????
+                // محاولة تحليل JSON أولاً
                 return JSON.parse(permissions);
             } catch (error) {
-                // ??? ??? ????? JSON? ?? ???? ????????? ????? key: value ?? Google Sheets
+                // إذا فشل تحليل JSON، قد تكون الصلاحيات بصيغة key: value من Google Sheets
                 const trimmed = permissions.trim();
                 if (trimmed && (trimmed.includes(':') || trimmed.includes('\n'))) {
                     try {
-                        // ?????? ????? ???? ??? ???? (key: value format)
+                        // محاولة تحويل النص إلى كائن (key: value format)
                         const lines = trimmed.split('\n').filter(line => line.trim());
                         const perms = {};
                         lines.forEach(line => {
@@ -380,7 +380,7 @@ const Permissions = {
                             if (match) {
                                 const key = match[1].trim();
                                 let value = match[2].trim();
-                                // ????? ????? ?????? ??? boolean/number/string
+                                // تحويل القيم النصية إلى boolean/number/string
                                 if (value === 'true') {
                                     perms[key] = true;
                                 } else if (value === 'false') {
@@ -388,8 +388,8 @@ const Permissions = {
                                 } else if (!isNaN(value) && value !== '') {
                                     perms[key] = Number(value);
                                 } else {
-                                    // ?????? ????? ????? ??????? (??? ????????? ?????????)
-                                    // ????: "incidentsPermissions: add: true, edit: false"
+                                    // محاولة تحليل القيم المعقدة (مثل الصلاحيات التفصيلية)
+                                    // مثال: "incidentsPermissions: add: true, edit: false"
                                     if (value.includes(',')) {
                                         const nestedObj = {};
                                         const pairs = value.split(',').map(p => p.trim());
@@ -418,7 +418,7 @@ const Permissions = {
                             return perms;
                         }
                     } catch (parseError) {
-                        Utils.safeWarn('? ???? ????? ?????? ????????? ????? key:value? ???? ???????:', parseError);
+                        Utils.safeWarn('⚠ تعذر تحليل بيانات الصلاحيات بصيغة key:value، سيتم تجاهلها:', parseError);
                     }
                 }
                 return null;
@@ -428,7 +428,7 @@ const Permissions = {
     },
 
     async ensureFormSettingsState(forceReload = false) {
-        // ? ?????: ????? ????? ???????? ?? Google Sheets ??? forceReload ????? ?????? ??? ???? ????????
+        // ✅ إصلاح: إعادة تحميل البيانات من Google Sheets عند forceReload لضمان الحصول على أحدث البيانات
         if (forceReload || !this.formSettingsState) {
             await this.initFormSettingsState();
         }
@@ -436,9 +436,9 @@ const Permissions = {
     },
 
     getFormSettingsState() {
-        // ???? ??????? ?????? ??? ?????? (??????? ?? ???? ?????)
+        // دالة متزامنة للحصول على الحالة (تُستخدم في دوال العرض)
         if (!this.formSettingsState) {
-            // ??? ?? ??? ?????? ?????? ????? ???? ????????
+            // إذا لم تكن الحالة مهيأة، إرجاع حالة افتراضية
             return {
                 sites: [],
                 selectedSiteId: '',
@@ -450,10 +450,10 @@ const Permissions = {
     },
 
     async initFormSettingsState() {
-        // ? ???? ???? AppState.appData ?????? ????? ??? ??????? ??????
+        // ✅ ضمان وجود AppState.appData لتفادي أخطاء عند التعيين لاحقاً
         if (typeof AppState === 'undefined') return this.getFormSettingsState();
         if (!AppState.appData) AppState.appData = {};
-        // ?? ????? ??? ????? ??? ??? ????? ???? Web App � ???? ????? ????? ??? ??????/DEFAULT_SITES (???? ???? ?????)
+        // لا نحاول جلب الشيت إلا عند تفعيل رابط Web App — وإلا نعتمد فوراً على المحلي/DEFAULT_SITES (أسرع وأقل أخطاء)
         const cloudReady = typeof Utils !== 'undefined' && typeof Utils.hasCloudBackendSync === 'function' && Utils.hasCloudBackendSync();
         const hasRemoteSettingsApi = !!(
             cloudReady &&
@@ -461,12 +461,12 @@ const Permissions = {
             typeof Backend.sendToAppsScript === 'function'
         );
 
-        // ?????? ????? ??????? ?????? ?? Google Sheets ?????
+        // محاولة تحميل إعدادات الشركة من Google Sheets أولاً
         if (hasRemoteSettingsApi) {
             try {
                 const companyResult = await Backend.sendToAppsScript('getCompanySettings', {});
                 if (companyResult && companyResult.success && companyResult.data) {
-                    // ????? postLoginItems ??? ???? ???? (JSON)
+                    // تحليل postLoginItems إذا كانت نصاً (JSON)
                     let postLoginItems = AppState.companySettings?.postLoginItems;
                     if (companyResult.data.postLoginItems !== undefined) {
                         const raw = companyResult.data.postLoginItems;
@@ -482,7 +482,7 @@ const Permissions = {
                     }
                     if (!Array.isArray(postLoginItems)) postLoginItems = [];
 
-                    // ????? clinicVisitTypes ??? ???? ???? (JSON)
+                    // تحليل clinicVisitTypes إذا كانت نصاً (JSON)
                     let clinicVisitTypes = AppState.companySettings?.clinicVisitTypes;
                     if (companyResult.data.clinicVisitTypes !== undefined) {
                         const rawClinicTypes = companyResult.data.clinicVisitTypes;
@@ -500,7 +500,7 @@ const Permissions = {
                     }
                     if (!Array.isArray(clinicVisitTypes)) clinicVisitTypes = [];
 
-                    // ????? AppState ??????? ?????? ?? Google Sheets
+                    // تحديث AppState ببيانات الشركة من Google Sheets
                     AppState.companySettings = Object.assign({}, AppState.companySettings, {
                         name: companyResult.data.name || AppState.companySettings?.name,
                         secondaryName: companyResult.data.secondaryName || AppState.companySettings?.secondaryName,
@@ -516,19 +516,19 @@ const Permissions = {
                         clinicVisitTypes: clinicVisitTypes
                     });
 
-                    // ????? ???? ?????? ??? ??? ???????
+                    // تحديث شعار الشركة إذا كان موجوداً
                     if (companyResult.data.logo) {
                         AppState.companyLogo = companyResult.data.logo;
-                        // ????? ?????? ?? AppState.companySettings ?????
+                        // تحديث الشعار في AppState.companySettings أيضاً
                         if (!AppState.companySettings) {
                             AppState.companySettings = {};
                         }
                         AppState.companySettings.logo = companyResult.data.logo;
-                        // ??? ?????? ?? localStorage
+                        // حفظ الشعار في localStorage
                         localStorage.setItem('company_logo', companyResult.data.logo);
                         localStorage.setItem('hse_company_logo', companyResult.data.logo);
 
-                        // ????? ?????? ?? ???? ??????? ???????
+                        // تحديث الشعار في جميع الأماكن المخصصة
                         if (typeof UI !== 'undefined') {
                             if (UI.updateCompanyLogoHeader) {
                                 UI.updateCompanyLogoHeader();
@@ -544,58 +544,58 @@ const Permissions = {
                             }
                         }
 
-                        // ????? ??? ?????? ??????
+                        // إرسال حدث لتحديث الشعار
                         window.dispatchEvent(new CustomEvent('companyLogoUpdated', {
                             detail: { logoUrl: companyResult.data.logo }
                         }));
                     }
 
-                    Utils.safeLog('? ?? ????? ??????? ?????? ?? Google Sheets ?????');
+                    Utils.safeLog('✅ تم تحميل إعدادات الشركة من Google Sheets بنجاح');
                 }
             } catch (error) {
-                Utils.safeWarn('?? ??? ????? ??????? ?????? ?? Google Sheets:', error);
+                Utils.safeWarn('⚠️ فشل تحميل إعدادات الشركة من Google Sheets:', error);
             }
         }
 
-        // ? ?????: ?????? ????? ????????? ?? Google Sheets ?????
-        // ? ?????: ??? ???? ????? ?????????? ??? ???????? ?????? ??????
+        // ✅ إصلاح: محاولة تحميل الإعدادات من Google Sheets أولاً
+        // ✅ إصلاح: هذا يعمل لجميع المستخدمين بعد المزامنة وتسجيل الدخول
         if (hasRemoteSettingsApi) {
             try {
-                // ? ?????: ????? ????? ?? ????? ???????? ???? ?????
+                // ✅ إصلاح: تحميل مباشر من قاعدة البيانات بدون تأخير
                 const result = await Backend.sendToAppsScript('getFormSettings', {});
                 if (result && result.success && result.data) {
-                    // ? ?????: ????? AppState ????????? ?? Google Sheets ?? ?????? ?? ???? ??????? ???????
+                    // ✅ إصلاح: تحديث AppState بالبيانات من Google Sheets مع التأكد من وجود الأماكن الفرعية
                     if (Array.isArray(result.data.sites) && result.data.sites.length > 0) {
-                        // ? ?????: ?????? ?? ?? ?? ???? ????? ??? places (??? ?? ???? ?????? ?????)
-                        // ? ?????: ??? ???? ??????? ???????? ???????? String() ????? ????????
+                        // ✅ إصلاح: التأكد من أن كل موقع يحتوي على places (حتى لو كانت مصفوفة فارغة)
+                        // ✅ إصلاح: ربط صحيح للأماكن بالمواقع باستخدام String() لضمان المطابقة
                         const normalizedSites = result.data.sites.map(site => {
                             const siteId = String(site.id || '').trim();
-                            // ? ?????: ?????? ?? ??? ???? ??????? ??????? ??????? ???? ????
-                            // ? ?????: ??????? siteId ?? ?????? ????? ????? ??????
+                            // ✅ إصلاح: التأكد من ربط جميع الأماكن الفرعية بالموقع بشكل صحيح
+                            // ✅ إصلاح: استخدام siteId من الموقع لضمان الربط الصحيح
                             const sitePlaces = Array.isArray(site.places) && site.places.length > 0 
                                 ? site.places.map(place => {
-                                    // ? ?????: ??????? siteId ?? ?????? ?????? ????? ????? ??????
+                                    // ✅ إصلاح: استخدام siteId من الموقع الحالي لضمان الربط الصحيح
                                     const placeSiteId = String(place.siteId || site.id || siteId || '').trim();
                                     return {
                                         id: place.id || Utils.generateId('PLACE'),
                                         name: place.name || '',
-                                        siteId: placeSiteId || siteId // ? ?????: ??? ???? ???????
+                                        siteId: placeSiteId || siteId // ✅ إصلاح: ربط صحيح بالموقع
                                     };
                                 })
-                                : []; // ? ?????: ?????? ????? ??? ?? ??? ???? ?????
+                                : []; // ✅ إصلاح: مصفوفة فارغة إذا لم تكن هناك أماكن
                             
                             return {
                                 id: site.id || Utils.generateId('SITE'),
                                 name: site.name || '',
                                 description: site.description || '',
-                                places: sitePlaces // ? ?????: ???? ??????? ??????? ?????? ???? ????
+                                places: sitePlaces // ✅ إصلاح: جميع الأماكن الفرعية مرتبطة بشكل صحيح
                             };
                         });
                         AppState.appData.observationSites = normalizedSites;
-                        // ? ?????: ??? ????? ???????? ??? ?? ??? ???????
-                        Utils.safeLog(`? ?? ????? ${normalizedSites.length} ???? ?? ????? ????????`);
+                        // ✅ إصلاح: عرض رسالة للمستخدم حتى في وضع الإنتاج
+                        Utils.safeLog(`✅ تم تحميل ${normalizedSites.length} موقع من قاعدة البيانات`);
                     } else {
-                        // ? ??? ??? ??????? ??????? (?? DataManager.load) ??? ???? ??? API ??? ?????
+                        // ✅ عدم مسح المواقع المحلية (من DataManager.load) عند رجوع الـ API بلا مواقع
                         if (!Array.isArray(AppState.appData.observationSites)) {
                             AppState.appData.observationSites = [];
                         }
@@ -613,7 +613,7 @@ const Permissions = {
                         AppState.companySettings.safetyTeam = result.data.safetyTeam;
                     }
 
-                    // ??? ?? localStorage ?????????? ??????
+                    // حفظ في localStorage لاستخدامها لاحقاً
                     const dm = (typeof window !== 'undefined' && window.DataManager) ||
                         (typeof DataManager !== 'undefined' && DataManager);
                     if (dm && typeof dm.save === 'function') {
@@ -623,15 +623,15 @@ const Permissions = {
                         dm.saveCompanySettings();
                     }
 
-                    Utils.safeLog('? ?? ????? ??????? ??????? ?? Google Sheets ?????');
+                    Utils.safeLog('✅ تم تحميل إعدادات النماذج من Google Sheets بنجاح');
                 } else {
-                    Utils.safeWarn('?? ?? ??? ????? ??????? ??????? ?? Google Sheets - ??????? ???????? ???????');
+                    Utils.safeWarn('⚠️ لم يتم تحميل إعدادات النماذج من Google Sheets - استخدام البيانات المحلية');
                     if (!Array.isArray(AppState.appData.observationSites)) {
                         AppState.appData.observationSites = [];
                     }
                 }
             } catch (error) {
-                Utils.safeWarn('?? ??? ????? ??????? ??????? ?? Google Sheets? ???? ??????? ???????? ???????:', error);
+                Utils.safeWarn('⚠️ فشل تحميل إعدادات النماذج من Google Sheets، سيتم استخدام البيانات المحلية:', error);
                 if (!Array.isArray(AppState.appData.observationSites)) {
                     AppState.appData.observationSites = [];
                 }
@@ -652,13 +652,13 @@ const Permissions = {
             return [];
         })();
 
-        // ? ?????: ?????? ???? ??????? ???????? ??????? - ?????? ?? ????? ???? ???????
-        // ?? ?????? slice() ?? limit - ????? ???? ???????
+        // ✅ إصلاح: معالجة أفضل للمواقع والأماكن الفرعية - التأكد من تحميل جميع المواقع
+        // لا نستخدم slice() أو limit - نحمّل جميع المواقع
         const clonedSites = sitesSource.map((site, index) => {
             const siteId = site.id || site.siteId || Utils.generateId('SITE');
-            const siteName = site.name || site.title || site.label || `???? ${index + 1}`;
+            const siteName = site.name || site.title || site.label || `موقع ${index + 1}`;
             
-            // ? ?????: ?????? ???? ??????? ??????? ?? ??? ??? ??????
+            // ✅ إصلاح: معالجة أفضل للأماكن الفرعية مع دعم صيغ متعددة
             let placesSource = [];
             if (Array.isArray(site.places) && site.places.length > 0) {
                 placesSource = site.places;
@@ -670,33 +670,33 @@ const Permissions = {
                 placesSource = site.areas;
             }
             
-            // ? ?????: ????? ??????? ??????? ?? ?????? ?? ???? id ? name ???? ???? ???????
-            // ? ?????: ??????? String() ????? ???????? ??????? ??? siteId
+            // ✅ إصلاح: تطبيع الأماكن الفرعية مع التأكد من وجود id و name وربط صحيح بالموقع
+            // ✅ إصلاح: استخدام String() لضمان المطابقة الصحيحة بين siteId
             const siteIdStr = String(siteId || '').trim();
             const places = placesSource.map((place, idx) => {
-                // ??? ??? place ????? ?????? ??????
+                // إذا كان place كائن، نستخدم خصائصه
                 if (typeof place === 'object' && place !== null) {
-                    // ? ?????: ??????? String() ????? ???????? ???????
+                    // ✅ إصلاح: استخدام String() لضمان المطابقة الصحيحة
                     const placeSiteId = String(place.siteId || siteId || '').trim();
                     return {
                         id: place.id || place.placeId || place.value || Utils.generateId('PLACE'),
-                        name: place.name || place.placeName || place.title || place.label || place.locationName || `???? ${idx + 1}`,
-                        siteId: placeSiteId || siteIdStr // ? ?????: ??? ???? ??????? ???????? String()
+                        name: place.name || place.placeName || place.title || place.label || place.locationName || `مكان ${idx + 1}`,
+                        siteId: placeSiteId || siteIdStr // ✅ إصلاح: ربط صحيح بالموقع باستخدام String()
                     };
                 }
-                // ??? ??? place ??? ??????? ????
+                // إذا كان place نص، نستخدمه كاسم
                 if (typeof place === 'string') {
                     return {
                         id: Utils.generateId('PLACE'),
                         name: place,
-                        siteId: siteIdStr // ? ?????: ??? ???? ??????? ???????? String()
+                        siteId: siteIdStr // ✅ إصلاح: ربط صحيح بالموقع باستخدام String()
                     };
                 }
-                // ?? ???? ????? ?????? ???? ????????
+                // في حالة أخرى، نستخدم قيمة افتراضية
                 return {
                     id: Utils.generateId('PLACE'),
-                    name: `???? ${idx + 1}`,
-                    siteId: siteIdStr // ? ?????: ??? ???? ??????? ???????? String()
+                    name: `مكان ${idx + 1}`,
+                    siteId: siteIdStr // ✅ إصلاح: ربط صحيح بالموقع باستخدام String()
                 };
             });
             
@@ -704,7 +704,7 @@ const Permissions = {
                 id: siteId,
                 name: siteName,
                 description: site.description || '',
-                places: places // ? ?????: ?????? ?? ?? places ?????? ?????? (??? ?? ???? ?????)
+                places: places // ✅ إصلاح: التأكد من أن places دائماً مصفوفة (حتى لو كانت فارغة)
             };
         });
 
@@ -717,7 +717,7 @@ const Permissions = {
             safetyTeam: this.getInitialSafetyTeam()
         };
 
-        // ? ????? ??? ?????? ??????? ????? ??? ????? ?????? ?? ??? DOM
+        // ✅ إطلاق حدث وتحديث القوائم فوراً لأي عناصر موجودة في الـ DOM
         try {
             if (typeof window !== 'undefined' && window.dispatchEvent) {
                 window.dispatchEvent(new CustomEvent('formSettingsUpdated', {
@@ -731,7 +731,7 @@ const Permissions = {
                     } catch (e2) { Utils.safeWarn?.('app-utils: operation failed', e2); }
                 }
                 if (clonedSites.length > 0 && typeof Utils !== 'undefined' && Utils.safeLog) {
-                    Utils.safeLog('? ?? ????? ??? formSettingsUpdated ?????? ????? ??????/??????');
+                    Utils.safeLog('✅ تم إطلاق حدث formSettingsUpdated وتحديث قوائم المصنع/الموقع');
                 }
             }
         } catch (e) { Utils.safeWarn?.('app-utils: operation failed', e); }
@@ -740,7 +740,7 @@ const Permissions = {
     },
 
     /**
-     * ??????? ???? ??? ?????? ??????? ??????? (???????). ??? ???? ????? ??????? ?????? ???? ??? ??? formSettingsUpdated.
+     * استدعاء دالة عند جاهزية إعدادات النماذج (المواقع). إذا كانت جاهزة تُستدعى فوراً، وإلا بعد حدث formSettingsUpdated.
      */
     onFormSettingsReady(callback) {
         if (typeof callback !== 'function') return;
@@ -754,10 +754,10 @@ const Permissions = {
                 try {
                     const state = (e && e.detail && e.detail.sites) ? { sites: e.detail.sites } : this.formSettingsState;
                     callback(state || { sites: [] });
-                } catch (err) { Utils.safeWarn('?? onFormSettingsReady callback error:', err); }
+                } catch (err) { Utils.safeWarn('⚠️ onFormSettingsReady callback error:', err); }
             };
             window.addEventListener('formSettingsUpdated', handler);
-        } catch (err) { Utils.safeWarn('?? onFormSettingsReady error:', err); }
+        } catch (err) { Utils.safeWarn('⚠️ onFormSettingsReady error:', err); }
     },
 
     getInitialFormDepartments() {
@@ -782,7 +782,7 @@ const Permissions = {
                     return options.map((item) => String(item || '').trim()).filter(Boolean);
                 }
             } catch (error) {
-                Utils.safeWarn('?? ???? ????? ???????? ?? DailyObservations:', error);
+                Utils.safeWarn('⚠️ تعذر تحميل الإدارات من DailyObservations:', error);
             }
         }
         return [];
@@ -806,15 +806,15 @@ const Permissions = {
                 <div class="card-header">
                     <h2 class="card-title">
                         <i class="fas fa-file-alt ml-2"></i>
-                        ??????? ???????
+                        إعدادات النماذج
                     </h2>
                 </div>
                 <div class="card-body space-y-6">
                     <div class="fs-intro">
                         <span class="fs-intro__icon" aria-hidden="true"><i class="fas fa-info"></i></span>
                         <p class="mb-0">
-                            ?? ??? ????? ????? ??????? ????????? ?????? ????? ???????? ???????? ????? ??????? ?????????? ???? ??????? (??? ????????? ???????).
-                            ?? ????? ??? ???? ?????? ?? ????? ???????? ????? ?? ??????? ??? ???????. ???? ???????? ????? ?? ??? ???????? ?? ??? ???????? ????????.
+                            من هنا يمكنك إدارة المواقع وأماكنها، وتحديد قوائم الإدارات المسؤولة وفريق السلامة المستخدمين داخل النماذج (مثل الملاحظات اليومية).
+                            أي تعديل يتم حفظه مباشرة في قاعدة البيانات ويظهر في النماذج عند تعبئتها. جميع العمليات تُسجل في سجل النشاطات مع اسم المستخدم والتاريخ.
                         </p>
                     </div>
 
@@ -822,29 +822,29 @@ const Permissions = {
                         <div class="fs-section__head">
                             <span class="fs-section__icon fs-section__icon--map" aria-hidden="true"><i class="fas fa-map-marked-alt"></i></span>
                             <div>
-                                <h3 class="fs-section__title" id="fs-locations-title">??????? ????????</h3>
-                                <p class="fs-section__desc">???? ?????? ?? ?????? ????? ?????? ??????? ??????? ??. ??????? ??????? ??????? ?? ????? ???????.</p>
+                                <h3 class="fs-section__title" id="fs-locations-title">المواقع والأماكن</h3>
+                                <p class="fs-section__desc">اختر موقعاً من العمود الأول لإدارة الأماكن التابعة له. الترتيب المعروض يُستخدم في قوائم النماذج.</p>
                             </div>
                         </div>
                         <div class="fs-columns">
                             <div class="fs-panel">
                                 <div class="fs-panel__head">
-                                    <h4 class="fs-panel__title"><i class="fas fa-map-marker-alt" aria-hidden="true"></i>???????</h4>
-                                    <p class="fs-panel__hint">????? ??????? ?? ???????? ?????? �??????� ?????? ?????? ?????.</p>
+                                    <h4 class="fs-panel__title"><i class="fas fa-map-marker-alt" aria-hidden="true"></i>المواقع</h4>
+                                    <p class="fs-panel__hint">قائمة المصانع أو المواقع؛ استخدم «اختيار» لتحديد الموقع النشط.</p>
                                 </div>
                                 <div id="form-settings-sites-list" class="fs-scroll-list"></div>
                                 <button type="button" class="btn-primary btn-sm flex-shrink-0" data-action="add-site">
-                                    <i class="fas fa-plus ml-2"></i>????? ????
+                                    <i class="fas fa-plus ml-2"></i>إضافة موقع
                                 </button>
                             </div>
                             <div class="fs-panel fs-panel--places">
                                 <div class="fs-panel__head">
-                                    <h4 class="fs-panel__title"><i class="fas fa-location-dot" aria-hidden="true"></i>??????? ???? ?????? ??????</h4>
+                                    <h4 class="fs-panel__title"><i class="fas fa-location-dot" aria-hidden="true"></i>الأماكن داخل الموقع المحدد</h4>
                                 </div>
                                 <p id="form-settings-places-context" class="fs-places-context" aria-live="polite"></p>
                                 <div id="form-settings-places-list" class="fs-scroll-list"></div>
                                 <button type="button" class="btn-secondary btn-sm flex-shrink-0" data-action="add-place" id="form-settings-add-place-btn">
-                                    <i class="fas fa-plus ml-2"></i>????? ????
+                                    <i class="fas fa-plus ml-2"></i>إضافة مكان
                                 </button>
                             </div>
                         </div>
@@ -854,21 +854,21 @@ const Permissions = {
                         <section class="fs-team-card" aria-labelledby="fs-dept-title">
                             <div class="fs-team-card__head fs-team-card__head--dept">
                                 <i class="fas fa-briefcase" aria-hidden="true"></i>
-                                <h3 class="fs-team-card__title" id="fs-dept-title">????????? ?? ???????</h3>
+                                <h3 class="fs-team-card__title" id="fs-dept-title">المسؤولون عن التنفيذ</h3>
                             </div>
                             <div id="form-settings-departments-list" class="fs-scroll-list" style="max-height:16rem;"></div>
                             <button type="button" class="btn-secondary btn-sm" data-action="add-department">
-                                <i class="fas fa-plus ml-2"></i>????? ?????
+                                <i class="fas fa-plus ml-2"></i>إضافة إدارة
                             </button>
                         </section>
                         <section class="fs-team-card" aria-labelledby="fs-safety-title">
                             <div class="fs-team-card__head fs-team-card__head--safety">
                                 <i class="fas fa-user-shield" aria-hidden="true"></i>
-                                <h3 class="fs-team-card__title" id="fs-safety-title">???? ???????</h3>
+                                <h3 class="fs-team-card__title" id="fs-safety-title">فريق السلامة</h3>
                             </div>
                             <div id="form-settings-safety-list" class="fs-scroll-list" style="max-height:16rem;"></div>
                             <button type="button" class="btn-secondary btn-sm" data-action="add-safety-member">
-                                <i class="fas fa-plus ml-2"></i>????? ???
+                                <i class="fas fa-plus ml-2"></i>إضافة عضو
                             </button>
                         </section>
                     </div>
@@ -877,52 +877,52 @@ const Permissions = {
                         <div class="fs-section__head" style="border-bottom:none;padding-bottom:0;margin-bottom:0.75rem;">
                             <span class="fs-section__icon fs-section__icon--io" aria-hidden="true"><i class="fas fa-exchange-alt"></i></span>
                             <div>
-                                <h3 class="fs-section__title" id="fs-io-title">??????? ?????? ????????</h3>
-                                <p class="fs-section__desc">??? ????????? ??? ???????? ?? ????????? ?? ??? JSON.</p>
+                                <h3 class="fs-section__title" id="fs-io-title">استيراد وتصدير البيانات</h3>
+                                <p class="fs-section__desc">نسخ الإعدادات بين المؤسسات أو استعادتها من ملف JSON.</p>
                             </div>
                         </div>
                         <div class="fs-io-toolbar">
                             <button type="button" class="btn-secondary btn-sm" data-action="import-form-settings-file">
-                                <i class="fas fa-file-import ml-2"></i>??????? ?? ???
+                                <i class="fas fa-file-import ml-2"></i>استيراد من ملف
                             </button>
                             <button type="button" class="btn-secondary btn-sm" data-action="export-form-settings">
-                                <i class="fas fa-file-export ml-2"></i>????? ??? ???
+                                <i class="fas fa-file-export ml-2"></i>تصدير إلى ملف
                             </button>
                             <input type="file" id="form-settings-file-input" accept=".json" style="display: none;">
                         </div>
                         <div class="fs-paste-block">
                             <label for="form-settings-paste-area">
-                                <i class="fas fa-paste ml-2"></i>????? ?????? (JSON)
+                                <i class="fas fa-paste ml-2"></i>النسخ واللصق (JSON)
                             </label>
                             <textarea
                                 id="form-settings-paste-area"
                                 class="form-input w-full min-h-[150px] font-mono text-sm"
-                                placeholder='???? ???????? ????? JSON ???? ????:&#10;{&#10;  "sites": [{"id": "SITE1", "name": "???? 1", "places": [{"id": "PLACE1", "name": "???? 1"}]}],&#10;  "departments": ["????? 1", "????? 2"],&#10;  "safetyTeam": ["??? 1", "??? 2"]&#10;}'
+                                placeholder='الصق البيانات بصيغة JSON هنا، مثال:&#10;{&#10;  "sites": [{"id": "SITE1", "name": "موقع 1", "places": [{"id": "PLACE1", "name": "مكان 1"}]}],&#10;  "departments": ["إدارة 1", "إدارة 2"],&#10;  "safetyTeam": ["عضو 1", "عضو 2"]&#10;}'
                             ></textarea>
                             <div class="fs-paste-actions">
                                 <button type="button" class="btn-secondary btn-sm" data-action="paste-form-settings">
-                                    <i class="fas fa-clipboard ml-2"></i>??????? ?? ????
+                                    <i class="fas fa-clipboard ml-2"></i>استيراد من النص
                                 </button>
                                 <button type="button" class="btn-secondary btn-sm" data-action="copy-form-settings">
-                                    <i class="fas fa-copy ml-2"></i>??? ??? ???????
+                                    <i class="fas fa-copy ml-2"></i>نسخ إلى الحافظة
                                 </button>
                                 <button type="button" class="btn-secondary btn-sm" data-action="clear-paste-area">
-                                    <i class="fas fa-eraser ml-2"></i>???
+                                    <i class="fas fa-eraser ml-2"></i>مسح
                                 </button>
                             </div>
                             <p class="fs-hint">
                                 <i class="fas fa-info-circle ml-1"></i>
-                                ????? ??? ???????? ?? ??? JSON ?????? ???? ?? ??? ???????? ??????? ?????? ?? ???? ???.
+                                يمكنك نسخ البيانات من ملف JSON ولصقها هنا، أو نسخ البيانات الحالية للصقها في مكان آخر.
                             </p>
                         </div>
                     </section>
                 </div>
                 <div class="card-footer flex flex-wrap items-center justify-between gap-3">
                     <button type="button" class="btn-secondary" data-action="reset-form-settings">
-                        <i class="fas fa-undo ml-2"></i>????? ?????????
+                        <i class="fas fa-undo ml-2"></i>إلغاء التعديلات
                     </button>
                     <button type="button" class="btn-primary" data-action="save-form-settings">
-                        <i class="fas fa-save ml-2"></i>??? ??????? ???????
+                        <i class="fas fa-save ml-2"></i>حفظ إعدادات النماذج
                     </button>
                 </div>
             </div>
@@ -935,20 +935,20 @@ const Permissions = {
             return `
                 <div class="fs-empty">
                     <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
-                    <span>?? ???? ????? ?????. ???? ??? ?? <strong>????? ????</strong> ?????.</span>
+                    <span>لا توجد مواقع مسجلة. اضغط على زر <strong>إضافة موقع</strong> للبدء.</span>
                 </div>
             `;
         }
 
         return state.sites.map((site, index) => `
             <div class="fs-list-row fs-site-row ${site.id === state.selectedSiteId ? 'fs-site-row--selected' : ''}" data-site-id="${Utils.escapeHTML(site.id)}">
-                <span class="fs-row-index" title="???????">#${index + 1}</span>
+                <span class="fs-row-index" title="الترتيب">#${index + 1}</span>
                 <input type="text" class="form-input flex-1 min-w-0" data-field="site-name" data-site-id="${Utils.escapeHTML(site.id)}"
-                    value="${Utils.escapeHTML(site.name || '')}" placeholder="??? ??????" style="min-width: 8rem;">
+                    value="${Utils.escapeHTML(site.name || '')}" placeholder="اسم الموقع" style="min-width: 8rem;">
                 <button type="button" class="btn-secondary btn-xs flex-shrink-0 ${site.id === state.selectedSiteId ? 'btn-primary' : ''}" data-action="select-site" data-site-id="${Utils.escapeHTML(site.id)}">
-                    ${site.id === state.selectedSiteId ? '<i class="fas fa-check ml-1"></i>????' : '??????'}
+                    ${site.id === state.selectedSiteId ? '<i class="fas fa-check ml-1"></i>محدد' : 'اختيار'}
                 </button>
-                <button type="button" class="btn-danger btn-xs flex-shrink-0" data-action="remove-site" data-site-id="${Utils.escapeHTML(site.id)}" title="??? ??????">
+                <button type="button" class="btn-danger btn-xs flex-shrink-0" data-action="remove-site" data-site-id="${Utils.escapeHTML(site.id)}" title="حذف الموقع">
                     <i class="fas fa-trash"></i>
                 </button>
             </div>
@@ -963,25 +963,25 @@ const Permissions = {
                 <span>${body}</span>
             </div>`;
         if (!state || !Array.isArray(state.sites)) {
-            return emptyBox('fa-map', '?? ???? ????? ?????. ??? ?????? ????? ?? ?????? ???????.');
+            return emptyBox('fa-map', 'لا توجد مواقع متاحة. أضف موقعاً أولاً من العمود المجاور.');
         }
         if (!state.selectedSiteId) {
-            return emptyBox('fa-hand-pointer', '???? ?????? ?? ????? ??????? ???????? ?? <strong>??????</strong> ???? ?????? ??????? ??????? ??.');
+            return emptyBox('fa-hand-pointer', 'اختر موقعاً من قائمة المواقع باستخدام زر <strong>اختيار</strong> لعرض وتعديل الأماكن التابعة له.');
         }
         const site = state.sites.find((item) => item.id === state.selectedSiteId);
         if (!site) {
-            return emptyBox('fa-exclamation-circle', '?????? ?????? ??? ?????. ???? ?????? ?????? ?? ???????.');
+            return emptyBox('fa-exclamation-circle', 'الموقع المحدد غير موجود. اختر موقعاً صالحاً من القائمة.');
         }
         if (!Array.isArray(site.places) || site.places.length === 0) {
-            const label = (site.name || '').trim() || '??? ??????';
-            return emptyBox('fa-location-dot', `?? ???? ????? ????? ?? <strong>${Utils.escapeHTML(label)}</strong>. ?????? ?? <strong>????? ????</strong> ?????.`);
+            const label = (site.name || '').trim() || 'هذا الموقع';
+            return emptyBox('fa-location-dot', `لا توجد أماكن مسجلة لـ <strong>${Utils.escapeHTML(label)}</strong>. استخدم زر <strong>إضافة مكان</strong> أدناه.`);
         }
         return site.places.map((place, index) => `
             <div class="fs-list-row" data-place-id="${Utils.escapeHTML(place.id)}">
-                <span class="fs-row-index" title="???????">#${index + 1}</span>
+                <span class="fs-row-index" title="الترتيب">#${index + 1}</span>
                 <input type="text" class="form-input flex-1 min-w-0" data-field="place-name" data-place-id="${Utils.escapeHTML(place.id)}"
-                    value="${Utils.escapeHTML(place.name || '')}" placeholder="??? ?????? ???? ??????" style="min-width: 8rem;">
-                <button type="button" class="btn-danger btn-xs flex-shrink-0" data-action="remove-place" data-place-id="${Utils.escapeHTML(place.id)}" title="??? ??????">
+                    value="${Utils.escapeHTML(place.name || '')}" placeholder="اسم المكان داخل الموقع" style="min-width: 8rem;">
+                <button type="button" class="btn-danger btn-xs flex-shrink-0" data-action="remove-place" data-place-id="${Utils.escapeHTML(place.id)}" title="حذف المكان">
                     <i class="fas fa-trash"></i>
                 </button>
             </div>
@@ -994,14 +994,14 @@ const Permissions = {
             return `
                 <div class="fs-empty fs-empty--inline">
                     <i class="fas fa-briefcase" aria-hidden="true"></i>
-                    <span class="text-sm text-gray-500">?? ??? ????? ?????? ?????? ???. ????? ??????? ??? ???? ?????.</span>
+                    <span class="text-sm text-gray-500">لم يتم تحديد إدارات مسؤولة بعد. يمكنك إضافتها عبر الزر أدناه.</span>
                 </div>`;
         }
         return state.departments.map((department, index) => `
             <div class="fs-list-row" data-department-index="${index}">
                 <span class="fs-row-index">#${index + 1}</span>
                 <input type="text" class="form-input flex-1" data-field="department-name" data-department-index="${index}"
-                    value="${Utils.escapeHTML(department || '')}" placeholder="??? ??????? ?? ????? ????????">
+                    value="${Utils.escapeHTML(department || '')}" placeholder="اسم الإدارة أو الجهة المسؤولة">
                 <button type="button" class="btn-danger btn-xs" data-action="remove-department" data-department-index="${index}">
                     <i class="fas fa-trash"></i>
                 </button>
@@ -1015,14 +1015,14 @@ const Permissions = {
             return `
                 <div class="fs-empty fs-empty--inline">
                     <i class="fas fa-user-shield" aria-hidden="true"></i>
-                    <span class="text-sm text-gray-500">?? ??? ????? ????? ???? ???????. ????? ????? ??????? ??? ???? ?????.</span>
+                    <span class="text-sm text-gray-500">لم يتم تسجيل أعضاء فريق السلامة. يمكنك إضافة الأسماء عبر الزر أدناه.</span>
                 </div>`;
         }
         return state.safetyTeam.map((member, index) => `
             <div class="fs-list-row" data-safety-index="${index}">
                 <span class="fs-row-index">#${index + 1}</span>
                 <input type="text" class="form-input flex-1" data-field="safety-name" data-safety-index="${index}"
-                    value="${Utils.escapeHTML(member || '')}" placeholder="??? ??? ???? ???????">
+                    value="${Utils.escapeHTML(member || '')}" placeholder="اسم عضو فريق السلامة">
                 <button type="button" class="btn-danger btn-xs" data-action="remove-safety-member" data-safety-index="${index}">
                     <i class="fas fa-trash"></i>
                 </button>
@@ -1056,15 +1056,15 @@ const Permissions = {
         if (placesCtx) {
             if (!state || !state.selectedSiteId || !Array.isArray(state.sites)) {
                 placesCtx.textContent =
-                    '?? ????? ???? ???. ???? ?????? ?? ????? �???????� ??? �??????� ???? ??????? ??????? ??.';
+                    'لم يُحدد موقع بعد. اختر موقعاً من قائمة «المواقع» بزر «اختيار» لعرض الأماكن التابعة له.';
             } else {
                 const sel = state.sites.find((s) => s.id === state.selectedSiteId);
                 if (!sel) {
-                    placesCtx.textContent = '?????? ?????? ??? ????? ?? ???????. ???? ?????? ???.';
+                    placesCtx.textContent = 'الموقع المحدد غير متوفر في القائمة. اختر موقعاً آخر.';
                 } else {
                     const name = String(sel.name || '').trim() || sel.id;
                     const n = Array.isArray(sel.places) ? sel.places.length : 0;
-                    placesCtx.textContent = `?????? ?????: ${name} � ??? ??????? ???????: ${n}`;
+                    placesCtx.textContent = `الموقع النشط: ${name} — عدد الأماكن المسجلة: ${n}`;
                 }
             }
         }
@@ -1074,19 +1074,19 @@ const Permissions = {
         const card = document.getElementById('form-settings-card');
         if (!card) return;
 
-        // ? ?????: ????? ????? ???????? ?? Google Sheets ??? ??? ??????? ????? ?????? ??? ???? ????????
-        // forceReload = true ????? ????? ???? ??????? (50 ????) ?? ????? ????????
+        // ✅ إصلاح: إعادة تحميل البيانات من Google Sheets عند فتح التبويب لضمان الحصول على أحدث البيانات
+        // forceReload = true لضمان تحميل جميع المواقع (50 موقع) من قاعدة البيانات
         await this.ensureFormSettingsState(true); // forceReload = true
         
-        // ? ?????: ?????? ?? ????? ??????? ??? ???????
+        // ✅ إصلاح: التأكد من تحديث الواجهة بعد التحميل
         this.refreshFormSettingsUI();
         
-        // ? ?????: ????? ????? ????? ???????? (??? ?? ??? ???????)
+        // ✅ إصلاح: إضافة رسالة تحميل للمستخدم (حتى في وضع الإنتاج)
         const sitesCount = this.formSettingsState?.sites?.length || 0;
         if (sitesCount > 0) {
-            Utils.safeLog(`? ?? ????? ${sitesCount} ???? ?? ????? ??????? ???????`);
+            Utils.safeLog(`✅ تم تحميل ${sitesCount} موقع في تبويب إعدادات النماذج`);
         } else {
-            Utils.safeWarn('?? ?? ??? ????? ?? ????? - ???? ?? ????? ????????');
+            Utils.safeWarn('⚠️ لم يتم تحميل أي مواقع - تحقق من قاعدة البيانات');
         }
 
         if (this._formSettingsBoundCard && this._formSettingsBoundCard !== card) {
@@ -1177,7 +1177,7 @@ const Permissions = {
             }
         });
 
-        // ??? ??? ?????? ?????
+        // ربط حدث اختيار الملف
         const fileInput = document.getElementById('form-settings-file-input');
         if (fileInput) {
             fileInput.addEventListener('change', (event) => {
@@ -1185,7 +1185,7 @@ const Permissions = {
                 if (file) {
                     this.handleImportFormSettingsFileContent(file);
                 }
-                // ????? ????? ???? input ????? ?????? ??? ????? ??? ????
+                // إعادة تعيين قيمة input ليمكن اختيار نفس الملف مرة أخرى
                 event.target.value = '';
             });
         }
@@ -1194,7 +1194,7 @@ const Permissions = {
     async handleAddSite() {
         const state = await this.ensureFormSettingsState();
         if (!state) {
-            Utils.safeError('? ??? ????? ???? ??????? ???????');
+            Utils.safeError('❌ فشل تهيئة حالة إعدادات النماذج');
             return;
         }
         if (!Array.isArray(state.sites)) {
@@ -1227,8 +1227,8 @@ const Permissions = {
         if (!siteId || !state || !Array.isArray(state.sites)) return;
         const index = state.sites.findIndex((site) => site.id === siteId);
         if (index === -1) return;
-        const siteName = state.sites[index].name || '???? ???? ???';
-        if (!confirm(`???? ??? ?????? "${siteName}" ????? ??????? ???????? ??. ?? ???? ??????????`)) {
+        const siteName = state.sites[index].name || 'موقع بدون اسم';
+        if (!confirm(`سيتم حذف الموقع "${siteName}" وجميع الأماكن المرتبطة به. هل ترغب بالمتابعة؟`)) {
             return;
         }
         state.sites.splice(index, 1);
@@ -1252,7 +1252,7 @@ const Permissions = {
         if (!state || !Array.isArray(state.sites)) return;
         const siteId = state.selectedSiteId;
         if (!siteId) {
-            Notification.warning('???? ?????? ???? ?????.');
+            Notification.warning('يرجى اختيار موقع أولاً.');
             return;
         }
         const site = state.sites.find((item) => item.id === siteId);
@@ -1290,8 +1290,8 @@ const Permissions = {
         if (!site || !Array.isArray(site.places)) return;
         const index = site.places.findIndex((item) => item.id === placeId);
         if (index === -1) return;
-        const placeName = site.places[index].name || '???? ???? ???';
-        if (!confirm(`?? ???? ?? ??? ?????? "${placeName}"?`)) {
+        const placeName = site.places[index].name || 'مكان بدون اسم';
+        if (!confirm(`هل ترغب في حذف المكان "${placeName}"؟`)) {
             return;
         }
         site.places.splice(index, 1);
@@ -1367,12 +1367,12 @@ const Permissions = {
     },
 
     handleResetFormSettings() {
-        if (!confirm('???? ????? ???? ????????? ??? ????????. ?? ???? ?????????')) {
+        if (!confirm('سيتم تجاهل جميع التغييرات غير المحفوظة. هل تريد المتابعة؟')) {
             return;
         }
         this.initFormSettingsState();
         this.refreshFormSettingsUI();
-        Notification.success('??? ??????? ????????? ??? ???? ??? ???????.');
+        Notification.success('تمت استعادة الإعدادات كما كانت قبل التعديل.');
     },
 
     sanitizeSites(rawSites = []) {
@@ -1382,7 +1382,7 @@ const Permissions = {
             const name = (site.name || '').trim();
             if (!name) {
                 return {
-                    error: '???? ????? ??? ??? ????.',
+                    error: 'يرجى إدخال اسم لكل موقع.',
                     focusSelector: `[data-field="site-name"][data-site-id="${id}"]`
                 };
             }
@@ -1393,7 +1393,7 @@ const Permissions = {
                 const placeName = (place.name || '').trim();
                 if (!placeName) {
                     return {
-                        error: `???? ????? ??? ????? ??????? ???? ?????? "${name}".`,
+                        error: `يرجى إدخال اسم لجميع الأماكن داخل الموقع "${name}".`,
                         focusSelector: `[data-field="place-name"][data-place-id="${placeId}"]`
                     };
                 }
@@ -1403,7 +1403,7 @@ const Permissions = {
         }
         if (!sites.length) {
             return {
-                error: '??? ????? ???? ???? ??? ?????.',
+                error: 'يجب إضافة موقع واحد على الأقل.',
                 focusSelector: '[data-action="add-site"]'
             };
         }
@@ -1413,7 +1413,7 @@ const Permissions = {
     async handleSaveFormSettings() {
         const state = await this.ensureFormSettingsState();
         if (!state) {
-            Utils.safeError('? ??? ????? ???? ??????? ???????');
+            Utils.safeError('❌ فشل تهيئة حالة إعدادات النماذج');
             return;
         }
         const sanitizedResult = this.sanitizeSites(state.sites || []);
@@ -1462,12 +1462,12 @@ const Permissions = {
                 });
 
                 if (!result || !result.success) {
-                    Notification.error('??? ??? ??????? ??????? ?? ???????: ' + ((result && result.message) || '??? ??? ?????'));
+                    Notification.error('فشل حفظ إعدادات النماذج في السحابة: ' + ((result && result.message) || 'خطأ غير معروف'));
                     return;
                 }
-                Utils.safeLog('? ?? ??? ??????? ??????? ?? ??????? ?????');
+                Utils.safeLog('✅ تم حفظ إعدادات النماذج في السحابة بنجاح');
             } catch (error) {
-                Notification.error('??? ????? ??? ??????? ???????: ' + (error.message || error));
+                Notification.error('خطأ أثناء حفظ إعدادات النماذج: ' + (error.message || error));
                 return;
             }
         } else if (Utils.hasCloudBackendSync() && typeof Backend !== 'undefined') {
@@ -1487,16 +1487,16 @@ const Permissions = {
                 });
 
                 if (result && result.success) {
-                    Utils.safeLog('? ?? ??? ??????? ??????? ?? Google Sheets ?????');
+                    Utils.safeLog('✅ تم حفظ إعدادات النماذج في Google Sheets بنجاح');
                 } else {
-                    Utils.safeWarn('?? ??? ??? ??????? ??????? ?? Google Sheets:', result?.message);
+                    Utils.safeWarn('⚠️ فشل حفظ إعدادات النماذج في Google Sheets:', result?.message);
                 }
             } catch (error) {
-                Utils.safeWarn('?? ??? ????? ?????? ??????? ??????? ?? Google Sheets:', error);
+                Utils.safeWarn('⚠️ خطأ أثناء مزامنة إعدادات النماذج مع Google Sheets:', error);
             }
         }
 
-        // ??? ?? localStorage ??? ???? ??????? (?? ?? ????? ?????? ???)
+        // حفظ في localStorage بعد نجاح السحابة (أو في الوضع المحلي فقط)
         AppState.appData.observationSites = sites;
         if (!AppState.companySettings) {
             AppState.companySettings = {};
@@ -1511,10 +1511,10 @@ const Permissions = {
             dm.saveCompanySettings();
         }
 
-        // ????? ???? ????????
+        // تسجيل حركة المستخدم
         if (typeof UserActivityLog !== 'undefined') {
             UserActivityLog.log('settings', 'Settings', 'form-settings', {
-                description: '????? ??????? ??????? (???????? ????????? ???? ???????)'
+                description: 'تعديل إعدادات النماذج (المواقع، الإدارات، فريق السلامة)'
             }).catch(() => { });
         }
 
@@ -1524,7 +1524,7 @@ const Permissions = {
             safetyTeam: safetyTeam.length
         });
 
-        Notification.success('?? ??? ??????? ??????? ?????.');
+        Notification.success('تم حفظ إعدادات النماذج بنجاح.');
         await this.initFormSettingsState();
         this.refreshFormSettingsUI();
         try {
@@ -1551,33 +1551,33 @@ const Permissions = {
                 const data = JSON.parse(content);
                 this.importFormSettingsData(data);
             } catch (error) {
-                Notification.error('??? ????? ?????. ???? ?? ?? ????? ????? JSON ?????: ' + error.message);
+                Notification.error('فشل قراءة الملف. تأكد من أن الملف بصيغة JSON صحيحة: ' + error.message);
             }
         };
         reader.onerror = () => {
-            Notification.error('??? ??? ????? ????? ?????.');
+            Notification.error('حدث خطأ أثناء قراءة الملف.');
         };
         reader.readAsText(file);
     },
 
     importFormSettingsData(data) {
         if (!data || typeof data !== 'object') {
-            Notification.error('???? ???????? ??? ?????.');
+            Notification.error('صيغة البيانات غير صحيحة.');
             return;
         }
 
         const state = this.getFormSettingsState();
         if (!state) {
-            Utils.safeError('? ??? ????? ???? ??????? ???????');
+            Utils.safeError('❌ فشل تهيئة حالة إعدادات النماذج');
             return;
         }
         let imported = false;
 
-        // ??????? ???????
+        // استيراد المواقع
         if (Array.isArray(data.sites) && data.sites.length > 0) {
             const importedSites = data.sites.map((site, index) => {
                 const siteId = site.id || Utils.generateId('SITE');
-                const siteName = site.name || site.title || site.label || `???? ${index + 1}`;
+                const siteName = site.name || site.title || site.label || `موقع ${index + 1}`;
                 const placesSource = Array.isArray(site.places)
                     ? site.places
                     : Array.isArray(site.locations)
@@ -1589,7 +1589,7 @@ const Permissions = {
                                 : [];
                 const places = placesSource.map((place, idx) => ({
                     id: place.id || place.placeId || place.value || Utils.generateId('PLACE'),
-                    name: place.name || place.placeName || place.title || place.label || place.locationName || `???? ${idx + 1}`
+                    name: place.name || place.placeName || place.title || place.label || place.locationName || `مكان ${idx + 1}`
                 }));
                 return {
                     id: siteId,
@@ -1602,7 +1602,7 @@ const Permissions = {
             imported = true;
         }
 
-        // ??????? ????????
+        // استيراد الإدارات
         if (Array.isArray(data.departments) && data.departments.length > 0) {
             state.departments = data.departments
                 .map((item) => String(item || '').trim())
@@ -1616,7 +1616,7 @@ const Permissions = {
             imported = true;
         }
 
-        // ??????? ???? ???????
+        // استيراد فريق السلامة
         if (Array.isArray(data.safetyTeam) && data.safetyTeam.length > 0) {
             state.safetyTeam = data.safetyTeam
                 .map((item) => String(item || '').trim())
@@ -1637,16 +1637,16 @@ const Permissions = {
 
         if (imported) {
             this.refreshFormSettingsUI();
-            Notification.success('?? ??????? ???????? ?????. ????? ?????? ????????? ??????.');
+            Notification.success('تم استيراد البيانات بنجاح. يمكنك مراجعة التعديلات وحفظها.');
         } else {
-            Notification.warning('?? ??? ?????? ??? ?????? ????? ?????????.');
+            Notification.warning('لم يتم العثور على بيانات صحيحة للاستيراد.');
         }
     },
 
     handleExportFormSettings() {
         const state = this.getFormSettingsState();
         if (!state) {
-            Utils.safeError('? ??? ????? ???? ??????? ???????');
+            Utils.safeError('❌ فشل تهيئة حالة إعدادات النماذج');
             return;
         }
         const exportData = {
@@ -1666,7 +1666,7 @@ const Permissions = {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
 
-        Notification.success('?? ????? ???????? ?????.');
+        Notification.success('تم تصدير البيانات بنجاح.');
     },
 
     handlePasteFormSettings() {
@@ -1675,7 +1675,7 @@ const Permissions = {
 
         const text = pasteArea.value.trim();
         if (!text) {
-            Notification.warning('?????? ??? ???????? ?? ??????? ?????? ?????.');
+            Notification.warning('الرجاء لصق البيانات في المنطقة النصية أولاً.');
             return;
         }
 
@@ -1684,14 +1684,14 @@ const Permissions = {
             this.importFormSettingsData(data);
             pasteArea.value = '';
         } catch (error) {
-            Notification.error('???? JSON ??? ?????. ???? ?? ????????: ' + error.message);
+            Notification.error('صيغة JSON غير صحيحة. تحقق من البيانات: ' + error.message);
         }
     },
 
     handleCopyFormSettings() {
         const state = this.getFormSettingsState();
         if (!state) {
-            Utils.safeError('? ??? ????? ???? ??????? ???????');
+            Utils.safeError('❌ فشل تهيئة حالة إعدادات النماذج');
             return;
         }
         const exportData = {
@@ -1705,15 +1705,15 @@ const Permissions = {
         if (pasteArea) {
             pasteArea.value = jsonString;
             pasteArea.select();
-            pasteArea.setSelectionRange(0, 99999); // ??????? ????????
+            pasteArea.setSelectionRange(0, 99999); // للأجهزة المحمولة
         }
 
-        // ??? ??? ???????
+        // نسخ إلى الحافظة
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(jsonString).then(() => {
-                Notification.success('?? ??? ???????? ??? ???????.');
+                Notification.success('تم نسخ البيانات إلى الحافظة.');
             }).catch(() => {
-                // Fallback: ??????? execCommand
+                // Fallback: استخدام execCommand
                 try {
                     const textArea = document.createElement('textarea');
                     textArea.value = jsonString;
@@ -1723,13 +1723,13 @@ const Permissions = {
                     textArea.select();
                     document.execCommand('copy');
                     document.body.removeChild(textArea);
-                    Notification.success('?? ??? ???????? ??? ???????.');
+                    Notification.success('تم نسخ البيانات إلى الحافظة.');
                 } catch (err) {
-                    Notification.error('??? ??? ????????. ???? ?????? ?? ??????? ??????.');
+                    Notification.error('فشل نسخ البيانات. حاول يدوياً من المنطقة النصية.');
                 }
             });
         } else {
-            // Fallback ????????? ???????
+            // Fallback للمتصفحات القديمة
             try {
                 const textArea = document.createElement('textarea');
                 textArea.value = jsonString;
@@ -1739,9 +1739,9 @@ const Permissions = {
                 textArea.select();
                 document.execCommand('copy');
                 document.body.removeChild(textArea);
-                Notification.success('?? ??? ???????? ??? ???????.');
+                Notification.success('تم نسخ البيانات إلى الحافظة.');
             } catch (err) {
-                Notification.error('??? ??? ????????. ?????? Ctrl+C ??? ???? ?? ??????? ??????.');
+                Notification.error('فشل نسخ البيانات. استخدم Ctrl+C على النص في المنطقة النصية.');
             }
         }
     },
@@ -1755,20 +1755,20 @@ const Permissions = {
     },
 
     /**
-     * ?????? ??? ??????? ???????? ?? ????? ????????
+     * الحصول على صلاحيات المستخدم من قاعدة البيانات
      */
     getDatabasePermissions(user) {
         if (!user || !user.email) {
             if (AppState.debugMode) {
-                Utils.safeWarn('?? getDatabasePermissions: ?? ???? ?????? ?? ???? ????????');
+                Utils.safeWarn('⚠️ getDatabasePermissions: لا يوجد مستخدم أو بريد إلكتروني');
             }
             return null;
         }
         
-        // ? ?????: ?????? ?? ???? AppState.appData.users
+        // ✅ إصلاح: التأكد من وجود AppState.appData.users
         if (!AppState.appData || !AppState.appData.users) {
             if (AppState.debugMode) {
-                Utils.safeLog('?? getDatabasePermissions: AppState.appData.users ??? ????? ???');
+                Utils.safeLog('ℹ️ getDatabasePermissions: AppState.appData.users غير محملة بعد');
             }
             return null;
         }
@@ -1778,35 +1778,35 @@ const Permissions = {
         
         if (!dbUser) {
             if (AppState.debugMode) {
-                Utils.safeLog(`?? getDatabasePermissions: ???????? ${user.email} ??? ????? ?? ????? ????????`);
+                Utils.safeLog(`ℹ️ getDatabasePermissions: المستخدم ${user.email} غير موجود في قاعدة البيانات`);
             }
             return null;
         }
         
-        // ? ?????: ????? ????????? ??????? ?? ???? ???? ????
+        // ✅ إصلاح: تطبيع الصلاحيات والتأكد من أنها كائن صالح
         const normalized = this.normalizePermissions(dbUser.permissions);
         if (normalized && typeof normalized === 'object' && !Array.isArray(normalized)) {
             if (AppState.debugMode) {
-                Utils.safeLog(`? getDatabasePermissions: ?? ?????? ??? ??????? ???????? ${user.email}`, Object.keys(normalized).length, '??????');
+                Utils.safeLog(`✅ getDatabasePermissions: تم العثور على صلاحيات للمستخدم ${user.email}`, Object.keys(normalized).length, 'صلاحية');
             }
             return normalized;
         } else {
-            // ??? ???? ????????? ??? ?????? ???? ???? ???? ????? ?? null
+            // إذا كانت الصلاحيات غير صالحة، نعيد كائن فارغ بدلاً من null
             if (AppState.debugMode) {
-                Utils.safeWarn(`?? getDatabasePermissions: ??????? ???????? ${user.email} ??? ????? - ????? ???? ????`);
+                Utils.safeWarn(`⚠️ getDatabasePermissions: صلاحيات المستخدم ${user.email} غير صالحة - إرجاع كائن فارغ`);
             }
             return {};
         }
     },
 
     /**
-     * ?????? ??? ????????? ???????? ???????? (???? + ????? ??????)
-     * ???? ???????? ????????? ?? ????? ???????? ????? ???????? ???????
+     * الحصول على الصلاحيات النهائية للمستخدم (جلسة + قاعدة بيانات)
+     * يعطي الأولوية للصلاحيات من قاعدة البيانات لضمان المزامنة الفورية
      * 
-     * ?? ???: ?? ??? ??????? DEFAULT_ROLE_PERMISSIONS ??? - ??? ????????? ???????? ?????? ?? ??? ??????
+     * ⚠️ مهم: لا يتم استخدام DEFAULT_ROLE_PERMISSIONS هنا - فقط الصلاحيات الممنوحة صراحةً من قبل المدير
      * 
-     * @param {Object} user - ?????? ???????? (???????: ???????? ??????)
-     * @returns {Object} - ???? ????????? ???????
+     * @param {Object} user - بيانات المستخدم (افتراضي: المستخدم الحالي)
+     * @returns {Object} - كائن الصلاحيات الفعالة
      */
     getEffectivePermissions(user = AppState.currentUser) {
         if (!user) return {};
@@ -1816,54 +1816,54 @@ const Permissions = {
 
         const effective = {};
 
-        // ? ?????: ?????? ??? ????????? ?? ?????? ????? (????? ????? ??? ?? ?? ??? ???????? ?????)
+        // ✅ إصلاح: الحصول على الصلاحيات من الجلسة أولاً (لضمان العمل حتى لو لم تكن البيانات محملة)
         const sessionPermissions = this.normalizePermissions(user.permissions);
         if (sessionPermissions && typeof sessionPermissions === 'object' && Object.keys(sessionPermissions).length > 0) {
-            // ??? ????????? ?? ??????
-            // ? ?????: ??????? deep merge ????????? ?????????
+            // دمج الصلاحيات من الجلسة
+            // ✅ إصلاح: استخدام deep merge للصلاحيات التفصيلية
             Object.keys(sessionPermissions).forEach(key => {
                 if (key.endsWith('Permissions') && typeof sessionPermissions[key] === 'object') {
-                    // ????????? ????????? - ??? ????
+                    // الصلاحيات التفصيلية - دمج عميق
                     effective[key] = { ...(effective[key] || {}), ...sessionPermissions[key] };
                 } else {
-                    // ????????? ????????
+                    // الصلاحيات الأساسية
                     effective[key] = sessionPermissions[key];
                 }
             });
         }
 
-        // ?????? ??? ????????? ?? ????? ???????? (?????? - ??? ????????)
+        // الحصول على الصلاحيات من قاعدة البيانات (الأحدث - لها الأولوية)
         const dbPermissions = this.getDatabasePermissions(user);
         if (dbPermissions && typeof dbPermissions === 'object' && Object.keys(dbPermissions).length > 0) {
-            // ? ?????: ??? ???? ????????? ?? ????? ???????? (???????? - ?????? ????????? ?? ??????)
+            // ✅ إصلاح: دمج عميق للصلاحيات من قاعدة البيانات (الأولوية - تستبدل الصلاحيات من الجلسة)
             Object.keys(dbPermissions).forEach(key => {
                 if (key.endsWith('Permissions') && typeof dbPermissions[key] === 'object') {
-                    // ????????? ????????? - ??? ????
+                    // الصلاحيات التفصيلية - دمج عميق
                     effective[key] = { ...(effective[key] || {}), ...dbPermissions[key] };
                 } else {
-                    // ????????? ????????
+                    // الصلاحيات الأساسية
                     effective[key] = dbPermissions[key];
                 }
             });
 
-            // ????? ??????? ???????? ?????? ?? AppState ??? ??? ?? ???????? ??????
+            // تحديث صلاحيات المستخدم الحالي في AppState إذا كان هو المستخدم الحالي
             if (user === AppState.currentUser || (user.email && AppState.currentUser && user.email === AppState.currentUser.email)) {
                 AppState.currentUser.permissions = dbPermissions;
             }
         }
 
-        // ?? ?? ??? ????? ?? ??????? ???????? ??? - ??? ????????? ???????? ??????
+        // ⚠️ لا يتم إضافة أي صلاحيات افتراضية هنا - فقط الصلاحيات الممنوحة صراحةً
 
         return effective;
     },
 
     /**
-     * ?????? ?? ?????? ???????? ?????? ??? ????? ????
+     * التحقق من صلاحية المستخدم للوصول إلى مديول معين
      * 
-     * ?? ???: ?? ???? ??????? ???????? - ???? ????????? ??? ????? ?????? ?? ??? ???? ??????
+     * ⚠️ مهم: لا توجد صلاحيات افتراضية - جميع الصلاحيات يجب منحها صراحةً من قبل مدير النظام
      * 
-     * @param {string} moduleName - ??? ????????
-     * @returns {boolean} - true ??? ??? ???? ??????? false ??? ?? ??? ???? ??????
+     * @param {string} moduleName - اسم الموديول
+     * @returns {boolean} - true إذا كان لديه صلاحية، false إذا لم يكن لديه صلاحية
      */
     /** Site IDs allowed for user; null = all sites (admin / unrestricted legacy). */
     getAllowedSiteIds(user = AppState.currentUser) {
@@ -1888,12 +1888,12 @@ const Permissions = {
         const user = AppState.currentUser;
         if (!user) {
             if (AppState.debugMode) {
-                Utils.safeWarn(`?? hasAccess(${moduleName}): ?? ???? ?????? ???? ????`);
+                Utils.safeWarn(`⚠️ hasAccess(${moduleName}): لا يوجد مستخدم مسجل دخول`);
             }
             return false;
         }
 
-        // ???? ?????? ???? ?????? ??? ?????? ???? ??????
+        // ملفي الشخصي متاح دائماً لأي مستخدم مسجل الدخول
         if (moduleName === 'profile') {
             return true;
         }
@@ -1902,12 +1902,12 @@ const Permissions = {
             return this.hasAccess('iso') || this.hasAccess('action-tracking') || this.isCurrentUserEffectiveAdmin(user);
         }
 
-        // ??????? ?????? � ????? ??? ?????? ???? (?????? plan-gating CORE ? app.core_module_keys)
+        // مديولات أساسية — متاحة لكل مستخدم مسجل (مطابقة plan-gating CORE و app.core_module_keys)
         if (moduleName === 'safety-calendar' || moduleName === 'help') {
             return true;
         }
 
-        // ?????? ?? ?????????? ??????? (adminOnly): ???? ????? ?? ??? ???? ?? permissions (?????? ?? ???? ??????????)
+        // التحقق من الموديولات المحمية (adminOnly): مدير فعلي، أو منح صريح في permissions (يتوافق مع شاشة المستخدمين)
         const moduleConfig = MODULE_PERMISSIONS_CONFIG.find(m => m.key === moduleName);
         if (moduleConfig && moduleConfig.adminOnly) {
             if (this.isCurrentUserEffectiveAdmin(user)) {
@@ -1922,82 +1922,82 @@ const Permissions = {
                 effectivePermissions[moduleName] === true
             ) {
                 if (AppState.debugMode) {
-                    Utils.safeLog(`? hasAccess(${moduleName}): ??? ???? ??? ?????? adminOnly`);
+                    Utils.safeLog(`✅ hasAccess(${moduleName}): منح صريح على موديول adminOnly`);
                 }
                 return true;
             }
             if (AppState.debugMode) {
-                Utils.safeLog(`?? hasAccess(${moduleName}): ?????? ???? � ?? ??? ???? ??? ?????? ?????`);
+                Utils.safeLog(`🔒 hasAccess(${moduleName}): موديول محمي — لا دور مدير ولا صلاحية صريحة`);
             }
             return false;
         }
 
-        // ?????? ???? ??????? ?????
+        // المدير لديه صلاحيات كاملة
         if (this.isCurrentUserEffectiveAdmin(user)) {
             if (AppState.debugMode) {
-                Utils.safeLog(`? hasAccess(${moduleName}): ???? ?????? - ?????? ?????`);
+                Utils.safeLog(`✅ hasAccess(${moduleName}): مدير النظام - صلاحية كاملة`);
             }
             return true;
         }
 
-        // ?????? ?? ????????? ??????? ???????? (???????? ?? ??? ???? ?????? ???)
-        // ?? ?? ??? ??????? DEFAULT_ROLE_PERMISSIONS ??? - ??? ????????? ???????? ??????
+        // التحقق من الصلاحيات المخصصة للمستخدم (الممنوحة من قبل مدير النظام فقط)
+        // ⚠️ لا يتم استخدام DEFAULT_ROLE_PERMISSIONS هنا - فقط الصلاحيات الممنوحة صراحةً
         const effectivePermissions = this.getEffectivePermissions(user);
         if (Object.prototype.hasOwnProperty.call(effectivePermissions, moduleName)) {
             const hasAccess = effectivePermissions[moduleName] === true;
             if (AppState.debugMode) {
-                Utils.safeLog(`?? hasAccess(${moduleName}): ${hasAccess ? '? ?????' : '? ??? ?????'} (?? ????????? ???????)`);
+                Utils.safeLog(`🔍 hasAccess(${moduleName}): ${hasAccess ? '✅ مسموح' : '❌ غير مسموح'} (من الصلاحيات الفعالة)`);
             }
             return hasAccess;
         }
 
-        // ?? ?? ???? ??????? ???????? - ??? ????? ?? ??? ???? ?????? ???
+        // ⚠️ لا توجد صلاحيات افتراضية - يجب منحها من قبل مدير النظام فقط
         if (AppState.debugMode) {
-            Utils.safeLog(`? hasAccess(${moduleName}): ?? ???? ?????? - ??? ????? ?? ??? ??????`);
+            Utils.safeLog(`❌ hasAccess(${moduleName}): لا توجد صلاحية - يجب منحها من قبل المدير`);
         }
         return false;
     },
 
     /**
-     * ?????? ?? ?????? ??????? ???? ?????
-     * @param {string} moduleName - ??? ??????? (??? 'incidents', 'clinic')
-     * @param {string} permissionKey - ????? ???????? ????????? (??? 'analysis', 'registry')
-     * @returns {boolean} - true ??? ??? ???? ??????
+     * التحقق من صلاحية تفصيلية داخل مديول
+     * @param {string} moduleName - اسم المديول (مثل 'incidents', 'clinic')
+     * @param {string} permissionKey - مفتاح الصلاحية التفصيلية (مثل 'analysis', 'registry')
+     * @returns {boolean} - true إذا كان لديه صلاحية
      */
     hasDetailedPermission(moduleName, permissionKey) {
         const user = AppState.currentUser;
         if (!user) return false;
 
-        // ?????? ???? ??????? ?????
+        // المدير لديه صلاحيات كاملة
         if (this.isCurrentUserEffectiveAdmin(user)) return true;
 
-        // ?????? ?? ???? ?????? ?????? ??????? ?????
+        // التحقق من وجود صلاحية الوصول للمديول أولاً
         if (!this.hasAccess(moduleName)) return false;
 
-        // ?????? ??? ????????? ???????
+        // الحصول على الصلاحيات الفعالة
         const effectivePermissions = this.getEffectivePermissions(user);
         
-        // ?????? ?? ????????? ?????????
+        // التحقق من الصلاحيات التفصيلية
         const detailedPerms = effectivePermissions[`${moduleName}Permissions`];
         if (detailedPerms && typeof detailedPerms === 'object') {
             return detailedPerms[permissionKey] === true;
         }
 
-        // ??? ?? ???? ??????? ???????? ???? ?????? ?????? ???????
-        // (??????? ?? ?????????? ???????)
+        // إذا لم توجد صلاحيات تفصيلية، نعطي الوصول الكامل للمديول
+        // (للتوافق مع المستخدمين القدامى)
         return true;
     },
 
     /**
-     * ?????? ??? ????? ????????? ????????? ??????? ??? ?????? ????
-     * @param {string} moduleName - ??? ???????
-     * @returns {Array} - ?????? ??????? ????????? ??????? ???
+     * الحصول على قائمة الصلاحيات التفصيلية المسموح بها لمديول معين
+     * @param {string} moduleName - اسم المديول
+     * @returns {Array} - مصفوفة بمفاتيح الصلاحيات المسموح بها
      */
     getAllowedDetailedPermissions(moduleName) {
         const user = AppState.currentUser;
         if (!user) return [];
 
-        // ?????? ???? ??????? ?????
+        // المدير لديه صلاحيات كاملة
         if (this.isCurrentUserEffectiveAdmin(user)) {
             const moduleDetails = MODULE_DETAILED_PERMISSIONS[moduleName];
             if (moduleDetails && moduleDetails.permissions) {
@@ -2006,7 +2006,7 @@ const Permissions = {
             return [];
         }
 
-        // ?????? ?? ???? ?????? ?????? ??????? ?????
+        // التحقق من وجود صلاحية الوصول للمديول أولاً
         if (!this.hasAccess(moduleName)) return [];
 
         const effectivePermissions = this.getEffectivePermissions(user);
@@ -2016,7 +2016,7 @@ const Permissions = {
             return Object.keys(detailedPerms).filter(key => detailedPerms[key] === true);
         }
 
-        // ??? ?? ???? ??????? ???????? ???? ?????? ??????
+        // إذا لم توجد صلاحيات تفصيلية، نعطي الوصول الكامل
         const moduleDetails = MODULE_DETAILED_PERMISSIONS[moduleName];
         if (moduleDetails && moduleDetails.permissions) {
             return moduleDetails.permissions.map(p => p.key);
@@ -2034,7 +2034,7 @@ const Permissions = {
         const plan = this.getAnnualPlan(year, { createIfMissing: true });
         const item = plan.items.find(i => i.id === itemId) || null;
         const positions = this.getUniquePositions();
-        // ? ?? ???????: ??????? ApprovedContractors ???
+        // ✅ تم التحديث: استخدام ApprovedContractors فقط
         const contractors = (typeof Contractors !== 'undefined' && typeof Contractors.getAllContractorsForModules === 'function')
             ? Contractors.getAllContractorsForModules().map(contractor => contractor.name || contractor.companyName).filter(Boolean)
             : (AppState.appData.approvedContractors || []).map(contractor => contractor.companyName || contractor.name).filter(Boolean);
@@ -2047,9 +2047,9 @@ const Permissions = {
                 <div class="modal-header">
                     <h2 class="modal-title">
                         <i class="fas fa-calendar-plus ml-2"></i>
-                        ${item ? '????? ???? ?????' : '????? ???? ???? ?????'}
+                        ${item ? 'تعديل عنصر الخطة' : 'إضافة عنصر جديد للخطة'}
                     </h2>
-                    <button class="modal-close" title="?????">
+                    <button class="modal-close" title="إغلاق">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -2057,42 +2057,42 @@ const Permissions = {
                     <div class="modal-body space-y-5">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label for="plan-item-topic" class="block text-sm font-semibold text-gray-700 mb-2">??????? ???????? *</label>
-                                <input type="text" id="plan-item-topic" class="form-input" required value="${Utils.escapeHTML(item?.topic || '')}" placeholder="????? ???????? ????????">
+                                <label for="plan-item-topic" class="block text-sm font-semibold text-gray-700 mb-2">الموضوع التدريبي *</label>
+                                <input type="text" id="plan-item-topic" class="form-input" required value="${Utils.escapeHTML(item?.topic || '')}" placeholder="عنوان البرنامج التدريبي">
                             </div>
                             <div>
-                                <label for="plan-item-date" class="block text-sm font-semibold text-gray-700 mb-2">??????? ?????? *</label>
+                                <label for="plan-item-date" class="block text-sm font-semibold text-gray-700 mb-2">التاريخ المخطط *</label>
                                 <input type="date" id="plan-item-date" class="form-input" required value="${item?.plannedDate ? new Date(item.plannedDate).toISOString().slice(0, 10) : ''}">
                             </div>
                         </div>
                         
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
-                                <label for="plan-item-target-type" class="block text-sm font-semibold text-gray-700 mb-2">????? ????????? *</label>
+                                <label for="plan-item-target-type" class="block text-sm font-semibold text-gray-700 mb-2">الفئة المستهدفة *</label>
                                 <select id="plan-item-target-type" class="form-input" required>
-                                    <option value="employees" ${item?.targetType === 'employees' ? 'selected' : ''}>????????</option>
-                                    <option value="contractors" ${item?.targetType === 'contractors' ? 'selected' : ''}>?????????</option>
-                                    <option value="mixed" ${item?.targetType === 'mixed' ? 'selected' : ''}>????</option>
+                                    <option value="employees" ${item?.targetType === 'employees' ? 'selected' : ''}>الموظفون</option>
+                                    <option value="contractors" ${item?.targetType === 'contractors' ? 'selected' : ''}>المقاولون</option>
+                                    <option value="mixed" ${item?.targetType === 'mixed' ? 'selected' : ''}>الكل</option>
                                 </select>
                             </div>
                             <div>
-                                <label for="plan-item-status" class="block text-sm font-semibold text-gray-700 mb-2">??????</label>
+                                <label for="plan-item-status" class="block text-sm font-semibold text-gray-700 mb-2">الحالة</label>
                                 <select id="plan-item-status" class="form-input">
-                                    <option value="????" ${item?.status === '????' ? 'selected' : ''}>????</option>
-                                    <option value="??? ???????" ${item?.status === '??? ???????' ? 'selected' : ''}>??? ???????</option>
-                                    <option value="?????" ${item?.status === '?????' ? 'selected' : ''}>?????</option>
-                                    <option value="????" ${item?.status === '????' ? 'selected' : ''}>????</option>
+                                    <option value="مخطط" ${item?.status === 'مخطط' ? 'selected' : ''}>مخطط</option>
+                                    <option value="قيد التنفيذ" ${item?.status === 'قيد التنفيذ' ? 'selected' : ''}>قيد التنفيذ</option>
+                                    <option value="مكتمل" ${item?.status === 'مكتمل' ? 'selected' : ''}>مكتمل</option>
+                                    <option value="مؤجل" ${item?.status === 'مؤجل' ? 'selected' : ''}>مؤجل</option>
                                 </select>
                             </div>
                             <div>
-                                <label for="plan-item-year" class="block text-sm font-semibold text-gray-700 mb-2">?????</label>
+                                <label for="plan-item-year" class="block text-sm font-semibold text-gray-700 mb-2">السنة</label>
                                 <input type="text" id="plan-item-year" class="form-input" value="${year}" disabled>
                             </div>
                         </div>
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label for="plan-item-roles" class="block text-sm font-semibold text-gray-700 mb-2">??????? ?????????</label>
+                                <label for="plan-item-roles" class="block text-sm font-semibold text-gray-700 mb-2">الوظائف المستهدفة</label>
                                 <select id="plan-item-roles" class="form-input" multiple size="5">
                                     ${positions.map(position => `
                                         <option value="${Utils.escapeHTML(position)}" ${item?.targetRoles?.includes(position) ? 'selected' : ''}>${Utils.escapeHTML(position)}</option>
@@ -2103,17 +2103,17 @@ const Permissions = {
             try {
                 const subject = modal.querySelector('#quick-training-subject')?.value.trim();
                 const trainer = modal.querySelector('#quick-training-trainer')?.value.trim();
-                const trainingType = modal.querySelector('#quick-training-type')?.value || '?????';
+                const trainingType = modal.querySelector('#quick-training-type')?.value || 'داخلي';
                 const dateValue = modal.querySelector('#quick-training-date')?.value;
                 const location = modal.querySelector('#quick-training-location')?.value.trim();
-                const status = modal.querySelector('#quick-training-status')?.value || '?????';
+                const status = modal.querySelector('#quick-training-status')?.value || 'مكتمل';
                 const startTime = modal.querySelector('#quick-training-start-time')?.value;
                 const endTime = modal.querySelector('#quick-training-end-time')?.value;
                 const hoursValue = parseFloat(modal.querySelector('#quick-training-hours')?.value || '0');
                 const topicsSelected = this.getSelectedOptionsFromElement(modal.querySelector('#quick-training-topics'));
                 
                 if (!subject || !trainer || !dateValue) {
-                    Notification.warning('???? ????? ???????? ???????? ???????');
+                    Notification.warning('يرجى إدخال البيانات الأساسية للتدريب');
                     return;
                 }
                 
@@ -2182,7 +2182,7 @@ const Permissions = {
                             });
                             if (planItem) {
                                 planItem.linkedTrainingId = trainingId;
-                                planItem.status = '?????';
+                                planItem.status = 'مكتمل';
                                 planItem.updatedAt = nowIso;
                             }
                         });
@@ -2201,11 +2201,11 @@ const Permissions = {
                 
                 await this.refreshTrainingMatrix();
                 this.loadTrainingList();
-                Notification.success('?? ????? ??????? ?????');
+                Notification.success('تم تسجيل التدريب بنجاح');
                 close();
             } catch (error) {
-                Utils.safeError('??? ?? ????? ??????? ??????:', error);
-                Notification.error('???? ????? ???????: ' + error.message);
+                Utils.safeError('خطأ في تسجيل التدريب السريع:', error);
+                Notification.error('تعذر تسجيل التدريب: ' + error.message);
             }
         });
     },
@@ -2222,24 +2222,24 @@ const Permissions = {
                 <div class="modal-header">
                     <h2 class="modal-title">
                         <i class="fas fa-calendar-check ml-2"></i>
-                        ????? ????????? ???????
+                        الخطة التدريبية السنوية
                     </h2>
                     <div class="flex items-center gap-2 mr-auto">
-                        <button class="btn-icon btn-icon-secondary" id="annual-plan-prev-year" title="????? ???????">
+                        <button class="btn-icon btn-icon-secondary" id="annual-plan-prev-year" title="السنة السابقة">
                             <i class="fas fa-chevron-right"></i>
                         </button>
                         <input type="number" id="annual-plan-year" class="form-input" style="width: 120px;" value="${initialYear}">
-                        <button class="btn-icon btn-icon-secondary" id="annual-plan-next-year" title="????? ???????">
+                        <button class="btn-icon btn-icon-secondary" id="annual-plan-next-year" title="السنة التالية">
                             <i class="fas fa-chevron-left"></i>
                         </button>
                     </div>
-                    <button class="modal-close" title="?????">
+                    <button class="modal-close" title="إغلاق">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
                 <div class="modal-body space-y-6" id="annual-plan-body"></div>
                 <div class="modal-footer">
-                    <button type="button" class="btn-secondary" data-action="close">?????</button>
+                    <button type="button" class="btn-secondary" data-action="close">إغلاق</button>
                 </div>
             </div>
         `;
@@ -2302,8 +2302,8 @@ const Permissions = {
         if (!plan) {
             return `
                 <div class="border border-dashed border-gray-300 rounded-lg p-6 text-center text-gray-500">
-                    ?? ??? ????? ??? ??????? ????? ${year} ???.
-                    ${this.isCurrentUserAdmin() ? '<div class="mt-3"><button class="btn-primary" id="create-annual-plan-btn"><i class="fas fa-plus ml-2"></i>????? ????? ????????? ?????</button></div>' : ''}
+                    لم يتم إنشاء خطة تدريبية للسنة ${year} بعد.
+                    ${this.isCurrentUserAdmin() ? '<div class="mt-3"><button class="btn-primary" id="create-annual-plan-btn"><i class="fas fa-plus ml-2"></i>إنشاء الخطة التدريبية للسنة</button></div>' : ''}
                 </div>
             `;
         }
@@ -2314,14 +2314,14 @@ const Permissions = {
             <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <div class="flex flex-wrap gap-4 items-center justify-between">
                     <div>
-                        <h3 class="text-lg font-semibold text-blue-900">??? ?????: ${year}</h3>
-                        <p class="text-sm text-blue-700">?? ????? ????? ??????: ${Utils.escapeHTML(plan.createdBy?.name || '??? ?????')} ?? ${Utils.formatDate(plan.createdAt)}</p>
+                        <h3 class="text-lg font-semibold text-blue-900">سنة الخطة: ${year}</h3>
+                        <p class="text-sm text-blue-700">تم إنشاء الخطة بواسطة: ${Utils.escapeHTML(plan.createdBy?.name || 'غير معروف')} في ${Utils.formatDate(plan.createdAt)}</p>
                     </div>
                     ${this.isCurrentUserAdmin() ? `
                         <div>
                             <button class="btn-primary" id="add-annual-plan-item-btn">
                                 <i class="fas fa-plus ml-2"></i>
-                                ????? ???? ?????
+                                إضافة عنصر للخطة
                             </button>
                         </div>
                     ` : ''}
@@ -2330,19 +2330,19 @@ const Permissions = {
             
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div class="content-card h-full">
-                    <p class="text-sm text-gray-500">?????? ???????</p>
+                    <p class="text-sm text-gray-500">إجمالي العناصر</p>
                     <p class="text-2xl font-bold text-gray-900">${stats.total}</p>
                 </div>
                 <div class="content-card h-full">
-                    <p class="text-sm text-gray-500">????? ??????</p>
+                    <p class="text-sm text-gray-500">برامج مكتملة</p>
                     <p class="text-2xl font-bold text-green-600">${stats.completed}</p>
                 </div>
                 <div class="content-card h-full">
-                    <p class="text-sm text-gray-500">??? ???????</p>
+                    <p class="text-sm text-gray-500">قيد التنفيذ</p>
                     <p class="text-2xl font-bold text-blue-600">${stats.inProgress}</p>
                 </div>
                 <div class="content-card h-full">
-                    <p class="text-sm text-gray-500">?????</p>
+                    <p class="text-sm text-gray-500">مؤجلة</p>
                     <p class="text-2xl font-bold text-yellow-600">${stats.delayed}</p>
                 </div>
             </div>
@@ -2351,13 +2351,13 @@ const Permissions = {
                 <div class="card-header">
                     <h3 class="card-title">
                         <i class="fas fa-clipboard-list ml-2"></i>
-                        ??? ??????? ????????? (${plan.items.length} ???)
+                        خطة التدريب التفصيلية (${plan.items.length} بند)
                     </h3>
                 </div>
                 <div class="card-body">
                     ${plan.items.length ? this.renderAnnualPlanTable(plan, year) : `
                         <div class="text-center text-gray-500 py-8">
-                            ?? ???? ????? ????? ??? ????? ???????.
+                            لا توجد عناصر مسجلة ضمن الخطة الحالية.
                         </div>
                     `}
                 </div>
@@ -2417,7 +2417,7 @@ const Permissions = {
         const trainingOptions = trainings
             .map(training => ({
                 id: training.id,
-                name: training.name || '???? ?????',
+                name: training.name || 'بدون عنوان',
                 date: training.startDate || training.date || ''
             }))
             .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
@@ -2425,35 +2425,35 @@ const Permissions = {
         const renderTargets = (item) => {
             const parts = [];
             if (item.targetType === 'employees') {
-                parts.push('????????');
+                parts.push('الموظفون');
             } else if (item.targetType === 'contractors') {
-                parts.push('?????????');
+                parts.push('المقاولون');
             } else {
-                parts.push('???????? ??????????');
+                parts.push('الموظفون والمقاولون');
             }
             if (Array.isArray(item.targetRoles) && item.targetRoles.length) {
-                parts.push(`???????: ${item.targetRoles.map(r => Utils.escapeHTML(r)).join(', ')}`);
+                parts.push(`الوظائف: ${item.targetRoles.map(r => Utils.escapeHTML(r)).join(', ')}`);
             }
             if (Array.isArray(item.targetContractors) && item.targetContractors.length) {
-                parts.push(`?????????: ${item.targetContractors.map(c => Utils.escapeHTML(c)).join(', ')}`);
+                parts.push(`المقاولون: ${item.targetContractors.map(c => Utils.escapeHTML(c)).join(', ')}`);
             }
-            return parts.join(' � ');
+            return parts.join(' — ');
         };
         
-        const statusOptions = ['????', '??? ???????', '?????', '????'];
+        const statusOptions = ['مخطط', 'قيد التنفيذ', 'مكتمل', 'مؤجل'];
         
         return `
             <div class="overflow-x-auto">
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>???????</th>
-                            <th>??????? ??????</th>
-                            <th>????? ?????????</th>
-                            <th>??????</th>
-                            <th>??? ???????</th>
-                            <th>???????</th>
-                            ${this.isCurrentUserAdmin() ? '<th>?????????</th>' : ''}
+                            <th>الموضوع</th>
+                            <th>التاريخ المخطط</th>
+                            <th>الفئة المستهدفة</th>
+                            <th>الحالة</th>
+                            <th>ربط التدريب</th>
+                            <th>ملاحظات</th>
+                            ${this.isCurrentUserAdmin() ? '<th>الإجراءات</th>' : ''}
                         </tr>
                     </thead>
                     <tbody>
@@ -2462,10 +2462,10 @@ const Permissions = {
                                 <td>
                                     <div class="font-semibold text-gray-900">${Utils.escapeHTML(item.topic || '')}</div>
                                     ${item.requiredTopics && item.requiredTopics.length ? `
-                                        <div class="text-xs text-blue-600 mt-1">???????: ${item.requiredTopics.map(topic => Utils.escapeHTML(topic)).join(', ')}</div>
+                                        <div class="text-xs text-blue-600 mt-1">موضوعات: ${item.requiredTopics.map(topic => Utils.escapeHTML(topic)).join(', ')}</div>
                                     ` : ''}
                                 </td>
-                                <td>${item.plannedDate ? Utils.formatDate(item.plannedDate) : '�'}</td>
+                                <td>${item.plannedDate ? Utils.formatDate(item.plannedDate) : '—'}</td>
                                 <td>${renderTargets(item)}</td>
                                 <td>
                                     ${this.isCurrentUserAdmin() ? `
@@ -2474,34 +2474,34 @@ const Permissions = {
                                         </select>
                                     ` : `
                                         <span class="badge ${
-                                            item.status === '?????' ? 'badge-success' :
-                                            item.status === '??? ???????' ? 'badge-info' :
-                                            item.status === '????' ? 'badge-warning' : 'badge-secondary'
-                                        }">${Utils.escapeHTML(item.status || '????')}</span>
+                                            item.status === 'مكتمل' ? 'badge-success' :
+                                            item.status === 'قيد التنفيذ' ? 'badge-info' :
+                                            item.status === 'مؤجل' ? 'badge-warning' : 'badge-secondary'
+                                        }">${Utils.escapeHTML(item.status || 'مخطط')}</span>
                                     `}
                                 </td>
                                 <td>
                                     ${this.isCurrentUserAdmin() ? `
                                         <select class="form-input plan-training-link" data-item-id="${item.id}">
-                                            <option value="">�</option>
+                                            <option value="">—</option>
                                             ${trainingOptions.map(option => `
                                                 <option value="${option.id}" ${option.id === item.linkedTrainingId ? 'selected' : ''}>
-                                                    ${Utils.escapeHTML(option.name)} (${option.date ? Utils.formatDate(option.date) : '???? ?????'})
+                                                    ${Utils.escapeHTML(option.name)} (${option.date ? Utils.formatDate(option.date) : 'بدون تاريخ'})
                                                 </option>
                                             `).join('')}
                                         </select>
                                     ` : `
-                                        ${item.linkedTrainingId ? `<span class="text-sm text-blue-600">????? ???? ?????</span>` : '<span class="text-xs text-gray-400">??? ?????</span>'}
+                                        ${item.linkedTrainingId ? `<span class="text-sm text-blue-600">مرتبط بسجل تدريب</span>` : '<span class="text-xs text-gray-400">غير مرتبط</span>'}
                                     `}
                                 </td>
                                 <td>${Utils.escapeHTML(item.notes || '')}</td>
                                 ${this.isCurrentUserAdmin() ? `
                                     <td>
                                         <div class="flex items-center gap-2">
-                                            <button class="btn-icon btn-icon-primary" data-action="edit-plan-item" data-item-id="${item.id}" title="????? ??????">
+                                            <button class="btn-icon btn-icon-primary" data-action="edit-plan-item" data-item-id="${item.id}" title="تعديل العنصر">
                                                 <i class="fas fa-edit"></i>
                                             </button>
-                                            <button class="btn-icon btn-icon-danger" data-action="delete-plan-item" data-item-id="${item.id}" title="??? ??????">
+                                            <button class="btn-icon btn-icon-danger" data-action="delete-plan-item" data-item-id="${item.id}" title="حذف العنصر">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </div>
@@ -2519,7 +2519,7 @@ const Permissions = {
         const plan = this.getAnnualPlan(year, { createIfMissing: true });
         const item = plan.items.find(i => i.id === itemId) || null;
         const positions = this.getUniquePositions();
-        // ? ?? ???????: ??????? ApprovedContractors ???
+        // ✅ تم التحديث: استخدام ApprovedContractors فقط
         const contractors = (typeof Contractors !== 'undefined' && typeof Contractors.getAllContractorsForModules === 'function')
             ? Contractors.getAllContractorsForModules().map(contractor => contractor.name || contractor.companyName).filter(Boolean)
             : (AppState.appData.approvedContractors || []).map(contractor => contractor.companyName || contractor.name).filter(Boolean);
@@ -2532,9 +2532,9 @@ const Permissions = {
                 <div class="modal-header">
                     <h2 class="modal-title">
                         <i class="fas fa-calendar-plus ml-2"></i>
-                        ${item ? '????? ???? ?????' : '????? ???? ???? ?????'}
+                        ${item ? 'تعديل عنصر الخطة' : 'إضافة عنصر جديد للخطة'}
                     </h2>
-                    <button class="modal-close" title="?????">
+                    <button class="modal-close" title="إغلاق">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -2542,42 +2542,42 @@ const Permissions = {
                     <div class="modal-body space-y-5">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label for="plan-item-topic" class="block text-sm font-semibold text-gray-700 mb-2">??????? ???????? *</label>
-                                <input type="text" id="plan-item-topic" class="form-input" required value="${Utils.escapeHTML(item?.topic || '')}" placeholder="????? ???????? ????????">
+                                <label for="plan-item-topic" class="block text-sm font-semibold text-gray-700 mb-2">الموضوع التدريبي *</label>
+                                <input type="text" id="plan-item-topic" class="form-input" required value="${Utils.escapeHTML(item?.topic || '')}" placeholder="عنوان البرنامج التدريبي">
                             </div>
                             <div>
-                                <label for="plan-item-date" class="block text-sm font-semibold text-gray-700 mb-2">??????? ?????? *</label>
+                                <label for="plan-item-date" class="block text-sm font-semibold text-gray-700 mb-2">التاريخ المخطط *</label>
                                 <input type="date" id="plan-item-date" class="form-input" required value="${item?.plannedDate ? new Date(item.plannedDate).toISOString().slice(0, 10) : ''}">
                             </div>
                         </div>
                         
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
-                                <label for="plan-item-target-type" class="block text-sm font-semibold text-gray-700 mb-2">????? ????????? *</label>
+                                <label for="plan-item-target-type" class="block text-sm font-semibold text-gray-700 mb-2">الفئة المستهدفة *</label>
                                 <select id="plan-item-target-type" class="form-input" required>
-                                    <option value="employees" ${item?.targetType === 'employees' ? 'selected' : ''}>????????</option>
-                                    <option value="contractors" ${item?.targetType === 'contractors' ? 'selected' : ''}>?????????</option>
-                                    <option value="mixed" ${item?.targetType === 'mixed' ? 'selected' : ''}>????</option>
+                                    <option value="employees" ${item?.targetType === 'employees' ? 'selected' : ''}>الموظفون</option>
+                                    <option value="contractors" ${item?.targetType === 'contractors' ? 'selected' : ''}>المقاولون</option>
+                                    <option value="mixed" ${item?.targetType === 'mixed' ? 'selected' : ''}>الكل</option>
                                 </select>
                             </div>
                             <div>
-                                <label for="plan-item-status" class="block text-sm font-semibold text-gray-700 mb-2">??????</label>
+                                <label for="plan-item-status" class="block text-sm font-semibold text-gray-700 mb-2">الحالة</label>
                                 <select id="plan-item-status" class="form-input">
-                                    <option value="????" ${item?.status === '????' ? 'selected' : ''}>????</option>
-                                    <option value="??? ???????" ${item?.status === '??? ???????' ? 'selected' : ''}>??? ???????</option>
-                                    <option value="?????" ${item?.status === '?????' ? 'selected' : ''}>?????</option>
-                                    <option value="????" ${item?.status === '????' ? 'selected' : ''}>????</option>
+                                    <option value="مخطط" ${item?.status === 'مخطط' ? 'selected' : ''}>مخطط</option>
+                                    <option value="قيد التنفيذ" ${item?.status === 'قيد التنفيذ' ? 'selected' : ''}>قيد التنفيذ</option>
+                                    <option value="مكتمل" ${item?.status === 'مكتمل' ? 'selected' : ''}>مكتمل</option>
+                                    <option value="مؤجل" ${item?.status === 'مؤجل' ? 'selected' : ''}>مؤجل</option>
                                 </select>
                             </div>
                             <div>
-                                <label for="plan-item-year" class="block text-sm font-semibold text-gray-700 mb-2">?????</label>
+                                <label for="plan-item-year" class="block text-sm font-semibold text-gray-700 mb-2">السنة</label>
                                 <input type="text" id="plan-item-year" class="form-input" value="${year}" disabled>
                             </div>
                         </div>
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label for="plan-item-roles" class="block text-sm font-semibold text-gray-700 mb-2">??????? ?????????</label>
+                                <label for="plan-item-roles" class="block text-sm font-semibold text-gray-700 mb-2">الوظائف المستهدفة</label>
                                 <select id="plan-item-roles" class="form-input" multiple size="5">
                                     ${positions.map(position => `
                                         <option value="${Utils.escapeHTML(position)}" ${item?.targetRoles?.includes(position) ? 'selected' : ''}>${Utils.escapeHTML(position)}</option>
@@ -2585,7 +2585,7 @@ const Permissions = {
                                 </select>
                             </div>
                             <div>
-                                <label for="plan-item-contractors" class="block text-sm font-semibold text-gray-700 mb-2">????????? ??????????</label>
+                                <label for="plan-item-contractors" class="block text-sm font-semibold text-gray-700 mb-2">المقاولون المستهدفون</label>
                                 <select id="plan-item-contractors" class="form-input" multiple size="5">
                                     ${contractors.map(name => `
                                         <option value="${Utils.escapeHTML(name)}" ${item?.targetContractors?.includes(name) ? 'selected' : ''}>${Utils.escapeHTML(name)}</option>
@@ -2595,7 +2595,7 @@ const Permissions = {
                         </div>
                         
                         <div>
-                            <label for="plan-item-topics" class="block text-sm font-semibold text-gray-700 mb-2">????????? ???????? (???????)</label>
+                            <label for="plan-item-topics" class="block text-sm font-semibold text-gray-700 mb-2">الموضوعات المرتبطة (اختياري)</label>
                             <select id="plan-item-topics" class="form-input" multiple size="5">
                                 ${topics.map(topic => `
                                     <option value="${Utils.escapeHTML(topic)}" ${item?.requiredTopics?.includes(topic) ? 'selected' : ''}>${Utils.escapeHTML(topic)}</option>
@@ -2604,15 +2604,15 @@ const Permissions = {
                         </div>
                         
                         <div>
-                            <label for="plan-item-notes" class="block text-sm font-semibold text-gray-700 mb-2">???????</label>
-                            <textarea id="plan-item-notes" class="form-input" rows="3" placeholder="?????? ?????? ?? ????? ????????">${Utils.escapeHTML(item?.notes || '')}</textarea>
+                            <label for="plan-item-notes" class="block text-sm font-semibold text-gray-700 mb-2">ملاحظات</label>
+                            <textarea id="plan-item-notes" class="form-input" rows="3" placeholder="تفاصيل إضافية أو أهداف البرنامج">${Utils.escapeHTML(item?.notes || '')}</textarea>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn-secondary" data-action="close">?????</button>
+                        <button type="button" class="btn-secondary" data-action="close">إلغاء</button>
                         <button type="submit" class="btn-primary">
                             <i class="fas fa-save ml-2"></i>
-                            ${item ? '??? ?????????' : '????? ?????'}
+                            ${item ? 'حفظ التعديلات' : 'إضافة للخطة'}
                         </button>
                     </div>
                 </form>
@@ -2632,14 +2632,14 @@ const Permissions = {
             const topic = modal.querySelector('#plan-item-topic')?.value.trim();
             const plannedDate = modal.querySelector('#plan-item-date')?.value;
             const targetType = modal.querySelector('#plan-item-target-type')?.value || 'employees';
-            const status = modal.querySelector('#plan-item-status')?.value || '????';
+            const status = modal.querySelector('#plan-item-status')?.value || 'مخطط';
             const targetRoles = this.getSelectedOptionsFromElement(modal.querySelector('#plan-item-roles'));
             const targetContractors = this.getSelectedOptionsFromElement(modal.querySelector('#plan-item-contractors'));
             const requiredTopics = this.getSelectedOptionsFromElement(modal.querySelector('#plan-item-topics'));
             const notes = modal.querySelector('#plan-item-notes')?.value.trim();
             
             if (!topic || !plannedDate) {
-                Notification.warning('???? ????? ??????? ???????? ??????');
+                Notification.warning('يرجى إدخال الموضوع والتاريخ المخطط');
                 return;
             }
             
@@ -2659,7 +2659,7 @@ const Permissions = {
             };
             
             this.upsertAnnualPlanItem(year, entry);
-            Notification.success(item ? '?? ????? ?????? ?????' : '?? ????? ?????? ??? ?????');
+            Notification.success(item ? 'تم تحديث العنصر بنجاح' : 'تم إضافة العنصر إلى الخطة');
             close();
             if (typeof onSave === 'function') {
                 onSave();
@@ -2689,7 +2689,7 @@ const Permissions = {
             year,
             createdBy: {
                 id: AppState.currentUser?.id || '',
-                name: AppState.currentUser?.name || AppState.currentUser?.displayName || AppState.currentUser?.email || '????? ??????',
+                name: AppState.currentUser?.name || AppState.currentUser?.displayName || AppState.currentUser?.email || 'مسؤول النظام',
                 email: AppState.currentUser?.email || ''
             },
             createdAt: new Date().toISOString(),
@@ -2701,7 +2701,7 @@ const Permissions = {
         if (dm && typeof dm.save === 'function') {
             dm.save();
         }
-        Notification.success(`?? ????? ????? ????????? ????? ${year}`);
+        Notification.success(`تم إنشاء الخطة التدريبية للسنة ${year}`);
         return plan;
     },
     
@@ -2724,9 +2724,9 @@ const Permissions = {
     getAnnualPlanStats(plan) {
         const stats = {
             total: plan.items.length,
-            completed: plan.items.filter(item => item.status === '?????').length,
-            inProgress: plan.items.filter(item => item.status === '??? ???????').length,
-            delayed: plan.items.filter(item => item.status === '????').length
+            completed: plan.items.filter(item => item.status === 'مكتمل').length,
+            inProgress: plan.items.filter(item => item.status === 'قيد التنفيذ').length,
+            delayed: plan.items.filter(item => item.status === 'مؤجل').length
         };
         return stats;
     },
@@ -2743,7 +2743,7 @@ const Permissions = {
         if (dm && typeof dm.save === 'function') {
             dm.save();
         }
-        Notification.success('?? ????? ???? ??????');
+        Notification.success('تم تحديث حالة العنصر');
     },
     
     linkTrainingToPlanItem(year, itemId, trainingId) {
@@ -2753,7 +2753,7 @@ const Permissions = {
         if (!item) return;
         item.linkedTrainingId = trainingId || '';
         if (trainingId) {
-            item.status = '?????';
+            item.status = 'مكتمل';
         }
         item.updatedAt = new Date().toISOString();
         const dm = (typeof window !== 'undefined' && window.DataManager) || 
@@ -2761,7 +2761,7 @@ const Permissions = {
         if (dm && typeof dm.save === 'function') {
             dm.save();
         }
-        Notification.success('?? ????? ??? ?????? ???? ???????');
+        Notification.success('تم تحديث ربط العنصر بسجل التدريب');
     },
     
     removeAnnualPlanItem(year, itemId) {
@@ -2774,42 +2774,42 @@ const Permissions = {
         if (dm && typeof dm.save === 'function') {
             dm.save();
         }
-        Notification.success('?? ??? ???? ????? ?????????');
+        Notification.success('تم حذف عنصر الخطة التدريبية');
     },
     */
 
     /**
-     * ?????? ??? ????? ??????? ??????? ???????? ??????
+     * الحصول على قائمة الوحدات المتاحة للمستخدم الحالي
      */
     getAccessibleModules(includeDefault = false) {
         const user = AppState.currentUser;
         if (!user) return [];
         if (this.isAdminRole(user.role)) return ['*'];
 
-        // ?? ??? ????? dashboard ???????? - ??? ??? ???????? ?????? ?? ??? ??????
+        // لا يتم إضافة dashboard تلقائياً - يجب منح الصلاحية صراحةً من قبل المدير
         const modules = new Set();
         const effectivePermissions = this.getEffectivePermissions(user);
 
-        // ????? ??? ????????? ???????? ?????? ?? ??? ???? ??????
+        // إضافة فقط الصلاحيات الممنوحة صراحةً من قبل مدير النظام
         Object.entries(effectivePermissions).forEach(([module, allowed]) => {
             if (allowed === true) {
                 modules.add(module);
             }
         });
 
-        // ?? ??? ??????? ????????? ?????????? - ??? ????? ?? ??? ?????? ???
-        // (?? ???????? ???????? includeDefault ??????? ?? ????? ??????? ???? ?? ????)
+        // لا يتم استخدام الصلاحيات الافتراضية - يجب منحها من قبل المدير فقط
+        // (تم الاحتفاظ بالمعامل includeDefault للتوافق مع الكود الحالي، لكنه لا يؤثر)
 
         return Array.from(modules);
     },
 
     /**
-     * ?????/????? ????? ??????? ??? ?????????
+     * إخفاء/إظهار عناصر القائمة حسب الصلاحيات
      */
     updateNavigation() {
-        // ? ?????: ?????? ?? ???? ???????? ??????
+        // ✅ إصلاح: التأكد من وجود المستخدم الحالي
         if (!AppState.currentUser) {
-            Utils.safeWarn('?? ?? ???? ?????? ???? ???? - ?? ???? ????? ???????');
+            Utils.safeWarn('⚠️ لا يوجد مستخدم مسجل دخول - لا يمكن تحديث القائمة');
             return;
         }
 
@@ -2819,7 +2819,7 @@ const Permissions = {
 
         const navItems = document.querySelectorAll('.nav-item');
         if (navItems.length === 0) {
-            // ??? ?? ??? ????? ??????? ?????? ???? ???? ???????? ??? ????
+            // إذا لم تكن عناصر القائمة موجودة بعد، نعيد المحاولة بعد قليل
             setTimeout(() => {
                 if (document.querySelectorAll('.nav-item').length > 0) {
                     this.updateNavigation();
@@ -2842,7 +2842,7 @@ const Permissions = {
             }
         });
 
-        // ??? ??? ?? ??? ?????? ??? ?? ???????? ???? � ??? ??????? (???? ????? ?? role ??? ?????)
+        // إذا بقي كل شيء مخفياً رغم أن المستخدم مدير — أعد الإظهار (جلسة قديمة أو role غير مطبّع)
         let visibleCount = Array.from(navItems).filter(item => item.style.display !== 'none').length;
         if (visibleCount === 0 && this.isAdminRole(AppState.currentUser.role)) {
             navItems.forEach(item => {
@@ -2854,47 +2854,47 @@ const Permissions = {
             visibleCount = Array.from(navItems).filter(item => item.style.display !== 'none').length;
         }
 
-        // ? ?????: ????? ???????? ?? ???????
+        // ✅ إصلاح: تسجيل للمساعدة في التشخيص
         if (AppState.debugMode) {
-            Utils.safeLog(`? ?? ????? ???????: ${visibleCount} ???? ???? ?? ${navItems.length} ????`);
+            Utils.safeLog(`✅ تم تحديث القائمة: ${visibleCount} عنصر مرئي من ${navItems.length} عنصر`);
         }
 
-        // ????? ????? ????? ????? ???? ?????? ??? ????? ????????? (??????/????)
+        // إعادة تطبيق إخفاء أجزاء لوحة التحكم بعد تحديث الصلاحيات (مزامنة/جلسة)
         if (typeof Dashboard !== 'undefined' && typeof Dashboard.applyDashboardLayoutPermissions === 'function') {
             try {
                 Dashboard.applyDashboardLayoutPermissions();
             } catch (dashPermErr) {
                 if (typeof Utils !== 'undefined' && Utils.safeWarn) {
-                    Utils.safeWarn('?? ???? ????? ??????? ????? ???? ??????:', dashPermErr);
+                    Utils.safeWarn('⚠️ تعذر تطبيق صلاحيات تخطيط لوحة التحكم:', dashPermErr);
                 }
             }
         }
     },
 
     /**
-     * ?????? ?? ????????? ??? ??? ?????
-     * @param {string} moduleName - ??? ????????
-     * @param {boolean} suppressMessage - ??? ??? true? ?? ??? ??? ????? ????? (???? ??? ?????? ??????)
-     * @returns {boolean} - true ??? ??? ???? ??????? false ??? ?? ??? ???? ??????
+     * التحقق من الصلاحيات قبل عرض القسم
+     * @param {string} moduleName - اسم الموديول
+     * @param {boolean} suppressMessage - إذا كان true، لن يتم عرض رسالة الخطأ (مفيد عند العودة للتنقل)
+     * @returns {boolean} - true إذا كان لديه صلاحية، false إذا لم يكن لديه صلاحية
      */
     checkBeforeShow(moduleName, suppressMessage = false) {
         if (!this.hasAccess(moduleName)) {
-            const errorMessage = '??? ???? ?????? ?????? ??? ??? ?????';
+            const errorMessage = 'ليس لديك صلاحية للوصول إلى هذا القسم';
 
-            // ??? ??????? ??? ??? ?? ??? suppressMessage = true (?? ??? ?????? ?????? ???????)
+            // عرض الرسالة فقط إذا لم يكن suppressMessage = true (أي عند محاولة الوصول الفعلية)
             if (!suppressMessage) {
-                // ?????? ??? ??????? ??? Notification.error
+                // محاولة عرض الرسالة عبر Notification.error
                 try {
                     if (typeof Notification !== 'undefined' && typeof Notification.error === 'function') {
                         Notification.error(errorMessage);
                     } else {
-                        // ?? ???? ??? ???? Notification? ?????? console.error ? alert ?????
-                        console.error('?? ' + errorMessage);
+                        // في حالة عدم توفر Notification، نستخدم console.error و alert كبديل
+                        console.error('⚠️ ' + errorMessage);
                         alert(errorMessage);
                     }
                 } catch (error) {
-                    // ?? ???? ??? Notification.error? ?????? console.error ? alert ?????
-                    console.error('?? ' + errorMessage);
+                    // في حالة فشل Notification.error، نستخدم console.error و alert كبديل
+                    console.error('⚠️ ' + errorMessage);
                     alert(errorMessage);
                 }
             }
@@ -2905,19 +2905,19 @@ const Permissions = {
     },
 
     /**
-     * ?????? ??? ????? ??? ???????? ????????
+     * الحصول على تسمية دور المستخدم بالعربية
      */
     getRoleLabel(role) {
         const labels = {
-            'admin': '???? ??????',
-            'safety_officer': '????? ???????',
-            'user': '??????'
+            'admin': 'مدير النظام',
+            'safety_officer': 'مسئول السلامة',
+            'user': 'مستخدم'
         };
         return labels[role] || role;
     },
 
     /**
-     * ?????? ?? ?? ???????? ?????? ?? ???? ??????
+     * التحقق من أن المستخدم الحالي هو مدير النظام
      */
     isAdmin() {
         return this.isCurrentUserEffectiveAdmin();
@@ -2928,19 +2928,19 @@ const Permissions = {
 const DEFAULT_COMPANY_NAME = '';
 
 const AppState = {
-    /** fallback ??? � ?????? ??????: frontend/version.json (??????? ??? saas-version.js) */
-    appVersion: '2.2.169',
-    /** ?? ??????? ?????? ??????? (???? ?????????). ?? ????? ????? ??????? ???? ?????????. */
+    /** fallback فقط — المصدر الرسمي: frontend/version.json (يُحدَّث عبر saas-version.js) */
+    appVersion: '2.2.171',
+    /** نص اختياري لرسالة التحديث (ملخص التغييرات). إن تُركت فارغة يُستخدم النص الافتراضي. */
     updateMessage: '',
     debugMode: false,
     currentUser: null,
     currentSection: 'dashboard',
     currentLanguage: 'ar',
-    navigationHistory: [], // ??? ?????? ??? ???????
-    isPageRefresh: false, // ????? ????? ?? ????? ????? ??????
-    isNavigatingBack: false, // ????? ????? ?? ?????? ?????
-    runningWithoutBackend: false, // true ??? ??? ????? ?????? (file://) ???? ???
-    _noBackendWarningLogged: false, // ?????? ????? "???? ????" ??? ????? ???
+    navigationHistory: [], // سجل التنقل بين الصفحات
+    isPageRefresh: false, // علامة للكشف عن إعادة تحميل الصفحة
+    isNavigatingBack: false, // علامة للكشف عن التنقل للخلف
+    runningWithoutBackend: false, // true عند فتح الملف محلياً (file://) بدون نشر
+    _noBackendWarningLogged: false, // لتسجيل رسالة "بدون خادم" مرة واحدة فقط
     appData: {
         users: [],
         incidents: [],
@@ -2983,65 +2983,65 @@ const AppState = {
         emergencyPlansUpdates: [],
         riskAssessments: [],
         sopJHA: [],
-        legalDocuments: [], // ????????? ????????? ??????????
-        legalInventory: [], // ??? ??? ????????? ?????????
-        hseAudits: [], // ?????? ??????? ?????????
-        hseNonConformities: [], // ??? ????????
-        hseCorrectiveActions: [], // ????????? ?????????
-        hseObjectives: [], // ???? HSE
-        hseRiskAssessments: [], // ??????? ??????? HSE
-        environmentalAspects: [], // ??????? ???????
-        environmentalMonitoring: [], // ???????? ???????
-        sustainability: [], // ????????? ???????
-        carbonFootprint: [], // ?????? ?????????
-        wasteManagement: [], // ????? ???????
-        energyEfficiency: [], // ???? ??????
-        waterManagement: [], // ????? ??????
-        /** ????? ??????? ??????/????????/????? � ??????? ????? ?? ????? *_Records ??? ???????? */
+        legalDocuments: [], // المستندات القانونية والتشريعية
+        legalInventory: [], // سجل حصر التشريعات والقوانين
+        hseAudits: [], // عمليات التدقيق والمراجعة
+        hseNonConformities: [], // عدم المطابقة
+        hseCorrectiveActions: [], // الإجراءات التصحيحية
+        hseObjectives: [], // أهدا HSE
+        hseRiskAssessments: [], // تقييمات المخاطر HSE
+        environmentalAspects: [], // الجوانب البيئية
+        environmentalMonitoring: [], // المراقبة البيئية
+        sustainability: [], // الاستدامة البيئية
+        carbonFootprint: [], // البصمة الكربونية
+        wasteManagement: [], // إدارة النايات
+        energyEfficiency: [], // كاءة الطاقة
+        waterManagement: [], // إدارة المياه
+        /** سجلات استهلاك المياه/الكهرباء/الغاز — تُحدَّث أيضاً من أوراق *_Records عند المزامنة */
         resourceConsumption: {
             water: [],
             electricity: [],
             gas: []
         },
-        recyclingPrograms: [], // ????? ????? ???????
-        safetyTeamMembers: [], // ????? ???? ???????
-        safetyOrganizationalStructure: [], // ?????? ??????? ????? ???????
-        safetyJobDescriptions: [], // ????? ??????? ????? ???????
-        safetyTeamKPIs: [], // ?????? ???? ???? ???????
-        safetyTeamAttendance: [], // ???? ???? ???????
-        safetyTeamLeaves: [], // ?????? ???? ???????
-        safetyTeamTasks: [], // ???? ???? ???????
-        safetyPerformanceKPIs: [], // ?????? ?????? ???????
-        employeeTrainingMatrix: {}, // ?????? ??????? ??? ????
-        trainingTopicsByRole: {}, // ??????? ??????? ???????? ??? ???????
-        annualTrainingPlans: [], // ????? ????????? ???????
-        employeePPEMatrix: {}, // ???? ????? ??????? ??? ???? ??? ???????
-        employeePPEMatrixByCode: {}, // ?????? ????? ??????? ??? ???? ?????? ?????? ??????
-        actionTrackingRegister: [], // ??? ?????? ?????????
-        orgSites: [], // ??????? ????????? (Company ? Site)
-        orgDepartments: [], // ??????? ??? ??????
-        notificationPrefs: [], // ??????? ??????? ????????
-        complianceChecklists: [], // ????? ???? ?????? (ISO 45001 ?????)
-        webhookEndpoints: [], // Webhooks ????? (enterprise stub)
-        companySettings: [], // ??????? ?????? / onboarding
-        safetyBudgets: [], // ??????? ????????? ????????
-        safetyBudgetTransactions: [], // ?????? ????? ??????? ???????
-        workflows: [], // ??? ????? ??????????
-        incidentWorkflows: [], // ?????? ??? ???????
-        auditLog: [], // ??? ?????? ?????? (Audit Log)
-        user_activity_log: [], // ??? ????? ?????????? (User Activity Log)
+        recyclingPrograms: [], // برامج إعادة التدوير
+        safetyTeamMembers: [], // أعضاء فريق السلامة
+        safetyOrganizationalStructure: [], // الهيكل الوظيفي لفريق السلامة
+        safetyJobDescriptions: [], // الوصف الوظيفي لفريق السلامة
+        safetyTeamKPIs: [], // مؤشرات أداء فريق السلامة
+        safetyTeamAttendance: [], // حضور فريق السلامة
+        safetyTeamLeaves: [], // إجازات فريق السلامة
+        safetyTeamTasks: [], // مهام فريق السلامة
+        safetyPerformanceKPIs: [], // مؤشرات الأداء للسلامة
+        employeeTrainingMatrix: {}, // مصفوفة التدريب لكل موظف
+        trainingTopicsByRole: {}, // موضوعات التدريب المطلوبة حسب الوظيفة
+        annualTrainingPlans: [], // الخطط التدريبية السنوية
+        employeePPEMatrix: {}, // مصوة مهمات الوقاية لكل موظف حسب الوظيفة
+        employeePPEMatrixByCode: {}, // مصفوفة مهمات الوقاية لكل موظف مرتبطة بالكود الوظيي
+        actionTrackingRegister: [], // سجل متابعة الإجراءات
+        orgSites: [], // المواقع التنظيمية (Company → Site)
+        orgDepartments: [], // الأقسام حسب الموقع
+        notificationPrefs: [], // تفضيلات إشعارات المستأجر
+        complianceChecklists: [], // قوائم تحقق امتثال (ISO 45001 خفيفة)
+        webhookEndpoints: [], // Webhooks صادرة (enterprise stub)
+        companySettings: [], // إعدادات الشركة / onboarding
+        safetyBudgets: [], // تعريفات الميزانية المعتمدة
+        safetyBudgetTransactions: [], // عمليات الصرف ومتابعة الإنفاق
+        workflows: [], // سير العمل والموافقات
+        incidentWorkflows: [], // تدفقات عمل الحوادث
+        auditLog: [], // سجل عمليات النظام (Audit Log)
+        user_activity_log: [], // سجل حركات المستخدمين (User Activity Log)
         systemStatistics: {
-            totalLogins: 0 // ?????? ??? ??????? ?????? ??????
+            totalLogins: 0 // إجمالي عدد تسجيلات الدخول للنظام
         }
     },
     syncMeta: {
         users: 0,
-        // ? ?????: ???? ???? ????? ?? ????
+        // ✅ إضافة: تتبع حالة تحميل كل ورقة
         sheets: {}, // { sheetName: timestamp }
-        lastSyncTime: 0, // ??? ??? ?? ???? ??????? ??????
-        userEmail: null // ?????? ?????????? ???????? ??????
+        lastSyncTime: 0, // آخر مرة تم فيها التحميل الكامل
+        userEmail: null // البريد الإلكتروني للمستخدم الحالي
     },
-    /** ??????? ??????? (Google Maps API � ??????? ?? PTW ?????) */
+    /** إعدادات الخرائط (Google Maps API — اختياري لـ PTW وغيره) */
     backendConfig: {
         maps: {
             enabled: false,
@@ -3056,7 +3056,7 @@ const AppState = {
             accessToken: '',
             refreshToken: '',
             tokenExpiry: null,
-            tenantId: '' // ????????
+            tenantId: '' // للمؤسسات
         },
         googleDrive: {
             enabled: false,
@@ -3090,12 +3090,12 @@ const AppState = {
         safetyTeam: []
     },
     dateFormat: 'gregorian', // 'gregorian' or 'hijri'
-    notificationEmails: [], // ????? ????????? ?????????
-    emergencyChannels: ['SMS', 'Email', '??????? ???????', '??????? ????????'],
-    emergencyTeams: ['???? ???????', '???? ?????? ??????', '???? ????????? ???????', '???? ?????'],
-    legalPortalUrl: '', // ???? ????? ?????????
-    legalKeywords: [], // ????? ??????? ???????? ?????????
-    legalAutoNotify: false // ????? ????????? ????????? ????????? ?????????
+    notificationEmails: [], // قائمة الإيميلات للإشعارات
+    emergencyChannels: ['SMS', 'Email', 'الاتصال الداخلي', 'الإذاعة الداخلية'],
+    emergencyTeams: ['فريق الإخلاء', 'فريق مكافحة الحريق', 'فريق الإسعافات الأولية', 'فريق الأمن'],
+    legalPortalUrl: '', // رابط بوابة التشريعات
+    legalKeywords: [], // كلمات مفتاحية للمتابعة القانونية
+    legalAutoNotify: false // تفعيل التنبيهات التلقائية للتحديثات القانونية
 };
 
 (function applyMapsConfigFromStorage() {
@@ -3115,7 +3115,7 @@ const AppState = {
 // ===== Utility Functions =====
 const Utils = {
     /**
-     * ????? ??? ????? ?????? (admin ???? ??? ????? ?????? ???????? ?? ??????)
+     * تطبيع حقل الدور للجلسة (admin صريح لكل أشكال المدير المعروفة في الجدول)
      */
     canonicalizeUserRole(role) {
         const r = role == null || role === '' ? 'user' : String(role).trim();
@@ -3126,14 +3126,14 @@ const Utils = {
     },
 
     /**
-     * ?? ???? ???? ?????? ??? ?????? ??????? (????? + ???? Web App /exec)
+     * هل يوجد مسار مزامنة عبر الخادم السحابي (تفعيل + رابط Web App /exec)
      */
     hasCloudBackendSync() {
         return !!(typeof window !== 'undefined' && window.SAAS_CONFIG && window.SAAS_CONFIG.useSupabaseBackend && window.SaaSAdapter);
     },
 
     /**
-     * ?????? ?? ???? ???????
+     * التحقق من بيئة الإنتاج
      */
     isProduction() {
         if (typeof window === 'undefined') return true;
@@ -3146,7 +3146,7 @@ const Utils = {
     },
 
     /**
-     * ????? ??? - ?? ???? ?? ???????
+     * تسجيل آمن - لا يسجل في الإنتاج
      */
     safeLog(...args) {
         if (!Utils.isProduction()) {
@@ -3155,19 +3155,19 @@ const Utils = {
     },
 
     /**
-     * ????? ????? ??? - ?? ???? ??????? ????? ?? ???????
+     * تسجيل أخطاء آمن - لا يسجل معلومات حساسة في الإنتاج
      */
     safeError(...args) {
-        // ????? ????? Chrome extensions ? source maps
+        // تجاهل أخطاء Chrome extensions و source maps
         if (args.length > 0) {
-            // ??? ???? ?????? ?? ???? ????????? ?????? ??????
+            // جمع جميع النصوص من جميع المعاملات للتحقق الشامل
             let allArgsText = '';
             for (let i = 0; i < args.length; i++) {
                 const arg = args[i];
                 if (typeof arg === 'string') {
                     allArgsText += arg + ' ';
                 } else if (arg && typeof arg === 'object') {
-                    // ?????? ?? message ? stack ? toString
+                    // التحقق من message و stack و toString
                     if (arg.message) allArgsText += String(arg.message) + ' ';
                     if (arg.stack) allArgsText += String(arg.stack) + ' ';
                     if (arg.toString) allArgsText += String(arg.toString()) + ' ';
@@ -3178,7 +3178,7 @@ const Utils = {
             const firstArg = args[0];
             const firstArgStr = String(firstArg || '').toLowerCase();
 
-            // ????? ??????? ???? ??? ???????
+            // قائمة الأخطاء التي يجب تجاهلها
             const shouldIgnore =
                 firstArgStr.includes('runtime.lasterror') ||
                 firstArgStr.includes('message port closed') ||
@@ -3196,19 +3196,19 @@ const Utils = {
                 allArgsText.includes('upload-manager') ||
                 (allArgsText.includes('cannot read properties of undefined') && allArgsText.includes('document')) ||
                 allArgsText.includes('uploadmanager.js') ||
-                firstArgStr.includes('???? google sheets ??? ????') ||
+                firstArgStr.includes('معرف google sheets غير محدد') ||
                 firstArgStr.includes('google sheets id') ||
                 firstArgStr.includes('spreadsheet id') ||
                 firstArgStr.includes('sendrequest (savetosheet)') ||
                 firstArgStr.includes('sendrequest (appendtosheet)') ||
                 firstArgStr.includes('sendrequest (readfromsheet)') ||
                 firstArgStr.includes('sendrequest (batchreadsheets)') ||
-                firstArgStr.includes('? ??? batch') ||
-                (firstArgStr.includes('??? ?? ?????? ??? ????????') && (allArgsText.includes('notallowederror') || allArgsText.includes('permission denied'))) ||
-                (firstArgStr.includes('??? ?? ?????? ??? ????????') && allArgsText.includes('permissions policy violation'));
+                firstArgStr.includes('❌ فشل batch') ||
+                (firstArgStr.includes('خطأ في الوصول إلى الكاميرا') && (allArgsText.includes('notallowederror') || allArgsText.includes('permission denied'))) ||
+                (firstArgStr.includes('خطأ في الوصول إلى الكاميرا') && allArgsText.includes('permissions policy violation'));
 
             if (typeof firstArg === 'string' && shouldIgnore) {
-                return; // ????? ??? ???????
+                return; // تجاهل هذه الأخطاء
             }
 
             if (firstArg && typeof firstArg === 'object') {
@@ -3228,15 +3228,15 @@ const Utils = {
                     combined.includes('upload-manager') ||
                     (combined.includes('cannot read properties of undefined') && combined.includes('document')) ||
                     combined.includes('uploadmanager.js') ||
-                    combined.includes('???? google sheets ??? ????') ||
+                    combined.includes('معرف google sheets غير محدد') ||
                     combined.includes('google sheets id') ||
                     combined.includes('spreadsheet id')) {
-                    return; // ????? ??? ???????
+                    return; // تجاهل هذه الأخطاء
                 }
             }
         }
 
-        // ??? ????? ???? ??? ????? - ?????? ?? ???? ?????????
+        // فحص إضافي شامل قبل السجل - للتحقق من جميع المعاملات
         let allText = '';
         for (let i = 0; i < args.length; i++) {
             const arg = args[i];
@@ -3250,43 +3250,43 @@ const Utils = {
         }
         allText = allText.toLowerCase();
 
-        // ????? ????? uploadmanager ? document errors
+        // تجاهل أخطاء uploadmanager و document errors
         if (allText.includes('uploadmanager') ||
             allText.includes('upload-manager') ||
             allText.includes('uploadmanager.js') ||
             (allText.includes('cannot read properties of undefined') && allText.includes('document'))) {
-            return; // ????? ??? ??????? ??????
+            return; // تجاهل هذه الأخطاء تماماً
         }
 
-        // ????? ????? "Failed to fetch" ???????? ?? Google Sheets ????? ???? ??? ??????
-        if (allText.includes('??? ?? ??? google sheets') &&
+        // تجاهل أخطاء "Failed to fetch" المتعلقة بـ Google Sheets عندما تكون غير مفعّلة
+        if (allText.includes('خطأ في طلب google sheets') &&
             (allText.includes('failed to fetch') || allText.includes('networkerror'))) {
-            // ?????? ?? ???? Google Sheets
+            // التحقق من حالة Google Sheets
             const isGoogleAppsScriptEnabled = window.Utils.hasCloudBackendSync();
             if (!isGoogleAppsScriptEnabled) {
-                return; // ????? ????? ??? ???? Google Sheets ??? ??????
+                return; // تجاهل الخطأ إذا كانت Google Sheets غير مفعّلة
             }
         }
 
-        // ????? ????? ???????? ???????? ??????????
-        if (allText.includes('??? ?? ?????? ??? ????????') &&
+        // تجاهل أخطاء الكاميرا المتعلقة بالصلاحيات
+        if (allText.includes('خطأ في الوصول إلى الكاميرا') &&
             (allText.includes('notallowederror') ||
                 allText.includes('permission denied') ||
                 allText.includes('permissions policy violation'))) {
-            return; // ????? ????? ??????? ????????
+            return; // تجاهل أخطاء صلاحيات الكاميرا
         }
 
         if (!Utils.isProduction()) {
             console.error(...args);
         } else {
-            // ?? ???????? ???? ??? ????? ???? ???? ??????
+            // في الإنتاج، نسجل فقط رسائل عامة بدون تفاصيل
             const safeArgs = args.map(arg => {
                 if (typeof arg === 'string') {
-                    // ????? ?? ??????? ????? ??????
+                    // إزالة أي معلومات حساسة محتملة
                     return arg.replace(/password|token|key|secret|hash/gi, '[REDACTED]');
                 }
                 if (arg && typeof arg === 'object') {
-                    // ?????? ??????? ??????? ????? ?? ??????
+                    // محاولة استخراج معلومات مفيدة من الكائن
                     if (arg instanceof Error) {
                         return {
                             name: arg.name,
@@ -3302,7 +3302,7 @@ const Utils = {
                             ...(arg.statusText ? { statusText: arg.statusText } : {})
                         };
                     }
-                    // ?????? ????? ?????? ??? JSON ?? ?????? ???????
+                    // محاولة تحويل الكائن إلى JSON مع معالجة الأخطاء
                     try {
                         const jsonStr = JSON.stringify(arg, null, 2);
                         if (jsonStr.length > 500) {
@@ -3315,7 +3315,7 @@ const Utils = {
                 }
                 return String(arg || '[Object]');
             });
-            // ????? ????? Chrome Extensions - ???? ???? ?? ???? ?????????
+            // تجاهل أخطاء Chrome Extensions - تحقق شامل من جميع المعاملات
             for (let i = 0; i < safeArgs.length; i++) {
                 const argStr = String(safeArgs[i] || '').toLowerCase();
                 if (argStr.includes('runtime.lasterror') ||
@@ -3328,9 +3328,9 @@ const Utils = {
                     argStr.includes('upload-manager') ||
                     argStr.includes('uploadmanager.js') ||
                     (argStr.includes('cannot read properties of undefined') && argStr.includes('document'))) {
-                    return; // ????? ??? ??????? ??????
+                    return; // تجاهل هذه الأخطاء تماماً
                 }
-                // ???? ?? ???????? ?????
+                // تحقق من الكائنات أيضاً
                 if (safeArgs[i] && typeof safeArgs[i] === 'object') {
                     try {
                         const objStr = JSON.stringify(safeArgs[i]).toLowerCase();
@@ -3342,10 +3342,10 @@ const Utils = {
                             objStr.includes('upload-manager') ||
                             objStr.includes('uploadmanager.js') ||
                             (objStr.includes('cannot read properties of undefined') && objStr.includes('document'))) {
-                            return; // ????? ??? ??????? ??????
+                            return; // تجاهل هذه الأخطاء تماماً
                         }
                     } catch (e) {
-                        // ??? ??? JSON.stringify? ????? ?? message ? stack ??????
+                        // إذا فشل JSON.stringify، نتحقق من message و stack مباشرة
                         if (safeArgs[i].message) {
                             const msg = String(safeArgs[i].message).toLowerCase();
                             if (msg.includes('uploadmanager') ||
@@ -3372,13 +3372,13 @@ const Utils = {
     },
 
     /**
-     * ????? Promise ?? timeout ?? ????? ??? timer ???? unhandled rejections
-     * @param {Promise} promise - ??? Promise ??????
-     * @param {number} timeoutMs - ?????? ??????? ?????
-     * @param {string|Error|Function} timeoutError - ?????/??? ?? ???? ????? Error/Message
+     * إنشاء Promise مع timeout مع تنظيف الـ timer لمنع unhandled rejections
+     * @param {Promise} promise - الـ Promise الأصلي
+     * @param {number} timeoutMs - المهلة بالميلي ثانية
+     * @param {string|Error|Function} timeoutError - رسالة/خطأ أو دالة تُرجع Error/Message
      * @returns {Promise}
      */
-    promiseWithTimeout(promise, timeoutMs = 10000, timeoutError = '????? ???? ???????') {
+    promiseWithTimeout(promise, timeoutMs = 10000, timeoutError = 'انتهت مهلة العملية') {
         let timeoutId = null;
         let settled = false;
 
@@ -3393,7 +3393,7 @@ const Utils = {
 
         const timeoutPromise = new Promise((_, reject) => {
             timeoutId = setTimeout(() => {
-                // ??? ??? ??? promise ??????? ?????? ?? ???? ???
+                // إذا كان الـ promise الأساسي انتهى، لا نرمي خطأ
                 if (settled) return;
 
                 try {
@@ -3401,15 +3401,15 @@ const Utils = {
                     if (value instanceof Error) {
                         reject(value);
                     } else {
-                        let msg = String(value || '????? ???? ???????');
-                        // ??? ??????? HTML ?????? ??? (?? ??????? ?????? ?? ???? ???? ????? ?????)
+                        let msg = String(value || 'انتهت مهلة العملية');
+                        // عدم استخدام HTML كرسالة خطأ (قد يُمرَّر بالخطأ من دوال تعيد محتوى واجهة)
                         if (msg.length > 80 && (msg.includes('<div') || msg.includes('class="') || msg.includes('</p>'))) {
-                            msg = '????? ???? ???????';
+                            msg = 'انتهت مهلة العملية';
                         }
                         reject(new Error(msg));
                     }
                 } catch (e) {
-                    reject(e instanceof Error ? e : new Error(String(e || '????? ???? ???????')));
+                    reject(e instanceof Error ? e : new Error(String(e || 'انتهت مهلة العملية')));
                 }
             }, timeoutMs);
         });
@@ -3418,50 +3418,50 @@ const Utils = {
     },
 
     /**
-     * ????? ??????? ???
+     * تسجيل تحذيرات آمن
      */
     safeWarn(...args) {
-        // ????? ????????? ???????? ?? Google Sheets ? Chrome Extensions
+        // تجاهل التحذيرات المتعلقة بـ Google Sheets و Chrome Extensions
         if (args.length > 0) {
             const argsStr = args.map(arg => String(arg || '')).join(' ');
             if (argsStr.includes('runtime.lastError') ||
                 argsStr.includes('message port closed') ||
                 argsStr.includes('translator') ||
-                argsStr.includes('???? Google Sheets ??? ????') ||
+                argsStr.includes('معرف Google Sheets غير محدد') ||
                 argsStr.includes('Google Sheets ID') ||
                 argsStr.includes('Spreadsheet ID') ||
                 argsStr.includes('sendRequest (saveToSheet)') ||
                 argsStr.includes('sendRequest (appendToSheet)') ||
                 argsStr.includes('sendRequest (readFromSheet)') ||
-                argsStr.includes('???? Google Sheets ??? ????')) {
-                return; // ????? ??? ?????????
+                argsStr.includes('معرف Google Sheets غير معرف')) {
+                return; // تجاهل هذه التحذيرات
             }
 
-            // ??? ????? ???? ??? (file://) ?? ??? ??? timeout: ????? ????? ????? ?? ????? ?????????
+            // عند الفتح بدون نشر (file://) أو عند أول timeout: رسالة واحدة بدلاً من عشرات التحذيرات
             const isNoBackendWarning = (
-                argsStr.includes('??? ??????? ??? ???? ?????? ????? ????????') ||
-                (argsStr.includes('????? ???') && argsStr.includes('???? ?????')) ||
-                argsStr.includes('????? ???? ??????? ???????') ||
-                argsStr.includes('????? ???? ?????? ????? ????????') ||
-                argsStr.includes('Timeout: ????? ????????') ||
-                argsStr.includes('??? ?? ??????? ?? Backend') ||
-                argsStr.includes('????? ???? ??????? ??????')
+                argsStr.includes('فشل التحميل ولا توجد بيانات محلية احتياطية') ||
+                (argsStr.includes('يحتوي على') && argsStr.includes('ورقة فارغة')) ||
+                argsStr.includes('انتهت مهلة الاتصال بالخادم') ||
+                argsStr.includes('انتهت مهلة انتظار تحميل البيانات') ||
+                argsStr.includes('Timeout: تحميل البيانات') ||
+                argsStr.includes('خطأ في الاتصال بـ Backend') ||
+                argsStr.includes('انتهت مهلة الاتصال للخادم')
             );
             if (isNoBackendWarning && typeof AppState !== 'undefined') {
                 AppState.runningWithoutBackend = true;
                 if (!AppState._noBackendWarningLogged) {
                     AppState._noBackendWarningLogged = true;
-                    console.warn('?? ??????? ???? ???? ??? (?? ????? ???????). ??? ???????? ??? ??????.');
+                    console.warn('⚠️ التطبيق يعمل بدون نشر (لا اتصال بالخادم). بعض البيانات غير متوفرة.');
                 }
                 return;
             }
 
-            // ????? ????? ????? Circuit Breaker - ????? ??? ????? ?? 30 ?????
-            if (argsStr.includes('Circuit Breaker ?????')) {
+            // تقليل تكرار رسائل Circuit Breaker - تسجيل مرة واحدة كل 30 ثانية
+            if (argsStr.includes('Circuit Breaker مفتوح')) {
                 const lastLogTime = this._circuitBreakerWarnTime || 0;
                 const now = Date.now();
                 if (now - lastLogTime < 30000) {
-                    return; // ????? ??? ?? ??????? ??????
+                    return; // تجاهل إذا تم تسجيلها مؤخراً
                 }
                 this._circuitBreakerWarnTime = now;
             }
@@ -3473,7 +3473,7 @@ const Utils = {
     },
 
     /**
-     * JSON.stringify ??? ?????? ?? ??????? ????????
+     * JSON.stringify آمن يتعامل مع المراجع الدائرية
      */
     safeStringify(obj, space) {
         const seen = new WeakSet();
@@ -3489,7 +3489,7 @@ const Utils = {
     },
 
     /**
-     * ????? ???? ???? XSS
+     * تنظيف النص لمنع XSS
      */
     escapeHTML(text) {
         if (!text) return '';
@@ -3499,7 +3499,7 @@ const Utils = {
     },
 
     /**
-     * ????? HTML ???????? ???? ????? ??? ???? ?? DOM
+     * تنقية HTML ديناميكي بشكل محافظ قبل حقنه في DOM
      */
     sanitizeHTML(html) {
         const raw = String(html || '');
@@ -3536,7 +3536,7 @@ const Utils = {
     },
 
     /**
-     * ????? innerHTML ??? ???????
+     * تعيين innerHTML بعد التنقية
      */
     setSafeHTML(element, html) {
         if (!element) return;
@@ -3649,14 +3649,14 @@ const Utils = {
     },
 
     /**
-     * ???? ??? Apps Script (Web App) ?? ???? ?? ?????????.
+     * رابط نشر Apps Script (Web App) إن وُجد في الإعدادات.
      */
     getAppsScriptScriptUrl() {
         return '';
     },
 
     /**
-     * URL ???? getProfileImage (???? ?? Drive ?? JSON ???? dataUri) � ?????? ??? hotlinking ?? Google Drive ?? ??? img.
+     * URL لطلب getProfileImage (صورة من Drive كـ JSON يحوي dataUri) — يتجاوز حظر hotlinking لـ Google Drive في وسم img.
      */
     buildGetProfileImageProxyUrl(fileId) {
         const id = String(fileId || '').trim();
@@ -3667,7 +3667,7 @@ const Utils = {
     },
 
     /**
-     * ??? ???? Drive ??? ??????? ?????? data URI ????? ?? img.
+     * جلب صورة Drive عبر السكربت وإرجاع data URI للعرض في img.
      */
     async fetchDriveImageDataUri(fileId) {
         const url = this.buildGetProfileImageProxyUrl(fileId);
@@ -3683,7 +3683,7 @@ const Utils = {
     },
 
     /**
-     * ????? ????? img ???? ???? data-drive-proxy-id ?????? ?????? ??? ??????.
+     * تعبئة عناصر img التي تحمل data-drive-proxy-id بتحميل الصورة عبر الوكيل.
      * @param {ParentNode|null|undefined} rootEl
      * @param {{ onFetchFail?: (img: HTMLImageElement) => void }} [callbacks]
      */
@@ -3720,12 +3720,12 @@ const Utils = {
         }
     },
 
-    /** ???? ????? 1�1 ??????? ?? src ???? ??? ??? ??? Drive ??? ?????? */
+    /** صورة شفافة 1×1 تُستخدم كـ src مؤقت قبل جلب صور Drive عبر الوكيل */
     IMG_DRIVE_PLACEHOLDER_GIF: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
 
     /**
-     * ????? ???? ??? ?????: ????? Google Drive ????? ??? ???? getProfileImage ??? ???? scriptUrl.
-     * @param {*} source - ?? ?? ???? ??????? ??? normalizeImageSource
+     * توحيد منطق عرض الصور: روابط Google Drive تُعرض عبر وكيل getProfileImage عند توفر scriptUrl.
+     * @param {*} source - نص أو كائن يُمرَّر إلى normalizeImageSource
      * @returns {{ canonical: string, displaySrc: string, proxyFileId: string, needsProxy: boolean }}
      */
     resolveDriveAwareImgDisplay(source) {
@@ -3761,7 +3761,7 @@ const Utils = {
     },
 
     /**
-     * ???? HTML ???? img ??? ??????? ???? Drive (?? resolveDriveAwareImgDisplay).
+     * سمات HTML لوسم img عند استخدام وكيل Drive (مع resolveDriveAwareImgDisplay).
      * @param {{ needsProxy?: boolean, proxyFileId?: string }} info
      */
     driveProxyImgAttrs(info) {
@@ -3782,7 +3782,7 @@ const Utils = {
         const normalized = this.normalizeContractorIdentityValue(value);
         if (!normalized) return '';
         return normalized
-            .replace(/["'`.,??:(){}\[\]<>_\-\/\\|]+/g, ' ')
+            .replace(/["'`.,،؛:(){}\[\]<>_\-\/\\|]+/g, ' ')
             .replace(/\s+/g, ' ')
             .trim();
     },
@@ -3991,7 +3991,7 @@ const Utils = {
             violationBelongsToContractor(record) {
                 if (!record || typeof record !== 'object') return false;
                 const personType = normalizeValue(record.personType);
-                if ((personType === 'employee' || personType === '????') &&
+                if ((personType === 'employee' || personType === 'موظف') &&
                     !record.contractorName &&
                     !record.contractorId &&
                     !record.contractorCode &&
@@ -4097,7 +4097,7 @@ const Utils = {
     },
 
     /**
-     * ?????? ?? ??? ?????? ??????????
+     * التحقق من صحة البريد الإلكتروني
      */
     isValidEmail(email) {
         if (!email || typeof email !== 'string') return false;
@@ -4130,17 +4130,17 @@ const Utils = {
     },
 
     async normalizePasswordForComparison(inputPassword, storedPassword) {
-        Utils.safeLog('?? normalizePasswordForComparison:', {
+        Utils.safeLog('🔧 normalizePasswordForComparison:', {
             inputPasswordLength: inputPassword?.length || 0,
             storedPasswordLength: storedPassword?.length || 0,
-            storedPasswordPrefix: storedPassword ? (storedPassword.substring(0, 20) + '...') : '??? ?????',
+            storedPasswordPrefix: storedPassword ? (storedPassword.substring(0, 20) + '...') : 'غير موجود',
             isStoredPasswordHash: storedPassword ? this.isSha256Hex(storedPassword) : false
         });
 
         if (storedPassword && this.isSha256Hex(storedPassword)) {
             try {
                 const hashedInput = await this.sha256(inputPassword);
-                Utils.safeLog('? ?? ????? ???? ?????? ???????:', {
+                Utils.safeLog('✅ تم تشفير كلمة المرور المدخلة:', {
                     inputPasswordLength: inputPassword.length,
                     hashedInputLength: hashedInput.length,
                     hashedInputPrefix: hashedInput.substring(0, 20) + '...',
@@ -4148,17 +4148,17 @@ const Utils = {
                 });
                 return hashedInput;
             } catch (error) {
-                Utils.safeWarn('? ???? ????? SHA-256 ????????:', error);
+                Utils.safeWarn('⚠ تعذر توليد SHA-256 للمقارنة:', error);
                 return inputPassword;
             }
         }
 
-        Utils.safeWarn('? storedPassword ??? hash ???? - ????? inputPassword ??? ??');
+        Utils.safeWarn('⚠ storedPassword ليس hash صحيح - إرجاع inputPassword كما هو');
         return inputPassword;
     },
 
     /**
-     * ????? ???????
+     * تنسيق التاريخ
      */
     formatDateForInput(date) {
         if (!date) return '';
@@ -4216,13 +4216,13 @@ const Utils = {
                 calendar: dateFormat === 'hijri' ? 'islamic' : 'gregory'
             });
         } catch (error) {
-            Utils.safeError('??? ?? ????? ???????:', error);
+            Utils.safeError('خطأ في تنسيق التاريخ:', error);
             return '-';
         }
     },
 
     /**
-     * ????? ??????? ??????
+     * تنسيق التاريخ والوقت
      */
     formatDateTime(date, locale = null) {
         if (!date) return '-';
@@ -4234,13 +4234,13 @@ const Utils = {
         try {
             let d;
             
-            // ? ?????? ????? ????? ????? ???????
-            // ??? ??? Date object ??????
+            // ✅ معالجة شاملة لجميع أنواع التاريخ
+            // إذا كان Date object مباشرة
             if (date instanceof Date) {
                 if (isNaN(date.getTime())) return '-';
                 d = date;
             } else {
-                // ?????? strings
+                // معالجة strings
                 let dateStr = String(date).trim();
                 
                 const dmyMatch = dateStr.match(/^(\d{1,2})[/\-](\d{1,2})[/\-](\d{4})(?:[T ](\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
@@ -4256,16 +4256,16 @@ const Utils = {
                         0
                     );
                 }
-                // ??? ???? ????? ISO ????? (????? ??? T ? Z ?? +)
+                // إذا كانت بصيغة ISO كاملة (تحتوي على T و Z أو +)
                 else if (dateStr.includes('T') && (dateStr.includes('Z') || dateStr.includes('+') || dateStr.match(/-\d{2}:\d{2}$/))) {
                     d = new Date(dateStr);
                 }
-                // ??? ???? ????? yyyy-MM-dd ??? (10 ????)? ???? ??? ???????
+                // إذا كانت بصيغة yyyy-MM-dd فقط (10 أحرف)، نضيف وقت افتراضي
                 else if (dateStr.length === 10 && dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                    // ?????? 00:00:00 ???? ??????? ???????? ???????
+                    // نستخدم 00:00:00 كوقت افتراضي للبيانات القديمة
                     d = new Date(dateStr + 'T00:00:00');
                 }
-                // ?????? ????? ?? ???? ????
+                // محاولة تحويل أي صيغة أخرى
                 else {
                     d = new Date(dateStr);
                 }
@@ -4289,81 +4289,81 @@ const Utils = {
 
             return d.toLocaleString(useLocale, options);
         } catch (error) {
-            Utils.safeError('??? ?? ????? ??????? ??????:', error);
+            Utils.safeError('خطأ في تنسيق التاريخ والوقت:', error);
             return '-';
         }
     },
 
     /**
-     * ????? ISO string ?? Date ??? ????? datetime-local ????? ?? ???? ???????
-     * ???? ?????? ??????? ?? UTC ??? ??????? ?????? ???? ????
-     * @param {string|Date} isoOrDate - ????? ?????? ISO string ?? ???? Date
-     * @returns {string} ????? ?????? yyyy-MM-ddTHH:mm ????????? ?? ???? datetime-local
+     * تحويل ISO string أو Date إلى تنسيق datetime-local للعرض في حقول الإدخال
+     * يقوم بتحويل التوقيت من UTC إلى التوقيت المحلي بشكل صحيح
+     * @param {string|Date} isoOrDate - تاريخ بتنسيق ISO string أو كائن Date
+     * @returns {string} تاريخ بتنسيق yyyy-MM-ddTHH:mm للاستخدام في حقول datetime-local
      */
     toDateTimeLocalString(isoOrDate) {
         if (!isoOrDate) return '';
         try {
             const date = isoOrDate instanceof Date ? isoOrDate : new Date(isoOrDate);
             if (isNaN(date.getTime())) return '';
-            // ????? ?? UTC ??? ??????? ??????
+            // تحويل من UTC إلى التوقيت المحلي
             const offset = date.getTimezoneOffset();
             const localDate = new Date(date.getTime() - offset * 60000);
             return localDate.toISOString().slice(0, 16);
         } catch (error) {
-            Utils.safeError('??? ?? ????? ??????? ??? datetime-local:', error);
+            Utils.safeError('خطأ في تحويل التاريخ إلى datetime-local:', error);
             return '';
         }
     },
 
     /**
-     * ????? datetime-local string ??? ISO string ???? ????
-     * ????? ??? ????? ?????? ?????? ?? ??? ????????
-     * @param {string} dateTimeLocalString - ???? datetime-local ????? YYYY-MM-DDTHH:mm
-     * @returns {string|null} ISO string ?? null ??? ???? ?????? ??? ?????
+     * تحويل datetime-local string إلى ISO string بشكل صحيح
+     * يحافظ على الوقت المحلي المدخل من قبل المستخدم
+     * @param {string} dateTimeLocalString - قيمة datetime-local بصيغة YYYY-MM-DDTHH:mm
+     * @returns {string|null} ISO string أو null إذا كانت القيمة غير صحيحة
      */
     dateTimeLocalToISO(dateTimeLocalString) {
         if (!dateTimeLocalString || !dateTimeLocalString.trim()) return null;
         try {
-            // datetime-local ???? ???? local time ????? YYYY-MM-DDTHH:mm
-            // ????? ?????? Date object ???? ??? ????? ?????? ???? ????
+            // datetime-local يعيد قيمة local time بصيغة YYYY-MM-DDTHH:mm
+            // نحتاج لإنشاء Date object يمثل هذا الوقت المحلي بشكل صحيح
             const [datePart, timePart] = dateTimeLocalString.trim().split('T');
             if (datePart && timePart) {
                 const [year, month, day] = datePart.split('-').map(Number);
                 const [hours, minutes] = timePart.split(':').map(Number);
                 
-                // ????? Date object ???????? ????? ??????
+                // إنشاء Date object باستخدام الوقت المحلي
                 const localDate = new Date(year, month - 1, day, hours, minutes, 0, 0);
                 if (!isNaN(localDate.getTime())) {
-                    // ????? ??? ISO string (???? ?????? ??? UTC ????????)
+                    // تحويل إلى ISO string (سيتم تحويله إلى UTC تلقائياً)
                     return localDate.toISOString();
                 }
             }
-            // Fallback: ??????? ??????? ??????? ??? ??? ???????
+            // Fallback: استخدام الطريقة القديمة إذا فشل التحليل
             const date = new Date(dateTimeLocalString);
             if (!isNaN(date.getTime())) {
                 return date.toISOString();
             }
             return null;
         } catch (error) {
-            Utils.safeError('??? ?? ????? datetime-local ??? ISO:', error);
+            Utils.safeError('خطأ في تحويل datetime-local إلى ISO:', error);
             return null;
         }
     },
 
     /**
-     * ????? ???? ???? (??????? ??????? - ??????? ?? ????? ??????)
+     * إنشاء معرف فريد (الطريقة القديمة - للتوافق مع الكود القديم)
      */
     generateId(prefix = 'ID') {
         return `${prefix}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     },
 
     /**
-     * ????? ???? ?????? ?????? [PREFIX]_[NUMBER]
-     * ??? PTW_01, INC_01, ???
+     * توليد معرف متسلسل بتنسيق [PREFIX]_[NUMBER]
+     * مثل PTW_01, INC_01, إلخ
      * 
-     * @param {string} prefix - ??????? (3 ????) ??? PTW, INC, NRM
-     * @param {Array} existingData - ???????? ???????? ?? ????? ????????
-     * @returns {string} ???? ???? ???????? PREFIX_NUMBER
+     * @param {string} prefix - البادئة (3 أحرف) مثل PTW, INC, NRM
+     * @param {Array} existingData - البيانات الموجودة من قاعدة البيانات
+     * @returns {string} معرف جديد بالتنسيق PREFIX_NUMBER
      */
     generateSequentialId(prefix, existingData = []) {
         try {
@@ -4373,19 +4373,19 @@ const Utils = {
                 return this.generateId(prefix);
             }
 
-            // ????? ??????? ??? ???? ?????
+            // تحويل البادئة إلى أحرف كبيرة
             prefix = prefix.toUpperCase();
 
-            // ??????? ???? ??????? ???????? ?????? PREFIX_NUMBER
+            // استخراج جميع الأرقام الموجودة بتنسيق PREFIX_NUMBER
             const existingNumbers = [];
             if (existingData && Array.isArray(existingData)) {
                 existingData.forEach(record => {
                     if (record && record.id) {
                         const id = record.id.toString();
-                        // ?????? ?? ???????: PREFIX_NUMBER (??? PTW_01, PTW_100, ???)
+                        // التحقق من التنسيق: PREFIX_NUMBER (مثل PTW_01, PTW_100, إلخ)
                         const pattern = new RegExp('^' + prefix + '_\\d+$');
                         if (pattern.test(id)) {
-                            // ??????? ?????
+                            // استخراج الرقم
                             const numberPart = id.split('_')[1];
                             const number = parseInt(numberPart, 10);
                             if (!isNaN(number) && number > 0) {
@@ -4396,36 +4396,36 @@ const Utils = {
                 });
             }
 
-            // ???? ????? ??????
+            // حساب الرقم التالي
             let nextNumber = 1;
             if (existingNumbers.length > 0) {
                 nextNumber = Math.max(...existingNumbers) + 1;
             }
 
-            // ?????? ?? ??? ????? ???? ?????? (1000000)
+            // التأكد من عدم تجاوز الحد الأقصى (1000000)
             if (nextNumber > 1000000) {
                 console.warn('Warning: Sequential number exceeded maximum (1000000), using fallback');
                 return this.generateId(prefix);
             }
 
-            // ????? ?????? ??????
+            // إرجاع المعرف الجديد
             return prefix + '_' + nextNumber.toString();
 
         } catch (error) {
             console.error('Error in generateSequentialId:', error);
-            // ?? ???? ?????? ?????? ??????? ??????? ?????
+            // في حالة الخطأ، نستخدم الطريقة القديمة كبديل
             return this.generateId(prefix);
         }
     },
 
     /**
-     * ?????? ??? ??????? ???????? ????????
-     * @param {string} moduleName - ??? ????????
-     * @returns {string} ??????? (3 ????)
+     * الحصول على البادئة المناسبة للموديول
+     * @param {string} moduleName - اسم الموديول
+     * @returns {string} البادئة (3 أحرف)
      */
     getModulePrefix(moduleName) {
         const prefixMap = {
-            // ??????? ????????
+            // الحوادث والسلامة
             'incidents': 'INC',
             'Incidents': 'INC',
             'nearmiss': 'NRM',
@@ -4435,13 +4435,13 @@ const Utils = {
             'violations': 'VIO',
             'Violations': 'VIO',
 
-            // ??????? ?????????
+            // التدريب والموظفين
             'training': 'TRN',
             'Training': 'TRN',
             'employees': 'EMP',
             'Employees': 'EMP',
 
-            // ??????? ????????
+            // المعدات والسلامة
             'fireequipment': 'FEA',
             'FireEquipment': 'FEA',
             'fireequipmentassets': 'EFA',
@@ -4461,8 +4461,8 @@ const Utils = {
             'periodicinspectionrecords': 'PIR',
             'PeriodicInspectionRecords': 'PIR',
 
-            // ????????? ????????
-            // ? ?? ????? 'contractors' ? 'Contractors' - ????? ??? ??? ApprovedContractors
+            // المقاولين والعيادة
+            // ✅ تم إزالة 'contractors' و 'Contractors' - نعتمد فقط على ApprovedContractors
             'approvedcontractors': 'ACN',
             'ApprovedContractors': 'ACN',
             'contractorevaluations': 'CEV',
@@ -4479,7 +4479,7 @@ const Utils = {
             'clinicinventory': 'CLI',
             'ClinicInventory': 'CLI',
 
-            // ISO ? HSE
+            // ISO و HSE
             'iso': 'ISO',
             'isodocuments': 'ISD',
             'ISODocuments': 'ISD',
@@ -4499,7 +4499,7 @@ const Utils = {
             'hseriskassessments': 'HSR',
             'HSERiskAssessments': 'HSR',
 
-            // ????? ??????? ??????????
+            // تقييم المخاطر والمستندات
             'riskassessments': 'RSA',
             'RiskAssessments': 'RSA',
             'legaldocuments': 'LGD',
@@ -4507,7 +4507,7 @@ const Utils = {
             'sopjha': 'SOP',
             'SOPJHA': 'SOP',
 
-            // ???????? ??????????
+            // المراقبة والملاحظات
             'behaviormonitoring': 'BHM',
             'BehaviorMonitoring': 'BHM',
             'chemicalsafety': 'CHS',
@@ -4517,7 +4517,7 @@ const Utils = {
             'observationsites': 'OBS',
             'ObservationSites': 'OBS',
 
-            // ????????? ???????
+            // الاستدامة والبيئة
             'sustainability': 'SUS',
             'Sustainability': 'SUS',
             'environmentalaspects': 'ENA',
@@ -4535,7 +4535,7 @@ const Utils = {
             'recyclingprograms': 'RCP',
             'RecyclingPrograms': 'RCP',
 
-            // ??????? ??????????
+            // الطوارئ والميزانية
             'emergency': 'EMG',
             'emergencyalerts': 'EMA',
             'EmergencyAlerts': 'EMA',
@@ -4548,7 +4548,7 @@ const Utils = {
             'safetybudgettransactions': 'SBT',
             'SafetyBudgetTransactions': 'SBT',
 
-            // ?????? ?????? ???????
+            // مؤشرات الأداء والمهام
             'safetyperformancekpis': 'SPK',
             'SafetyPerformanceKPIs': 'SPK',
             'safetyteamkpis': 'STK',
@@ -4560,7 +4560,7 @@ const Utils = {
             'userinstructions': 'UIN',
             'UserInstructions': 'UIN',
 
-            // ????? ??????? ?????? ???????
+            // إدارة السلامة والصحة المهنية
             'safetyhealthmanagement': 'SHM',
             'SafetyHealthManagement': 'SHM',
             'safetyteammembers': 'STM',
@@ -4576,7 +4576,7 @@ const Utils = {
             'safetyteamtasks': 'STT',
             'SafetyTeamTasks': 'STT',
 
-            // ????? ?????????
+            // أنواع المخالفات
             'violationtypes': 'VTY',
             'ViolationTypes': 'VTY',
             'violation_types_db': 'VTY',
@@ -4584,7 +4584,7 @@ const Utils = {
             'blacklist_register': 'BLR',
             'Blacklist_Register': 'BLR',
 
-            // ??????? ??????
+            // مصفوفات ومخزون
             'ppematrix': 'PPM',
             'PPEMatrix': 'PPM',
             'ppe_stock': 'PPS',
@@ -4592,7 +4592,7 @@ const Utils = {
             'ppe_transactions': 'PPT',
             'PPE_Transactions': 'PPT',
 
-            // ??????? ???????
+            // التدريب المتقدم
             'employeetrainingmatrix': 'ETM',
             'EmployeeTrainingMatrix': 'ETM',
             'contractortrainings': 'CTR',
@@ -4600,7 +4600,7 @@ const Utils = {
             'annualtrainingplans': 'ATP',
             'AnnualTrainingPlans': 'ATP',
 
-            // ??????? ??????????
+            // السجلات والإشعارات
             'auditlog': 'AUD',
             'AuditLog': 'AUD',
             'useractivitylog': 'UAL',
@@ -4610,7 +4610,7 @@ const Utils = {
             'incidentnotifications': 'INO',
             'IncidentNotifications': 'INO',
 
-            // ???????
+            // إعدادات
             'form_settings_db': 'FSD',
             'Form_Settings_DB': 'FSD',
             'aiassistantsettings': 'AIA',
@@ -4627,7 +4627,7 @@ const Utils = {
     },
 
     /**
-     * ????? ???? ?????? ???????? SHA-256
+     * تشفير كلمة المرور باستخدام SHA-256
      */
     async hashPassword(password) {
         if (!password) return '';
@@ -4639,34 +4639,34 @@ const Utils = {
     },
 
     /**
-     * ?????? ?? ???? ?????? (??????? ??? - ????? ??? ???? ??????)
+     * التحقق من كلمة المرور (التشفير فقط - إزالة دعم النص العادي)
      */
     async verifyPassword(password, storedPassword) {
         if (!password || !storedPassword) return false;
-        // ?????? ????? ??????? ??? - ?? ??? ???? ??????
+        // الأمان يتطلب التشفير فقط - لا دعم للنص العادي
         if (!this.isSha256Hex(storedPassword)) {
-            Utils.safeWarn('?? ?????? ?????? ?? ???? ???? ??? ????? - ??????');
+            Utils.safeWarn('⚠️ محاولة التحقق من كلمة مرور غير مشفرة - مرفوضة');
             return false;
         }
-        // ?????? ?? ???? ?????? ???????
+        // التحقق من كلمة المرور المشفرة
         const hashedPassword = await this.hashPassword(password);
         return hashedPassword.toLowerCase() === storedPassword.toLowerCase();
     },
 
     /**
-     * ?????? ?? ?? ???? ?????? ?????
+     * التحقق من أن كلمة المرور مشفرة
      */
     isHashedPassword(password) {
         return password && password.length === 64 && /^[a-f0-9]+$/i.test(password);
     },
 
     /**
-     * Rate Limiting ?????? ??????
+     * Rate Limiting لتسجيل الدخول
      */
     RateLimiter: {
         MAX_ATTEMPTS: 5,
-        LOCKOUT_DURATION: 15 * 60 * 1000, // 15 ?????
-        ATTEMPT_WINDOW: 60 * 1000, // ????? 1 ?????
+        LOCKOUT_DURATION: 15 * 60 * 1000, // 15 دقيقة
+        ATTEMPT_WINDOW: 60 * 1000, // نافذة 1 دقيقة
 
         getAttemptsKey(email) {
             return `login_attempts_${email.toLowerCase()}`;
@@ -4683,16 +4683,16 @@ const Utils = {
 
                 if (lockout.locked && Date.now() < lockout.until) {
                     const minutesLeft = Math.ceil((lockout.until - Date.now()) / 60000);
-                    throw new Error(`?????? ???? ?????? ???? ??????? ????? ???? ????? ??????. ???? ???????? ??? ${minutesLeft} ?????.`);
+                    throw new Error(`الحساب مقفل مؤقتاً بسبب محاولات تسجيل دخول فاشلة متعددة. يرجى المحاولة بعد ${minutesLeft} دقيقة.`);
                 }
 
-                // ????? ????? ??? ????? ?????
+                // إزالة القفل إذا انتهت المدة
                 if (lockout.locked && Date.now() >= lockout.until) {
                     localStorage.removeItem(lockoutKey);
                     localStorage.removeItem(this.getAttemptsKey(email));
                 }
             } catch (error) {
-                // ?? ???? ??? ?? parsing? ???? ???????? ???????
+                // في حالة خطأ في parsing، نزيل البيانات القديمة
                 localStorage.removeItem(lockoutKey);
                 localStorage.removeItem(this.getAttemptsKey(email));
             }
@@ -4704,13 +4704,13 @@ const Utils = {
                 const attempts = JSON.parse(localStorage.getItem(key) || '[]');
                 const now = Date.now();
 
-                // ????? ????????? ??????? (???? ?? ????? ?????)
+                // إزالة المحاولات القديمة (أكثر من نافذة الوقت)
                 const recentAttempts = attempts.filter(time => now - time < this.ATTEMPT_WINDOW);
                 recentAttempts.push(now);
 
                 localStorage.setItem(key, JSON.stringify(recentAttempts));
 
-                // ??? ????? ????? ??? ??????
+                // إذا تجاوز الحد، قفل الحساب
                 if (recentAttempts.length >= this.MAX_ATTEMPTS) {
                     const lockoutKey = this.getLockoutKey(email);
                     localStorage.setItem(lockoutKey, JSON.stringify({
@@ -4718,21 +4718,21 @@ const Utils = {
                         until: now + this.LOCKOUT_DURATION
                     }));
                     const minutes = Math.ceil(this.LOCKOUT_DURATION / 60000);
-                    throw new Error(`?? ??? ?????? ?????? ???? ??????? ????? ???? ????? ??????. ???? ???????? ??? ${minutes} ?????.`);
+                    throw new Error(`تم قفل الحساب مؤقتاً بسبب محاولات تسجيل دخول فاشلة متعددة. يرجى المحاولة بعد ${minutes} دقيقة.`);
                 }
 
                 const remaining = this.MAX_ATTEMPTS - recentAttempts.length;
                 if (remaining > 0) {
-                    throw new Error(`???? ?????? ??? ?????. ??????? ??????: ${remaining}`);
+                    throw new Error(`كلمة المرور غير صحيحة. محاولات متبقية: ${remaining}`);
                 }
             } catch (error) {
-                // ??? ??? ????? ?? recordFailedAttempt ????? ?????
-                if (error.message.includes('???') || error.message.includes('??????')) {
+                // إذا كان الخطأ من recordFailedAttempt نفسه، نرميه
+                if (error.message.includes('قفل') || error.message.includes('متبقية')) {
                     throw error;
                 }
-                // ???? ???? ????? ????????
+                // وإلا نعيد إنشاء البيانات
                 localStorage.setItem(key, JSON.stringify([Date.now()]));
-                throw new Error(`???? ?????? ??? ?????. ??????? ??????: ${this.MAX_ATTEMPTS - 1}`);
+                throw new Error(`كلمة المرور غير صحيحة. محاولات متبقية: ${this.MAX_ATTEMPTS - 1}`);
             }
         },
 
@@ -4743,7 +4743,7 @@ const Utils = {
     },
 
     /**
-     * ??? ??????? ????????
+     * فحص الملفات المرفوعة
      */
     FileValidator: {
         ALLOWED_MIME_TYPES: [
@@ -4767,7 +4767,7 @@ const Utils = {
 
         MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB
 
-        // Magic Bytes ?????? ?? ??? ????? ??????
+        // Magic Bytes للتحقق من نوع الملف الفعلي
         FILE_SIGNATURES: {
             'image/jpeg': [0xFF, 0xD8, 0xFF],
             'image/png': [0x89, 0x50, 0x4E, 0x47],
@@ -4776,28 +4776,28 @@ const Utils = {
         },
 
         async validateFile(file) {
-            // 1. ??? ??? ?????
+            // 1. فحص حجم الملف
             if (file.size > this.MAX_FILE_SIZE) {
-                throw new Error(`??? ????? ???? ????. ???? ??????: ${Math.round(this.MAX_FILE_SIZE / 1024 / 1024)}MB`);
+                throw new Error(`حجم الملف كبير جداً. الحد الأقصى: ${Math.round(this.MAX_FILE_SIZE / 1024 / 1024)}MB`);
             }
 
-            // 2. ??? ????????
+            // 2. فحص الامتداد
             const extension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
             if (!this.ALLOWED_EXTENSIONS.includes(extension)) {
-                throw new Error(`?????? ????? ??? ?????: ${extension}. ??????? ????????: ${this.ALLOWED_EXTENSIONS.join(', ')}`);
+                throw new Error(`امتداد الملف غير مسموح: ${extension}. الملفات المسموحة: ${this.ALLOWED_EXTENSIONS.join(', ')}`);
             }
 
-            // 3. ??? ??? MIME
+            // 3. فحص نوع MIME
             if (file.type && !this.ALLOWED_MIME_TYPES.includes(file.type)) {
-                throw new Error(`??? ????? ??? ?????: ${file.type}`);
+                throw new Error(`نوع الملف غير مسموح: ${file.type}`);
             }
 
-            // 4. ??? ??? ????? (??? ????? ?????)
+            // 4. فحص اسم الملف (منع أسماء خطيرة)
             if (this.isDangerousFileName(file.name)) {
-                throw new Error('??? ????? ??? ???. ???? ??????? ??? ??? ????');
+                throw new Error('اسم الملف غير آمن. يرجى استخدام اسم ملف صحيح');
             }
 
-            // 5. ??? Magic Bytes (??????? - ????? ???? PDF ???)
+            // 5. فحص Magic Bytes (اختياري - للصور والـ PDF فقط)
             if (file.type && (file.type.startsWith('image/') || file.type === 'application/pdf')) {
                 try {
                     const arrayBuffer = await file.slice(0, 4).arrayBuffer();
@@ -4805,11 +4805,11 @@ const Utils = {
                     const mimeType = this.detectMimeTypeFromBytes(bytes);
 
                     if (mimeType && mimeType !== file.type) {
-                        throw new Error('??? ????? ?????? ?? ????? ????? ????? ??????');
+                        throw new Error('نوع الملف المعلن لا يطابق محتوى الملف الفعلي');
                     }
                 } catch (error) {
-                    // ??? ??? ?????? ???? ?????? (???? ?? ???? ??? ????)
-                    Utils.safeWarn('?????: ??? ??? ????? ?????:', error);
+                    // إذا فشل الفحص، نسمح بالملف (لأنه قد يكون ملف صالح)
+                    Utils.safeWarn('تحذير: فشل فحص محتوى الملف:', error);
                 }
             }
 
@@ -4838,48 +4838,48 @@ const Utils = {
     },
 
     /**
-     * ????? ????? ??? ??????? ????????
-     * @param {string|Error} error - ????? ????? ?? ???? ?????
-     * @param {string} defaultMessage - ??????? ?????????? ??? ?? ??? ?????? ??? ??? ?????
-     * @returns {object} - ???? ????? ??? message ? recommendation
+     * تنسيق رسالة خطأ الاتصال بالخلفية
+     * @param {string|Error} error - رسالة الخطأ أو كائن الخطأ
+     * @param {string} defaultMessage - الرسالة الافتراضية إذا لم يتم التعرف على نوع الخطأ
+     * @returns {object} - كائن يحتوي على message و recommendation
      */
-    formatBackendError(error, defaultMessage = '??? ??? ?? ??????? ????????') {
+    formatBackendError(error, defaultMessage = 'حدث خطأ في الاتصال بالخلفية') {
         const errorMessage = error?.message || error?.toString() || String(error || '');
         let message = defaultMessage;
-        let recommendation = '???? ?? ??????? Google Integration ?????? ????????';
+        let recommendation = 'تحقق من إعدادات Google Integration واتصال الإنترنت';
 
-        // ?????? ?? ??? ????? ?????? ???????
-        if (errorMessage.includes('?????? ??????? ??? ????') ||
-            errorMessage.includes('??? ?????') ||
-            errorMessage.includes('??? ????')) {
-            message = '?????? ??????? ??? ?????';
-            recommendation = '???? ????? ?????? ??????? ?? ????????? ?????? ???? ??????';
-        } else if (errorMessage.includes('????') && (errorMessage.includes('??? ????') || errorMessage.includes('??? ????'))) {
-            message = '???? ?????? ??????? ??? ???? ?? ??? ????';
-            recommendation = '??? ?? ????? ???? ?????? ?? /exec (????: https://script.google.com/macros/s/.../exec)';
+        // التحقق من نوع الخطأ وتنسيق الرسالة
+        if (errorMessage.includes('الخادم السحابي غير مفعل') ||
+            errorMessage.includes('غير مفعّل') ||
+            errorMessage.includes('غير مفعل')) {
+            message = 'الخادم السحابي غير مفعّل';
+            recommendation = 'يرجى تفعيل الخادم السحابي من الإعدادات وإدخال رابط الخادم';
+        } else if (errorMessage.includes('رابط') && (errorMessage.includes('غير صحيح') || errorMessage.includes('غير محدد'))) {
+            message = 'رابط الخادم السحابي غير صحيح أو غير محدد';
+            recommendation = 'يجب أن ينتهي رابط الخادم بـ /exec (مثال: https://script.google.com/macros/s/.../exec)';
         } else if (errorMessage.includes('Timeout') ||
-            errorMessage.includes('????? ????') ||
+            errorMessage.includes('انتهت مهلة') ||
             errorMessage.includes('timeout') ||
             errorMessage.includes('timed out')) {
-            message = '????? ???? ??????? ???????';
-            recommendation = '???? ??:\n1. ????? ????????\n2. ?? ?????? ??????? ????? ??????\n3. ??? ???? ???? ??? ??????';
+            message = 'انتهت مهلة الاتصال بالخادم';
+            recommendation = 'تحقق من:\n1. اتصال الإنترنت\n2. أن الخادم السحابي منشور ومفعّل\n3. عدم وجود قيود على الشبكة';
         } else if (errorMessage.includes('Failed to fetch') ||
             errorMessage.includes('NetworkError') ||
             errorMessage.includes('CORS') ||
             errorMessage.includes('Network request failed')) {
-            message = '??? ??????? ???????';
-            recommendation = '???? ??:\n1. ????? ????????\n2. ???? ?????? ??????? ????\n3. ?? ?????? ????? ??????';
-        } else if (errorMessage.includes('??? ????? ??') ||
+            message = 'فشل الاتصال بالخادم';
+            recommendation = 'تحقق من:\n1. اتصال الإنترنت\n2. رابط الخادم السحابي صحيح\n3. أن الخادم منشور ومفعّل';
+        } else if (errorMessage.includes('غير معترف به') ||
             errorMessage.includes('Action not recognized') ||
             errorMessage.includes('ACTION_NOT_RECOGNIZED')) {
-            message = errorMessage; // ??????? ??????? ????????? ?? ??????
-            recommendation = '???? ?? ?? ????? ?????? ???? ??????? ?? ????? ???????';
-        } else if (errorMessage.includes('??? ???????') ||
+            message = errorMessage; // استخدام الرسالة التفصيلية من الخادم
+            recommendation = 'تحقق من أن إصدار الخادم محدث ويتوافق مع إصدار الواجهة';
+        } else if (errorMessage.includes('فشل الاتصال') ||
             errorMessage.includes('Connection failed')) {
-            message = errorMessage.includes('??? ???????') ? errorMessage : '??? ??????? ????????';
-            recommendation = '???? ??:\n1. ??????? Google Integration\n2. ????? ????????\n3. ?? ?????? ??????? ????? ??????';
+            message = errorMessage.includes('فشل الاتصال') ? errorMessage : 'فشل الاتصال بالخلفية';
+            recommendation = 'تحقق من:\n1. إعدادات Google Integration\n2. اتصال الإنترنت\n3. أن الخادم السحابي منشور ومفعّل';
         } else if (errorMessage.trim() !== '') {
-            // ??? ???? ??????? ?????? ???????? ??? ??
+            // إذا كانت الرسالة واضحة، نستخدمها كما هي
             message = errorMessage;
         }
 
@@ -4887,14 +4887,14 @@ const Utils = {
     },
 
     /**
-     * ??? ????? ?????
-     * @param {string} title - ????? ???????
-     * @param {string} message - ????? ???????
-     * @param {string} confirmText - ?? ?? ???????
-     * @param {string} cancelText - ?? ?? ???????
-     * @returns {Promise<boolean>} - true ??? ?? ???????? false ??? ?? ???????
+     * عرض نافذة تأكيد
+     * @param {string} title - عنوان النافذة
+     * @param {string} message - رسالة التأكيد
+     * @param {string} confirmText - نص زر التأكيد
+     * @param {string} cancelText - نص زر الإلغاء
+     * @returns {Promise<boolean>} - true إذا تم التأكيد، false إذا تم الإلغاء
      */
-    confirmDialog(title, message, confirmText = '?????', cancelText = '?????') {
+    confirmDialog(title, message, confirmText = 'تأكيد', cancelText = 'إلغاء') {
         return new Promise((resolve) => {
             const modal = document.createElement('div');
             modal.className = 'modal-overlay';
@@ -4949,7 +4949,7 @@ const Utils = {
                 }
             });
 
-            // ????? ??? ????? ??? ESC
+            // إغلاق عند الضغط على ESC
             const handleEsc = (e) => {
                 if (e.key === 'Escape') {
                     closeModal(false);
@@ -4961,7 +4961,7 @@ const Utils = {
     },
 
     /**
-     * Debounce � ????? ????? ?????? ??? ????? ????????? ??????? (????? ?????).
+     * Debounce — يؤخّر تنفيذ الدالة حتى يتوقف الاستدعاء المتكرر (للبحث وغيره).
      */
     debounce(fn, delay = 300) {
         let timer = null;
@@ -4979,67 +4979,67 @@ const Utils = {
 const DEFAULT_PERIODIC_INSPECTION_CATEGORIES = [
     {
         id: 'default_periodic_vehicle',
-        name: '??? ?????? ????????',
-        description: '?????? ?????? ?????? ???????? ????????? ???????? ???????.',
+        name: 'فحص سيارات الموظفين',
+        description: 'متابعة جاهزية مركبات الموظفين ومطابقتها لمتطلبات السلامة.',
         defaultFrequency: 'monthly',
         defaultReminderDays: 5,
         isDefault: true,
         checklist: [
-            { id: 'default_periodic_vehicle_1', label: '?????? ??????? ???????', required: true },
-            { id: 'default_periodic_vehicle_2', label: '??? ???????? ?????? ??????', required: true },
-            { id: 'default_periodic_vehicle_3', label: '???? ????? ????????? ?????? ????', required: false }
+            { id: 'default_periodic_vehicle_1', label: 'صلاحية التأمين والرخصة', required: true },
+            { id: 'default_periodic_vehicle_2', label: 'فحص الإطارات ومستوى التآكل', required: true },
+            { id: 'default_periodic_vehicle_3', label: 'وجود حقيبة الإسعافات وطفاية حريق', required: false }
         ]
     },
     {
         id: 'default_periodic_forklift',
-        name: '??? ???????? ??????? (?????????)',
-        description: '???? ?? ????? ?????? ???????? ??????? ?? ????? ?????.',
+        name: 'فحص الرافعات الشوكية (الكلاركات)',
+        description: 'تأكد من سلامة وتشغيل الرافعات الشوكية في مواقع العمل.',
         defaultFrequency: 'weekly',
         defaultReminderDays: 3,
         isDefault: true,
         checklist: [
-            { id: 'default_periodic_forklift_1', label: '????? ???? ??????? ????????', required: true },
-            { id: 'default_periodic_forklift_2', label: '????? ????? ????? ???? ???? ??????', required: true },
-            { id: 'default_periodic_forklift_3', label: '??? ???????? ?? ?????? ??????????', required: true }
+            { id: 'default_periodic_forklift_1', label: 'سلامة نظام الفرامل والإيقاف', required: true },
+            { id: 'default_periodic_forklift_2', label: 'سلامة شوكتي الرفع وعدم وجود تشققات', required: true },
+            { id: 'default_periodic_forklift_3', label: 'فحص البطارية أو الوقود والتسريبات', required: true }
         ]
     },
     {
         id: 'default_periodic_pallet',
-        name: '??? ?????? ????? ??????????',
-        description: '?????? ?????? ?????? ????? ??????? ??????????.',
+        name: 'فحص الهاند باليت الكهربائية',
+        description: 'مراجعة جاهزية وسلامة عربات التحميل الكهربائية.',
         defaultFrequency: 'weekly',
         defaultReminderDays: 3,
         isDefault: true,
         checklist: [
-            { id: 'default_periodic_pallet_1', label: '????? ???????? ??????', required: true },
-            { id: 'default_periodic_pallet_2', label: '???? ?? ????? ??????? ????????', required: true },
-            { id: 'default_periodic_pallet_3', label: '????? ??????? ???? ???? ???? ????', required: false }
+            { id: 'default_periodic_pallet_1', label: 'سلامة البطارية والشحن', required: true },
+            { id: 'default_periodic_pallet_2', label: 'تأكد من كفاءة الفرامل والطوارئ', required: true },
+            { id: 'default_periodic_pallet_3', label: 'سلامة العجلات وعدم وجود تآكل شديد', required: false }
         ]
     },
     {
         id: 'default_periodic_emergency_light',
-        name: '??? ?????? ???????',
-        description: '?????? ?? ??? ?????? ??????? ??????? ????????? ????????.',
+        name: 'فحص كشافات الطوارئ',
+        description: 'التأكد من عمل كشافات الطوارئ وفعالية البطاريات المرتبطة.',
         defaultFrequency: 'monthly',
         defaultReminderDays: 5,
         isDefault: true,
         checklist: [
-            { id: 'default_periodic_emergency_light_1', label: '????? ???? ?????? ??????? ?? ???????', required: true },
-            { id: 'default_periodic_emergency_light_2', label: '???? ???????? ??????? ?????', required: true },
-            { id: 'default_periodic_emergency_light_3', label: '????? ??? ?????? ????? ?? ?????', required: false }
+            { id: 'default_periodic_emergency_light_1', label: 'تشغيل يدوي للكشاف والتأكد من الإضاءة', required: true },
+            { id: 'default_periodic_emergency_light_2', label: 'حالة البطارية ومؤشرات الشحن', required: true },
+            { id: 'default_periodic_emergency_light_3', label: 'سلامة جسم الكشاف وخلوه من التلف', required: false }
         ]
     },
     {
         id: 'default_periodic_ladders',
-        name: '??? ??????? ??????? ?????????',
-        description: '???? ??????? ?????? ?? ??????? ????????? ??????????.',
+        name: 'فحص السلالم الثابتة والمتحركة',
+        description: 'تفقد السلالم للتأكد من سلامتها الإنشائية والتشغيلية.',
         defaultFrequency: 'quarterly',
         defaultReminderDays: 10,
         isDefault: true,
         checklist: [
-            { id: 'default_periodic_ladders_1', label: '???? ????? ???? ???? ??????', required: true },
-            { id: 'default_periodic_ladders_2', label: '????? ??????? ???? ???? ??? ?? ??????', required: true },
-            { id: 'default_periodic_ladders_3', label: '????? ????? ????? ?? ?????? ?? ??????', required: false }
+            { id: 'default_periodic_ladders_1', label: 'ثبات السلم وعدم وجود اهتزاز', required: true },
+            { id: 'default_periodic_ladders_2', label: 'سلامة الدرجات وعدم وجود كسر أو تشققات', required: true },
+            { id: 'default_periodic_ladders_3', label: 'نظافة السلم وخلوه من الزيوت أو الشحوم', required: false }
         ]
     }
 ];
@@ -5047,7 +5047,7 @@ const DEFAULT_PERIODIC_INSPECTION_CATEGORIES = [
 const DEFAULT_VIOLATION_TYPES = [
     {
         id: 'default_violation_1',
-        name: '??? ??????? ????? ???????',
+        name: 'عدم استخدام معدات الوقاية',
         description: '',
         fineAmount: 0,
         isDefault: true,
@@ -5055,7 +5055,7 @@ const DEFAULT_VIOLATION_TYPES = [
     },
     {
         id: 'default_violation_2',
-        name: '??? ????? ??????? ???????',
+        name: 'عدم اتباع إجراءات السلامة',
         description: '',
         fineAmount: 0,
         isDefault: true,
@@ -5063,7 +5063,7 @@ const DEFAULT_VIOLATION_TYPES = [
     },
     {
         id: 'default_violation_3',
-        name: '??????? ? ??????? ????????',
+        name: 'التدخين ي المناطق الممنوعة',
         description: '',
         fineAmount: 0,
         isDefault: true,
@@ -5071,7 +5071,7 @@ const DEFAULT_VIOLATION_TYPES = [
     },
     {
         id: 'default_violation_4',
-        name: '??? ?????? ??? ????? ???',
+        name: 'عدم الحصول على تصريح عمل',
         description: '',
         fineAmount: 0,
         isDefault: true,
@@ -5079,7 +5079,7 @@ const DEFAULT_VIOLATION_TYPES = [
     },
     {
         id: 'default_violation_5',
-        name: '????',
+        name: 'أخرى',
         description: '',
         fineAmount: 0,
         isDefault: true,
@@ -5101,7 +5101,7 @@ const ViolationTypesManager = {
             && Backend._isBackendRpcConfigured());
         const hasViolationTypesSynced = !!(AppState?.syncMeta?.sheets && AppState.syncMeta.sheets.ViolationTypes);
 
-        // ??? ???? ??????? ????? ??? ?? ??? ????? ViolationTypes ???? ?? ???? ??????????? ??? ?? ???? ??? ???????? ???????? ??? ???????
+        // إذا كانت الخلفية مفعلة لكن لم يتم تحميل ViolationTypes بعد، لا ننشئ الافتراضيات حتى لا نطغى على البيانات الحقيقية بعد التحميل
         if (backendEnabled && !hasViolationTypesSynced && existing.length === 0) {
             AppState.appData.violationTypes = [];
             return [];
@@ -5180,7 +5180,7 @@ const ViolationTypesManager = {
             normalized.push(normalizedItem);
         });
 
-        // ???? ??????? ?????????? ??? ????? ??? ??? ??????? ?????? (????? ?? ???? ?? ????? ??????)
+        // نضيف الأنواع الافتراضية مرة واحدة فقط عند التهيئة الأولى (عندما لا توجد أي أنواع محفوظة)
         if (normalized.length === 0) {
             DEFAULT_VIOLATION_TYPES.forEach(defaultType => {
                 normalized.push({
@@ -5211,7 +5211,7 @@ const ViolationTypesManager = {
         AppState.appData.violationTypes = normalized;
 
         if (shouldSave) {
-            // ??????? window.DataManager ????? ??? ?? ??? DataManager ?????? ??????
+            // استخدام window.DataManager كبديل إذا لم يكن DataManager متاحاً محلياً
             const dm = (typeof window !== 'undefined' && window.DataManager) ||
                 (typeof DataManager !== 'undefined' && DataManager);
             if (dm && typeof dm.save === 'function') {
@@ -5245,7 +5245,7 @@ const ViolationTypesManager = {
         });
 
         if (changed) {
-            // ??????? window.DataManager ????? ??? ?? ??? DataManager ?????? ??????
+            // استخدام window.DataManager كبديل إذا لم يكن DataManager متاحاً محلياً
             const dm = (typeof window !== 'undefined' && window.DataManager) ||
                 (typeof DataManager !== 'undefined' && DataManager);
             if (dm && typeof dm.save === 'function') {
@@ -5294,13 +5294,13 @@ const ViolationTypesManager = {
     addType({ name, description = '', fineAmount = 0 } = {}) {
         const trimmedName = (name || '').trim();
         if (!trimmedName) {
-            throw new Error('???? ????? ??? ??? ????????');
+            throw new Error('يرجى إدخال اسم نوع المخالفة');
         }
 
         this.ensureInitialized();
 
         if (this.getTypeByName(trimmedName)) {
-            throw new Error('??? ???????? ????? ??????');
+            throw new Error('نوع المخالفة موجود مسبقاً');
         }
 
         const now = new Date().toISOString();
@@ -5323,19 +5323,19 @@ const ViolationTypesManager = {
 
     updateType(id, { name, description, fineAmount, isDefault } = {}) {
         if (!id) {
-            throw new Error('???? ??? ???????? ??? ????');
+            throw new Error('معرف نوع المخالفة غير محدد');
         }
 
         this.ensureInitialized();
         const type = this.getTypeById(id);
 
         if (!type) {
-            throw new Error('??? ???????? ??? ?????');
+            throw new Error('نوع المخالفة غير موجود');
         }
 
         const newName = (name ?? type.name).trim();
         if (!newName) {
-            throw new Error('?? ???? ?? ???? ??? ????? ??????');
+            throw new Error('لا يمكن أن يكون اسم النوع فارغاً');
         }
 
         const lowerOld = type.name.toLowerCase();
@@ -5343,7 +5343,7 @@ const ViolationTypesManager = {
         if (lowerNew !== lowerOld) {
             const existing = this.getTypeByName(newName);
             if (existing && existing.id !== id) {
-                throw new Error('???? ??? ??? ???? ?????');
+                throw new Error('يوجد نوع آخر بنفس الاسم');
             }
         }
 
@@ -5372,13 +5372,13 @@ const ViolationTypesManager = {
 
     deleteType(id) {
         if (!id) {
-            throw new Error('???? ??? ???????? ??? ????');
+            throw new Error('معرف نوع المخالفة غير محدد');
         }
 
         this.ensureInitialized();
         const index = (AppState.appData.violationTypes || []).findIndex(type => type.id === id);
         if (index === -1) {
-            throw new Error('??? ???????? ??? ?????');
+            throw new Error('نوع المخالفة غير موجود');
         }
 
         const removed = AppState.appData.violationTypes.splice(index, 1)[0];
@@ -5442,7 +5442,7 @@ const ViolationTypesManager = {
     },
 
     persist(syncSheets = true) {
-        // ??????? window.DataManager ????? ??? ?? ??? DataManager ?????? ??????
+        // استخدام window.DataManager كبديل إذا لم يكن DataManager متاحاً محلياً
         const dm = (typeof window !== 'undefined' && window.DataManager) ||
             (typeof DataManager !== 'undefined' && DataManager);
         if (dm && typeof dm.save === 'function') {
@@ -5450,7 +5450,7 @@ const ViolationTypesManager = {
         }
 
         if (syncSheets && typeof Backend !== 'undefined' && typeof Backend.sendRequest === 'function') {
-            // ??? ???? ??????? ??????? ?? ViolationTypes ??? ?????? (diff + ??? ???? ?????)
+            // حفظ لقطة الأنواع الكاملة في ViolationTypes عبر الخادم (diff + حذف صفوف حقيقي)
             Backend.sendRequest({
                 action: 'saveViolationTypes',
                 data: {
@@ -5492,7 +5492,7 @@ const QRCode = (() => {
                 return result;
             }
         } catch (error) {
-            Utils.safeWarn('?? ??? ??????? ???? QR ??????:', error);
+            Utils.safeWarn('⚠️ فشل استخدام مولد QR الحالي:', error);
         }
         return null;
     }
@@ -5507,7 +5507,7 @@ const QRCode = (() => {
             const cellSize = moduleCount ? Math.max(1, Math.floor(size / moduleCount)) : Math.max(2, Math.floor(size / 25));
             return qr.createDataURL(cellSize, 2);
         } catch (error) {
-            Utils.safeWarn('?? ??? ??????? ????? qrcode:', error);
+            Utils.safeWarn('⚠️ فشل استخدام مكتبة qrcode:', error);
         }
         return null;
     }
@@ -5541,20 +5541,20 @@ if (typeof window !== 'undefined') {
 }
 
 // ===== Notification System =====
-// ????? Notification ?????? ??? (global) ????? ?????? ????? ???????
+// تعريف Notification كمتغير عام (global) ليكون متاحاً لجميع الملفات
 window.Notification = {
-    // ????? ????????? ??????
+    // تخزين الإشعارات النشطة
     activeNotifications: new Map(),
 
     /**
-     * ??? ????? ???? ?? ??? ???????? ???????? ????????
-     * @param {string|object} messageOrOptions - ??????? ?? ???? ????????
-     * @param {string} type - ??? ??????? (info, success, warning, error, emergency)
-     * @param {number} duration - ??? ????? ??????? ????? (0 = ???? ??? ??????? ??????)
-     * @param {object} options - ?????? ?????? (title, description, actions, priority, persistent, sound)
+     * عرض إشعار محسن مع دعم للعناوين والأوصاف والأزرار
+     * @param {string|object} messageOrOptions - الرسالة أو كائن الخيارات
+     * @param {string} type - نوع الإشعار (info, success, warning, error, emergency)
+     * @param {number} duration - مدة العرض بالميلي ثانية (0 = دائم حتى الإغلاق اليدوي)
+     * @param {object} options - خيارات إضافية (title, description, actions, priority, persistent, sound)
      */
     show(messageOrOptions, type = 'info', duration = 3000, options = {}) {
-        // ??? ????????: show(message, type, duration) ? show({message, type, ...})
+        // دعم الصيغتين: show(message, type, duration) و show({message, type, ...})
         let config = {};
         if (typeof messageOrOptions === 'string') {
             config = {
@@ -5588,32 +5588,32 @@ window.Notification = {
             if (el && el.nodeType === 1) container = el;
         }
         if (!container) {
-            console.warn('?? notification-container ??? ?????');
+            console.warn('⚠️ notification-container غير موجود');
             return null;
         }
 
-        // ????? ??? ????? ????? ??? ????????
+        // تحديد مدة العرض بناءً على الأولوية
         if (config.priority === 'critical' && !config.persistent) {
-            config.duration = config.duration || 10000; // 10 ????? ????????? ??????
+            config.duration = config.duration || 10000; // 10 ثواني للتنبيهات الحرجة
         } else if (config.priority === 'high' && !config.persistent) {
-            config.duration = config.duration || 6000; // 6 ????? ????????? ???????
+            config.duration = config.duration || 6000; // 6 ثواني للتنبيهات العالية
         } else if (!config.persistent && config.duration === undefined) {
-            config.duration = 3000; // 3 ????? ?????????
+            config.duration = 3000; // 3 ثواني افتراضياً
         }
 
-        // ????? ????? ????????? ??????
+        // تشغيل الصوت للتنبيهات المهمة
         if (config.sound && (config.priority === 'critical' || config.priority === 'high' || config.type === 'emergency')) {
             this.playNotificationSound(config.priority);
         }
 
-        // ????? ???? ???????
+        // إنشاء عنصر الإشعار
         const notificationId = 'notification-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
         const notification = document.createElement('div');
         notification.id = notificationId;
         notification.className = `notification notification-${config.type} notification-priority-${config.priority}`;
         notification.setAttribute('data-priority', config.priority);
 
-        // ????? ????? ????? ????????? ??????
+        // إضافة تأثير النبض للتنبيهات الحرجة
         if (config.priority === 'critical') {
             notification.classList.add('notification-critical-pulse');
         }
@@ -5628,7 +5628,7 @@ window.Notification = {
 
         const icon = icons[config.type] || icons.info;
 
-        // ???? ????? ???????
+        // بناء محتوى الإشعار
         let contentHTML = '';
 
         if (config.title) {
@@ -5641,7 +5641,7 @@ window.Notification = {
             contentHTML += `<div class="notification-description">${Utils.escapeHTML(config.description)}</div>`;
         }
 
-        // ????? ??????? ??? ???? ??????
+        // إضافة الأزرار إذا كانت موجودة
         let actionsHTML = '';
         if (config.actions && config.actions.length > 0) {
             actionsHTML = '<div class="notification-actions">';
@@ -5660,10 +5660,10 @@ window.Notification = {
                 ${contentHTML}
                 ${actionsHTML}
             </div>
-            ${config.persistent ? '<button class="notification-close" aria-label="?????">&times;</button>' : ''}
+            ${config.persistent ? '<button class="notification-close" aria-label="إغلاق">&times;</button>' : ''}
         `;
 
-        // ????? ?????? ???????
+        // إضافة مستمعي الأحداث
         if (config.onClick) {
             notification.style.cursor = 'pointer';
             notification.addEventListener('click', (e) => {
@@ -5673,7 +5673,7 @@ window.Notification = {
             });
         }
 
-        // ????? ?????? ??????? ???????
+        // إضافة مستمعي الأحداث للأزرار
         if (config.actions && config.actions.length > 0) {
             notification.querySelectorAll('.notification-action').forEach((btn, index) => {
                 btn.addEventListener('click', (e) => {
@@ -5689,7 +5689,7 @@ window.Notification = {
             });
         }
 
-        // ????? ?? ??????? ????????? ???????
+        // إضافة زر الإغلاق للإشعارات الدائمة
         if (config.persistent) {
             const closeBtn = notification.querySelector('.notification-close');
             if (closeBtn) {
@@ -5700,22 +5700,22 @@ window.Notification = {
             }
         }
 
-        // ????? ??????? ??? ???????
+        // إضافة الإشعار إلى الحاوية
         container.appendChild(notification);
 
-        // ????? ??? ??????? ??????
+        // إضافة إلى القائمة النشطة
         this.activeNotifications.set(notificationId, {
             element: notification,
             config: config,
             timeoutId: null
         });
 
-        // ????? ????? ??????
+        // إضافة تأثير الظهور
         setTimeout(() => {
             notification.classList.add('notification-visible');
         }, 10);
 
-        // ????? ??????? ??? ?? ??? ??????
+        // إزالة تلقائية إذا لم يكن دائماً
         if (!config.persistent && config.duration > 0) {
             const timeoutId = setTimeout(() => {
                 this.dismiss(notificationId);
@@ -5731,7 +5731,7 @@ window.Notification = {
     },
 
     /**
-     * ????? ????? ????
+     * إغلاق إشعار محدد
      */
     dismiss(notificationId) {
         const notificationData = this.activeNotifications.get(notificationId);
@@ -5739,12 +5739,12 @@ window.Notification = {
 
         const { element, timeoutId } = notificationData;
 
-        // ????? ??? timeout ??? ??? ???????
+        // إلغاء الـ timeout إذا كان موجوداً
         if (timeoutId) {
             clearTimeout(timeoutId);
         }
 
-        // ????? ????? ???????
+        // إضافة تأثير الإغلاق
         element.classList.add('notification-dismissing');
 
         setTimeout(() => {
@@ -5756,7 +5756,7 @@ window.Notification = {
     },
 
     /**
-     * ????? ???? ?????????
+     * إغلاق جميع الإشعارات
      */
     dismissAll() {
         this.activeNotifications.forEach((data, id) => {
@@ -5765,11 +5765,11 @@ window.Notification = {
     },
 
     /**
-     * ????? ??? ???????
+     * تشغيل صوت الإشعار
      */
     playNotificationSound(priority = 'normal') {
         try {
-            // ??????? Web Audio API ?????? ??? ????
+            // استخدام Web Audio API لإنشاء صوت بسيط
             const audioContext = new (window.AudioContext || window.webkitAudioContext)();
             const oscillator = audioContext.createOscillator();
             const gainNode = audioContext.createGain();
@@ -5777,9 +5777,9 @@ window.Notification = {
             oscillator.connect(gainNode);
             gainNode.connect(audioContext.destination);
 
-            // ?????? ?????? ??? ????????
+            // ترددات مختلفة حسب الأولوية
             const frequencies = {
-                critical: [800, 600, 800, 600], // ???? ?????? ?????
+                critical: [800, 600, 800, 600], // نغمة متعددة للحرج
                 high: [600, 500],
                 normal: [400]
             };
@@ -5797,33 +5797,33 @@ window.Notification = {
             oscillator.start(currentTime);
             oscillator.stop(currentTime + 0.1);
         } catch (error) {
-            // ?? ???? ??? Web Audio API? ???? ??????? ??? HTML5
-            console.debug('Web Audio API ??? ????:', error);
+            // في حالة فشل Web Audio API، يمكن استخدام صوت HTML5
+            console.debug('Web Audio API غير متاح:', error);
         }
     },
 
     /**
-     * ????? ???? ???? ????????? ??????
+     * إشعار طارئ محسن للتنبيهات الحرجة
      */
     emergency(options) {
         return this.show({
             ...options,
             type: 'emergency',
             priority: 'critical',
-            persistent: options.persistent !== false, // ???? ????????? ???????
+            persistent: options.persistent !== false, // دائم افتراضياً للطوارئ
             sound: true,
-            duration: 0 // ?? ????? ????????
+            duration: 0 // لا يختفي تلقائياً
         });
     },
 
-    // ???? ???????? ???????
+    // دوال الاختصار المحسنة
     success(message, options = {}) {
         try {
             if (this && typeof this.show === 'function') {
                 return this.show({ message, type: 'success', ...options });
             }
         } catch (error) {
-            console.warn('?? ??? ?? Notification.success:', error);
+            console.warn('⚠️ خطأ في Notification.success:', error);
         }
     },
 
@@ -5833,7 +5833,7 @@ window.Notification = {
                 return this.show({ message, type: 'error', priority: 'high', ...options });
             }
         } catch (error) {
-            console.warn('?? ??? ?? Notification.error:', error);
+            console.warn('⚠️ خطأ في Notification.error:', error);
         }
     },
 
@@ -5843,7 +5843,7 @@ window.Notification = {
                 return this.show({ message, type: 'warning', priority: 'high', ...options });
             }
         } catch (error) {
-            console.warn('?? ??? ?? Notification.warning:', error);
+            console.warn('⚠️ خطأ في Notification.warning:', error);
         }
     },
 
@@ -5853,7 +5853,7 @@ window.Notification = {
                 return this.show({ message, type: 'info', ...options });
             }
         } catch (error) {
-            console.warn('?? ??? ?? Notification.info:', error);
+            console.warn('⚠️ خطأ في Notification.info:', error);
         }
     }
 };
@@ -5900,9 +5900,9 @@ const Loading = {
     },
     currentProgress: 0,
     currentMessage: '',
-    defaultMessage: '???? ???????...',
+    defaultMessage: 'جاري التحميل...',
 
-    show(message = '???? ???????...', progress = null) {
+    show(message = 'جاري التحميل...', progress = null) {
         const overlay = document.getElementById('loading-overlay');
         if (!overlay) return;
 
@@ -5952,7 +5952,7 @@ const Loading = {
                 window.EnhancedLoader.setStatus(message);
             }
             window.EnhancedLoader.updateProgress(pct, message && pct < 100 ? message : null);
-            if (pct >= 100 && message && /????|??/i.test(String(message))) {
+            if (pct >= 100 && message && /نجاح|تم/i.test(String(message))) {
                 window.EnhancedLoader.setMode('success');
             }
             return;
@@ -6033,7 +6033,7 @@ const PDFTemplates = {
         const logo = AppState?.companyLogo || '';
         const companyInitials = escape(companyNameRaw.trim().slice(0, 2) || 'HS');
 
-        // ?????? ??? ??????? ???? ??????
+        // الحصول على إعدادات الخط واللون
         const nameFontSize = AppState?.companySettings?.nameFontSize || 16;
         const secondaryNameFontSize = AppState?.companySettings?.secondaryNameFontSize || 14;
         const secondaryNameColor = AppState?.companySettings?.secondaryNameColor || '#6B7280';
@@ -6058,7 +6058,7 @@ const PDFTemplates = {
                     minute: '2-digit'
                 });
                 // Ensure AM/PM is displayed correctly in Arabic
-                return formatted.replace(/?/g, '?').replace(/?/g, '?');
+                return formatted.replace(/ص/g, 'ص').replace(/م/g, 'م');
             } catch (error) {
                 return escape(date);
             }
@@ -6106,8 +6106,8 @@ const PDFTemplates = {
         const qrText = typeof qrPayloadRaw === 'string' ? qrPayloadRaw : JSON.stringify(qrPayloadRaw);
         const qrTextForScript = JSON.stringify(qrText);
         const formCodeDisplay = escape(formCode || '-');
-        // ????? ??? ??????? - ???? ??????? ?? ??????? ??????
-        const formCodeLabel = formCode ? '??? ???????' : '';
+        // تسمية كود التقرير - يمكن تخصيصها من إعدادات الشركة
+        const formCodeLabel = formCode ? 'كود التقرير' : '';
         return `<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -6940,7 +6940,7 @@ const PDFTemplates = {
                 ${metaRows ? `<div class="meta-block">${metaRows}</div>` : ''}
             </div>
             <div class="report-logo">
-                ${logo ? `<img src="${logo}" alt="???? ??????">` : `<div class="brand-placeholder">${companyInitials}</div>`}
+                ${logo ? `<img src="${logo}" alt="شعار الشركة">` : `<div class="brand-placeholder">${companyInitials}</div>`}
             </div>
         </div>
         <div class="report-body">
@@ -6952,14 +6952,14 @@ const PDFTemplates = {
                 <div class="footer-bottom">
                     ${shouldRenderQRCode ? `<div id="report-qr-code" class="footer-bottom-qr"></div>` : ''}
                     <div class="footer-meta-line">
-                        ${formCode ? `<span class="footer-meta-item footer-meta-left" dir="rtl">??? ???????: ${formCodeDisplay}</span>` : ''}
-                        <span class="footer-meta-item ${formCode ? 'footer-meta-center' : 'footer-meta-left'}" dir="rtl">????? ???????: ${issueDateDisplay}</span>
-                        <span class="footer-meta-item ${formCode ? 'footer-meta-right' : 'footer-meta-center'}" dir="rtl">????? ???????: ${revisionDateDisplay}</span>
-                        ${!formCode ? `<span class="footer-meta-item footer-meta-right" dir="rtl">??? ???????: ${versionDisplay}</span>` : ''}
+                        ${formCode ? `<span class="footer-meta-item footer-meta-left" dir="rtl">كود النموذج: ${formCodeDisplay}</span>` : ''}
+                        <span class="footer-meta-item ${formCode ? 'footer-meta-center' : 'footer-meta-left'}" dir="rtl">تاريخ الإصدار: ${issueDateDisplay}</span>
+                        <span class="footer-meta-item ${formCode ? 'footer-meta-right' : 'footer-meta-center'}" dir="rtl">تاريخ التعديل: ${revisionDateDisplay}</span>
+                        ${!formCode ? `<span class="footer-meta-item footer-meta-right" dir="rtl">رقم الإصدار: ${versionDisplay}</span>` : ''}
                     </div>
                     <div class="footer-bottom-text">
                         <span>${companyName}</span>
-                        ${companySecondaryNameTrimmed ? `<span>${companySecondaryName}</span>` : '<span>????? ??????? ?????? ??????? ???????</span>'}
+                        ${companySecondaryNameTrimmed ? `<span>${companySecondaryName}</span>` : '<span>إدارة السلامة والصحة المهنية والبيئة</span>'}
                     </div>
                 </div>
             </div>
@@ -7044,8 +7044,8 @@ const EmployeeHelper = {
         const statusText = statusFields.map(normalize).filter(Boolean).join(' | ');
         if (!statusText) return false;
         return (
-            statusText.includes('??????') ||
-            statusText.includes('??????') ||
+            statusText.includes('مستقيل') ||
+            statusText.includes('استقال') ||
             statusText.includes('resign') ||
             statusText.includes('resigned') ||
             statusText.includes('terminated') ||
@@ -7065,22 +7065,22 @@ const EmployeeHelper = {
     _employeesLoadPromise: null,
 
     /**
-     * ????? ?????? ???????? ??? ?????? (lazy load).
-     * ??? ??? ??? ??? ????? `clinic.js` ????? ??? EmployeeHelper ???? ??????? ????? ????????.
+     * تحميل بيانات الموظفين عند الحاجة (lazy load).
+     * هذا مهم لأن بعض نماذج `clinic.js` تعتمد على EmployeeHelper بدون استدعاء تحميل الموظفين.
      */
     async ensureEmployeesLoaded({ includeInactive = true } = {}) {
         try {
             const employees = this.getEmployees();
             if (Array.isArray(employees) && employees.length > 0) return true;
 
-            // ??? ??? ???? ????? ????? ????? ??? ??? Promise.
+            // إذا كان هناك تحميل جارٍ، انتظر نفس الـ Promise.
             if (this._employeesLoadPromise) {
                 await this._employeesLoadPromise;
                 const after = this.getEmployees();
                 return Array.isArray(after) && after.length > 0;
             }
 
-            // ????? ???? Backend (file://) ?? ??? ???? Backend/Config.
+            // تشغيل بدون Backend (file://) أو عدم وجود Backend/Config.
             if (AppState?.runningWithoutBackend) return false;
             if (typeof Backend === 'undefined' || typeof Backend.sendRequest !== 'function') return false;
             if (!Utils.hasCloudBackendSync()) return false;
@@ -7227,7 +7227,7 @@ const EmployeeHelper = {
         if (!codeInput) return;
 
         const inlineAlertId = options.inlineAlertId || null;
-        /** blur-enter: ????? ??? ?????? ?? ????? ?? Enter (??? ????? ???????). enter: ????? ??? ??? Enter (????? ???????). never: ?? ????? */
+        /** blur-enter: تحذير عند الخروج من الحقل أو Enter (ليس أثناء الكتابة). enter: تحذير فقط عند Enter (مناسب للعيادة). never: لا تحذير */
         const notFoundWarn = options.employeeNotFoundWarn || 'blur-enter';
 
         const clearInlineAlert = () => {
@@ -7276,7 +7276,7 @@ const EmployeeHelper = {
 
             if (lookupSeq !== this._lookupSeq) return;
 
-            // ????? ???????: ?????? ???? ??? ????? ?????? ???? ???? ??? ????? ?????? Enter/blur: findByTerm (???? ??????).
+            // أثناء الكتابة: مطابقة تامة فقط لتجنب اختيار موظف خاطئ عند أرقام قصيرة؛ Enter/blur: findByTerm (يشمل الجزئي).
             const employee = source === 'input-debounce'
                 ? (this.findByCode(term) || this.findByName(term))
                 : this.findByTerm(term);
@@ -7302,7 +7302,7 @@ const EmployeeHelper = {
             }
 
             if (shouldWarn) {
-                showNotFoundMessage('?? ??? ?????? ??? ???? ???? ????? ?? ?????');
+                showNotFoundMessage('لم يتم العثور على موظف بهذا الكود أو الاسم');
             }
         };
 
@@ -7365,7 +7365,7 @@ const EmployeeHelper = {
 
         rebuildOptions();
 
-        // Lazy load: ??? ???? ?????? ??? ??? ???? employees ??? ??????.
+        // Lazy load: أعد بناء الداتا لست إذا كانت employees غير محمّلة.
         this.ensureEmployeesLoaded({ includeInactive: true }).then(() => rebuildOptions()).catch(() => {});
 
         input.setAttribute('list', listId);
@@ -7409,16 +7409,16 @@ const PPEMatrix = {
     instances: {},
     activeContainerId: null,
     predefinedItems: [
-        '???? ????',
-        '?????? ?????',
-        '??????',
-        '????? ????',
-        '???? ?????',
-        '?????? ???',
-        '?????',
-        '???? ?????',
-        '???? ????',
-        '????? ????? ??????'
+        'خوذة أمان',
+        'نظارات وقاية',
+        'قفازات',
+        'أحذية أمان',
+        'سترة عاكسة',
+        'سدادات أذن',
+        'كمامة',
+        'بدلة واقية',
+        'حزام أمان',
+        'معدات حماية تنفسية'
     ],
 
     collectPositions() {
@@ -7466,7 +7466,7 @@ const PPEMatrix = {
         if (!items.length) {
             return `
                 <div class="text-sm text-gray-500 bg-gray-100 border border-dashed border-gray-300 rounded p-3">
-                    ?? ???? ????? ????? ????? ????? ??????. ????? ????? ????? ????? ??????.
+                    لا توجد أنواع مهمات وقاية مسجلة مسبقاً. يمكنك إضافة أنواع جديدة يدوياً.
                 </div>
             `;
         }
@@ -7496,29 +7496,29 @@ const PPEMatrix = {
         const hasPositions = positions.length > 0;
         const positionSelectHTML = omitPositionSelector ? '' : (hasPositions ? `
             <div class="mb-4">
-                <label for="ppe-matrix-position" class="block text-sm font-semibold text-gray-700 mb-2">???? ???????</label>
+                <label for="ppe-matrix-position" class="block text-sm font-semibold text-gray-700 mb-2">اختر الوظيفة</label>
                 <select id="ppe-matrix-position" class="form-input ppe-matrix-position">
-                    <option value="">-- ???? ??????? --</option>
+                    <option value="">-- اختر الوظيفة --</option>
                     ${positions.map(position => `
                         <option value="${Utils.escapeHTML(position)}" ${position === selectedPosition ? 'selected' : ''}>
                             ${Utils.escapeHTML(position)}
                         </option>
                     `).join('')}
-                    <option value="__custom__">???? (????? ????)</option>
+                    <option value="__custom__">أخرى (إدخال يدوي)</option>
                 </select>
-                <input type="text" class="form-input ppe-matrix-position-custom mt-2 hidden" placeholder="???? ??? ???????">
-                <p class="text-xs text-gray-500 mt-1">??? ????? ????? ??????? ???????? ??? ?????? ??????? ??? ???? ????? ??????.</p>
+                <input type="text" class="form-input ppe-matrix-position-custom mt-2 hidden" placeholder="أدخل اسم الوظيفة">
+                <p class="text-xs text-gray-500 mt-1">يتم تحميل مهمات الوقاية تلقائياً عند اختيار الوظيفة إذا كانت مسجلة مسبقاً.</p>
             </div>
         ` : `
             <div class="mb-4 bg-yellow-50 border border-yellow-200 rounded p-3 text-sm text-yellow-800">
-                ?? ???? ????? ????? ?? ?????? ????? ???????. ????? ????? ????? ??????? ???????? ?????? ????? ?? ??? ???????.
+                لا توجد وظائف مسجلة في مصفوفة مهمات الوقاية. يمكنك إضافة مهمات الوقاية المطلوبة يدوياً أدناه ثم حفظ النموذج.
             </div>
         `);
 
         const rootExtraClass = omitPositionSelector ? ' ppe-matrix-standalone' : '';
         const footerHTML = omitFooterHint ? '' : `
                 <p class="text-xs text-gray-500">
-                    ??? ??? ?????????? ?? ??????? ?????? ???. ?????? ?????? ????? ??????? ???? ????? ?????? ???? "????? ????? ???????".
+                    يتم حفظ الاختيارات مع النموذج الحالي فقط. لتحديث مصفوفة مهمات الوقاية بشكل دائم، استخدم شاشة "إدارة مهمات الوقاية".
                 </p>`;
 
         const html = `
@@ -7528,9 +7528,9 @@ const PPEMatrix = {
                     ${this.renderCheckboxMarkup(availableItems, selectedItems)}
                 </div>
                 <div class="flex items-center gap-2">
-                    <input type="text" class="form-input flex-1 ppe-matrix-custom-input" placeholder="??? ???? ????? ?????">
+                    <input type="text" class="form-input flex-1 ppe-matrix-custom-input" placeholder="أضف مهمة وقاية مخصصة">
                     <button type="button" class="btn-secondary ppe-matrix-add-btn">
-                        <i class="fas fa-plus ml-2"></i>?????
+                        <i class="fas fa-plus ml-2"></i>إضافة
                     </button>
                 </div>${footerHTML}
             </div>
@@ -7633,7 +7633,7 @@ const PPEMatrix = {
                 const value = customInput.value.trim();
                 if (!value) {
                     if (typeof Notification !== 'undefined') {
-                        Notification.warning('???? ????? ??? ???? ??????? ??? ???????');
+                        Notification.warning('يرجى إدخال اسم مهمة الوقاية قبل الإضافة');
                     }
                     return;
                 }
@@ -7733,11 +7733,11 @@ if (typeof window !== 'undefined') {
     window.Permissions = Permissions;
     window.AppState = AppState;
 
-    // ? ???? ?????? ?????? ?? ??????? ??????? ???
+    // ✅ دوال مساعدة للتحقق من صلاحيات القراءة فقط
     window.isReadOnlyRole = function(user = AppState.currentUser) {
         if (!user) return false;
         const role = (user.role || '').toLowerCase().trim();
-        return role === 'read_only' || role === '????? ???';
+        return role === 'read_only' || role === 'قراءة فقط';
     };
 
     window.canEdit = function(moduleKey, user = AppState.currentUser) {
@@ -7761,7 +7761,7 @@ if (typeof window !== 'undefined') {
         return Permissions.hasAccess(moduleKey || '', user);
     };
 
-    // ??????? ?????? ?????? ????? ??????/?????? ?? ???? ?????????? ??? ?????? ????? ??????? ???????
+    // استدعاء تلقائي لتحديث قوائم المصنع/الموقع في جميع الموديولات عند اكتمال تحميل إعدادات النماذج
     (function () {
         function refreshAllSiteDropdowns() {
             var names = ['Training', 'Clinic', 'PTW', 'Incidents', 'Violations', 'FireEquipment', 'PeriodicInspections', 'BehaviorMonitoring', 'Sustainability'];
@@ -7786,11 +7786,11 @@ if (typeof window !== 'undefined') {
 }
 
 /**
- * ????? ?? ?????? ???????? legacy ?? ???????? ???????.
+ * إزالة أي حسابات افتراضية legacy من البيانات المحلية.
  * 
- * ?? ?????? ?????:
- * - ?? ???? ?????? ?????? ???????? ?? ???????.
- * - ??? ??? Cleanup ??? ?????? ????? ?? ????? ?? ??? ????? (??? ???? @hse.local).
+ * ⚠️ ملاحظة أمنية:
+ * - لا نقوم بإنشاء حسابات افتراضية في الإنتاج.
+ * - هذا فقط Cleanup لأي بيانات قديمة تم زرعها في نسخ سابقة (مثل نطاق @hse.local).
  * 
  * @param {{persistRemote?: boolean}} options
  * @returns {{removed: number, removedEmails: string[]}}
@@ -7818,7 +7818,7 @@ function removeDefaultUsersIfNeeded(options = {}) {
 
         AppState.appData.users = users.filter(u => !isLegacyDefaultUser(u));
 
-        // ??? ????
+        // حفظ محلي
         try {
             if (typeof window !== 'undefined' && window.DataManager && typeof window.DataManager.save === 'function') {
                 window.DataManager.save();
@@ -7827,7 +7827,7 @@ function removeDefaultUsersIfNeeded(options = {}) {
             Utils.safeWarn?.('app-utils: operation failed', e);
         }
 
-        // ??? ?? ??? (???????) - ??? ??? ????? ??????
+        // حفظ عن بعد (اختياري) - فقط إذا طُلِب صراحةً
         const persistRemote = options && options.persistRemote === true;
         if (persistRemote) {
             try {
@@ -7860,21 +7860,21 @@ if (typeof window !== 'undefined') {
 
 /**
  * Module Lifecycle Manager
- * ????? ???? ???? ?????????? - ???? ????? ????? ?? ????? ??????
+ * إدارة دورة حياة الموديولات - ضمان تنفيذ الكود في الوقت الصحيح
  */
 const ModuleLifecycle = {
     /**
-     * ????? ??? ??? ????? ???? ???????? ???????
-     * @param {string} moduleId - ???? ????? (???: 'contractors-section')
-     * @param {Function} callback - ?????? ?????? ???????
-     * @returns {boolean} - ?? ?? ??????? ?? ??
+     * تنفيذ كود فقط عندما يكون الموديول مفتوحاً
+     * @param {string} moduleId - معرف القسم (مثل: 'contractors-section')
+     * @param {Function} callback - الدالة المراد تنفيذها
+     * @returns {boolean} - هل تم التنفيذ أم لا
      */
     executeIfModuleActive(moduleId, callback) {
         try {
             const section = document.getElementById(moduleId);
             if (section && document.contains(section)) {
                 const style = getComputedStyle(section);
-                // ?????? ?? ?? ????? ????
+                // التحقق من أن القسم مرئي
                 if (style.display !== 'none' && style.visibility !== 'hidden') {
                     if (typeof callback === 'function') {
                         callback(section);
@@ -7884,16 +7884,16 @@ const ModuleLifecycle = {
             }
             return false;
         } catch (error) {
-            Utils.safeWarn('?? ModuleLifecycle.executeIfModuleActive error:', error);
+            Utils.safeWarn('⚠️ ModuleLifecycle.executeIfModuleActive error:', error);
             return false;
         }
     },
 
     /**
-     * ?????? ??? ?????? ???? ?? ????? ?????
-     * @param {string} moduleId - ???? ?????
-     * @param {Function} callback - ?????? ?????? ???????
-     * @param {number} timeout - ???? ?????? ???????? (??????? ?????)
+     * انتظار فتح موديول معين ثم تنفيذ الكود
+     * @param {string} moduleId - معرف القسم
+     * @param {Function} callback - الدالة المراد تنفيذها
+     * @param {number} timeout - الحد الأقصى للانتظار (بالميلي ثانية)
      * @returns {Promise<boolean>}
      */
     async waitForModuleActive(moduleId, callback, timeout = 10000) {
@@ -7907,7 +7907,7 @@ const ModuleLifecycle = {
                 }
                 
                 if (Date.now() - startTime >= timeout) {
-                    Utils.safeWarn(`?? ModuleLifecycle: timeout ?????? ???????? "${moduleId}"`);
+                    Utils.safeWarn(`⚠️ ModuleLifecycle: timeout انتظار الموديول "${moduleId}"`);
                     resolve(false);
                     return;
                 }
@@ -7920,14 +7920,14 @@ const ModuleLifecycle = {
     },
 
     /**
-     * ????? ????? ???? ??? ??????
-     * @param {string} moduleId - ???? ?????
-     * @param {Function} onOpen - ?????? ?????? ??????? ??? ?????
-     * @param {Function} onClose - ?????? ?????? ??????? ??? ??????? (???????)
+     * تسجيل معالج لحدث فتح موديول
+     * @param {string} moduleId - معرف القسم
+     * @param {Function} onOpen - الدالة المراد تنفيذها عند الفتح
+     * @param {Function} onClose - الدالة المراد تنفيذها عند الإغلاق (اختياري)
      */
     onModuleToggle(moduleId, onOpen, onClose = null) {
         try {
-            // ??????? MutationObserver ??????? ??????? ?????
+            // استخدام MutationObserver لمراقبة تغييرات العرض
             const observer = new MutationObserver((mutations) => {
                 for (const mutation of mutations) {
                     if (mutation.type === 'attributes' && 
@@ -7947,7 +7947,7 @@ const ModuleLifecycle = {
                 }
             });
 
-            // ?????? ????????? ??? ????? ???????
+            // مراقبة التغييرات على القسم الرئيسي
             const mainContent = document.getElementById('main-content');
             if (mainContent) {
                 observer.observe(mainContent, {
@@ -7960,16 +7960,16 @@ const ModuleLifecycle = {
 
             return observer;
         } catch (error) {
-            Utils.safeWarn('?? ModuleLifecycle.onModuleToggle error:', error);
+            Utils.safeWarn('⚠️ ModuleLifecycle.onModuleToggle error:', error);
             return null;
         }
     },
 
     /**
-     * ????? ??? Event Listeners ??? ????? DOM
-     * @param {HTMLElement} container - ?????? ??????
-     * @param {Object} handlers - ??????? ??????? {selector: {event: handler}}
-     * @param {AbortController} abortController - ???????
+     * إعادة ربط Event Listeners بعد تحديث DOM
+     * @param {HTMLElement} container - العنصر الحاوي
+     * @param {Object} handlers - معالجات الأحداث {selector: {event: handler}}
+     * @param {AbortController} abortController - للإلغاء
      */
     rebindEventListeners(container, handlers, abortController = null) {
         if (!container || !document.contains(container) || !handlers) return;
@@ -7988,8 +7988,8 @@ const ModuleLifecycle = {
     },
 
     /**
-     * ????? ?????? ?????? ???? listeners
-     * @param {AbortController} abortController - AbortController ????????
+     * تنظيف موديول وإزالة جميع listeners
+     * @param {AbortController} abortController - AbortController للموديول
      */
     cleanupModule(abortController) {
         if (abortController && typeof abortController.abort === 'function') {
@@ -8003,684 +8003,684 @@ if (typeof window !== 'undefined') {
     window.ModuleLifecycle = ModuleLifecycle;
 }
 
-// ????? const aliases ??????? ?? ????? ??????
-// ??????: ?? ??????? ??? ????? ??????? ????? ???????
+// تصدير const aliases للتوافق مع الكود القديم
+// ملاحظة: تم التعليق على إعادة التعريف لتجنب التعارض
 // const Notification = window.Notification;
 // const Utils = window.Utils;
 // const Loading = window.Loading;
 
 // ========================================
-// ???? ??????? ??????? (i18n)
+// نظام الترجمة العالمي (i18n)
 // ========================================
 const I18n = {
-    // ????? ??????????
+    // اللغة الافتراضية
     defaultLanguage: 'ar',
 
-    // ????? ????????
+    // قاموس الترجمات
     translations: {
         ar: {
-            // ????? ????
-            'btn.add': '?????',
-            'btn.edit': '?????',
-            'btn.delete': '???',
-            'btn.save': '???',
-            'btn.cancel': '?????',
-            'btn.close': '?????',
-            'btn.refresh': '?????',
-            'btn.search': '???',
-            'btn.reset': '????? ?????',
-            'btn.export': '?????',
-            'btn.import': '???????',
-            'btn.print': '?????',
-            'btn.view': '???',
-            'btn.details': '????????',
-            'btn.back': '????',
-            'btn.next': '??????',
-            'btn.previous': '??????',
-            'btn.submit': '?????',
-            'btn.approve': '??????',
-            'btn.reject': '???',
-            'btn.filter': '?????',
-            'btn.clear': '???',
-            'btn.download': '?????',
-            'btn.upload': '???',
-            'btn.new': '????',
-            'btn.create': '?????',
-            'btn.update': '?????',
-            'btn.confirm': '?????',
-            'btn.yes': '???',
-            'btn.no': '??',
+            // أزرار عامة
+            'btn.add': 'إضافة',
+            'btn.edit': 'تعديل',
+            'btn.delete': 'حذف',
+            'btn.save': 'حفظ',
+            'btn.cancel': 'إلغاء',
+            'btn.close': 'إغلاق',
+            'btn.refresh': 'تحديث',
+            'btn.search': 'بحث',
+            'btn.reset': 'إعادة تعيين',
+            'btn.export': 'تصدير',
+            'btn.import': 'استيراد',
+            'btn.print': 'طباعة',
+            'btn.view': 'عرض',
+            'btn.details': 'التفاصيل',
+            'btn.back': 'رجوع',
+            'btn.next': 'التالي',
+            'btn.previous': 'السابق',
+            'btn.submit': 'إرسال',
+            'btn.approve': 'موافقة',
+            'btn.reject': 'رفض',
+            'btn.filter': 'تصفية',
+            'btn.clear': 'مسح',
+            'btn.download': 'تحميل',
+            'btn.upload': 'رفع',
+            'btn.new': 'جديد',
+            'btn.create': 'إنشاء',
+            'btn.update': 'تحديث',
+            'btn.confirm': 'تأكيد',
+            'btn.yes': 'نعم',
+            'btn.no': 'لا',
 
-            // ?????? ???????
-            'table.actions': '?????????',
-            'table.status': '??????',
-            'table.date': '???????',
-            'table.name': '?????',
-            'table.type': '?????',
-            'table.description': '?????',
-            'table.notes': '???????',
-            'table.priority': '????????',
-            'table.department': '?????',
-            'table.location': '??????',
-            'table.code': '?????',
-            'table.id': '??????',
-            'table.created': '????? ???????',
-            'table.updated': '????? ???????',
-            'table.by': '??????',
-            'table.count': '?????',
-            'table.total': '???????',
+            // عناوين الجداول
+            'table.actions': 'الإجراءات',
+            'table.status': 'الحالة',
+            'table.date': 'التاريخ',
+            'table.name': 'الاسم',
+            'table.type': 'النوع',
+            'table.description': 'الوصف',
+            'table.notes': 'ملاحظات',
+            'table.priority': 'الأولوية',
+            'table.department': 'القسم',
+            'table.location': 'الموقع',
+            'table.code': 'الكود',
+            'table.id': 'المعرف',
+            'table.created': 'تاريخ الإنشاء',
+            'table.updated': 'تاريخ التحديث',
+            'table.by': 'بواسطة',
+            'table.count': 'العدد',
+            'table.total': 'المجموع',
 
-            // ?????? ?????? (Skeleton)
-            'skeleton.loading': '???? ???????...',
-            'skeleton.noData': '?? ???? ??????',
-            'skeleton.error': '??? ??? ????? ???????',
-            'skeleton.retry': '????? ????????',
-            'skeleton.empty': '?? ???? ????? ??????',
+            // رسومات الهيكل (Skeleton)
+            'skeleton.loading': 'جاري التحميل...',
+            'skeleton.noData': 'لا توجد بيانات',
+            'skeleton.error': 'حدث خطأ أثناء التحميل',
+            'skeleton.retry': 'إعادة المحاولة',
+            'skeleton.empty': 'لا توجد عناصر لعرضها',
 
-            // ????? ????
-            'msg.success': '?? ?????',
-            'msg.error': '??? ???',
-            'msg.warning': '?????',
-            'msg.info': '???????',
-            'msg.confirm': '?? ??? ??????',
-            'msg.saved': '?? ????? ?????',
-            'msg.deleted': '?? ????? ?????',
-            'msg.updated': '?? ??????? ?????',
-            'msg.loading': '???? ???????...',
-            'msg.processing': '???? ????????...',
-            'msg.noResults': '?? ???? ?????',
-            'msg.searchPlaceholder': '???? ???...',
-            'msg.select': '????...',
-            'msg.all': '????',
-            'msg.none': '?? ???',
-            'msg.required': '??? ?????',
-            'msg.invalid': '?????? ??? ?????',
-            'msg.networkError': '??? ?? ??????? ???????',
-            'msg.serverError': '??? ?? ??????',
-            'msg.timeout': '????? ??????',
-            'msg.unauthorized': '??? ????',
-            'msg.forbidden': '??? ?????',
-            'msg.notFound': '??? ?????',
+            // رسائل عامة
+            'msg.success': 'تم بنجاح',
+            'msg.error': 'حدث خطأ',
+            'msg.warning': 'تنبيه',
+            'msg.info': 'معلومات',
+            'msg.confirm': 'هل أنت متأكد؟',
+            'msg.saved': 'تم الحفظ بنجاح',
+            'msg.deleted': 'تم الحذف بنجاح',
+            'msg.updated': 'تم التحديث بنجاح',
+            'msg.loading': 'جاري التحميل...',
+            'msg.processing': 'جاري المعالجة...',
+            'msg.noResults': 'لا توجد نتائج',
+            'msg.searchPlaceholder': 'ابحث هنا...',
+            'msg.select': 'اختر...',
+            'msg.all': 'الكل',
+            'msg.none': 'لا شيء',
+            'msg.required': 'حقل مطلوب',
+            'msg.invalid': 'بيانات غير صالحة',
+            'msg.networkError': 'خطأ في الاتصال بالشبكة',
+            'msg.serverError': 'خطأ في الخادم',
+            'msg.timeout': 'انتهت المهلة',
+            'msg.unauthorized': 'غير مصرح',
+            'msg.forbidden': 'غير مسموح',
+            'msg.notFound': 'غير موجود',
 
-            // ?????
-            'filter.all': '????',
-            'filter.active': '???',
-            'filter.inactive': '??? ???',
-            'filter.pending': '????',
-            'filter.approved': '?????',
-            'filter.rejected': '?????',
-            'filter.completed': '?????',
-            'filter.open': '?????',
-            'filter.closed': '????',
-            'filter.dateFrom': '?? ?????',
-            'filter.dateTo': '??? ?????',
+            // فلاتر
+            'filter.all': 'الكل',
+            'filter.active': 'نشط',
+            'filter.inactive': 'غير نشط',
+            'filter.pending': 'معلق',
+            'filter.approved': 'معتمد',
+            'filter.rejected': 'مرفوض',
+            'filter.completed': 'مكتمل',
+            'filter.open': 'مفتوح',
+            'filter.closed': 'مغلق',
+            'filter.dateFrom': 'من تاريخ',
+            'filter.dateTo': 'إلى تاريخ',
 
-            // ?????
-            'pagination.prev': '??????',
-            'pagination.next': '??????',
-            'pagination.first': '?????',
-            'pagination.last': '??????',
-            'pagination.of': '??',
-            'pagination.items': '?????',
-            'pagination.page': '????',
-            'pagination.showing': '???',
-            'pagination.to': '???',
+            // صفحات
+            'pagination.prev': 'السابق',
+            'pagination.next': 'التالي',
+            'pagination.first': 'الأول',
+            'pagination.last': 'الأخير',
+            'pagination.of': 'من',
+            'pagination.items': 'عناصر',
+            'pagination.page': 'صفحة',
+            'pagination.showing': 'عرض',
+            'pagination.to': 'إلى',
 
-            // ????????
-            'module.dashboard': '???? ??????',
-            'module.users': '??????????',
-            'module.employees': '????????',
-            'module.incidents': '???????',
-            'module.nearmiss': '???????? ???????',
-            'module.ptw': '?????? ?????',
-            'module.training': '???????',
-            'module.clinic': '???????',
-            'module.fireequipment': '????? ??????',
-            'module.ppe': '????? ???????',
-            'module.contractors': '?????????',
-            'module.violations': '?????????',
-            'module.reports': '????????',
-            'module.settings': '?????????',
-            'module.behavior': '?????? ??????',
-            'module.chemicals': '?????? ??????????',
-            'module.observations': '????????? ???????',
+            // موديولات
+            'module.dashboard': 'لوحة التحكم',
+            'module.users': 'المستخدمين',
+            'module.employees': 'الموظفين',
+            'module.incidents': 'الحوادث',
+            'module.nearmiss': 'التقارير القريبة',
+            'module.ptw': 'تصاريح العمل',
+            'module.training': 'التدريب',
+            'module.clinic': 'العيادة',
+            'module.fireequipment': 'معدات الحريق',
+            'module.ppe': 'معدات الوقاية',
+            'module.contractors': 'المقاولين',
+            'module.violations': 'المخالفات',
+            'module.reports': 'التقارير',
+            'module.settings': 'الإعدادات',
+            'module.behavior': 'مراقبة السلوك',
+            'module.chemicals': 'المواد الكيميائية',
+            'module.observations': 'المشاهدات اليومية',
             'module.iso': 'ISO',
-            'module.emergency': '???????',
-            'module.risk': '????? ???????',
-            'module.documents': '?????????',
-            'module.audit': '???????',
-            'module.sustainability': '?????????',
-            'module.inspections': '????????',
-            'module.safetyteam': '???? ???????',
+            'module.emergency': 'الطوارئ',
+            'module.risk': 'تقييم المخاطر',
+            'module.documents': 'المستندات',
+            'module.audit': 'التدقيق',
+            'module.sustainability': 'الاستدامة',
+            'module.inspections': 'الفحوصات',
+            'module.safetyteam': 'فريق السلامة',
 
             // Settings Module specific translations
-            'settings.title': '?????????',
-            'settings.subtitle': '????? ??????? ?????? ?????? ??????????',
-            'settings.tabs.company': '?????? ?????? ???????',
-            'settings.tabs.integration': '????? ????????',
-            'settings.tabs.cloud': '????? ???????',
-            'settings.tabs.drive': '???? ?????',
-            'settings.tabs.sharepoint': '?????????? ??? ?????',
-            'settings.tabs.system': '??????? ??????',
-            'settings.tabs.forms': '??????? ???????',
-            'settings.tabs.violations': '????? ?????????',
-            'settings.tabs.reports': '???????? ??????????',
-            'settings.tabs.email': '??????? ?????? ??????????',
-            'settings.tabs.permissions': '????????? ??????????',
-            'settings.tabs.circuit': '????? ????????',
-            'settings.tabs.help': '???? ????????',
-            'settings.tabs.logs': '??????? ??????',
-            'settings.tabs.privacy': '???????? ????????',
-            'settings.privacy.subtitle': '????? ??????? ???????? ???????? ???????',
-            'settings.privacy.cookiePrefs': '??????? ??????? ???????',
-            'settings.privacy.manageCookies': '????? ???????',
-            'settings.privacy.policy': '????? ???????',
-            'settings.privacy.consentHistory': '??? ?????????',
+            'settings.title': 'الإعدادات',
+            'settings.subtitle': 'إدارة إعدادات النظام والدمج والصلاحيات',
+            'settings.tabs.company': 'بيانات الشركة والهوية',
+            'settings.tabs.integration': 'الدمج والتزامن',
+            'settings.tabs.cloud': 'تخزين السحابة',
+            'settings.tabs.drive': 'جوجل درايف',
+            'settings.tabs.sharepoint': 'مايكروسوفت شير بوينت',
+            'settings.tabs.system': 'إعدادات النظام',
+            'settings.tabs.forms': 'إعدادات النماذج',
+            'settings.tabs.violations': 'أنواع المخالفات',
+            'settings.tabs.reports': 'التقارير والإشعارات',
+            'settings.tabs.email': 'إشعارات البريد الإلكتروني',
+            'settings.tabs.permissions': 'الصلاحيات والموافقات',
+            'settings.tabs.circuit': 'دائرة الموافقة',
+            'settings.tabs.help': 'مركز المساعدة',
+            'settings.tabs.logs': 'السجلات والرصد',
+            'settings.tabs.privacy': 'الخصوصية والكوكيز',
+            'settings.privacy.subtitle': 'إدارة تفضيلات الخصوصية والكوكيز للمؤسسة',
+            'settings.privacy.cookiePrefs': 'تفضيلات الكوكيز الحالية',
+            'settings.privacy.manageCookies': 'إدارة الكوكيز',
+            'settings.privacy.policy': 'سياسة الكوكيز',
+            'settings.privacy.consentHistory': 'سجل الموافقات',
             
-            'settings.company.title': '?????? ?????? ???????',
-            'settings.company.subtitle': '??????? ?????? ??????? ??????? ???????',
-            'settings.company.name': '??? ?????? (???? ?? ????? ?????????)',
-            'settings.company.nameHint': '???? ??????? ??? ????? ?? ??? ??????? ????? ???????? PDF.',
-            'settings.company.fontSize': '??? ?? ??? ?????? (????)',
-            'settings.company.fontSizeHint': '????? ?????????: 16 ????. ????? ?????? ?? 8 ??? 72 ????.',
-            'settings.company.secondaryName': '????? ??????? / ????? ??????? (???? ?? ????? ?????????)',
-            'settings.company.secondaryNameHint': '???? ??? ??? ????? ???? ??? ?????? ?? ????? ?????????. ??? ?? ????? ?????? ?? ???? ?? ??????? ?? PDF.',
+            'settings.company.title': 'بيانات الشركة والهوية',
+            'settings.company.subtitle': 'معلومات الشركة والشعار والهوية البصرية',
+            'settings.company.name': 'اسم الشركة (يظهر في الرأس والتقارير)',
+            'settings.company.nameHint': 'سيتم استخدام هذا الاسم في رأس التطبيق وجميع التقارير PDF.',
+            'settings.company.fontSize': 'حجم خط اسم الشركة (بكسل)',
+            'settings.company.fontSizeHint': 'الحجم الافتراضي: 16 بكسل. يمكنك تغييره من 8 إلى 72 بكسل.',
+            'settings.company.secondaryName': 'الاسم الثانوي / السطر الإضافي (يظهر في الرأس والتقارير)',
+            'settings.company.secondaryNameHint': 'سيتم عرض هذا السطر أسفل اسم الشركة في الرأس والتقارير. إذا تم تركها فارغة، لن تظهر في الواجهة أو PDF.',
 
             // PTW Module specific translations
-            'ptw.title': '?????? ?????',
-            'ptw.subtitle': '????? ?????? ?????',
-            'ptw.tabs.list': '????? ????????',
-            'ptw.tabs.registry': '??? ????????',
-            'ptw.tabs.analytics': '?????????',
-            'ptw.btn.newPermit': '????? ????',
-            'ptw.btn.approve': '??????',
-            'ptw.btn.reject': '???',
-            'ptw.status.pending': '????',
-            'ptw.status.approved': '?????',
-            'ptw.status.rejected': '?????',
-            'ptw.status.expired': '?????',
-            'ptw.status.active': '???',
-            'ptw.form.permitType': '??? ???????',
-            'ptw.form.workLocation': '???? ?????',
-            'ptw.form.workDescription': '??? ?????',
-            'ptw.form.startDate': '????? ?????',
-            'ptw.form.endDate': '????? ????????',
-            'ptw.form.requestingParty': '????? ???????',
-            'ptw.form.approvals': '?????????',
-            'ptw.safety.officer': '????? ???????',
-            'ptw.safety.required': '?????? ??????? ??????',
+            'ptw.title': 'تصاريح العمل',
+            'ptw.subtitle': 'إدارة تصاريح العمل',
+            'ptw.tabs.list': 'قائمة التصاريح',
+            'ptw.tabs.registry': 'سجل التصاريح',
+            'ptw.tabs.analytics': 'التحليلات',
+            'ptw.btn.newPermit': 'تصريح جديد',
+            'ptw.btn.approve': 'موافقة',
+            'ptw.btn.reject': 'رفض',
+            'ptw.status.pending': 'معلق',
+            'ptw.status.approved': 'معتمد',
+            'ptw.status.rejected': 'مرفوض',
+            'ptw.status.expired': 'منتهي',
+            'ptw.status.active': 'نشط',
+            'ptw.form.permitType': 'نوع التصريح',
+            'ptw.form.workLocation': 'موقع العمل',
+            'ptw.form.workDescription': 'وصف العمل',
+            'ptw.form.startDate': 'تاريخ البدء',
+            'ptw.form.endDate': 'تاريخ الانتهاء',
+            'ptw.form.requestingParty': 'الجهة الطالبة',
+            'ptw.form.approvals': 'الموافقات',
+            'ptw.safety.officer': 'مسؤول السلامة',
+            'ptw.safety.required': 'موافقة السلامة مطلوبة',
 
             // Users Module translations
-            'users.title': '??????????',
-            'users.subtitle': '????? ?????????? ??????????',
-            'users.btn.newUser': '?????? ????',
-            'users.table.name': '?????',
-            'users.table.email': '?????? ??????????',
-            'users.table.role': '?????',
-            'users.table.department': '?????',
-            'users.table.status': '??????',
-            'users.status.active': '???',
-            'users.status.inactive': '??? ???',
-            'users.form.fullName': '????? ??????',
-            'users.form.email': '?????? ??????????',
-            'users.form.password': '???? ??????',
-            'users.form.role': '????? ???????',
-            'users.form.department': '?????',
+            'users.title': 'المستخدمين',
+            'users.subtitle': 'إدارة المستخدمين والصلاحيات',
+            'users.btn.newUser': 'مستخدم جديد',
+            'users.table.name': 'الاسم',
+            'users.table.email': 'البريد الإلكتروني',
+            'users.table.role': 'الدور',
+            'users.table.department': 'القسم',
+            'users.table.status': 'الحالة',
+            'users.status.active': 'نشط',
+            'users.status.inactive': 'غير نشط',
+            'users.form.fullName': 'الاسم الكامل',
+            'users.form.email': 'البريد الإلكتروني',
+            'users.form.password': 'كلمة المرور',
+            'users.form.role': 'الدور الوظيفي',
+            'users.form.department': 'القسم',
 
             // Incidents Module translations
-            'incidents.title': '???????',
-            'incidents.subtitle': '????? ??????? ???????',
-            'incidents.btn.newIncident': '???? ????',
-            'incidents.table.incidentType': '??? ??????',
-            'incidents.table.date': '????? ??????',
-            'incidents.table.location': '??????',
-            'incidents.table.severity': '???????',
-            'incidents.table.status': '??????',
-            'incidents.form.description': '??? ??????',
-            'incidents.form.injuredPerson': '????? ??????',
-            'incidents.form.witnesses': '??????',
-            'incidents.form.immediateAction': '??????? ??????',
-            'incidents.form.rootCause': '????? ??????',
-            'incidents.form.correctiveAction': '??????? ????????',
-            'incidents.severity.low': '??????',
-            'incidents.severity.medium': '??????',
-            'incidents.severity.high': '?????',
-            'incidents.severity.critical': '????',
-            'incidents.status.open': '?????',
-            'incidents.status.investigating': '??? ???????',
-            'incidents.status.closed': '????',
+            'incidents.title': 'الحوادث',
+            'incidents.subtitle': 'تسجيل ومتابعة الحوادث',
+            'incidents.btn.newIncident': 'حادث جديد',
+            'incidents.table.incidentType': 'نوع الحادث',
+            'incidents.table.date': 'تاريخ الحادث',
+            'incidents.table.location': 'الموقع',
+            'incidents.table.severity': 'الخطورة',
+            'incidents.table.status': 'الحالة',
+            'incidents.form.description': 'وصف الحادث',
+            'incidents.form.injuredPerson': 'الشخص المصاب',
+            'incidents.form.witnesses': 'الشهود',
+            'incidents.form.immediateAction': 'الإجراء الفوري',
+            'incidents.form.rootCause': 'السبب الجذري',
+            'incidents.form.correctiveAction': 'الإجراء التصحيحي',
+            'incidents.severity.low': 'منخفضة',
+            'incidents.severity.medium': 'متوسطة',
+            'incidents.severity.high': 'عالية',
+            'incidents.severity.critical': 'حرجة',
+            'incidents.status.open': 'مفتوح',
+            'incidents.status.investigating': 'قيد التحقيق',
+            'incidents.status.closed': 'مغلق',
 
             // Training Module translations
-            'training.title': '???????',
-            'training.subtitle': '????? ??????? ????????? ?????????',
-            'training.btn.newTraining': '?????? ?????? ????',
-            'training.btn.newCertificate': '????? ?????',
-            'training.table.trainingName': '??? ????????',
-            'training.table.trainer': '??????',
-            'training.table.date': '???????',
-            'training.table.duration': '?????',
-            'training.table.participants': '?????????',
-            'training.table.status': '??????',
-            'training.form.trainingType': '??? ???????',
-            'training.form.trainingTopic': '????? ???????',
-            'training.form.trainer': '??????',
-            'training.form.location': '???? ???????',
-            'training.form.startDate': '????? ?????',
-            'training.form.endDate': '????? ????????',
-            'training.form.duration': '????? (?????)',
-            'training.status.planned': '????',
-            'training.status.ongoing': '????',
-            'training.status.completed': '?????',
-            'training.status.cancelled': '????',
-            'training.certificate.title': '????????',
-            'training.certificate.employee': '??????',
-            'training.certificate.issueDate': '????? ???????',
-            'training.certificate.expiryDate': '????? ????????',
-            'training.certificate.status': '???? ???????',
-            'training.certificate.valid': '?????',
-            'training.certificate.expired': '??????',
+            'training.title': 'التدريب',
+            'training.subtitle': 'إدارة البرامج التدريبية والشهادات',
+            'training.btn.newTraining': 'برنامج تدريبي جديد',
+            'training.btn.newCertificate': 'شهادة جديدة',
+            'training.table.trainingName': 'اسم البرنامج',
+            'training.table.trainer': 'المدرب',
+            'training.table.date': 'التاريخ',
+            'training.table.duration': 'المدة',
+            'training.table.participants': 'المشاركون',
+            'training.table.status': 'الحالة',
+            'training.form.trainingType': 'نوع التدريب',
+            'training.form.trainingTopic': 'موضوع التدريب',
+            'training.form.trainer': 'المدرب',
+            'training.form.location': 'موقع التدريب',
+            'training.form.startDate': 'تاريخ البدء',
+            'training.form.endDate': 'تاريخ الانتهاء',
+            'training.form.duration': 'المدة (ساعات)',
+            'training.status.planned': 'مخطط',
+            'training.status.ongoing': 'جاري',
+            'training.status.completed': 'مكتمل',
+            'training.status.cancelled': 'ملغى',
+            'training.certificate.title': 'الشهادات',
+            'training.certificate.employee': 'الموظف',
+            'training.certificate.issueDate': 'تاريخ الإصدار',
+            'training.certificate.expiryDate': 'تاريخ الانتهاء',
+            'training.certificate.status': 'حالة الشهادة',
+            'training.certificate.valid': 'سارية',
+            'training.certificate.expired': 'منتهية',
 
             // NearMiss Module translations
-            'nearmiss.title': '???????? ???????',
-            'nearmiss.subtitle': '????? ??????? ???????? ??????? ?? ???????',
-            'nearmiss.btn.newReport': '????? ????',
-            'nearmiss.table.date': '????? ???????',
-            'nearmiss.table.location': '??????',
-            'nearmiss.table.type': '??? ???????',
-            'nearmiss.table.severity': '???????',
-            'nearmiss.table.reporter': '??????',
-            'nearmiss.table.status': '??????',
-            'nearmiss.form.description': '??? ?????? ??????',
-            'nearmiss.form.immediateAction': '??????? ?????? ??????',
-            'nearmiss.form.suggestedAction': '??????? ???????',
-            'nearmiss.status.reported': '?? ???????',
-            'nearmiss.status.underReview': '??? ????????',
-            'nearmiss.status.resolved': '?? ????',
+            'nearmiss.title': 'التقارير القريبة',
+            'nearmiss.subtitle': 'تسجيل ومتابعة التقارير القريبة من الحوادث',
+            'nearmiss.btn.newReport': 'تقرير جديد',
+            'nearmiss.table.date': 'تاريخ التقرير',
+            'nearmiss.table.location': 'الموقع',
+            'nearmiss.table.type': 'نوع التقرير',
+            'nearmiss.table.severity': 'الخطورة',
+            'nearmiss.table.reporter': 'المبلغ',
+            'nearmiss.table.status': 'الحالة',
+            'nearmiss.form.description': 'وصف الحادث القريب',
+            'nearmiss.form.immediateAction': 'الإجراء الفوري المتخذ',
+            'nearmiss.form.suggestedAction': 'الإجراء المقترح',
+            'nearmiss.status.reported': 'تم التبليغ',
+            'nearmiss.status.underReview': 'قيد المراجعة',
+            'nearmiss.status.resolved': 'تم الحل',
 
             // Clinic Module translations
-            'clinic.title': '???????',
-            'clinic.subtitle': '????? ?????? ??????? ???????? ??????',
-            'clinic.btn.newVisit': '????? ?????',
-            'clinic.tabs.visits': '??? ????????',
-            'clinic.tabs.employees': '????????',
-            'clinic.tabs.contractors': '?????????',
-            'clinic.tabs.medications': '???????',
-            'clinic.tabs.analytics': '?????????',
-            'clinic.table.employeeCode': '????? ???????',
-            'clinic.table.name': '?????',
-            'clinic.table.visitDate': '????? ???????',
-            'clinic.table.reason': '??? ???????',
-            'clinic.table.diagnosis': '???????',
-            'clinic.table.status': '??????',
-            'clinic.table.medications': '???????',
-            'clinic.form.patientType': '??? ??????',
-            'clinic.form.patientName': '??? ??????',
-            'clinic.form.visitDate': '????? ???????',
-            'clinic.form.reason': '??? ???????',
-            'clinic.form.diagnosis': '???????',
-            'clinic.form.treatment': '??????',
-            'clinic.form.medications': '??????? ????????',
-            'clinic.status.treated': '?? ??????',
-            'clinic.status.referred': '?? ???????',
-            'clinic.status.followUp': '??????',
+            'clinic.title': 'العيادة',
+            'clinic.subtitle': 'إدارة زيارات العيادة والحالات الطبية',
+            'clinic.btn.newVisit': 'زيارة جديدة',
+            'clinic.tabs.visits': 'سجل الزيارات',
+            'clinic.tabs.employees': 'الموظفين',
+            'clinic.tabs.contractors': 'المقاولين',
+            'clinic.tabs.medications': 'الأدوية',
+            'clinic.tabs.analytics': 'التحليلات',
+            'clinic.table.employeeCode': 'الكود الوظيفي',
+            'clinic.table.name': 'الاسم',
+            'clinic.table.visitDate': 'تاريخ الزيارة',
+            'clinic.table.reason': 'سبب الزيارة',
+            'clinic.table.diagnosis': 'التشخيص',
+            'clinic.table.status': 'الحالة',
+            'clinic.table.medications': 'الأدوية',
+            'clinic.form.patientType': 'نوع المريض',
+            'clinic.form.patientName': 'اسم المريض',
+            'clinic.form.visitDate': 'تاريخ الزيارة',
+            'clinic.form.reason': 'سبب الزيارة',
+            'clinic.form.diagnosis': 'التشخيص',
+            'clinic.form.treatment': 'العلاج',
+            'clinic.form.medications': 'الأدوية المنصرفة',
+            'clinic.status.treated': 'تم العلاج',
+            'clinic.status.referred': 'تم الإحالة',
+            'clinic.status.followUp': 'متابعة',
 
             // FireEquipment Module translations
-            'fire.title': '????? ??????',
-            'fire.subtitle': '????? ???? ????? ?????? ????????',
-            'fire.btn.newEquipment': '????? ?????',
-            'fire.btn.inspect': '???',
-            'fire.btn.qrScan': '??? QR',
-            'fire.tabs.database': '????? ????????',
-            'fire.tabs.register': '?????',
-            'fire.tabs.inspections': '????????',
-            'fire.tabs.analytics': '?????????',
-            'fire.table.equipmentId': '??? ??????',
-            'fire.table.type': '?????',
-            'fire.table.location': '??????',
-            'fire.table.status': '??????',
-            'fire.table.lastInspection': '??? ???',
-            'fire.table.nextInspection': '????? ??????',
-            'fire.form.equipmentType': '??? ??????',
-            'fire.form.deviceId': '??? ??????',
-            'fire.form.location': '???? ??????',
-            'fire.form.installationDate': '????? ???????',
-            'fire.form.lastInspection': '????? ??? ???',
-            'fire.status.active': '????',
-            'fire.status.maintenance': '????? ?????',
-            'fire.status.outOfService': '???? ??????',
-            'fire.inspection.monthly': '????? ??????',
-            'fire.inspection.quarterly': '????? ??? ??????',
+            'fire.title': 'معدات الحريق',
+            'fire.subtitle': 'إدارة وفحص معدات الحريق والإطفاء',
+            'fire.btn.newEquipment': 'معدات جديدة',
+            'fire.btn.inspect': 'فحص',
+            'fire.btn.qrScan': 'مسح QR',
+            'fire.tabs.database': 'قاعدة البيانات',
+            'fire.tabs.register': 'السجل',
+            'fire.tabs.inspections': 'الفحوصات',
+            'fire.tabs.analytics': 'التحليلات',
+            'fire.table.equipmentId': 'كود الجهاز',
+            'fire.table.type': 'النوع',
+            'fire.table.location': 'الموقع',
+            'fire.table.status': 'الحالة',
+            'fire.table.lastInspection': 'آخر فحص',
+            'fire.table.nextInspection': 'الفحص القادم',
+            'fire.form.equipmentType': 'نوع الجهاز',
+            'fire.form.deviceId': 'كود الجهاز',
+            'fire.form.location': 'موقع الجهاز',
+            'fire.form.installationDate': 'تاريخ التركيب',
+            'fire.form.lastInspection': 'تاريخ آخر فحص',
+            'fire.status.active': 'صالح',
+            'fire.status.maintenance': 'يحتاج صيانة',
+            'fire.status.outOfService': 'خارج الخدمة',
+            'fire.inspection.monthly': 'الفحص الشهري',
+            'fire.inspection.quarterly': 'الفحص ربع السنوي',
 
             // PPE Module translations
-            'ppe.title': '????? ??????? ???????',
-            'ppe.subtitle': '????? ????? ????? ??????? ???????',
-            'ppe.btn.newItem': '??? ????',
-            'ppe.btn.issue': '???',
-            'ppe.btn.return': '?????',
-            'ppe.tabs.inventory': '???????',
-            'ppe.tabs.issuance': '?????',
-            'ppe.tabs.returns': '?????????',
-            'ppe.tabs.analytics': '?????????',
-            'ppe.table.itemName': '??? ?????',
-            'ppe.table.category': '?????',
-            'ppe.table.quantity': '??????',
-            'ppe.table.unit': '??????',
-            'ppe.table.minStock': '???? ??????',
-            'ppe.table.status': '??????',
-            'ppe.table.employee': '??????',
-            'ppe.table.issueDate': '????? ?????',
-            'ppe.table.returnDate': '????? ???????',
-            'ppe.form.itemName': '??? ?????',
-            'ppe.form.category': '?????',
-            'ppe.form.quantity': '??????',
-            'ppe.form.unit': '??????',
-            'ppe.form.minStock': '???? ?????? ???????',
-            'ppe.status.available': '????',
-            'ppe.status.lowStock': '????? ?????',
-            'ppe.status.outOfStock': '??? ?? ???????',
+            'ppe.title': 'معدات الوقاية الشخصية',
+            'ppe.subtitle': 'إدارة وتتبع معدات الوقاية الشخصية',
+            'ppe.btn.newItem': 'صنف جديد',
+            'ppe.btn.issue': 'صرف',
+            'ppe.btn.return': 'إرجاع',
+            'ppe.tabs.inventory': 'المخزون',
+            'ppe.tabs.issuance': 'الصرف',
+            'ppe.tabs.returns': 'المرتجعات',
+            'ppe.tabs.analytics': 'التحليلات',
+            'ppe.table.itemName': 'اسم الصنف',
+            'ppe.table.category': 'الفئة',
+            'ppe.table.quantity': 'الكمية',
+            'ppe.table.unit': 'الوحدة',
+            'ppe.table.minStock': 'الحد الأدنى',
+            'ppe.table.status': 'الحالة',
+            'ppe.table.employee': 'الموظف',
+            'ppe.table.issueDate': 'تاريخ الصرف',
+            'ppe.table.returnDate': 'تاريخ الإرجاع',
+            'ppe.form.itemName': 'اسم الصنف',
+            'ppe.form.category': 'الفئة',
+            'ppe.form.quantity': 'الكمية',
+            'ppe.form.unit': 'الوحدة',
+            'ppe.form.minStock': 'الحد الأدنى للمخزون',
+            'ppe.status.available': 'متاح',
+            'ppe.status.lowStock': 'مخزون منخفض',
+            'ppe.status.outOfStock': 'نفد من المخزون',
 
             // Employees Module translations
-            'employees.title': '????????',
-            'employees.subtitle': '????? ?????? ???????? ????????',
-            'employees.btn.newEmployee': '???? ????',
-            'employees.table.employeeCode': '????? ???????',
-            'employees.table.fullName': '????? ??????',
-            'employees.table.jobTitle': '?????? ???????',
-            'employees.table.department': '?????',
-            'employees.table.factory': '??????',
-            'employees.table.workplace': '???? ?????',
-            'employees.table.joinDate': '????? ???????',
-            'employees.table.status': '??????',
-            'employees.form.fullName': '????? ??????',
-            'employees.form.employeeCode': '????? ???????',
-            'employees.form.jobTitle': '?????? ???????',
-            'employees.form.department': '?????',
-            'employees.form.factory': '??????',
-            'employees.form.workplace': '???? ?????',
-            'employees.form.phone': '??? ??????',
-            'employees.form.email': '?????? ??????????',
-            'employees.form.joinDate': '????? ???????',
-            'employees.status.active': '???',
-            'employees.status.inactive': '??? ???',
-            'employees.status.onLeave': '?? ?????',
+            'employees.title': 'الموظفين',
+            'employees.subtitle': 'إدارة بيانات الموظفين والوظائف',
+            'employees.btn.newEmployee': 'موظف جديد',
+            'employees.table.employeeCode': 'الكود الوظيفي',
+            'employees.table.fullName': 'الاسم الكامل',
+            'employees.table.jobTitle': 'المسمى الوظيفي',
+            'employees.table.department': 'القسم',
+            'employees.table.factory': 'المصنع',
+            'employees.table.workplace': 'مكان العمل',
+            'employees.table.joinDate': 'تاريخ التعيين',
+            'employees.table.status': 'الحالة',
+            'employees.form.fullName': 'الاسم الكامل',
+            'employees.form.employeeCode': 'الكود الوظيفي',
+            'employees.form.jobTitle': 'المسمى الوظيفي',
+            'employees.form.department': 'القسم',
+            'employees.form.factory': 'المصنع',
+            'employees.form.workplace': 'مكان العمل',
+            'employees.form.phone': 'رقم الهاتف',
+            'employees.form.email': 'البريد الإلكتروني',
+            'employees.form.joinDate': 'تاريخ التعيين',
+            'employees.status.active': 'نشط',
+            'employees.status.inactive': 'غير نشط',
+            'employees.status.onLeave': 'في إجازة',
 
             // Contractors Module translations
-            'contractors.title': '?????????',
-            'contractors.subtitle': '????? ????????? ???????',
-            'contractors.btn.newContractor': '????? ????',
-            'contractors.btn.evaluate': '?????',
-            'contractors.btn.approve': '??????',
-            'contractors.tabs.list': '????? ?????????',
-            'contractors.tabs.approved': '?????????',
-            'contractors.tabs.evaluations': '?????????',
-            'contractors.tabs.requests': '????? ????????',
-            'contractors.table.contractorName': '??? ???????',
-            'contractors.table.company': '??????',
-            'contractors.table.specialty': '??????',
-            'contractors.table.contractNumber': '??? ?????',
-            'contractors.table.startDate': '????? ?????',
-            'contractors.table.endDate': '????? ????????',
-            'contractors.table.status': '??????',
-            'contractors.form.companyName': '??? ??????',
-            'contractors.form.contractorName': '??? ???????',
-            'contractors.form.specialty': '??????',
-            'contractors.form.contractNumber': '??? ?????',
-            'contractors.form.startDate': '????? ????? ?????',
-            'contractors.form.endDate': '????? ????? ?????',
-            'contractors.form.contactPerson': '????? ???????',
-            'contractors.form.phone': '??? ??????',
-            'contractors.form.email': '?????? ??????????',
-            'contractors.status.active': '???',
-            'contractors.status.expired': '?????',
-            'contractors.status.pending': '????',
-            'contractors.status.approved': '?????',
+            'contractors.title': 'المقاولين',
+            'contractors.subtitle': 'إدارة المقاولين والعقود',
+            'contractors.btn.newContractor': 'مقاول جديد',
+            'contractors.btn.evaluate': 'تقييم',
+            'contractors.btn.approve': 'اعتماد',
+            'contractors.tabs.list': 'قائمة المقاولين',
+            'contractors.tabs.approved': 'المعتمدين',
+            'contractors.tabs.evaluations': 'التقييمات',
+            'contractors.tabs.requests': 'طلبات الاعتماد',
+            'contractors.table.contractorName': 'اسم المقاول',
+            'contractors.table.company': 'الشركة',
+            'contractors.table.specialty': 'التخصص',
+            'contractors.table.contractNumber': 'رقم العقد',
+            'contractors.table.startDate': 'تاريخ البدء',
+            'contractors.table.endDate': 'تاريخ الانتهاء',
+            'contractors.table.status': 'الحالة',
+            'contractors.form.companyName': 'اسم الشركة',
+            'contractors.form.contractorName': 'اسم المقاول',
+            'contractors.form.specialty': 'التخصص',
+            'contractors.form.contractNumber': 'رقم العقد',
+            'contractors.form.startDate': 'تاريخ بداية العقد',
+            'contractors.form.endDate': 'تاريخ نهاية العقد',
+            'contractors.form.contactPerson': 'الشخص المسؤول',
+            'contractors.form.phone': 'رقم الهاتف',
+            'contractors.form.email': 'البريد الإلكتروني',
+            'contractors.status.active': 'نشط',
+            'contractors.status.expired': 'منتهي',
+            'contractors.status.pending': 'معلق',
+            'contractors.status.approved': 'معتمد',
 
             // Violations Module translations
-            'violations.title': '?????????',
-            'violations.subtitle': '????? ????? ????????? ?????????',
-            'violations.btn.newViolation': '?????? ?????',
-            'violations.btn.newPenalty': '???? ????',
-            'violations.tabs.violations': '?????????',
-            'violations.tab.penalties': '????????',
-            'violations.tabs.analytics': '?????????',
-            'violations.table.violationType': '??? ????????',
-            'violations.table.date': '????? ????????',
-            'violations.table.employee': '??????/???????',
-            'violations.table.severity': '???? ???????',
-            'violations.table.status': '??????',
-            'violations.table.penalty': '??????',
-            'violations.form.violationDescription': '??? ????????',
-            'violations.form.violationLocation': '???? ????????',
-            'violations.form.violationDate': '????? ????????',
-            'violations.form.violationTime': '??? ????????',
-            'violations.form.witnesses': '??????',
-            'violations.form.evidence': '??????/???????',
-            'violations.severity.low': '??????',
-            'violations.severity.medium': '??????',
-            'violations.severity.high': '?????',
-            'violations.severity.critical': '????',
-            'violations.status.pending': '?????',
-            'violations.status.approved': '??????',
-            'violations.status.rejected': '??????',
+            'violations.title': 'المخالفات',
+            'violations.subtitle': 'إدارة وتتبع المخالفات والجزاءات',
+            'violations.btn.newViolation': 'مخالفة جديدة',
+            'violations.btn.newPenalty': 'جزاء جديد',
+            'violations.tabs.violations': 'المخالفات',
+            'violations.tab.penalties': 'الجزاءات',
+            'violations.tabs.analytics': 'التحليلات',
+            'violations.table.violationType': 'نوع المخالفة',
+            'violations.table.date': 'تاريخ المخالفة',
+            'violations.table.employee': 'الموظف/المقاول',
+            'violations.table.severity': 'درجة الخطورة',
+            'violations.table.status': 'الحالة',
+            'violations.table.penalty': 'الجزاء',
+            'violations.form.violationDescription': 'وصف المخالفة',
+            'violations.form.violationLocation': 'موقع المخالفة',
+            'violations.form.violationDate': 'تاريخ المخالفة',
+            'violations.form.violationTime': 'وقت المخالفة',
+            'violations.form.witnesses': 'الشهود',
+            'violations.form.evidence': 'الدليل/الإثبات',
+            'violations.severity.low': 'منخفضة',
+            'violations.severity.medium': 'متوسطة',
+            'violations.severity.high': 'عالية',
+            'violations.severity.critical': 'حرجة',
+            'violations.status.pending': 'معلقة',
+            'violations.status.approved': 'معتمدة',
+            'violations.status.rejected': 'مرفوضة',
 
             // Reports Module translations
-            'reports.title': '????????',
-            'reports.subtitle': '????? ?????? ????????',
-            'reports.btn.newReport': '????? ????',
-            'reports.btn.generate': '????? ???????',
-            'reports.btn.export': '?????',
-            'reports.tabs.saved': '???????? ????????',
-            'reports.tabs.generate': '????? ?????',
-            'reports.tabs.scheduled': '???????? ????????',
-            'reports.table.reportName': '??? ???????',
-            'reports.table.reportType': '??? ???????',
-            'reports.table.createdBy': '?? ??????? ??????',
-            'reports.table.createdDate': '????? ???????',
-            'reports.table.lastRun': '??? ?????',
-            'reports.table.status': '??????',
-            'reports.form.reportName': '??? ???????',
-            'reports.form.reportType': '??? ???????',
-            'reports.form.dateRange': '???? ???????',
-            'reports.form.filters': '????? ???????',
-            'reports.status.active': '???',
-            'reports.status.inactive': '??? ???',
+            'reports.title': 'التقارير',
+            'reports.subtitle': 'إنشاء وإدارة التقارير',
+            'reports.btn.newReport': 'تقرير جديد',
+            'reports.btn.generate': 'توليد التقرير',
+            'reports.btn.export': 'تصدير',
+            'reports.tabs.saved': 'التقارير المحفوظة',
+            'reports.tabs.generate': 'توليد تقرير',
+            'reports.tabs.scheduled': 'التقارير المجدولة',
+            'reports.table.reportName': 'اسم التقرير',
+            'reports.table.reportType': 'نوع التقرير',
+            'reports.table.createdBy': 'تم الإنشاء بواسطة',
+            'reports.table.createdDate': 'تاريخ الإنشاء',
+            'reports.table.lastRun': 'آخر تشغيل',
+            'reports.table.status': 'الحالة',
+            'reports.form.reportName': 'اسم التقرير',
+            'reports.form.reportType': 'نوع التقرير',
+            'reports.form.dateRange': 'نطاق التاريخ',
+            'reports.form.filters': 'عوامل التصفية',
+            'reports.status.active': 'نشط',
+            'reports.status.inactive': 'غير نشط',
 
             // ISO Module translations
-            'iso.title': '???? ????? ?????? ISO',
-            'iso.subtitle': '????? ??????? ???? ????? ?????? ?????????',
-            'iso.btn.newDocument': '????? ????',
-            'iso.btn.audit': '????? ????',
-            'iso.tabs.documents': '?????????',
-            'iso.tabs.audits': '?????????',
-            'iso.tabs.certificates': '????????',
-            'iso.tabs.analytics': '?????????',
-            'iso.table.documentCode': '??? ???????',
-            'iso.table.documentName': '??? ???????',
-            'iso.table.version': '???????',
-            'iso.table.issueDate': '????? ???????',
-            'iso.table.reviewDate': '????? ????????',
-            'iso.table.status': '??????',
-            'iso.form.documentCode': '??? ???????',
-            'iso.form.documentName': '??? ???????',
-            'iso.form.version': '??? ???????',
-            'iso.form.issueDate': '????? ???????',
-            'iso.form.reviewDate': '????? ???????? ??????',
-            'iso.status.active': '???',
-            'iso.status.underReview': '??? ????????',
-            'iso.status.archived': '?????',
+            'iso.title': 'نظام إدارة الجودة ISO',
+            'iso.subtitle': 'إدارة متطلبات نظام إدارة الجودة والشهادات',
+            'iso.btn.newDocument': 'مستند جديد',
+            'iso.btn.audit': 'تدقيق جديد',
+            'iso.tabs.documents': 'المستندات',
+            'iso.tabs.audits': 'التدقيقات',
+            'iso.tabs.certificates': 'الشهادات',
+            'iso.tabs.analytics': 'التحليلات',
+            'iso.table.documentCode': 'كود المستند',
+            'iso.table.documentName': 'اسم المستند',
+            'iso.table.version': 'الإصدار',
+            'iso.table.issueDate': 'تاريخ الإصدار',
+            'iso.table.reviewDate': 'تاريخ المراجعة',
+            'iso.table.status': 'الحالة',
+            'iso.form.documentCode': 'كود المستند',
+            'iso.form.documentName': 'اسم المستند',
+            'iso.form.version': 'رقم الإصدار',
+            'iso.form.issueDate': 'تاريخ الإصدار',
+            'iso.form.reviewDate': 'تاريخ المراجعة القادم',
+            'iso.status.active': 'نشط',
+            'iso.status.underReview': 'قيد المراجعة',
+            'iso.status.archived': 'مؤرشف',
 
             // Emergency Module translations
-            'emergency.title': '???????',
-            'emergency.subtitle': '????? ??? ??????? ????????',
-            'emergency.btn.newPlan': '??? ????? ?????',
-            'emergency.btn.drill': '????? ?????',
-            'emergency.tabs.plans': '??? ???????',
-            'emergency.tabs.drills': '????????',
-            'emergency.tabs.equipment': '????? ???????',
-            'emergency.tabs.contacts': '???? ???????',
-            'emergency.table.planName': '??? ?????',
-            'emergency.table.planType': '??? ?????',
-            'emergency.table.lastDrill': '??? ?????',
-            'emergency.table.nextDrill': '??????? ??????',
-            'emergency.table.status': '??????',
-            'emergency.form.planName': '??? ??? ???????',
-            'emergency.form.planType': '??? ?????',
-            'emergency.form.assemblyPoint': '???? ??????',
-            'emergency.form.evacuationRoutes': '??? ???????',
-            'emergency.status.active': '????',
-            'emergency.status.inactive': '??? ????',
+            'emergency.title': 'الطوارئ',
+            'emergency.subtitle': 'إدارة خطط الطوارئ والإخلاء',
+            'emergency.btn.newPlan': 'خطة طوارئ جديدة',
+            'emergency.btn.drill': 'تمرين إخلاء',
+            'emergency.tabs.plans': 'خطط الطوارئ',
+            'emergency.tabs.drills': 'التمارين',
+            'emergency.tabs.equipment': 'معدات الطوارئ',
+            'emergency.tabs.contacts': 'جهات الاتصال',
+            'emergency.table.planName': 'اسم الخطة',
+            'emergency.table.planType': 'نوع الخطة',
+            'emergency.table.lastDrill': 'آخر تمرين',
+            'emergency.table.nextDrill': 'التمرين القادم',
+            'emergency.table.status': 'الحالة',
+            'emergency.form.planName': 'اسم خطة الطوارئ',
+            'emergency.form.planType': 'نوع الخطة',
+            'emergency.form.assemblyPoint': 'نقطة التجمع',
+            'emergency.form.evacuationRoutes': 'طرق الإخلاء',
+            'emergency.status.active': 'نشطة',
+            'emergency.status.inactive': 'غير نشطة',
 
             // SOP/JHA Module translations
-            'sop.title': '??????? ????? ??????',
-            'sop.subtitle': '????? ??????? ????? ?????? ?????? ???????',
-            'sop.btn.newSOP': '????? ????',
-            'sop.btn.newJHA': '????? ????? ????',
-            'sop.tabs.sop': '??????? ?????',
-            'sop.tabs.jha': '????? ???????',
-            'sop.tabs.approvals': '?????????',
-            'sop.table.sopCode': '??? ???????',
-            'sop.table.sopName': '??? ???????',
-            'sop.table.department': '?????',
-            'sop.table.revision': '????????',
-            'sop.table.lastUpdate': '??? ?????',
-            'sop.table.status': '??????',
-            'sop.form.sopCode': '??? ???????',
-            'sop.form.sopName': '??? ???????',
-            'sop.form.department': '?????',
-            'sop.form.purpose': '?????',
-            'sop.form.scope': '??????',
-            'sop.form.responsibilities': '??????????',
-            'sop.form.procedures': '?????????',
-            'sop.status.active': '???',
-            'sop.status.underReview': '??? ????????',
-            'sop.status.obsolete': '????',
+            'sop.title': 'إجراءات العمل الآمنة',
+            'sop.subtitle': 'إدارة إجراءات العمل الآمنة وتحليل المخاطر',
+            'sop.btn.newSOP': 'إجراء جديد',
+            'sop.btn.newJHA': 'تحليل مخاطر جديد',
+            'sop.tabs.sop': 'إجراءات العمل',
+            'sop.tabs.jha': 'تحليل المخاطر',
+            'sop.tabs.approvals': 'الموافقات',
+            'sop.table.sopCode': 'كود الإجراء',
+            'sop.table.sopName': 'اسم الإجراء',
+            'sop.table.department': 'القسم',
+            'sop.table.revision': 'المراجعة',
+            'sop.table.lastUpdate': 'آخر تحديث',
+            'sop.table.status': 'الحالة',
+            'sop.form.sopCode': 'كود الإجراء',
+            'sop.form.sopName': 'اسم الإجراء',
+            'sop.form.department': 'القسم',
+            'sop.form.purpose': 'الغرض',
+            'sop.form.scope': 'النطاق',
+            'sop.form.responsibilities': 'المسؤوليات',
+            'sop.form.procedures': 'الإجراءات',
+            'sop.status.active': 'نشط',
+            'sop.status.underReview': 'قيد المراجعة',
+            'sop.status.obsolete': 'مهمل',
 
             // DailyObservations Module translations
-            'daily.title': '????????? ???????',
-            'daily.subtitle': '????? ????????? ??????? ??? ??? ??????',
-            'daily.btn.newObservation': '?????? ?????',
-            'daily.table.date': '???????',
-            'daily.table.observer': '???????',
-            'daily.table.location': '??????',
-            'daily.table.observation': '????????',
-            'daily.table.category': '???????',
-            'daily.table.priority': '????????',
-            'daily.table.status': '??????',
-            'daily.form.observationDate': '????? ????????',
-            'daily.form.observerName': '??? ???????',
-            'daily.form.location': '??????',
-            'daily.form.category': '????? ????????',
-            'daily.form.description': '??? ????????',
-            'daily.form.action': '??????? ??????',
-            'daily.form.responsible': '????? ????????',
-            'daily.priority.low': '??????',
-            'daily.priority.medium': '??????',
-            'daily.priority.high': '?????',
-            'daily.status.open': '?????',
-            'daily.status.inProgress': '??? ???????',
-            'daily.status.closed': '????',
+            'daily.title': 'الملاحظات اليومية',
+            'daily.subtitle': 'تسجيل الملاحظات اليومية على أرض المصنع',
+            'daily.btn.newObservation': 'ملاحظة جديدة',
+            'daily.table.date': 'التاريخ',
+            'daily.table.observer': 'المراقب',
+            'daily.table.location': 'الموقع',
+            'daily.table.observation': 'الملاحظة',
+            'daily.table.category': 'التصنيف',
+            'daily.table.priority': 'الأولوية',
+            'daily.table.status': 'الحالة',
+            'daily.form.observationDate': 'تاريخ الملاحظة',
+            'daily.form.observerName': 'اسم المراقب',
+            'daily.form.location': 'الموقع',
+            'daily.form.category': 'تصنيف الملاحظة',
+            'daily.form.description': 'وصف الملاحظة',
+            'daily.form.action': 'الإجراء المتخذ',
+            'daily.form.responsible': 'الجهة المسؤولة',
+            'daily.priority.low': 'منخفضة',
+            'daily.priority.medium': 'متوسطة',
+            'daily.priority.high': 'عالية',
+            'daily.status.open': 'مفتوح',
+            'daily.status.inProgress': 'قيد التنفيذ',
+            'daily.status.closed': 'مغلق',
 
             // BehaviorMonitoring Module translations
-            'behavior.title': '?????? ??????',
-            'behavior.subtitle': '????? ??????? ??????? ???????',
-            'behavior.btn.newEvaluation': '????? ????',
-            'behavior.table.date': '???????',
-            'behavior.table.employee': '??????',
-            'behavior.table.observer': '???????',
-            'behavior.table.score': '???????',
-            'behavior.table.status': '??????',
-            'behavior.form.evaluationDate': '????? ???????',
-            'behavior.form.employee': '??????',
-            'behavior.form.observer': '???????',
-            'behavior.form.ppeCompliance': '???????? ?????? ???????',
-            'behavior.form.workProcedures': '??????? ?????',
-            'behavior.form.attitude': '?????? ???????',
-            'behavior.form.comments': '???????',
-            'behavior.status.excellent': '?????',
-            'behavior.status.good': '???',
-            'behavior.status.needsImprovement': '????? ?????',
-            'behavior.status.unsatisfactory': '??? ????',
+            'behavior.title': 'مراقبة السلوك',
+            'behavior.subtitle': 'تقييم ومراقبة سلوكيات السلامة',
+            'behavior.btn.newEvaluation': 'تقييم جديد',
+            'behavior.table.date': 'التاريخ',
+            'behavior.table.employee': 'الموظف',
+            'behavior.table.observer': 'المراقب',
+            'behavior.table.score': 'النتيجة',
+            'behavior.table.status': 'الحالة',
+            'behavior.form.evaluationDate': 'تاريخ التقييم',
+            'behavior.form.employee': 'الموظف',
+            'behavior.form.observer': 'المراقب',
+            'behavior.form.ppeCompliance': 'الالتزام بمعدات الوقاية',
+            'behavior.form.workProcedures': 'إجراءات العمل',
+            'behavior.form.attitude': 'السلوك والموقف',
+            'behavior.form.comments': 'ملاحظات',
+            'behavior.status.excellent': 'ممتاز',
+            'behavior.status.good': 'جيد',
+            'behavior.status.needsImprovement': 'يحتاج تحسين',
+            'behavior.status.unsatisfactory': 'غير مرضي',
 
             // ChemicalSafety Module translations
-            'chemical.title': '?????? ??????????',
-            'chemical.subtitle': '????? ????? ?????? ????????? ??????????',
-            'chemical.btn.newChemical': '???? ?????',
-            'chemical.btn.msds': '????? ?????? ???????',
-            'chemical.tabs.inventory': '???????',
-            'chemical.tabs.msds': '?????? SDS',
-            'chemical.tabs.storage': '???????',
-            'chemical.table.chemicalName': '??? ??????',
-            'chemical.table.casNumber': '??? CAS',
-            'chemical.table.hazardClass': '??? ???????',
-            'chemical.table.quantity': '??????',
-            'chemical.table.storageLocation': '???? ???????',
-            'chemical.table.status': '??????',
-            'chemical.form.chemicalName': '??? ?????? ??????????',
-            'chemical.form.casNumber': '??? CAS',
-            'chemical.form.hazardClass': '??? ???????',
-            'chemical.form.quantity': '??????',
-            'chemical.form.unit': '??????',
-            'chemical.form.storageLocation': '???? ???????',
-            'chemical.status.safe': '???',
-            'chemical.status.hazardous': '????',
-            'chemical.status.restricted': '???? ?????????',
+            'chemical.title': 'المواد الكيميائية',
+            'chemical.subtitle': 'إدارة سلامة المواد والمنتجات الكيميائية',
+            'chemical.btn.newChemical': 'مادة جديدة',
+            'chemical.btn.msds': 'بطاقة بيانات السلامة',
+            'chemical.tabs.inventory': 'المخزون',
+            'chemical.tabs.msds': 'بطاقات SDS',
+            'chemical.tabs.storage': 'التخزين',
+            'chemical.table.chemicalName': 'اسم المادة',
+            'chemical.table.casNumber': 'رقم CAS',
+            'chemical.table.hazardClass': 'فئة الخطورة',
+            'chemical.table.quantity': 'الكمية',
+            'chemical.table.storageLocation': 'مكان التخزين',
+            'chemical.table.status': 'الحالة',
+            'chemical.form.chemicalName': 'اسم المادة الكيميائية',
+            'chemical.form.casNumber': 'رقم CAS',
+            'chemical.form.hazardClass': 'فئة الخطورة',
+            'chemical.form.quantity': 'الكمية',
+            'chemical.form.unit': 'الوحدة',
+            'chemical.form.storageLocation': 'مكان التخزين',
+            'chemical.status.safe': 'آمن',
+            'chemical.status.hazardous': 'خطير',
+            'chemical.status.restricted': 'مقيد الاستخدام',
 
             // PeriodicInspections Module translations
-            'periodic.title': '???????? ???????',
-            'periodic.subtitle': '????? ???????? ??????? ?????? ????????',
-            'periodic.btn.newInspection': '??? ????',
-            'periodic.btn.qrScan': '??? QR',
-            'periodic.tabs.schedule': '???????',
-            'periodic.tabs.register': '?????',
-            'periodic.tabs.equipment': '?????? ????????',
-            'periodic.tabs.analytics': '?????????',
-            'periodic.table.equipmentName': '??? ??????',
-            'periodic.table.equipmentId': '??? ??????',
-            'periodic.table.inspectionType': '??? ?????',
-            'periodic.table.dueDate': '????? ?????????',
-            'periodic.table.status': '??????',
-            'periodic.table.inspector': '??????',
-            'periodic.form.equipmentName': '??? ??????/??????',
-            'periodic.form.equipmentId': '??? ??????',
-            'periodic.form.inspectionType': '??? ?????',
-            'periodic.form.frequency': '????? ?????',
-            'periodic.form.lastInspection': '????? ??? ???',
-            'periodic.form.nextInspection': '????? ????? ??????',
-            'periodic.form.inspector': '??? ??????',
-            'periodic.status.pending': '????',
-            'periodic.status.completed': '?????',
-            'periodic.status.overdue': '?????',
-            'periodic.frequency.daily': '????',
-            'periodic.frequency.weekly': '??????',
-            'periodic.frequency.monthly': '????',
-            'periodic.frequency.quarterly': '??? ????',
-            'periodic.frequency.yearly': '????',
+            'periodic.title': 'الفحوصات الدورية',
+            'periodic.subtitle': 'إدارة الفحوصات الدورية للآلات والمعدات',
+            'periodic.btn.newInspection': 'فحص جديد',
+            'periodic.btn.qrScan': 'مسح QR',
+            'periodic.tabs.schedule': 'الجدولة',
+            'periodic.tabs.register': 'السجل',
+            'periodic.tabs.equipment': 'الأصول والمعدات',
+            'periodic.tabs.analytics': 'التحليلات',
+            'periodic.table.equipmentName': 'اسم الجهاز',
+            'periodic.table.equipmentId': 'كود الجهاز',
+            'periodic.table.inspectionType': 'نوع الفحص',
+            'periodic.table.dueDate': 'تاريخ الاستحقاق',
+            'periodic.table.status': 'الحالة',
+            'periodic.table.inspector': 'الفاحص',
+            'periodic.form.equipmentName': 'اسم الجهاز/المعدة',
+            'periodic.form.equipmentId': 'كود الجهاز',
+            'periodic.form.inspectionType': 'نوع الفحص',
+            'periodic.form.frequency': 'تكرار الفحص',
+            'periodic.form.lastInspection': 'تاريخ آخر فحص',
+            'periodic.form.nextInspection': 'تاريخ الفحص القادم',
+            'periodic.form.inspector': 'اسم الفاحص',
+            'periodic.status.pending': 'معلق',
+            'periodic.status.completed': 'مكتمل',
+            'periodic.status.overdue': 'متأخر',
+            'periodic.frequency.daily': 'يومي',
+            'periodic.frequency.weekly': 'أسبوعي',
+            'periodic.frequency.monthly': 'شهري',
+            'periodic.frequency.quarterly': 'ربع سنوي',
+            'periodic.frequency.yearly': 'سنوي',
 
             // SafetyBudget Module translations
-            'budget.title': '??????? ???????',
-            'budget.subtitle': '????? ??????? ??????? ?????? ???????',
-            'budget.btn.newItem': '??? ????',
-            'budget.btn.approve': '?????? ?????????',
-            'budget.tabs.plan': '??? ?????????',
-            'budget.tabs.actual': '????????? ???????',
-            'budget.tabs.variance': '????? ????????',
-            'budget.tabs.reports': '????????',
-            'budget.table.itemName': '??? ?????',
-            'budget.table.category': '?????',
-            'budget.table.planned': '??????',
-            'budget.table.actual': '??????',
-            'budget.table.variance': '????????',
-            'budget.table.status': '??????',
-            'budget.form.itemName': '??? ????? ????????',
-            'budget.form.category': '??? ?????????',
-            'budget.form.plannedAmount': '?????? ??????',
-            'budget.form.actualAmount': '?????? ??????',
-            'budget.form.description': '?????',
-            'budget.category.ppe': '????? ???????',
-            'budget.category.training': '???????',
-            'budget.category.equipment': '??????? ????????',
-            'budget.status.underBudget': '??? ?????????',
-            'budget.status.overBudget': '????? ?????????',
+            'budget.title': 'ميزانية السلامة',
+            'budget.subtitle': 'إدارة ميزانية السلامة والصحة المهنية',
+            'budget.btn.newItem': 'بند جديد',
+            'budget.btn.approve': 'اعتماد الميزانية',
+            'budget.tabs.plan': 'خطة الميزانية',
+            'budget.tabs.actual': 'المصروفات الفعلية',
+            'budget.tabs.variance': 'تحليل الانحراف',
+            'budget.tabs.reports': 'التقارير',
+            'budget.table.itemName': 'اسم البند',
+            'budget.table.category': 'الفئة',
+            'budget.table.planned': 'المخطط',
+            'budget.table.actual': 'الفعلي',
+            'budget.table.variance': 'الانحراف',
+            'budget.table.status': 'الحالة',
+            'budget.form.itemName': 'اسم البند الميزاني',
+            'budget.form.category': 'فئة الميزانية',
+            'budget.form.plannedAmount': 'المبلغ المخطط',
+            'budget.form.actualAmount': 'المبلغ الفعلي',
+            'budget.form.description': 'الوصف',
+            'budget.category.ppe': 'معدات الوقاية',
+            'budget.category.training': 'التدريب',
+            'budget.category.equipment': 'الأجهزة والمعدات',
+            'budget.status.underBudget': 'ضمن الميزانية',
+            'budget.status.overBudget': 'تجاوز الميزانية',
         },
         en: {
             // Common Buttons
@@ -9349,15 +9349,15 @@ const I18n = {
     },
 
     /**
-     * ?????? ??? ????? ???????
-     * @returns {string} 'ar' ?? 'en'
+     * الحصول على اللغة الحالية
+     * @returns {string} 'ar' أو 'en'
      */
     getCurrentLanguage() {
         return AppState?.currentLanguage || localStorage.getItem('language') || this.defaultLanguage;
     },
 
     /**
-     * ?????? ?? RTL
+     * التحقق من RTL
      * @returns {boolean}
      */
     isRTL() {
@@ -9365,9 +9365,9 @@ const I18n = {
     },
 
     /**
-     * ?????? ??? ?????
-     * @param {string} key - ????? ???????
-     * @param {string} defaultValue - ?????? ??????????
+     * الحصول على ترجمة
+     * @param {string} key - مفتاح الترجمة
+     * @param {string} defaultValue - القيمة الافتراضية
      * @returns {string}
      */
     t(key, defaultValue = null) {
@@ -9377,9 +9377,9 @@ const I18n = {
     },
 
     /**
-     * ????? ?????? ?????
-     * @param {string} lang - ????? ('ar' ?? 'en')
-     * @param {Object} newTranslations - ???? ???????? ???????
+     * إضافة ترجمات جديدة
+     * @param {string} lang - اللغة ('ar' أو 'en')
+     * @param {Object} newTranslations - كائن الترجمات الجديدة
      */
     addTranslations(lang, newTranslations) {
         if (!this.translations[lang]) {
@@ -9389,8 +9389,8 @@ const I18n = {
     },
 
     /**
-     * ?????? ??? ?????? ?????? ????
-     * @param {string} moduleName - ??? ????????
+     * الحصول على ترجمات موديول معين
+     * @param {string} moduleName - اسم الموديول
      * @returns {Object} { t: function, isRTL: boolean, lang: string }
      */
     getModuleTranslations(moduleName) {

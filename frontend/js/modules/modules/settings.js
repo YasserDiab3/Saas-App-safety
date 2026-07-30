@@ -179,12 +179,20 @@ const Settings = {
 
         section.innerHTML = `
             <div class="section-header hse-settings-hero">
-                <div class="hse-settings-hero__badge"><i class="fas fa-shield-alt"></i> HSEHub 360</div>
-                <h1 class="section-title">
-                    <i class="fas fa-cog ml-3"></i>
-                    ${I18n.t('settings.title')}
-                </h1>
-                <p class="section-subtitle">${I18n.t('settings.subtitle')}</p>
+                <div class="hse-settings-hero__brand">
+                    <img class="hse-settings-hero__logo" src="${(window.SaaSBrand && SaaSBrand.getDefaultLogoUrl) ? SaaSBrand.getDefaultLogoUrl() : 'assets/brand/logo.png'}" alt="" width="48" height="48" />
+                    <div class="hse-settings-hero__brand-meta">
+                        <span class="hse-settings-hero__badge"><i class="fas fa-shield-alt" aria-hidden="true"></i> ${(window.SaaSBrand && SaaSBrand.getAppName) ? SaaSBrand.getAppName() : 'HSEHub 360'}</span>
+                        <span class="hse-settings-hero__tagline">Safety · Health · Environment</span>
+                    </div>
+                </div>
+                <div class="hse-settings-hero__copy">
+                    <h1 class="section-title hse-settings-hero__title">
+                        <i class="fas fa-cog" aria-hidden="true"></i>
+                        <span>${I18n.t('settings.title')}</span>
+                    </h1>
+                    <p class="section-subtitle hse-settings-hero__subtitle">${I18n.t('settings.subtitle')}</p>
+                </div>
             </div>
 
             <div class="hse-settings-shell">
