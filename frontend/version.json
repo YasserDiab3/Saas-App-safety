@@ -1,4 +1,4 @@
 {
-  "version": "2.2.172",
-  "message": "fix(build): disambiguate ??/|| in i18n-extra-langs"
+  "version": "2.2.173",
+  "message": "fix(platform): restore device-session reporting (CORS + heartbeat)"
 }

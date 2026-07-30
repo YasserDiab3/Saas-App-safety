@@ -7,18 +7,42 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const APP_URL = (Deno.env.get('APP_URL') ?? 'https://saas-app-safety.vercel.app').replace(/\/$/, '');
-const ALLOWED_ORIGINS = new Set([
-  APP_URL, 'https://saas-app-safety.vercel.app',
-  'http://localhost:3000', 'http://127.0.0.1:3000'
-]);
+
+function appOrigin(): string {
+  try {
+    return new URL(APP_URL).origin;
+  } catch {
+    return 'https://saas-app-safety.vercel.app';
+  }
+}
+
+function isAllowedOrigin(origin: string): boolean {
+  if (!origin) return false;
+  const allowed = new Set([
+    appOrigin(),
+    'https://saas-app-safety.vercel.app',
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://localhost:5173',
+    'http://127.0.0.1:5173'
+  ]);
+  if (allowed.has(origin)) return true;
+  // Vercel preview / production aliases
+  if (/^https:\/\/([a-z0-9-]+\.)*vercel\.app$/i.test(origin)) return true;
+  return false;
+}
 
 function cors(req: Request) {
   const origin = req.headers.get('Origin') ?? '';
-  const allow = ALLOWED_ORIGINS.has(origin) ? origin : APP_URL;
+  const allow = isAllowedOrigin(origin) ? origin : appOrigin();
+  const reqHeaders = req.headers.get('Access-Control-Request-Headers');
   return {
     'Access-Control-Allow-Origin': allow,
-    'Access-Control-Allow-Headers': 'authorization, apikey, content-type',
+    'Access-Control-Allow-Headers':
+      reqHeaders ||
+      'authorization, x-client-info, apikey, content-type, x-supabase-auth, prefer',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Max-Age': '86400',
     'Vary': 'Origin'
   };
 }
@@ -40,7 +64,6 @@ function isPrivateIp(ip: string): boolean {
   if (ip === '127.0.0.1' || ip === '::1') return true;
   if (ip.startsWith('10.')) return true;
   if (ip.startsWith('192.168.')) return true;
-  // RFC1918 172.16.0.0 – 172.31.255.255 only (not all 172.*)
   const m = /^172\.(\d+)\./.exec(ip);
   if (m) {
     const second = Number(m[1]);
@@ -55,7 +78,7 @@ type Geo = {
   city?: string;
   latitude?: number;
   longitude?: number;
-  source: 'ip' | 'none';
+  source: 'ip' | 'gps' | 'none';
 };
 
 async function lookupGeoIp(ip: string): Promise<Geo> {
@@ -85,7 +108,7 @@ Deno.serve(async (req) => {
   if (req.method !== 'POST') return json(req, { error: 'method not allowed' }, 405);
 
   const authHeader = req.headers.get('Authorization') ?? '';
-  const jwt = authHeader.replace('Bearer ', '');
+  const jwt = authHeader.replace(/^Bearer\s+/i, '').trim();
   if (!jwt) return json(req, { error: 'unauthorized' }, 401);
 
   const anon = Deno.env.get('SUPABASE_ANON_KEY')!;
@@ -94,9 +117,9 @@ Deno.serve(async (req) => {
     auth: { persistSession: false }
   });
 
-  const { data: userData } = await userClient.auth.getUser();
+  const { data: userData, error: userErr } = await userClient.auth.getUser();
   const user = userData?.user;
-  if (!user) return json(req, { error: 'unauthorized' }, 401);
+  if (userErr || !user) return json(req, { error: 'unauthorized' }, 401);
 
   let body: Record<string, unknown>;
   try { body = await req.json(); } catch { return json(req, { error: 'invalid json' }, 400); }
@@ -123,8 +146,12 @@ Deno.serve(async (req) => {
 
   let tenantId: string | null = user.app_metadata?.tenant_id || null;
   if (!tenantId) {
-    const { data: me } = await userClient.rpc('api_me');
-    tenantId = me?.tenant_id || null;
+    try {
+      const { data: me } = await userClient.rpc('api_me');
+      tenantId = me?.tenant_id || null;
+    } catch {
+      tenantId = null;
+    }
   }
 
   const sr = createClient(

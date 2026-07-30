@@ -10,6 +10,7 @@
     const LAST_REPORT_KEY = 'hse_device_report_at';
     const MIN_INTERVAL_MS = 5 * 60 * 1000;
     let _inflight = null;
+    let _bound = false;
 
     function uuid() {
         if (global.crypto && crypto.randomUUID) return crypto.randomUUID();
@@ -93,22 +94,61 @@
                     geo_source: 'gps'
                 }),
                 () => resolve(null),
-                { timeout: 4000, maximumAge: 600000, enableHighAccuracy: false }
+                { timeout: 2500, maximumAge: 600000, enableHighAccuracy: false }
             );
         });
+    }
+
+    async function postPayload(session, payload) {
+        const SaaS = global.SaaS;
+        const CFG = global.SAAS_CONFIG || {};
+        const client = SaaS && typeof SaaS.client === 'function' ? SaaS.client() : null;
+
+        // Prefer supabase-js invoke (handles auth headers consistently)
+        if (client && client.functions && typeof client.functions.invoke === 'function') {
+            const { data, error } = await client.functions.invoke('device-session', { body: payload });
+            if (!error) return { ok: true, data };
+            // Fall through to raw fetch for clearer CORS/status diagnostics
+        }
+
+        const url = String(CFG.supabaseUrl || '').replace(/\/$/, '') + '/functions/v1/device-session';
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: 'Bearer ' + session.access_token,
+                apikey: CFG.supabaseAnonKey || ''
+            },
+            body: JSON.stringify(payload)
+        });
+        if (!res.ok) {
+            let detail = '';
+            try { detail = await res.text(); } catch (_e) { /* ignore */ }
+            const err = new Error('device-session HTTP ' + res.status + (detail ? (': ' + detail) : ''));
+            err.status = res.status;
+            throw err;
+        }
+        try {
+            return { ok: true, data: await res.json() };
+        } catch (_e) {
+            return { ok: true, data: null };
+        }
     }
 
     async function report(opts) {
         const SaaS = global.SaaS;
         const CFG = global.SAAS_CONFIG || {};
-        if (!SaaS || !CFG.supabaseUrl || !CFG.supabaseAnonKey) return;
+        if (!SaaS || !CFG.supabaseUrl || !CFG.supabaseAnonKey) return false;
 
-        await SaaS.ready;
+        try {
+            if (SaaS.ready && typeof SaaS.ready.then === 'function') await SaaS.ready;
+        } catch (_e) { /* continue */ }
+
         const session = await SaaS.getSession();
-        if (!session || !session.access_token) return;
+        if (!session || !session.access_token) return false;
 
         if (!opts || !opts.force) {
-            if (!shouldReport()) return;
+            if (!shouldReport()) return false;
         }
 
         if (_inflight) return _inflight;
@@ -129,36 +169,24 @@
 
         _inflight = (async () => {
             try {
-                const gps = await tryGpsCoords();
+                // Don't block heartbeat on GPS permission prompts
+                const gpsPromise = tryGpsCoords();
+                const gps = await Promise.race([
+                    gpsPromise,
+                    new Promise((resolve) => setTimeout(() => resolve(null), 2800))
+                ]);
                 if (gps) {
                     payload.latitude = gps.latitude;
                     payload.longitude = gps.longitude;
                     payload.geo_source = gps.geo_source;
                 }
 
-                const url = CFG.supabaseUrl.replace(/\/$/, '') + '/functions/v1/device-session';
-                const res = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: 'Bearer ' + session.access_token,
-                        apikey: CFG.supabaseAnonKey
-                    },
-                    body: JSON.stringify(payload)
-                });
-                if (res.ok) {
-                    markReported();
-                    return true;
-                }
-                let detail = '';
-                try { detail = await res.text(); } catch (_e) { /* ignore */ }
-                if (typeof Utils !== 'undefined' && Utils.safeWarn) {
-                    Utils.safeWarn('device-session report failed', res.status, detail);
-                }
-                return false;
+                await postPayload(session, payload);
+                markReported();
+                return true;
             } catch (e) {
                 if (typeof Utils !== 'undefined' && Utils.safeWarn) {
-                    Utils.safeWarn('device-session report error', e);
+                    Utils.safeWarn('device-session report error', e && (e.message || e));
                 }
                 return false;
             } finally {
@@ -169,16 +197,29 @@
         return _inflight;
     }
 
+    function schedule(force) {
+        try {
+            report({ force: !!force });
+        } catch (_e) { /* ignore */ }
+    }
+
     function bind() {
-        document.addEventListener('loginSuccess', () => report({ force: true }));
-        global.SaaS.ready.then(() => {
-            report({ force: false });
-        });
-        global.addEventListener('focus', () => report({ force: false }));
+        if (_bound) return;
+        _bound = true;
+        document.addEventListener('loginSuccess', () => schedule(true));
+        document.addEventListener('app:ready', () => schedule(true));
+        if (global.SaaS && global.SaaS.ready && typeof global.SaaS.ready.then === 'function') {
+            global.SaaS.ready.then(() => schedule(false)).catch(() => { /* ignore */ });
+        } else {
+            setTimeout(() => schedule(false), 1500);
+        }
+        global.addEventListener('focus', () => schedule(false));
         document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible') report({ force: false });
+            if (document.visibilityState === 'visible') schedule(false);
         });
-        global.addEventListener('online', () => report({ force: true }));
+        global.addEventListener('online', () => schedule(true));
+        // Periodic heartbeat while the tab stays open
+        setInterval(() => schedule(false), MIN_INTERVAL_MS);
     }
 
     global.SaaSDeviceTrack = { report, deviceId, bind };
