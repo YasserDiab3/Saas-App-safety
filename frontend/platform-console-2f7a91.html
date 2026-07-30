@@ -8,6 +8,18 @@
 <meta name="application-name" content="HSEHub 360">
 <link rel="icon" type="image/png" href="assets/brand/favicon.png">
 <link rel="stylesheet" href="css/saas-pages.css">
+<style>
+  .pf-table--devices .pf-device-id-cell { max-width: 16rem; }
+  .pf-table--devices .pf-device-id-cell .pf-code {
+    display: inline-block; max-width: 13rem; font-size: .7rem; line-height: 1.35;
+    word-break: break-all; white-space: normal; vertical-align: middle;
+  }
+  .pf-copy-id {
+    margin-inline-start: .25rem; border: 0; background: transparent; cursor: pointer;
+    opacity: .65; font-size: .85rem; padding: .1rem .2rem; vertical-align: middle;
+  }
+  .pf-copy-id:hover { opacity: 1; }
+</style>
 </head>
 <body data-i18n-title="pf_doctitle">
   <div id="login" class="saas-shell pf-login-shell" style="display:none">
@@ -1423,7 +1435,10 @@
             <td>${esc(r.full_name || '—')}</td>
             <td>${esc(r.tenant_name || '—')}${r.org_code ? ` <code class="pf-code">${esc(r.org_code)}</code>` : ''}</td>
             <td>${esc(r.device_label || '—')}<br><span class="muted-s" dir="ltr">${esc(r.browser || '')} · ${esc(r.platform || '')}</span></td>
-            <td dir="ltr" style="font-size:.72rem"><code class="pf-code">${esc((r.device_id || '').slice(0, 8))}…</code></td>
+            <td dir="ltr" class="pf-device-id-cell">
+              <code class="pf-code" title="${esc(r.device_id || '')}">${esc(r.device_id || '—')}</code>
+              ${r.device_id ? `<button type="button" class="pf-copy-id" data-copy="${esc(r.device_id)}" title="${esc(T('pf_copy') || 'نسخ')}">⧉</button>` : ''}
+            </td>
             <td dir="ltr">${esc(r.ip_address || '—')}</td>
             <td>${regionCell(r)}</td>
             <td>${geoCell(r.latitude, r.longitude, r.geo_source)}</td>
@@ -1431,6 +1446,20 @@
             <td>${esc(fmtExp(r.last_seen_at) || '—')}</td></tr>`).join('')
         }</tbody></table>`
         : `<p class="muted-s">${esc(T('pf_no_rows'))}</p>`;
+      $('devices-table').querySelectorAll('.pf-copy-id').forEach(btn => {
+        btn.onclick = async () => {
+          const v = btn.getAttribute('data-copy') || '';
+          try {
+            if (navigator.clipboard && navigator.clipboard.writeText) await navigator.clipboard.writeText(v);
+            else {
+              const ta = document.createElement('textarea');
+              ta.value = v; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
+            }
+            btn.textContent = '✓';
+            setTimeout(() => { btn.textContent = '⧉'; }, 1200);
+          } catch (_e) { /* ignore */ }
+        };
+      });
       renderPager('devices-pager', total, st.offset, dir => {
         st.offset = Math.max(0, st.offset + dir * PAGE_SIZE);
         loadDevices();

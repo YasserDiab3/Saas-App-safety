@@ -15,6 +15,8 @@ declare
   v_ip text;
   v_headers jsonb;
   v_geo text;
+  v_lat numeric;
+  v_lng numeric;
 begin
   if v_user is null then
     raise exception 'not authenticated';
@@ -49,9 +51,14 @@ begin
      limit 1;
   end if;
 
+  v_lat := nullif(p_payload->>'latitude', '')::numeric;
+  v_lng := nullif(p_payload->>'longitude', '')::numeric;
   v_geo := lower(coalesce(nullif(trim(p_payload->>'geo_source'), ''), 'none'));
   if v_geo not in ('ip', 'gps', 'none') then
     v_geo := case when v_geo like 'ip%' then 'ip' else 'none' end;
+  end if;
+  if v_lat is null or v_lng is null then
+    if v_geo = 'gps' then v_geo := 'none'; end if;
   end if;
 
   insert into app.user_device_sessions (
@@ -74,8 +81,8 @@ begin
     nullif(trim(p_payload->>'country'), ''),
     nullif(trim(p_payload->>'region'), ''),
     nullif(trim(p_payload->>'city'), ''),
-    nullif(p_payload->>'latitude', '')::numeric,
-    nullif(p_payload->>'longitude', '')::numeric,
+    v_lat,
+    v_lng,
     v_geo,
     left(nullif(trim(p_payload->>'page_url'), ''), 500),
     now()
@@ -96,7 +103,11 @@ begin
     city = coalesce(excluded.city, app.user_device_sessions.city),
     latitude = coalesce(excluded.latitude, app.user_device_sessions.latitude),
     longitude = coalesce(excluded.longitude, app.user_device_sessions.longitude),
-    geo_source = coalesce(excluded.geo_source, app.user_device_sessions.geo_source),
+    geo_source = case
+      when excluded.latitude is not null and excluded.longitude is not null then excluded.geo_source
+      when excluded.geo_source is not null and excluded.geo_source <> 'none' then excluded.geo_source
+      else coalesce(nullif(app.user_device_sessions.geo_source, 'none'), excluded.geo_source)
+    end,
     page_url = coalesce(excluded.page_url, app.user_device_sessions.page_url),
     last_seen_at = now()
   returning id into v_id;

@@ -122,6 +122,53 @@
         return payload;
     }
 
+    async function collectGeo(payload) {
+        // IP geo + GPS in parallel — CSP must allow https://ipwho.is
+        const gpsPromise = tryGpsCoords();
+        const ipPromise = enrichGeoFromIp({ ...payload });
+        const gps = await Promise.race([
+            gpsPromise,
+            new Promise((resolve) => setTimeout(() => resolve(null), 2800))
+        ]);
+        if (gps && gps.latitude != null && gps.longitude != null) {
+            payload.latitude = gps.latitude;
+            payload.longitude = gps.longitude;
+            payload.geo_source = 'gps';
+            // Still merge country/city from IP when available (non-blocking)
+            ipPromise.then((enriched) => {
+                if (!payload.country && enriched.country) payload.country = enriched.country;
+                if (!payload.region && enriched.region) payload.region = enriched.region;
+                if (!payload.city && enriched.city) payload.city = enriched.city;
+                if (!payload.ip_address && enriched.ip_address) payload.ip_address = enriched.ip_address;
+            }).catch(() => { /* ignore */ });
+            // Wait briefly so region fields can land before upsert
+            try {
+                const enriched = await Promise.race([
+                    ipPromise,
+                    new Promise((resolve) => setTimeout(() => resolve(null), 800))
+                ]);
+                if (enriched) {
+                    if (!payload.country && enriched.country) payload.country = enriched.country;
+                    if (!payload.region && enriched.region) payload.region = enriched.region;
+                    if (!payload.city && enriched.city) payload.city = enriched.city;
+                    if (!payload.ip_address && enriched.ip_address) payload.ip_address = enriched.ip_address;
+                }
+            } catch (_e) { /* ignore */ }
+            return payload;
+        }
+        const enriched = await ipPromise;
+        Object.assign(payload, {
+            ip_address: enriched.ip_address || payload.ip_address,
+            country: enriched.country || payload.country,
+            region: enriched.region || payload.region,
+            city: enriched.city || payload.city,
+            latitude: enriched.latitude != null ? enriched.latitude : payload.latitude,
+            longitude: enriched.longitude != null ? enriched.longitude : payload.longitude,
+            geo_source: enriched.geo_source || payload.geo_source || 'none'
+        });
+        return payload;
+    }
+
     async function postPayload(session, payload) {
         const SaaS = global.SaaS;
         const CFG = global.SAAS_CONFIG || {};
@@ -200,20 +247,7 @@
 
         _inflight = (async () => {
             try {
-                // Don't block heartbeat on GPS permission prompts
-                const gpsPromise = tryGpsCoords();
-                const gps = await Promise.race([
-                    gpsPromise,
-                    new Promise((resolve) => setTimeout(() => resolve(null), 2800))
-                ]);
-                if (gps) {
-                    payload.latitude = gps.latitude;
-                    payload.longitude = gps.longitude;
-                    payload.geo_source = gps.geo_source;
-                } else {
-                    await enrichGeoFromIp(payload);
-                }
-
+                await collectGeo(payload);
                 await postPayload(session, payload);
                 markReported();
                 return true;
