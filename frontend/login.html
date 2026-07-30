@@ -553,6 +553,7 @@
       try {
         const r = await SaaS.signInWithSSO({
           domain,
+          providerId: (window.SAAS_CONFIG && SAAS_CONFIG.sso && SAAS_CONFIG.sso.providerId) || undefined,
           redirectTo: location.origin + '/'
         });
         if (r.error) {

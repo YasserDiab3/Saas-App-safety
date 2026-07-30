@@ -69,17 +69,17 @@
     }
 
     function defaultSsoConfig() {
+        const cfg = (global.SAAS_CONFIG && SAAS_CONFIG.sso) || {};
         return {
             id: SSO_ID,
             enabled: false,
             domains: '',
-            providerId: '',
+            providerId: cfg.providerId || '',
             metadataUrl: '',
-            entityId: '',
+            entityId: cfg.entityId || '',
             enforceSso: false,
             scimEnabled: false,
-            scimTokenHint: '',
-            updatedAt: new Date().toISOString()
+            updatedAt: null
         };
     }
 
@@ -136,6 +136,8 @@
 
     function acsUrl() {
         try {
+            const cfg = global.SAAS_CONFIG && SAAS_CONFIG.sso;
+            if (cfg && cfg.acsUrl) return String(cfg.acsUrl);
             const base = (global.SAAS_CONFIG && SAAS_CONFIG.supabaseUrl) || '';
             return String(base).replace(/\/$/, '') + '/auth/v1/sso/saml/acs';
         } catch (_e) {
@@ -143,22 +145,84 @@
         }
     }
 
+    function entityIdUrl() {
+        try {
+            const cfg = global.SAAS_CONFIG && SAAS_CONFIG.sso;
+            if (cfg && cfg.entityId) return String(cfg.entityId);
+            const base = (global.SAAS_CONFIG && SAAS_CONFIG.supabaseUrl) || '';
+            return String(base).replace(/\/$/, '') + '/auth/v1/sso/saml/metadata';
+        } catch (_e) {
+            return 'https://tbkajjarkqhsdiabufjv.supabase.co/auth/v1/sso/saml/metadata';
+        }
+    }
+
+    function resolveOrgCode() {
+        try {
+            const cs = global.AppState && AppState.companySettings;
+            if (cs && (cs.orgCode || cs.org_code)) return String(cs.orgCode || cs.org_code);
+            const t = global.AppState && AppState.tenant;
+            if (t && (t.orgCode || t.org_code)) return String(t.orgCode || t.org_code);
+        } catch (_e) { /* ignore */ }
+        return '';
+    }
+
+    function copyText(text) {
+        const v = String(text || '');
+        if (!v) return;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(v).catch(() => {});
+            return;
+        }
+        try {
+            const ta = document.createElement('textarea');
+            ta.value = v;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            ta.remove();
+        } catch (_e) { /* ignore */ }
+    }
+
     function renderEnterprisePanel(container) {
         if (!container) return;
         const hooks = getWebhookRows();
         const sso = getSsoConfig();
         const domains = String(sso.domains || '').trim();
+        const orgCode = resolveOrgCode();
+        const acs = acsUrl();
+        const entity = entityIdUrl();
+        const platformProvider = (global.SAAS_CONFIG && SAAS_CONFIG.sso && SAAS_CONFIG.sso.providerId) || '';
+        const effectiveProvider = sso.providerId || platformProvider;
+        const checklist = [
+            { ok: true, label: 'خطة Supabase تدعم SAML (تم التحقق عبر sso info)' },
+            { ok: !!domains, label: 'نطاقات البريد محفوظة في إعدادات المستأجر' },
+            { ok: !!effectiveProvider, label: 'Provider ID بعد تسجيل IdP (supabase sso add)' },
+            { ok: !!sso.enabled, label: 'تفعيل SSO لهذا المستأجر' },
+            { ok: !!sso.scimEnabled, label: 'SCIM التجريبي مفعّل لهذا المستأجر (اختياري)' }
+        ];
         container.innerHTML = `
           <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-4 border border-slate-200">
             <h4 class="text-lg font-semibold mb-1"><i class="fas fa-building-lock ml-2 text-teal-700"></i>Enterprise SSO (SAML)</h4>
             <p class="text-sm text-gray-600 mb-3">
-              تسجيل الدخول عبر هوية مؤسستك (Azure AD / Okta / Google Workspace).
-              يجب تسجيل الـ IdP على مشروع Supabase (<code dir="ltr">supabase sso add</code>) ثم حفظ النطاق هنا.
+              دخول عبر هوية المؤسسة (المفضّل: Microsoft Entra ID، أو Okta / Google Workspace).
+              الرمز المؤسسي للتعريف والدعم فقط — <strong>ليس</strong> مسار دخول SSO.
             </p>
+            <div class="mb-3 p-3 rounded border border-slate-200 bg-slate-50 text-sm">
+              <div class="font-semibold mb-1">الرمز المؤسسي (org_code)</div>
+              <code dir="ltr">${escapeAttr(orgCode || '—')}</code>
+              ${orgCode ? `<button type="button" class="btn-secondary text-xs mr-2" id="sso-copy-org">نسخ</button>` : ''}
+              <p class="text-xs text-gray-500 mt-1">يظهر بعد إنشاء المؤسسة؛ لا يستبدل SAML.</p>
+            </div>
+            <div class="mb-3 p-3 rounded border border-teal-100 bg-teal-50/40 text-sm">
+              <div class="font-semibold mb-2">قائمة تفعيل SSO</div>
+              <ul class="space-y-1 text-xs">
+                ${checklist.map((c) => `<li>${c.ok ? '✓' : '○'} ${escapeAttr(c.label)}</li>`).join('')}
+              </ul>
+            </div>
             <div class="grid gap-2 text-sm mb-3">
               <label class="flex items-center gap-2">
                 <input type="checkbox" id="sso-enabled" ${sso.enabled ? 'checked' : ''} />
-                إظهار زر «دخول عبر SSO» في صفحة تسجيل الدخول
+                تفعيل SSO لهذا المستأجر (نطاقات + Provider ID)
               </label>
               <label class="flex items-center gap-2">
                 <input type="checkbox" id="sso-enforce" ${sso.enforceSso ? 'checked' : ''} />
@@ -166,13 +230,20 @@
               </label>
               <label class="block font-semibold">نطاقات البريد (مفصولة بفاصلة)</label>
               <input id="sso-domains" class="form-input" dir="ltr" placeholder="company.com, corp.example" value="${escapeAttr(domains)}" />
-              <label class="block font-semibold">Provider ID (من Supabase بعد تسجيل IdP)</label>
-              <input id="sso-provider" class="form-input" dir="ltr" placeholder="uuid من supabase sso list" value="${escapeAttr(sso.providerId || '')}" />
-              <label class="block font-semibold">Metadata URL (مرجع للإدارة)</label>
+              <label class="block font-semibold">Provider ID (من <code dir="ltr">supabase sso list</code>)</label>
+              <input id="sso-provider" class="form-input" dir="ltr" placeholder="uuid من supabase sso list" value="${escapeAttr(sso.providerId || platformProvider || '')}" />
+              <label class="block font-semibold">Metadata URL (مرجع Entra/Okta)</label>
               <input id="sso-metadata" class="form-input" dir="ltr" placeholder="https://login.microsoftonline.com/.../federationmetadata/..." value="${escapeAttr(sso.metadataUrl || '')}" />
-              <label class="block font-semibold">Entity ID / Issuer (اختياري)</label>
-              <input id="sso-entity" class="form-input" dir="ltr" value="${escapeAttr(sso.entityId || '')}" />
-              <p class="text-xs text-gray-500" dir="ltr">ACS URL (للـ IdP): ${escapeAttr(acsUrl())}</p>
+              <label class="block font-semibold">Entity ID (SP — للصق في IdP)</label>
+              <div class="flex flex-wrap gap-2 items-center">
+                <input id="sso-entity" class="form-input flex-1" dir="ltr" value="${escapeAttr(sso.entityId || entity)}" />
+                <button type="button" class="btn-secondary text-xs" id="sso-copy-entity">نسخ</button>
+              </div>
+              <label class="block font-semibold">ACS URL (للـ IdP)</label>
+              <div class="flex flex-wrap gap-2 items-center">
+                <input class="form-input flex-1" dir="ltr" readonly value="${escapeAttr(acs)}" id="sso-acs" />
+                <button type="button" class="btn-secondary text-xs" id="sso-copy-acs">نسخ</button>
+              </div>
               <button type="button" id="sso-save" class="btn-primary mt-1"><i class="fas fa-save ml-2"></i>حفظ إعدادات SSO</button>
             </div>
             <hr class="my-4"/>
@@ -184,7 +255,7 @@
             </label>
             <p class="text-xs text-gray-500 mb-2" dir="ltr">Base URL: ${escapeAttr(scimBaseUrl())}</p>
             <p class="text-xs text-gray-500 mb-2">Bearer token: يُضبط كسر Edge <code>SCIM_BEARER_TOKEN</code> على المنصة (لا يُعرض هنا).</p>
-            <p class="text-xs text-amber-700 mb-3">الدليل الكامل: docs/SSO_SAML_SCIM.md</p>
+            <p class="text-xs text-amber-700 mb-3">الدليل: docs/SSO_SAML_SCIM.md · التفعيل: <code dir="ltr">node supabase/scripts/sso-activate.mjs</code></p>
             <hr class="my-3"/>
             <h5 class="font-semibold mb-2">Webhooks صادرة + Power BI / ERP</h5>
             <p class="text-xs text-gray-500 mb-2">كتالوج الأحداث: ${WEBHOOK_EVENTS.map((e) => `<code>${e.key}</code>`).join(' · ')}</p>
@@ -206,6 +277,12 @@
             </ul>
           </div>`;
 
+        container.querySelector('#sso-copy-org')?.addEventListener('click', () => copyText(orgCode));
+        container.querySelector('#sso-copy-acs')?.addEventListener('click', () => copyText(acs));
+        container.querySelector('#sso-copy-entity')?.addEventListener('click', () => {
+            copyText(container.querySelector('#sso-entity')?.value || entity);
+        });
+
         container.querySelector('#sso-save')?.addEventListener('click', async () => {
             try {
                 await saveSsoConfig({
@@ -220,6 +297,7 @@
                 if (typeof Notification !== 'undefined' && Notification.success) {
                     Notification.success('تم حفظ إعدادات SSO/SCIM');
                 }
+                renderEnterprisePanel(container);
             } catch (e) {
                 if (typeof Notification !== 'undefined' && Notification.error) Notification.error(e.message || String(e));
             }
@@ -261,6 +339,7 @@
         saveSsoConfig,
         domainFromEmail,
         acsUrl,
+        entityIdUrl,
         scimBaseUrl,
         biExportUrl,
         WEBHOOK_EVENTS,

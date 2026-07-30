@@ -1,0 +1,18 @@
+{
+  "checkedAt": "2026-07-30T10:52:51.899Z",
+  "projectRef": "tbkajjarkqhsdiabufjv",
+  "preferredIdp": "microsoft_entra_id",
+  "acsUrl": "https://tbkajjarkqhsdiabufjv.supabase.co/auth/v1/sso/saml/acs",
+  "entityId": "https://tbkajjarkqhsdiabufjv.supabase.co/auth/v1/sso/saml/metadata",
+  "relayState": "https://tbkajjarkqhsdiabufjv.supabase.co",
+  "samlEnabledOnAuth": false,
+  "planAllowsSaml": false,
+  "enableAttempt": {
+    "status": 402,
+    "message": "SAML 2.0 support can only be enabled on Pro Plans and up."
+  },
+  "providerCount": 0,
+  "providers": [],
+  "blocker": "Upgrade Supabase project to Pro+ then re-run this script to enable SAML and register IdP",
+  "registerCommand": "SSO_METADATA_URL=... SSO_DOMAINS=company.com node supabase/scripts/sso-activate.mjs --register"
+}

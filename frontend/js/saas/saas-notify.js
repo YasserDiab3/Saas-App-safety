@@ -147,7 +147,7 @@
               <label><input type="checkbox" id="np-backup" ${ev.backup_reminder !== false ? 'checked' : ''}/> تذكير النسخة المشفّرة الشهرية</label>
             </div>
             <button type="button" id="np-save" class="btn-primary mt-3"><i class="fas fa-save ml-2"></i>حفظ التفضيلات</button>
-            <p class="text-xs text-gray-500 mt-2">SSO / IdP: قريباً (عدادات أمان مؤسسية معطّلة حالياً).</p>
+            <p class="text-xs text-gray-500 mt-2">SSO / IdP: جاهز في الإعدادات → Enterprise. سجّل IdP عبر <code dir="ltr">node supabase/scripts/sso-activate.mjs --register</code> ثم احفظ النطاق وProvider ID.</p>
           </div>`;
         const save = container.querySelector('#np-save');
         if (save) {

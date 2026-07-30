@@ -39,6 +39,7 @@ supabase/scripts/.smoke-credentials.json
 supabase/scripts/.tenant-isolation-credentials.json
 supabase/scripts/.platform-admin-credentials.json
 supabase/scripts/.cron-secret.local
+supabase/scripts/.scim-bearer.local
 supabase/scripts/.notify-secrets.env.tmp
 supabase/scripts/.schedule-cron.sql.tmp
 supabase/scripts/_mask_env_check.mjs

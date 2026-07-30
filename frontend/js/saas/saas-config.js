@@ -30,5 +30,19 @@ window.SAAS_CONFIG = {
     salesEmailComposeUrl: 'https://outlook.office.com/mail/deeplink/compose?to=support%40qhsseconsultant.onmicrosoft.com',
     salesWhatsApp: '+201117755096',
     companyWebsiteUrl: 'https://qhse-consultancy-global.vercel.app/',
-    companyWebsiteName: 'QHSE Consultancy Global'
+    companyWebsiteName: 'QHSE Consultancy Global',
+
+    /**
+     * Enterprise SSO (SAML) — SP endpoints from `supabase sso info`.
+     * Register IdP: node supabase/scripts/sso-activate.mjs --register
+     * Optional providerId: after `supabase sso list`, paste UUID here or in tenant Settings.
+     */
+    sso: {
+        enabled: true,
+        preferredIdp: 'microsoft_entra_id',
+        acsUrl: 'https://tbkajjarkqhsdiabufjv.supabase.co/auth/v1/sso/saml/acs',
+        entityId: 'https://tbkajjarkqhsdiabufjv.supabase.co/auth/v1/sso/saml/metadata',
+        providerId: '',
+        scimBaseUrl: 'https://tbkajjarkqhsdiabufjv.supabase.co/functions/v1/scim-v2'
+    }
 };
