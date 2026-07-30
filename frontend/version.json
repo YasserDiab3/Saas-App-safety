@@ -1,4 +1,4 @@
 {
-  "version": "2.2.173",
-  "message": "fix(platform): restore device-session reporting (CORS + heartbeat)"
+  "version": "2.2.175",
+  "message": "fix(platform): restore device-session heartbeat and CORS"
 }

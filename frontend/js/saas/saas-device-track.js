@@ -1,9 +1,8 @@
 /**
- * saas-device-track.js — report device/session metadata after login (IP/geo via edge function).
- * Browsers cannot expose MAC addresses; we use a stable device_id in localStorage instead.
- *
- * This telemetry is security-essential for platform admins (session/device audit)
- * and reports for authenticated users regardless of marketing/functional cookie prefs.
+ * saas-device-track.js — report device/session metadata after login.
+ * Primary path: PostgREST RPC api_report_my_device_session (no Edge CORS).
+ * Fallback: Edge function device-session. Optional geo via GPS / ipwho.is.
+ * Browsers cannot expose MAC addresses; we use a stable device_id in localStorage.
  */
 (function (global) {
     const STORAGE_KEY = 'hse_device_id';
@@ -99,16 +98,48 @@
         });
     }
 
+    async function enrichGeoFromIp(payload) {
+        // Optional best-effort geo (browser CORS). Never block heartbeat on failure.
+        try {
+            const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+            const t = setTimeout(() => { try { ctrl && ctrl.abort(); } catch (_e) { /* ignore */ } }, 2200);
+            const res = await fetch('https://ipwho.is/', {
+                method: 'GET',
+                signal: ctrl ? ctrl.signal : undefined
+            });
+            clearTimeout(t);
+            if (!res.ok) return payload;
+            const j = await res.json();
+            if (!j || j.success === false) return payload;
+            if (j.ip) payload.ip_address = String(j.ip);
+            if (j.country) payload.country = String(j.country);
+            if (j.region) payload.region = String(j.region);
+            if (j.city) payload.city = String(j.city);
+            if (j.latitude != null) payload.latitude = Number(j.latitude);
+            if (j.longitude != null) payload.longitude = Number(j.longitude);
+            if (!payload.geo_source) payload.geo_source = 'ipwho';
+        } catch (_e) { /* ignore */ }
+        return payload;
+    }
+
     async function postPayload(session, payload) {
         const SaaS = global.SaaS;
         const CFG = global.SAAS_CONFIG || {};
         const client = SaaS && typeof SaaS.client === 'function' ? SaaS.client() : null;
 
-        // Prefer supabase-js invoke (handles auth headers consistently)
+        // Primary path: PostgREST RPC (no Edge CORS). Auth.uid() binds the row.
+        if (client && typeof client.rpc === 'function') {
+            const { data, error } = await client.rpc('api_report_my_device_session', { p_payload: payload });
+            if (!error) return { ok: true, data };
+            if (typeof Utils !== 'undefined' && Utils.safeWarn) {
+                Utils.safeWarn('device-session RPC failed, trying Edge', error.message || error);
+            }
+        }
+
+        // Fallback: Edge function (may fail in some browsers due to CORS/gateway)
         if (client && client.functions && typeof client.functions.invoke === 'function') {
             const { data, error } = await client.functions.invoke('device-session', { body: payload });
             if (!error) return { ok: true, data };
-            // Fall through to raw fetch for clearer CORS/status diagnostics
         }
 
         const url = String(CFG.supabaseUrl || '').replace(/\/$/, '') + '/functions/v1/device-session';
@@ -179,6 +210,8 @@
                     payload.latitude = gps.latitude;
                     payload.longitude = gps.longitude;
                     payload.geo_source = gps.geo_source;
+                } else {
+                    await enrichGeoFromIp(payload);
                 }
 
                 await postPayload(session, payload);
