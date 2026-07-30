@@ -90,18 +90,18 @@
                     const current = langHint || global.AppState?.currentLanguage || localStorage.getItem('language') || 'ar';
                     if (current === 'fr' || current === 'tr') {
                         const fb = arg3 !== undefined ? arg3 : (langHint ? '' : (arg2 != null && arg2 !== 'fr' && arg2 !== 'tr' ? String(arg2) : ''));
-                        return core.translations[current]?.[key]
+                        return (core.translations[current]?.[key]
                             ?? core.translations.en?.[key]
                             ?? core.translations.ar?.[key]
-                            ?? fb
+                            ?? fb)
                             || key;
                     }
                 }
                 if (arg3 !== undefined && (arg2 === 'fr' || arg2 === 'tr')) {
-                    return core.translations[arg2]?.[key] ?? core.translations.en?.[key] ?? core.translations.ar?.[key] ?? String(arg3) || key;
+                    return (core.translations[arg2]?.[key] ?? core.translations.en?.[key] ?? core.translations.ar?.[key] ?? String(arg3)) || key;
                 }
                 if (arg2 === 'fr' || arg2 === 'tr') {
-                    return core.translations[arg2]?.[key] ?? core.translations.en?.[key] ?? core.translations.ar?.[key] ?? '' || key;
+                    return (core.translations[arg2]?.[key] ?? core.translations.en?.[key] ?? core.translations.ar?.[key] ?? '') || key;
                 }
                 return prev(key, arg2, arg3);
             };
